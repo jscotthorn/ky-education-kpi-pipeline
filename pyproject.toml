@@ -1,0 +1,25 @@
+[project]
+name = "equity-scorecard"
+version = "0.1.0"
+description = "ETL pipeline to build KPI master file for FCPS Equity Scorecard"
+requires-python = ">=3.11"
+authors = [{name="Equity Council ETL"}]
+
+dependencies = [
+    "pandas",
+    "pyarrow",
+    "pydantic",
+    "ruamel-yaml",
+    "pytest"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["etl*", "kpi*"]
+exclude = ["data*", "notes*", "config*", "tests*"]
+
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+line-length = 88

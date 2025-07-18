@@ -1,0 +1,47 @@
+sources:
+  fcps_test_scores:
+    rename:
+      "Student ID": "student_id"
+      "Test Score": "score"
+      "Subject": "subject"
+      "Grade Level": "grade"
+    dtype:
+      student_id: "str"
+      score: "float64"
+      grade: "int64"
+    derive:
+      school_year: "2023-24"
+      
+  enrollment:
+    rename:
+      "Student ID": "student_id"
+      "School Name": "school"
+      "Grade": "grade"
+      "Ethnicity": "ethnicity"
+    dtype:
+      student_id: "str"
+      grade: "int64"
+    derive:
+      school_year: "2023-24"
+
+  graduation_rates:
+    rename: {}
+      # Additional custom field mappings if needed
+      # Most normalization handled automatically in ETL module
+    dtype:
+      county_number: "str"
+      district_number: "str"
+      school_number: "str"
+      school_year: "str"
+      graduation_rate_4_year: "float64"
+      graduation_rate_5_year: "float64"
+      grads_4_year_cohort: "int64"
+      students_4_year_cohort: "int64"
+      grads_5_year_cohort: "int64"
+      students_5_year_cohort: "int64"
+    derive:
+      processing_date: "2025-07-18"
+      data_quality_flag: "reviewed"
+      
+# Example configuration for field mappings and transformations
+# Add new sources here as they are onboarded
