@@ -1,6 +1,6 @@
 # Kentucky Education Data Pipeline
 
-Transform heterogeneous CSV exports from the Kentucky Department of Education (KDE) into standardized KPI format for multi-year educational performance reporting. Handles achievement, discipline, enrollment, readiness, and other educational metrics across districts and schools.
+Transform heterogeneous CSV exports from the Kentucky Department of Education (KDE) into standardized KPI format for multi-year educational performance reporting. Handles achievement, discipline, enrollment, readiness, and other educational metrics across districts and schools. This project has been developed with the use of [Claude Code](https://www.anthropic.com/claude-code).
 
 **📂 Repository**: https://github.com/jscotthorn/ky-education-kpi-pipeline
 
@@ -217,14 +217,28 @@ See [CLAUDE.md](./CLAUDE.md) for AI assistant usage patterns and workflows.
 - **Data Quality Fixes**: Corrected 2024 kindergarten readiness interpretation
 - **Comprehensive Testing**: Full test coverage with validation checks
 - **Documentation**: Detailed journal entries tracking all changes
+- **S3-based data hosting** for public access
 
 ## 🎯 Future Roadmap
 
-- **Multi-year trend analysis** in dashboard
 - **Additional data sources** (test scores, teacher quality, facilities)
-- **Automated data validation** and alerting
-- **Advanced statistical analysis** and gap reporting
-- **API endpoints** for external system integration
-- **S3-based data hosting** for public access
 
 For detailed technical implementation and AI usage guidelines, see [CLAUDE.md](./CLAUDE.md).
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+Copyright 2025 Kentucky Open Government Coalition
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

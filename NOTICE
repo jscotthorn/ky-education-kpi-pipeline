@@ -1,0 +1,14 @@
+Kentucky Education Data Pipeline
+Copyright 2025 Kentucky Open Government Coalition
+
+This product includes software developed by the Kentucky Open Government Coalition.
+
+This project has been developed with the assistance of Claude Code (https://www.anthropic.com/claude-code).
+
+This software depends on the following third-party libraries:
+- pandas: Copyright (c) 2008-2011, AQR Capital Management, LLC, Lambda Foundry, Inc. and PyData Development Team
+- numpy: Copyright (c) 2005-2023, NumPy Developers
+- pyyaml: Copyright (c) 2017-2021 Ingy döt Net
+- pytest: Copyright (c) 2004-2023 Holger Krekel and others
+
+For full license terms of dependencies, see their respective license files.
