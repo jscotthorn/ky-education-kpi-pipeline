@@ -1,5 +1,0 @@
-pandas
-pyarrow
-pydantic
-ruamel-yaml
-pytest

@@ -23,14 +23,14 @@ def generate_heatmap_data(df: pd.DataFrame, metric: str, year: str = None) -> Di
     Returns:
         Dictionary with heatmap data structure
     """
-    # Filter to rate metrics only and non-suppressed data
-    rate_data = df[
+    # Filter to specified metric and non-suppressed data
+    metric_data = df[
         (df['metric'] == metric) & 
         (df['suppressed'] == 'N') &
         (df['value'].notna())
     ].copy()
     
-    if rate_data.empty:
+    if metric_data.empty:
         return {
             'metric': metric,
             'year': year,
@@ -42,17 +42,17 @@ def generate_heatmap_data(df: pd.DataFrame, metric: str, year: str = None) -> Di
     
     # Filter by year if specified, otherwise use latest year
     if year:
-        rate_data = rate_data[rate_data['year'].astype(str) == str(year)]
+        metric_data = metric_data[metric_data['year'].astype(str) == str(year)]
     else:
-        latest_year = rate_data['year'].max()
-        rate_data = rate_data[rate_data['year'] == latest_year]
+        latest_year = metric_data['year'].max()
+        metric_data = metric_data[metric_data['year'] == latest_year]
         year = str(latest_year)
     
     # Convert value to numeric
-    rate_data['value'] = pd.to_numeric(rate_data['value'], errors='coerce')
+    metric_data['value'] = pd.to_numeric(metric_data['value'], errors='coerce')
     
     # Create pivot table: schools vs demographics
-    pivot_df = rate_data.pivot_table(
+    pivot_df = metric_data.pivot_table(
         index='school_name',
         columns='student_group', 
         values='value',
@@ -118,8 +118,15 @@ def process_kpi_file(file_path: Path, fayette_only: bool = True) -> Dict[str, An
         if fayette_only:
             df = df[df['district'].str.contains('Fayette', case=False, na=False)]
         
-        # Get rate metrics only
+        # Get rate and selected count metrics
         rate_metrics = df[df['metric'].str.contains('_rate', na=False)]['metric'].unique().tolist()
+        
+        # Add specific suspension count metrics for visualization
+        suspension_metrics = df[df['metric'].str.contains('out_of_school_suspension.*_count', na=False, regex=True)]['metric'].unique().tolist()
+        
+        # Include total suspension counts for dashboard
+        total_suspension_metrics = [m for m in suspension_metrics if 'total_count' in m]
+        rate_metrics.extend(total_suspension_metrics)
         
         # Get available years
         years = sorted(df['year'].astype(str).unique().tolist())
@@ -194,7 +201,13 @@ def generate_dashboard_json(processed_dir: Path, output_dir: Path, fayette_only:
             with open(metric_path, 'w') as f:
                 json.dump(heatmap_data, f, indent=2)
             
-            print(f"    Saved {metric_filename}: {heatmap_data['stats']['data_points']} data points")
+            # Handle both successful and error responses
+            if 'error' in heatmap_data:
+                print(f"    Saved {metric_filename}: No data ({heatmap_data['error']})")
+            elif 'stats' in heatmap_data:
+                print(f"    Saved {metric_filename}: {heatmap_data['stats']['data_points']} data points")
+            else:
+                print(f"    Saved {metric_filename}: Unknown status")
     
     # Save dashboard configuration
     config_path = output_dir / "dashboard_config.json"

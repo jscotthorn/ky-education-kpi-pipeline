@@ -1,6 +1,8 @@
-# Equity Scorecard ETL
+# Kentucky Education Data Pipeline
 
-Transform heterogeneous CSV exports from Fayette County Public Schools (FCPS) and other sources into a standardized KPI format for equity dashboards tracking achievement, discipline, enrollment, staffing, and other educational metrics.
+Transform heterogeneous CSV exports from the Kentucky Department of Education (KDE) into standardized KPI format for multi-year educational performance reporting. Handles achievement, discipline, enrollment, readiness, and other educational metrics across districts and schools.
+
+**📂 Repository**: https://github.com/jscotthorn/ky-education-kpi-pipeline
 
 ## 🚀 Quick Start
 
@@ -42,16 +44,18 @@ python3 html/serve_dashboard.py
 ## 📁 Project Structure
 
 ```
-equity-etl/
+ky-education-data-pipeline/
 ├── data/
 │   ├── raw/                    # Source CSV files (never edited)
 │   │   ├── graduation_rates/   # One folder per data source
 │   │   ├── kindergarten_readiness/
-│   │   └── fcps_test_scores/
-│   └── processed/              # Standardized KPI outputs
+│   │   └── chronic_absenteeism/
+│   ├── processed/              # Standardized KPI outputs
+│   └── kpi/                    # Combined master KPI file
 ├── etl/                        # ETL transformation modules
 │   ├── graduation_rates.py
 │   ├── kindergarten_readiness.py
+│   ├── chronic_absenteeism.py
 │   └── demographic_mapper.py   # Standardizes student groups
 ├── html/                       # Dashboard and visualization
 │   ├── equity_dashboard.html
@@ -61,7 +65,7 @@ equity-etl/
 │   └── demographic_mappings.yaml
 ├── tests/                      # Test suite
 ├── notes/                      # Documentation and analysis
-└── kpi/                        # Future: consolidated output
+└── etl_runner.py               # Main orchestration script
 ```
 
 ## 🎯 Data Output Format
@@ -70,7 +74,7 @@ All ETL modules produce standardized **long format** KPI data:
 
 | Column | Description | Example |
 |--------|-------------|---------|
-| `district` | District name | `"Fayette County"` |
+| `district` | District name | `"Jefferson County"` |
 | `school_id` | Unique school identifier | `"210090000123"` |
 | `school_name` | School display name | `"Bryan Station High School"` |
 | `year` | Academic year (4-digit) | `2024` |
@@ -108,11 +112,23 @@ python3 -m pytest tests/            # Full test suite
 python3 -m pytest tests/test_graduation_rates.py -v  # Specific module
 python3 -m pytest --tb=short        # Concise error output
 
-# Dashboard generation
+# Dashboard generation  
 python3 html/generate_dashboard_data.py              # Default: Fayette County only
 python3 html/generate_dashboard_data.py --all-districts  # Include all districts
 python3 html/serve_dashboard.py                      # Start web server
 ```
+
+## 🌐 Data Access
+
+### Online Data Browser
+Browse and download data files at: **https://education.kyopengov.org/data/**
+
+The data directory contains:
+- **📊 KPI Master Dataset** (`/kpi/`) - Combined dataset with all metrics in standardized format (175MB)
+- **⚙️ Processed Files** (`/processed/`) - Individual metric files ready for analysis with audit logs
+- **📁 Raw Data** (`/raw/`) - Original unmodified files from Kentucky Department of Education
+
+Each directory includes detailed descriptions, file metadata, and direct download links. All data follows the standardized 10-column KPI format with demographic breakdowns and suppression handling.
 
 ## 📊 Available Data Sources
 
@@ -120,18 +136,44 @@ python3 html/serve_dashboard.py                      # Start web server
 - **Graduation Rates** (`graduation_rates.csv`)
   - 4-year and 5-year graduation rates, counts, and totals
   - Years: 2021-2024
-  - Demographic breakdowns with suppression handling
+  - All districts with demographic breakdowns
 
 - **Kindergarten Readiness** (`kindergarten_readiness.csv`)
-  - Readiness rates (2024: rate only, 2021: includes counts/totals)
-  - Years: 2021-2024
-  - Prior setting and demographic analysis
+  - Kindergarten readiness screening rates and counts
+  - Years: 2021-2024  
+  - All districts with demographic breakdowns
+
+- **Chronic Absenteeism** (`chronic_absenteeism.csv`)
+  - Chronic absenteeism rates, counts, and enrollment
+  - Years: 2023-2024
+  - All districts with demographic breakdowns
+
+- **English Learner Progress** (`english_learner_progress.csv`)
+  - Proficiency rates across elementary, middle, and high school
+  - Years: 2022-2024
+  - All districts with demographic breakdowns
+
+- **Postsecondary Readiness** (`postsecondary_readiness.csv`)
+  - College and career readiness rates
+  - Years: 2022-2024
+  - All districts with demographic breakdowns
+
+- **Postsecondary Enrollment** (`postsecondary_enrollment.csv`)
+  - Post-graduation enrollment in Kentucky institutions
+  - Years: 2020-2024
+  - All districts with demographic breakdowns
+
+- **Out-of-School Suspension** (`out_of_school_suspension.csv`)
+  - Discipline action counts by type
+  - Years: 2020-2023
+  - All districts with demographic breakdowns
 
 ### Dashboard Features
-- **Interactive heatmaps** showing schools vs demographics
+- **Interactive heatmaps** showing schools vs demographics  
 - **Performance-based ranking** (highest performing schools at top)
 - **Suppression transparency** (gaps for privacy-protected data)
-- **Real-time statistics** and data coverage metrics
+- **Multi-district filtering** and data coverage metrics
+- **Time series visualization** across available years
 
 ## 🛡️ Data Quality & Privacy
 
@@ -179,9 +221,10 @@ See [CLAUDE.md](./CLAUDE.md) for AI assistant usage patterns and workflows.
 ## 🎯 Future Roadmap
 
 - **Multi-year trend analysis** in dashboard
-- **Additional data sources** (discipline, enrollment, test scores)
+- **Additional data sources** (test scores, teacher quality, facilities)
 - **Automated data validation** and alerting
-- **Advanced equity gap analysis** and reporting
-- **Integration with existing FCPS systems**
+- **Advanced statistical analysis** and gap reporting
+- **API endpoints** for external system integration
+- **S3-based data hosting** for public access
 
 For detailed technical implementation and AI usage guidelines, see [CLAUDE.md](./CLAUDE.md).

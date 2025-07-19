@@ -1,17 +1,4 @@
 sources:
-  fcps_test_scores:
-    rename:
-      "Student ID": "student_id"
-      "Test Score": "score"
-      "Subject": "subject"
-      "Grade Level": "grade"
-    dtype:
-      student_id: "str"
-      score: "float64"
-      grade: "int64"
-    derive:
-      school_year: "2023-24"
-      
   enrollment:
     rename:
       "Student ID": "student_id"

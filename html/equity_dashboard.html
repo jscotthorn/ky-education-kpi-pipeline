@@ -235,13 +235,21 @@
                 'graduation_rate_5_year': '5-Year Graduation Rate',
                 'kindergarten_readiness_rate': 'Kindergarten Readiness Rate',
                 'postsecondary_readiness_rate': 'Postsecondary Readiness Rate',
-                'postsecondary_readiness_rate_with_bonus': 'Postsecondary Readiness Rate (With Bonus)'
+                'postsecondary_readiness_rate_with_bonus': 'Postsecondary Readiness Rate (With Bonus)',
+                'postsecondary_enrollment_public_rate': 'Public College Enrollment Rate',
+                'postsecondary_enrollment_private_rate': 'Private College Enrollment Rate',
+                'postsecondary_enrollment_total_rate': 'Total College Enrollment Rate',
+                'out_of_school_suspension_single_total_count': 'Single Out-of-School Suspensions (Total)',
+                'out_of_school_suspension_multiple_total_count': 'Multiple Out-of-School Suspensions (Total)',
+                'out_of_school_suspension_total_count': 'Out-of-School Suspensions (All Types)'
             };
             
             const sourceNames = {
                 'graduation_rates': 'Graduation',
                 'kindergarten_readiness': 'Kindergarten Readiness',
-                'postsecondary_readiness': 'Postsecondary Readiness'
+                'postsecondary_readiness': 'Postsecondary Readiness',
+                'postsecondary_enrollment': 'Postsecondary Enrollment',
+                'out_of_school_suspension': 'Discipline'
             };
             
             const metricName = metricNames[metric] || metric;
@@ -286,6 +294,10 @@
             }
             
             const stats = data.stats;
+            const isCountMetric = data.metric && data.metric.includes('_count');
+            const unit = isCountMetric ? '' : '%';
+            const averageLabel = isCountMetric ? 'Average Count' : 'Average Rate';
+            
             statsGrid.innerHTML = `
                 <div class="stat-item">
                     <div class="stat-value">${stats.total_schools}</div>
@@ -300,15 +312,15 @@
                     <div class="stat-label">Data Points</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">${stats.avg_value ? stats.avg_value.toFixed(1) + '%' : 'N/A'}</div>
-                    <div class="stat-label">Average Rate</div>
+                    <div class="stat-value">${stats.avg_value ? stats.avg_value.toFixed(1) + unit : 'N/A'}</div>
+                    <div class="stat-label">${averageLabel}</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">${stats.min_value ? stats.min_value.toFixed(1) + '%' : 'N/A'}</div>
+                    <div class="stat-value">${stats.min_value ? stats.min_value.toFixed(1) + unit : 'N/A'}</div>
                     <div class="stat-label">Minimum</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">${stats.max_value ? stats.max_value.toFixed(1) + '%' : 'N/A'}</div>
+                    <div class="stat-value">${stats.max_value ? stats.max_value.toFixed(1) + unit : 'N/A'}</div>
                     <div class="stat-label">Maximum</div>
                 </div>
             `;
@@ -322,13 +334,24 @@
                 return;
             }
             
+            // Determine if this is a count metric or rate metric
+            const isCountMetric = data.metric && data.metric.includes('_count');
+            
             // Prepare data for Plotly heatmap
             const trace = {
                 z: data.values,
                 x: data.demographics,
                 y: data.schools,
                 type: 'heatmap',
-                colorscale: [
+                colorscale: isCountMetric ? [
+                    [0, '#f7fbff'],
+                    [0.1, '#deebf7'],
+                    [0.3, '#c6dbef'],
+                    [0.5, '#9ecae1'],
+                    [0.7, '#6baed6'],
+                    [0.9, '#3182bd'],
+                    [1, '#08519c']
+                ] : [
                     [0, '#fff5f0'],
                     [0.1, '#fee0d2'],
                     [0.3, '#fcbba1'],
@@ -340,12 +363,12 @@
                 hoverongaps: false,
                 hovertemplate: '<b>%{y}</b><br>' +
                               '<b>%{x}</b><br>' +
-                              'Rate: %{z}%<br>' +
+                              (isCountMetric ? 'Count: %{z}<br>' : 'Rate: %{z}%<br>') +
                               '<extra></extra>',
-                zmin: 0,
-                zmax: 100,
+                zmin: isCountMetric ? undefined : 0,
+                zmax: isCountMetric ? undefined : 100,
                 colorbar: {
-                    title: 'Rate (%)',
+                    title: isCountMetric ? 'Count' : 'Rate (%)',
                     titleside: 'right'
                 }
             };

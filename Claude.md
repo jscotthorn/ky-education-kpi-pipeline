@@ -1,13 +1,13 @@
 # Claude.md - AI Assistant Usage Guide
 
 ## Purpose
-This file documents AI usage patterns, instructions, and technical requirements specifically for AI assistants working on the Equity Scorecard ETL project. **This is not user documentation** - see README.md for user instructions.
+This file documents AI usage patterns, instructions, and technical requirements specifically for AI assistants working on the Kentucky Education KPI Pipeline project. **This is not user documentation** - see README.md for user instructions.
 
 ## Claude Code Integration
 This project is designed to work with Claude Code for:
-- Generating new ETL modules when new data sources are discovered
-- Analyzing raw data dumps to create appropriate transformations
-- Debugging and refining ETL logic
+- Generating new ETL modules when new Kentucky Department of Education data sources are discovered
+- Analyzing raw CSV data dumps to create appropriate transformations
+- Debugging and refining ETL logic for educational metrics
 - Creating tests for new modules
 - Maintaining data quality and documentation
 
@@ -22,7 +22,7 @@ district,school_id,school_name,year,student_group,metric,value,suppressed,source
 
 | Column | AI Validation Rules |
 |--------|-------------------|
-| `district` | String, typically "Fayette County" |
+| `district` | String, Kentucky district name (e.g., "Jefferson County") |
 | `school_id` | String, unique identifier (NCES/state ID) |
 | `school_name` | String, human-readable school name |
 | `year` | Integer, 4-digit academic year (e.g., 2024) |

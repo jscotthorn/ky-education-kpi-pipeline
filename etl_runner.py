@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 """
-ETL Runner - Orchestrator CLI for the Equity Scorecard ETL Pipeline
+ETL Runner - Kentucky Education Data Pipeline Orchestrator
+
+Processes Kentucky Department of Education CSV exports into standardized
+KPI format for multi-year educational performance reporting.
 """
 import sys
 import argparse
 from pathlib import Path
 from ruamel.yaml import YAML
 import importlib.util
+import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def load_config(config_path: Path) -> dict:
@@ -14,6 +21,93 @@ def load_config(config_path: Path) -> dict:
     yaml = YAML(typ="safe")
     with open(config_path) as f:
         return yaml.load(f)
+
+
+def validate_kpi_format(df: pd.DataFrame, source_name: str) -> bool:
+    """Validate that dataframe is in correct KPI format."""
+    required_columns = ['district', 'school_id', 'school_name', 'year', 
+                       'student_group', 'metric', 'value', 'source_file', 'last_updated']
+    
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    
+    if missing_columns:
+        logger.warning(f"File {source_name} missing required KPI columns: {missing_columns}")
+        return False
+    
+    # Check if 'value' column is numeric
+    if not pd.api.types.is_numeric_dtype(df['value']):
+        logger.warning(f"File {source_name} has non-numeric 'value' column")
+        return False
+    
+    return True
+
+
+def combine_kpi_files(proc_dir: Path, output_path: Path) -> None:
+    """Combine all processed KPI CSV files into kpi_master.csv."""
+    kpi_dfs = []
+    
+    # Only process main KPI files, skip audit files
+    for csv_file in proc_dir.glob("*.csv"):
+        if 'audit' in csv_file.name:
+            continue
+            
+        print(f"  Processing {csv_file.name}")
+        
+        try:
+            df = pd.read_csv(csv_file)
+            
+            if df.empty:
+                print(f"  Warning: Empty file: {csv_file.name}")
+                continue
+            
+            # Validate KPI format
+            if not validate_kpi_format(df, csv_file.name):
+                print(f"  Skipping {csv_file.name} - invalid KPI format")
+                continue
+            
+            # Ensure source_file is populated
+            if 'source_file' not in df.columns or df['source_file'].isna().all():
+                df['source_file'] = csv_file.name
+            
+            kpi_dfs.append(df)
+            print(f"  Added {len(df):,} KPI rows from {csv_file.name}")
+            
+        except Exception as e:
+            print(f"  Error processing {csv_file.name}: {e}")
+            continue
+    
+    if not kpi_dfs:
+        print("  Warning: No valid KPI files found; creating empty master file.")
+        # Create empty file with correct KPI schema
+        empty_df = pd.DataFrame(columns=[
+            'district', 'school_id', 'school_name', 'year', 'student_group', 
+            'metric', 'value', 'source_file', 'last_updated'
+        ])
+        empty_df.to_csv(output_path, index=False)
+        return
+    
+    # Combine all KPI dataframes
+    master_df = pd.concat(kpi_dfs, ignore_index=True, sort=False)
+    
+    # Ensure consistent column order
+    kpi_columns = ['district', 'school_id', 'school_name', 'year', 'student_group', 
+                   'metric', 'value', 'source_file', 'last_updated']
+    
+    # Only include columns that exist
+    available_columns = [col for col in kpi_columns if col in master_df.columns]
+    master_df = master_df[available_columns]
+    
+    # Sort by key fields for consistent output
+    sort_columns = ['district', 'school_name', 'year', 'student_group', 'metric']
+    existing_sort_columns = [col for col in sort_columns if col in master_df.columns]
+    if existing_sort_columns:
+        master_df = master_df.sort_values(existing_sort_columns).reset_index(drop=True)
+    
+    # Write master KPI file
+    master_df.to_csv(output_path, index=False)
+    
+    print(f"  Combined {len(kpi_dfs)} KPI sources into {output_path}")
+    print(f"  Master KPI file: {len(master_df):,} rows, {len(master_df.columns)} columns")
 
 
 def run_etl_module(module_name: str, raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
@@ -35,7 +129,7 @@ def run_etl_module(module_name: str, raw_dir: Path, proc_dir: Path, cfg: dict) -
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run Equity Scorecard ETL Pipeline")
+    parser = argparse.ArgumentParser(description="Run Kentucky Education Data ETL Pipeline")
     parser.add_argument(
         "--config", 
         type=Path, 
@@ -54,10 +148,11 @@ def main():
     base_dir = Path(__file__).parent
     raw_dir = base_dir / "data" / "raw"
     proc_dir = base_dir / "data" / "processed"
-    kpi_dir = base_dir / "kpi"
+    kpi_dir = base_dir / "data" / "kpi"
     
     # Ensure directories exist
     proc_dir.mkdir(parents=True, exist_ok=True)
+    kpi_dir.mkdir(parents=True, exist_ok=True)
     
     # Load configuration
     config_path = base_dir / args.config
@@ -79,8 +174,7 @@ def main():
     
     # Combine all processed files
     print("Combining processed files into master KPI file...")
-    from kpi.combine import combine_all
-    combine_all(proc_dir, kpi_dir / "kpi_master.csv")
+    combine_kpi_files(proc_dir, kpi_dir / "kpi_master.csv")
     
     print("ETL pipeline completed successfully!")
 

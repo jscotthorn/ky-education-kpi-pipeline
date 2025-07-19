@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple HTTP server to serve the equity dashboard locally.
+Simple HTTP server to serve the Kentucky education data dashboard locally.
 Run this script and open http://localhost:8000 to view the dashboard.
 """
 import http.server
@@ -50,7 +50,7 @@ def serve_dashboard(port=8000):
 if __name__ == "__main__":
     import argparse
     
-    parser = argparse.ArgumentParser(description="Serve the Equity ETL Dashboard")
+    parser = argparse.ArgumentParser(description="Serve the Kentucky Education Data Dashboard")
     parser.add_argument("--port", type=int, default=8000, 
                        help="Port to serve on (default: 8000)")
     

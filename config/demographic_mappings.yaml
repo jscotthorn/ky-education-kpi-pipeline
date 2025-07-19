@@ -28,6 +28,7 @@ standard_demographics:
   - "Students without IEP"
   - "Military Dependent"
   - "Non-Military"
+  - "Gifted and Talented"
 
 # General demographic mappings (case variations, common misspellings, etc.)
 mappings:
@@ -36,6 +37,9 @@ mappings:
   "Non English Learner": "Non-English Learner"
   "Non-Foster": "Non-Foster Care"
   "Student without Disabilities (IEP)": "Students without IEP"
+  
+  # Historical format variations 
+  "White (Non Hispanic)": "White (non-Hispanic)"
   
   # Case variations - lowercase to standard
   "all students": "All Students"

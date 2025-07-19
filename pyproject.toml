@@ -1,9 +1,9 @@
 [project]
-name = "equity-scorecard"
+name = "ky-education-kpi-pipeline"
 version = "0.1.0"
-description = "ETL pipeline to build KPI master file for FCPS Equity Scorecard"
+description = "ETL pipelines to normalize Kentucky Department of Education data for multi-year KPI reporting"
 requires-python = ">=3.11"
-authors = [{name="Equity Council ETL"}]
+authors = [{name="Scott Horn", email="scott@kyopengov.org"}]
 
 dependencies = [
     "pandas",
@@ -15,7 +15,7 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["etl*", "kpi*"]
+include = ["etl*"]
 exclude = ["data*", "notes*", "config*", "tests*"]
 
 [tool.black]
