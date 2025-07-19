@@ -1,15 +1,15 @@
 """
-Tests for Graduation Rates ETL module
+Tests for Postsecondary Readiness ETL module
 """
 import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
 import shutil
-from etl.graduation_rates import transform, normalize_column_names, standardize_missing_values, clean_graduation_rates
+from etl.postsecondary_readiness import transform, normalize_column_names, standardize_missing_values, clean_readiness_data
 
 
-class TestGraduationRatesETL:
+class TestPostsecondaryReadinessETL:
     
     def setup_method(self):
         """Setup test directories and sample data."""
@@ -19,7 +19,7 @@ class TestGraduationRatesETL:
         self.proc_dir.mkdir(parents=True)
         
         # Create sample raw data directory
-        self.sample_dir = self.raw_dir / "graduation_rates"
+        self.sample_dir = self.raw_dir / "postsecondary_readiness"
         self.sample_dir.mkdir(parents=True)
     
     def teardown_method(self):
@@ -44,14 +44,15 @@ class TestGraduationRatesETL:
             'School Type': ['', '', ''],
             'Demographic': ['All Students', 'Female', 'Male'],
             'Suppressed': ['N', 'N', 'N'],
-            '4 Year Cohort Graduation Rate': [92.3, 94.1, 90.5]
+            'Postsecondary Rate': [81.0, 83.5, 78.5],
+            'Postsecondary Rate With Bonus': [86.0, 88.8, 83.2]
         })
         return data
     
-    def create_sample_2021_data(self):
-        """Create sample 2021 format data."""
+    def create_sample_2022_data(self):
+        """Create sample 2022 format data."""
         data = pd.DataFrame({
-            'SCHOOL YEAR': ['20202021', '20202021', '20202021'],
+            'SCHOOL YEAR': ['20212022', '20212022', '20212022'],
             'COUNTY NUMBER': ['001', '001', '001'],
             'COUNTY NAME': ['ADAIR', 'ADAIR', 'ADAIR'],
             'DISTRICT NUMBER': ['001', '001', '001'],
@@ -65,14 +66,9 @@ class TestGraduationRatesETL:
             'CO-OP CODE': ['902', '902', '902'],
             'SCHOOL TYPE': ['', '', ''],
             'DEMOGRAPHIC': ['All Students', 'Female', 'Male'],
-            'SUPPRESSED 4 YEAR': ['N', 'N', 'N'],
-            'NUMBER OF GRADS IN 4-YEAR COHORT': [219, 104, 115],
-            'NUMBER OF STUDENTS IN 4-YEAR COHORT': [228, 107, 121],
-            '4-YEAR GRADUATION RATE': [96.1, 97.2, 95.0],
-            'SUPPRESSED 5 YEAR': ['N', 'N', 'N'],
-            'NUMBER OF GRADS IN 5-YEAR COHORT': [182, 94, 88],
-            'NUMBER OF STUDENTS IN 5-YEAR COHORT': [183, 94, 89],
-            '5-YEAR GRADUATION RATE': [99.5, 100.0, 98.9]
+            'SUPPRESSED': ['N', 'N', 'Y'],
+            'POSTSECONDARY RATE': [71.3, 76.7, '*'],
+            'POSTSECONDARY RATE WITH BONUS': [78.8, 84.6, '*']
         })
         return data
     
@@ -83,55 +79,56 @@ class TestGraduationRatesETL:
         
         assert 'school_year' in df_normalized.columns
         assert 'county_name' in df_normalized.columns
-        assert 'graduation_rate_4_year' in df_normalized.columns
+        assert 'postsecondary_rate' in df_normalized.columns
+        assert 'postsecondary_rate_with_bonus' in df_normalized.columns
         assert 'School Year' not in df_normalized.columns
     
     def test_standardize_missing_values(self):
-        """Test missing value standardization with graduation rate columns."""
+        """Test missing value standardization with postsecondary rate columns."""
         df = pd.DataFrame({
-            'graduation_rate_4_year': [90.5, '', '*', 95.0],
-            'suppressed_4_year': ['N', 'Y', '', 'N']
+            'postsecondary_rate': [81.0, '', '*', 75.0],
+            'suppressed': ['N', 'Y', '', 'N']
         })
         
         df_clean = standardize_missing_values(df)
         
-        assert pd.isna(df_clean.loc[1, 'graduation_rate_4_year'])
-        assert pd.isna(df_clean.loc[2, 'graduation_rate_4_year'])
-        assert pd.isna(df_clean.loc[2, 'suppressed_4_year'])
+        assert pd.isna(df_clean.loc[1, 'postsecondary_rate'])
+        assert pd.isna(df_clean.loc[2, 'postsecondary_rate'])
+        assert pd.isna(df_clean.loc[2, 'suppressed'])
     
-    def test_clean_graduation_rates(self):
-        """Test graduation rate cleaning and validation."""
+    def test_clean_readiness_data(self):
+        """Test postsecondary readiness rate cleaning and validation."""
         df = pd.DataFrame({
-            'graduation_rate_4_year': [90.5, 110.0, -5.0, 95.0, 'invalid'],
-            'graduation_rate_5_year': [95.0, 98.0, 99.0, 100.0, 85.0]
+            'postsecondary_rate': [81.0, 110.0, -5.0, 95.0, 'invalid'],
+            'postsecondary_rate_with_bonus': [86.0, 98.0, 99.0, 100.0, 85.0]
         })
         
-        df_clean = clean_graduation_rates(df)
+        df_clean = clean_readiness_data(df)
         
         # Valid rates should remain
-        assert df_clean.loc[0, 'graduation_rate_4_year'] == 90.5
-        assert df_clean.loc[3, 'graduation_rate_4_year'] == 95.0
+        assert df_clean.loc[0, 'postsecondary_rate'] == 81.0
+        assert df_clean.loc[3, 'postsecondary_rate'] == 95.0
         
         # Invalid rates should be NaN
-        assert pd.isna(df_clean.loc[1, 'graduation_rate_4_year'])  # > 100
-        assert pd.isna(df_clean.loc[2, 'graduation_rate_4_year'])  # < 0
-        assert pd.isna(df_clean.loc[4, 'graduation_rate_4_year'])  # non-numeric
+        assert pd.isna(df_clean.loc[1, 'postsecondary_rate'])  # > 100
+        assert pd.isna(df_clean.loc[2, 'postsecondary_rate'])  # < 0
+        assert pd.isna(df_clean.loc[4, 'postsecondary_rate'])  # non-numeric
     
     def test_transform_2024_format(self):
         """Test transform with 2024 format data."""
         data = self.create_sample_2024_data()
-        data.to_csv(self.sample_dir / "graduation_rate_2024.csv", index=False)
+        data.to_csv(self.sample_dir / "postsecondary_readiness_2024.csv", index=False)
         
         config = {
             "derive": {
-                "processing_date": "2025-07-18"
+                "processing_date": "2025-07-19"
             }
         }
         
         transform(self.raw_dir, self.proc_dir, config)
         
         # Check output file exists
-        output_file = self.proc_dir / "graduation_rates.csv"
+        output_file = self.proc_dir / "postsecondary_readiness.csv"
         assert output_file.exists()
         
         # Check KPI format transformations
@@ -145,7 +142,8 @@ class TestGraduationRatesETL:
         
         # Verify expected metrics are present
         metrics = df['metric'].unique()
-        assert 'graduation_rate_4_year' in metrics, "Missing graduation rate metric"
+        assert 'postsecondary_readiness_rate' in metrics, "Missing base postsecondary readiness rate metric"
+        assert 'postsecondary_readiness_rate_with_bonus' in metrics, "Missing bonus postsecondary readiness rate metric"
         
         # Verify suppressed column has valid values
         assert set(df['suppressed'].unique()).issubset({'Y', 'N'}), "Suppressed column should only contain Y/N"
@@ -153,28 +151,58 @@ class TestGraduationRatesETL:
         # Verify year extraction from school_year
         assert all(df['year'].astype(str).str.len() == 4), "Year should be 4 digits"
         
-        # Should have multiple rows due to KPI format (rate + count + total metrics)
-        assert len(df) >= 3, "Should have at least 3 KPI rows from sample data"
+        # Should have multiple rows due to KPI format (2 metrics per record)
+        assert len(df) >= 6, "Should have at least 6 KPI rows from sample data (3 records × 2 metrics)"
     
-    def test_transform_multiple_files(self):
-        """Test transform with multiple files."""
-        # Create both 2024 and 2021 format files
-        data_2024 = self.create_sample_2024_data()
-        data_2021 = self.create_sample_2021_data()
-        
-        data_2024.to_csv(self.sample_dir / "graduation_rate_2024.csv", index=False)
-        data_2021.to_csv(self.sample_dir / "graduation_rate_2021.csv", index=False)
+    def test_transform_2022_format(self):
+        """Test transform with 2022 format data."""
+        data = self.create_sample_2022_data()
+        data.to_csv(self.sample_dir / "postsecondary_readiness_2022.csv", index=False)
         
         config = {
             "derive": {
-                "processing_date": "2025-07-18"
+                "processing_date": "2025-07-19"
             }
         }
         
         transform(self.raw_dir, self.proc_dir, config)
         
         # Check output file exists
-        output_file = self.proc_dir / "graduation_rates.csv"
+        output_file = self.proc_dir / "postsecondary_readiness.csv"
+        assert output_file.exists()
+        
+        # Check KPI format transformations
+        df = pd.read_csv(output_file)
+        
+        # Verify expected metrics are present
+        metrics = df['metric'].unique()
+        assert 'postsecondary_readiness_rate' in metrics
+        assert 'postsecondary_readiness_rate_with_bonus' in metrics
+        
+        # Verify suppressed records are included with NaN values
+        suppressed_records = df[df['suppressed'] == 'Y']
+        if len(suppressed_records) > 0:
+            assert all(suppressed_records['value'].isna()), "Suppressed records should have NaN values"
+    
+    def test_transform_multiple_files(self):
+        """Test transform with multiple files."""
+        # Create both 2024 and 2022 format files
+        data_2024 = self.create_sample_2024_data()
+        data_2022 = self.create_sample_2022_data()
+        
+        data_2024.to_csv(self.sample_dir / "postsecondary_readiness_2024.csv", index=False)
+        data_2022.to_csv(self.sample_dir / "postsecondary_readiness_2022.csv", index=False)
+        
+        config = {
+            "derive": {
+                "processing_date": "2025-07-19"
+            }
+        }
+        
+        transform(self.raw_dir, self.proc_dir, config)
+        
+        # Check output file exists
+        output_file = self.proc_dir / "postsecondary_readiness.csv"
         assert output_file.exists()
         
         # Check combined KPI data
@@ -186,30 +214,22 @@ class TestGraduationRatesETL:
         for col in required_columns:
             assert col in df.columns, f"Required KPI column '{col}' missing"
         
-        # Should have multiple metrics per source record, expect significantly more than 6 rows
-        assert len(df) >= 6, f"Expected at least 6 KPI rows, got {len(df)}"
+        # Should have multiple metrics per source record
+        assert len(df) >= 10, f"Expected at least 10 KPI rows, got {len(df)}"
         
         # Verify both source files are represented
         source_files = df['source_file'].unique()
         assert len(source_files) >= 2, "Should have data from multiple source files"
         
-        # Verify both 2024 and 2021 data present by checking source files
+        # Verify both 2024 and 2022 data present by checking source files
         has_2024 = any('2024' in sf for sf in source_files)
-        has_2021 = any('2021' in sf for sf in source_files)
-        assert has_2024 or has_2021, "Should have data from 2024 and/or 2021 files"
+        has_2022 = any('2022' in sf for sf in source_files)
+        assert has_2024 or has_2022, "Should have data from 2024 and/or 2022 files"
         
         # Verify we have data from both file types by checking metrics
         metrics = df['metric'].unique()
-        assert 'graduation_rate_4_year' in metrics, "Should have 4-year graduation rate metric"
-        
-        # 2021 files should have count/total metrics, 2024 files typically only have rates
-        has_count_metrics = any('_count_' in m for m in metrics)
-        has_total_metrics = any('_total_' in m for m in metrics)
-        
-        # If we have 2021 data, we should see count and total metrics
-        if has_2021:
-            assert has_count_metrics, "2021 data should include count metrics"
-            assert has_total_metrics, "2021 data should include total metrics"
+        assert 'postsecondary_readiness_rate' in metrics, "Should have base readiness rate metric"
+        assert 'postsecondary_readiness_rate_with_bonus' in metrics, "Should have bonus readiness rate metric"
     
     def test_transform_no_data(self):
         """Test transform when no data exists."""
@@ -220,28 +240,28 @@ class TestGraduationRatesETL:
         transform(empty_raw_dir, self.proc_dir, config)
         
         # Should not create output file
-        output_file = self.proc_dir / "graduation_rates.csv"
+        output_file = self.proc_dir / "postsecondary_readiness.csv"
         assert not output_file.exists()
     
     def test_dtype_conversion(self):
         """Test data type conversions."""
         data = self.create_sample_2024_data()
-        data.to_csv(self.sample_dir / "graduation_rate_2024.csv", index=False)
+        data.to_csv(self.sample_dir / "postsecondary_readiness_2024.csv", index=False)
         
         config = {
             "dtype": {
                 "county_number": "str",
-                "graduation_rate_4_year": "float64"
+                "postsecondary_rate": "float64"
             },
             "derive": {
-                "processing_date": "2025-07-18"
+                "processing_date": "2025-07-19"
             }
         }
         
         transform(self.raw_dir, self.proc_dir, config)
         
         # Check output file
-        output_file = self.proc_dir / "graduation_rates.csv"
+        output_file = self.proc_dir / "postsecondary_readiness.csv"
         df = pd.read_csv(output_file)
         
         # Verify KPI format data types
@@ -260,7 +280,7 @@ class TestGraduationRatesETL:
             assert numeric_values.notna().all(), "Non-suppressed values should be numeric"
 
 
-class TestGraduationRatesHelpers:
+class TestPostsecondaryReadinessHelpers:
     """Test helper functions independently."""
     
     def test_normalize_column_names_edge_cases(self):
@@ -268,30 +288,32 @@ class TestGraduationRatesHelpers:
         df = pd.DataFrame({
             'Unknown Column': [1, 2, 3],
             'SCHOOL YEAR': ['2021', '2022', '2023'],
-            'School Name': ['A', 'B', 'C']
+            'School Name': ['A', 'B', 'C'],
+            'POSTSECONDARY RATE': [75.0, 80.0, 85.0]
         })
         
         result = normalize_column_names(df)
         
         assert 'school_year' in result.columns
         assert 'school_name' in result.columns
+        assert 'postsecondary_rate' in result.columns
         assert 'Unknown Column' in result.columns  # Unknown columns preserved
     
     def test_standardize_missing_values_edge_cases(self):
-        """Test missing value standardization with graduation rate columns."""
+        """Test missing value standardization with postsecondary rate columns."""
         df = pd.DataFrame({
-            'graduation_rate_4_year': ['', '""', 'valid', None],
-            'graduation_rate_5_year': ['*', '', 'valid', '0']
+            'postsecondary_rate': ['', '""', 'valid', None],
+            'postsecondary_rate_with_bonus': ['*', '', 'valid', '0']
         })
         
         result = standardize_missing_values(df)
         
-        assert pd.isna(result.loc[0, 'graduation_rate_4_year'])
-        assert pd.isna(result.loc[1, 'graduation_rate_4_year'])
-        assert result.loc[2, 'graduation_rate_4_year'] == 'valid'
-        assert pd.isna(result.loc[3, 'graduation_rate_4_year'])
+        assert pd.isna(result.loc[0, 'postsecondary_rate'])
+        assert pd.isna(result.loc[1, 'postsecondary_rate'])
+        assert result.loc[2, 'postsecondary_rate'] == 'valid'
+        assert pd.isna(result.loc[3, 'postsecondary_rate'])
         
-        assert pd.isna(result.loc[0, 'graduation_rate_5_year'])  # '*' in graduation rate column
-        assert pd.isna(result.loc[1, 'graduation_rate_5_year'])
-        assert result.loc[2, 'graduation_rate_5_year'] == 'valid'
-        assert result.loc[3, 'graduation_rate_5_year'] == '0'
+        assert pd.isna(result.loc[0, 'postsecondary_rate_with_bonus'])  # '*' in rate column
+        assert pd.isna(result.loc[1, 'postsecondary_rate_with_bonus'])
+        assert result.loc[2, 'postsecondary_rate_with_bonus'] == 'valid'
+        assert result.loc[3, 'postsecondary_rate_with_bonus'] == '0'

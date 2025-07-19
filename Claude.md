@@ -1,7 +1,7 @@
 # Claude.md - AI Assistant Usage Guide
 
 ## Purpose
-This file documents AI usage patterns and policies for the Equity Scorecard ETL project.
+This file documents AI usage patterns, instructions, and technical requirements specifically for AI assistants working on the Equity Scorecard ETL project. **This is not user documentation** - see README.md for user instructions.
 
 ## Claude Code Integration
 This project is designed to work with Claude Code for:
@@ -9,159 +9,221 @@ This project is designed to work with Claude Code for:
 - Analyzing raw data dumps to create appropriate transformations
 - Debugging and refining ETL logic
 - Creating tests for new modules
+- Maintaining data quality and documentation
 
-## 1  Final Artifacts the Pipeline Must Produce
+## 🎯 Key Technical Requirements for AI
 
-| Path | File | Shape & Key Columns | Purpose |
-|------|------|--------------------|---------|
-| `data/processed/<source>.csv` | One CSV per data source. Examples: `fcps_test_scores.csv`, `enrollment.csv`, `discipline.csv`. | Row‑per‑analytic‑unit (usually **school × student_group × year**). Must contain the *standard column set* listed in §2. | A clean, normalized table ready to be joined with other processed files. |
-| `kpi/kpi_master.csv` | Single consolidated CSV | **Long layout**: one KPI per row. Columns: `district, school_id, school_name, year, student_group, metric, value, source_file, last_updated`. | **Authoritative feed** for dashboards, scorecards, and ad‑hoc analysis. |
+### 1. KPI Output Format - CRITICAL
+**ALL ETL modules MUST produce long format KPI data with exactly these 10 columns:**
 
-## 2  Standard Column Definitions
-The resulting KPI files should have a standard format.
-
-| Column | Meaning |
-|--------|---------|
-| `district` | Always “Fayette County” for now, but schema allows expansion. |
-| `school_id` / `school_name` | NCES or FCPS identifier plus friendly name. |
-| `year` | Four‑digit academic year in which the KPI was measured (e.g., `2024`). |
-| `student_group` | Sub‑population label (*All, Hispanic, Special Ed, Low Income,…*). |
-| `metric` | KPI slug (e.g., `grade_3_reading_pct_proficient`). |
-| `value` | Numeric value **already scaled** (store `82.5`, not `0.825`). |
-| `source_file` | Name of the processed source file for provenance. |
-| `last_updated` | ISO timestamp when the ETL generated the row. |
-
-## 2.1 KPI Format Requirements - CRITICAL
-
-**The processed files must be in LONG format, not wide format.**
-
-### ✅ CORRECT Long Format (One KPI per row with expanded metrics):
-```csv
-district,school_id,school_name,year,student_group,metric,value,source_file,last_updated
-Fayette County,210090000123,Bryan Station High School,2024,All Students,graduation_rate_4_year,85.2,graduation_rates.csv,2025-07-18T10:30:00
-Fayette County,210090000123,Bryan Station High School,2024,All Students,graduation_count_4_year,201,graduation_rates.csv,2025-07-18T10:30:00
-Fayette County,210090000123,Bryan Station High School,2024,All Students,graduation_total_4_year,236,graduation_rates.csv,2025-07-18T10:30:00
-Fayette County,210090000123,Bryan Station High School,2024,Hispanic,graduation_rate_4_year,78.9,graduation_rates.csv,2025-07-18T10:30:00
-Fayette County,210090000123,Bryan Station High School,2024,Hispanic,graduation_count_4_year,41,graduation_rates.csv,2025-07-18T10:30:00
-Fayette County,210090000123,Bryan Station High School,2024,Hispanic,graduation_total_4_year,52,graduation_rates.csv,2025-07-18T10:30:00
+```
+district,school_id,school_name,year,student_group,metric,value,suppressed,source_file,last_updated
 ```
 
-### ❌ INCORRECT Wide Format (Multiple KPIs per row):
-```csv
-school_id,school_name,year,student_group,graduation_rate_4_year,graduation_count_4_year,graduation_total_4_year
-210090000123,Bryan Station High School,2024,All Students,85.2,201,236
+| Column | AI Validation Rules |
+|--------|-------------------|
+| `district` | String, typically "Fayette County" |
+| `school_id` | String, unique identifier (NCES/state ID) |
+| `school_name` | String, human-readable school name |
+| `year` | Integer, 4-digit academic year (e.g., 2024) |
+| `student_group` | String, standardized via DemographicMapper |
+| `metric` | String, follows naming convention: `{indicator}_{type}_{period}` |
+| `value` | Float or NaN (when suppressed=Y) |
+| `suppressed` | String, exactly "Y" or "N" |
+| `source_file` | String, original filename for audit trail |
+| `last_updated` | String, ISO timestamp |
+
+### 2. Metric Naming Convention - CRITICAL
+**AI must follow exact naming patterns:**
+- **Rates**: `{indicator}_rate_{period}` (e.g., `graduation_rate_4_year`)
+- **Counts**: `{indicator}_count_{period}` (e.g., `graduation_count_4_year`) 
+- **Totals**: `{indicator}_total_{period}` (e.g., `graduation_total_4_year`)
+
+**Validation**: Rate = (Count ÷ Total) × 100
+
+### 3. Suppression Handling - CRITICAL
+**Suppressed records MUST be included, not filtered out:**
+- When `suppressed = "Y"`: Set `value = pd.NA` (not filtered out)
+- When `suppressed = "N"`: Include actual numeric value
+- **Never filter suppressed records** - transparency over data reduction
+
+### 4. Demographic Mapping - REQUIRED
+**Every ETL module MUST use DemographicMapper:**
+
+```python
+from etl.demographic_mapper import DemographicMapper
+
+# Required in convert_to_kpi_format():
+demographic_mapper = DemographicMapper()
+student_group = demographic_mapper.map_demographic(
+    original_demographic, year, source_file
+)
 ```
 
-**ETL modules must transform from wide source data to long KPI format.**
+**AI Validation**:
+- Check audit logs are generated
+- Verify standardized demographics in output
+- Validate year-specific mapping rules applied
 
-### KPI Metric Naming Convention:
-- **Rates**: `{indicator}_rate_{period}` (e.g., `graduation_rate_4_year`) - Percentage values
-- **Counts**: `{indicator}_count_{period}` (e.g., `graduation_count_4_year`) - Number passing/meeting criteria  
-- **Totals**: `{indicator}_total_{period}` (e.g., `graduation_total_4_year`) - Total number eligible/assessed
+## 🔧 AI Development Workflow
 
-**Key Points:**
-- **Three KPI rows per indicator**: rate (%), count (passing), total (eligible)
-- **Rate calculation**: count ÷ total × 100 = rate
-- **Each metric value gets its own row** for maximum flexibility
-- **Consistent naming** allows dashboards to automatically group related metrics
+### Testing Protocol - MANDATORY
+**AI MUST test during development, not after:**
 
-## Raw Data Folder Structure
+1. **Syntax Test**: `python3 etl/module_name.py` after each code change
+2. **Type Compatibility**: Use `typing.Dict` not `dict[]` (Python 3.8+ compatibility)
+3. **Unit Tests**: `python3 -m pytest tests/test_module_name.py -v` after test creation
+4. **Integration Test**: Run full ETL pipeline to validate end-to-end
+5. **Data Validation**: Check KPI format, column count, metric naming
 
-Raw data should be organized as follows:
-```
-data/raw/
-├── graduation_rates/           # Source-specific folder
-│   ├── graduation_rate_2021.csv
-│   ├── graduation_rate_2022.csv
-│   ├── graduation_rate_2023.csv
-│   └── KYRC24_ACCT_4_Year_High_School_Graduation.csv
-├── fcps_test_scores/          # Another source
-│   └── 20240315/              # Date-stamped folder (optional)
-│       └── test_scores.csv
-└── enrollment/                # Another source
-    └── enrollment_2024.csv
-```
-
-**Key principles:**
-- Each data source gets its own folder under `data/raw/`
-- Files can be placed directly in source folder OR in date-stamped subfolders
-- ETL modules automatically find the newest data in their source folder
-- Original filenames are preserved for audit trails
-
-## AI Workflows
-
-### 1. New Data Source Onboarding
-When a new CSV export is received:
-1. Place raw file in `data/raw/source_name/` (or `data/raw/source_name/YYYYMMDD/`)
-2. Run `python etl_runner.py --draft` to generate initial ETL logic
-3. Ask Claude to analyze the raw data and create appropriate transformation logic
-4. Refine the generated module based on domain knowledge
-
-### 2. ETL Module Development
-- Use `etl/template.py` as starting point for new modules
-- Ask Claude to generate config mappings in `config/mappings.yaml`
-- Generate corresponding test files in `tests/`
-
-### 3. Data Analysis
-- Use `notes/` directory to store AI-generated analysis of new data sources
-- Include data quality assessments and transformation recommendations
-- Document any anomalies or special handling requirements
-
-## Self-Instructions for Claude Code
-
-### CRITICAL: Always Test During Development
-When creating new ETL modules, Claude MUST:
-1. **Test syntax immediately** - Run `python3 etl/module_name.py` after creation
-2. **Use compatible Python syntax** - Use `typing.Dict` instead of `dict[]` for Python 3.8+ compatibility
-3. **Run pytest** - Execute `python3 -m pytest tests/test_module_name.py -v` after creating tests
-4. **Check imports** - Ensure all required packages are available
-5. **Validate data processing** - Test with sample data before marking complete
-6. **Use Python 3** - Always use `python3` command, not `python` (may default to Python 2.7)
-
-### Error Handling Protocol
-If errors occur during testing:
-1. Fix syntax/import errors immediately
-2. Update type annotations for Python compatibility
+### Error Handling - REQUIRED
+**When errors occur:**
+1. Fix syntax/import errors immediately (don't defer)
+2. Update type annotations for compatibility
 3. Re-test until clean execution
-4. Document any compatibility requirements in notes
+4. Document compatibility requirements in notes
 
 ### Code Quality Standards
-- Use `logging` for informational messages, `print()` for user feedback
-- Include comprehensive error handling with try/except blocks
-- Validate data quality (ranges, required fields, data types)
-- Add data source tracking fields for audit trails
+- Use `logging` for system messages, `print()` for user feedback only
+- Include comprehensive try/except blocks with specific error handling
+- Validate data ranges (rates: 0-100%, counts: non-negative)
+- Add data source tracking for audit trails
+- Use `python3` command explicitly (system `python` may be Python 2.7)
 
-## Best Practices
-- Always validate AI-generated ETL logic with domain experts
-- Test transformations on sample data before production runs
-- Keep this file updated as new AI workflows are established
-- Use version control for all AI-generated code
-- **NEVER deploy untested code** - Always run tests during development
+## 📋 AI Task Patterns
 
-## Commands to Remember
-```bash
-# Setup (use Python 3.8+ - system may default to Python 2.7)
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -e .
+### 1. New Data Source Analysis
+**When analyzing new CSV files:**
+1. Place file in `data/raw/source_name/`
+2. Run data profiling: columns, data types, value ranges, missing data
+3. Identify suppression markers and demographic variations
+4. Create transformation logic following existing patterns
+5. Generate corresponding test files
 
-# Run draft mode for new data source analysis
-python3 etl_runner.py --draft
+### 2. ETL Module Creation
+**Template-based development:**
+- Start with `etl/template.py` structure (if exists) or existing module
+- Implement required functions: `normalize_column_names()`, `convert_to_kpi_format()`
+- Add data source detection logic in `add_derived_fields()`
+- Include demographic mapping integration
+- Create comprehensive test coverage
 
-# Run full ETL pipeline
-python3 etl_runner.py
+### 3. Data Quality Investigation
+**When investigating data issues:**
+- Create numbered journal entries: `notes/#--descriptive-title.md`
+- Document problem, analysis, and resolution
+- Include before/after validation results
+- Update relevant code and tests
+- Regenerate affected outputs
 
-# Run tests
-python3 -m pytest tests/
+## 🚨 Critical AI Instructions
 
-# Test individual ETL modules
-python3 etl/graduation_rates.py
+### Data Format Validation
+**AI must validate these requirements:**
+- **Long format only**: One KPI per row, not wide format
+- **Exact column count**: 10 columns, no more, no less
+- **Naming consistency**: Follow metric naming convention exactly
+- **Suppression inclusion**: Suppressed records included with NaN values
+- **Demographic standardization**: All student groups mapped via DemographicMapper
 
-# Check Python version (should be 3.8+)
-python3 --version
+### Code Compatibility
+**Python environment constraints:**
+- **Minimum Python 3.8+**: Use compatible type annotations
+- **Import handling**: Use try/except for relative imports
+- **Dependency management**: Validate all required packages available
+- **Cross-platform**: Code works on macOS, Linux, Windows
+
+### Testing Requirements
+**AI must ensure:**
+- **Syntax validation**: Code runs without errors
+- **Type checking**: Compatible with Python 3.8+
+- **Unit tests**: All functions tested with sample data
+- **Integration tests**: Full ETL pipeline validation
+- **Data quality tests**: KPI format compliance
+
+### Documentation Standards
+**AI must maintain:**
+- **Journal entries**: Numbered sequence for investigations
+- **Code comments**: Explain complex transformation logic
+- **Test documentation**: Clear test case descriptions
+- **README updates**: Keep user documentation current
+
+## 🔄 AI Workflow Examples
+
+### Example 1: Adding New Data Source
+```python
+# 1. Analyze raw data structure
+df = pd.read_csv('data/raw/new_source/file.csv')
+# Profile: columns, types, ranges, patterns
+
+# 2. Create transformation module
+def transform(raw_dir, proc_dir, config):
+    # Follow existing pattern
+    # Include demographic mapping
+    # Generate KPI format output
+
+# 3. Create tests
+def test_transform_new_source():
+    # Test with sample data
+    # Validate KPI format
+    # Check demographic mapping
+
+# 4. Validate end-to-end
+python3 etl_runner.py  # Test full pipeline
 ```
 
-## Python Version Requirements
-- **Minimum**: Python 3.8+ (for type annotations and modern pandas)
-- **Note**: System `python` command may default to Python 2.7 - always use `python3`
-- **Dependencies**: pandas, pydantic, ruamel-yaml, pyarrow, pytest
+### Example 2: Data Quality Investigation
+```markdown
+# notes/12--new-data-issue.md
+
+## Problem
+Data source showing unexpected values
+
+## Analysis
+- Value range analysis
+- Suppression pattern review
+- Demographic coverage check
+
+## Resolution
+- Code changes made
+- Validation results
+- Testing confirmation
+```
+
+## 🎛️ AI Configuration Management
+
+### Environment Variables
+**AI should respect:**
+- Virtual environment activation required
+- Use `python3` not `python`
+- Dependencies in `requirements.txt` or `pyproject.toml`
+
+### File Organization
+**AI must maintain:**
+- Raw data in `data/raw/source_name/`
+- Processed output in `data/processed/`
+- Tests in `tests/` with matching module names
+- Documentation in `notes/` with numbered sequence
+
+### Version Control
+**AI practices:**
+- Commit logical units of work
+- Include descriptive commit messages
+- Test before committing
+- Update documentation with code changes
+
+## 🚀 Performance Optimization
+
+### Efficiency Guidelines
+- Use pandas vectorized operations over loops
+- Implement data type optimization
+- Cache expensive operations when appropriate
+- Profile code for bottlenecks on large datasets
+
+### Memory Management
+- Process data in chunks for large files
+- Clean up intermediate dataframes
+- Use appropriate data types (int8 vs int64)
+- Monitor memory usage during development
+
+**This file serves as the definitive technical reference for AI assistants working on this project. All AI-generated code must comply with these requirements.**

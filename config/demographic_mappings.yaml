@@ -1,0 +1,239 @@
+# Demographic Mapping Configuration
+# Standardizes demographic labels across all ETL pipelines for consistent longitudinal reporting
+
+standard_demographics:
+  - "All Students"
+  - "Female"
+  - "Male"
+  - "African American"
+  - "American Indian or Alaska Native"
+  - "Asian"
+  - "Hispanic or Latino"
+  - "Native Hawaiian or Pacific Islander"
+  - "Two or More Races"
+  - "White (non-Hispanic)"
+  - "Economically Disadvantaged"
+  - "Non-Economically Disadvantaged"
+  - "English Learner"
+  - "Non-English Learner"
+  - "English Learner including Monitored"
+  - "Non-English Learner or monitored"
+  - "Foster Care"
+  - "Non-Foster Care"
+  - "Homeless"
+  - "Non-Homeless"
+  - "Migrant"
+  - "Non-Migrant"
+  - "Students with Disabilities (IEP)"
+  - "Students without IEP"
+  - "Military Dependent"
+  - "Non-Military"
+
+# General demographic mappings (case variations, common misspellings, etc.)
+mappings:
+  # 2024 naming variations to standard format
+  "Non Economically Disadvantaged": "Non-Economically Disadvantaged"
+  "Non English Learner": "Non-English Learner"
+  "Non-Foster": "Non-Foster Care"
+  "Student without Disabilities (IEP)": "Students without IEP"
+  
+  # Case variations - lowercase to standard
+  "all students": "All Students"
+  "female": "Female"
+  "male": "Male"
+  "african american": "African American"
+  "american indian or alaska native": "American Indian or Alaska Native"
+  "asian": "Asian"
+  "hispanic or latino": "Hispanic or Latino"
+  "native hawaiian or pacific islander": "Native Hawaiian or Pacific Islander"
+  "two or more races": "Two or More Races"
+  "white (non-hispanic)": "White (non-Hispanic)"
+  "economically disadvantaged": "Economically Disadvantaged"
+  "english learner": "English Learner"
+  "foster care": "Foster Care"
+  "homeless": "Homeless"
+  "migrant": "Migrant"
+  "students with disabilities (iep)": "Students with Disabilities (IEP)"
+  "military dependent": "Military Dependent"
+  
+  # Handle monitored English learner variations - keep distinct
+  "Non-English Learner or monitored": "Non-English Learner or monitored"
+  "English Learner or monitored": "English Learner or monitored"
+  
+  # Alternative spellings and abbreviations
+  "EL": "English Learner"
+  "ELL": "English Learner"
+  "LEP": "English Learner"
+  "IEP": "Students with Disabilities (IEP)"
+  "SWD": "Students with Disabilities (IEP)"
+  "FRL": "Economically Disadvantaged"
+  "ED": "Economically Disadvantaged"
+
+# Year-specific configurations
+year_specific:
+  "2021":
+    available_demographics:
+      - "All Students"
+      - "Female"
+      - "Male"
+      - "African American"
+      - "American Indian or Alaska Native"
+      - "Asian"
+      - "Hispanic or Latino"
+      - "Native Hawaiian or Pacific Islander"
+      - "Two or More Races"
+      - "White (non-Hispanic)"
+      - "Economically Disadvantaged"
+      - "Non-Economically Disadvantaged"
+      - "English Learner"
+      - "Non-English Learner"
+      - "Foster Care"
+      - "Non-Foster Care"
+      - "Homeless"
+      - "Migrant"
+      - "Students with Disabilities (IEP)"
+      - "Students without IEP"
+      - "English Learner including Monitored"
+    
+  "2022":
+    available_demographics:
+      - "All Students"
+      - "Female"
+      - "Male"
+      - "African American"
+      - "American Indian or Alaska Native"
+      - "Asian"
+      - "Hispanic or Latino"
+      - "Native Hawaiian or Pacific Islander"
+      - "Two or More Races"
+      - "White (non-Hispanic)"
+      - "Economically Disadvantaged"
+      - "Non-Economically Disadvantaged"
+      - "English Learner"
+      - "Non-English Learner"
+      - "Foster Care"
+      - "Non-Foster Care"
+      - "Homeless"
+      - "Migrant"
+      - "Students with Disabilities (IEP)"
+      - "Students without IEP"
+      - "English Learner including Monitored"
+      - "Non-English Learner or monitored"
+    mappings:
+      # Keep monitored English learner categories distinct from base categories
+    
+  "2023":
+    available_demographics:
+      - "All Students"
+      - "Female"
+      - "Male"
+      - "African American"
+      - "American Indian or Alaska Native"
+      - "Asian"
+      - "Hispanic or Latino"
+      - "Native Hawaiian or Pacific Islander"
+      - "Two or More Races"
+      - "White (non-Hispanic)"
+      - "Economically Disadvantaged"
+      - "Non-Economically Disadvantaged"
+      - "English Learner"
+      - "Non-English Learner"
+      - "Foster Care"
+      - "Non-Foster Care"
+      - "Homeless"
+      - "Migrant"
+      - "Students with Disabilities (IEP)"
+      - "Students without IEP"
+      - "English Learner including Monitored"
+      - "Non-English Learner or monitored"
+    mappings:
+      # Keep monitored English learner categories distinct from base categories
+    
+  "2024":
+    available_demographics:
+      - "All Students"
+      - "Female"
+      - "Male"
+      - "African American"
+      - "American Indian or Alaska Native"
+      - "Asian"
+      - "Hispanic or Latino"
+      - "Native Hawaiian or Pacific Islander"
+      - "Two or More Races"
+      - "White (non-Hispanic)"
+      - "Economically Disadvantaged"
+      - "Non Economically Disadvantaged"
+      - "English Learner"
+      - "Non English Learner"
+      - "Foster Care"
+      - "Non-Foster"
+      - "Non-Homeless"
+      - "Homeless"
+      - "Non-Migrant"
+      - "Migrant"
+      - "Students with Disabilities (IEP)"
+      - "Student without Disabilities (IEP)"
+      - "Military Dependent"
+      - "Non-Military"
+    mappings:
+      "Non Economically Disadvantaged": "Non-Economically Disadvantaged"
+      "Non English Learner": "Non-English Learner"
+      "Non-Foster": "Non-Foster Care"
+      "Student without Disabilities (IEP)": "Students without IEP"
+
+# Validation rules
+validation:
+  # Demographics that must be present in every dataset (core demographics present in all years)
+  required_demographics:
+    - "All Students"
+    - "Female"
+    - "Male"
+    - "African American"
+    - "American Indian or Alaska Native"
+    - "Asian"
+    - "Hispanic or Latino"
+    - "Native Hawaiian or Pacific Islander"
+    - "Two or More Races"
+    - "White (non-Hispanic)"
+    - "Economically Disadvantaged"
+    - "English Learner"
+    - "Foster Care"
+    - "Homeless"
+    - "Migrant"
+    - "Students with Disabilities (IEP)"
+  
+  # Demographics that may be missing without raising errors (year-specific or optional)
+  allow_missing:
+    - "English Learner including Monitored"  # 2021-2023 only
+    - "Non-English Learner or monitored"     # 2022-2023 only
+    - "Military Dependent"                   # 2024 only
+    - "Non-Homeless"                         # 2024 only
+    - "Non-Migrant"                          # 2024 only
+    - "Non-Military"                         # 2024 only
+    - "Non-Economically Disadvantaged"      # Present in all years but not critical
+    - "Non-English Learner"                 # Present in all years but not critical
+    - "Non-Foster Care"                      # Present in all years but not critical
+    - "Students without IEP"                 # Present in all years but not critical
+
+# Data quality rules
+data_quality:
+  # Minimum number of demographic categories expected
+  min_demographics: 10
+  
+  # Maximum percentage of records that can be "All Students" only
+  max_all_students_only_pct: 5.0
+  
+  # Demographics that should have complementary pairs
+  complementary_pairs:
+    - ["Female", "Male"]
+    - ["Economically Disadvantaged", "Non-Economically Disadvantaged"]
+    - ["English Learner", "Non-English Learner"]
+    - ["Foster Care", "Non-Foster Care"]
+    - ["Students with Disabilities (IEP)", "Students without IEP"]
+  
+  # Expected racial/ethnic categories (at minimum)
+  required_race_ethnicity:
+    - "African American"
+    - "Asian"
+    - "Hispanic or Latino"
+    - "White (non-Hispanic)"

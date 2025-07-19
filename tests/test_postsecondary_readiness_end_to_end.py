@@ -1,26 +1,26 @@
 """
-End-to-end validation test for graduation rates ETL pipeline.
+End-to-end validation test for postsecondary readiness ETL pipeline.
 Tests that sample rows from each source file are correctly transformed to KPI format.
 """
 import pytest
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from etl.graduation_rates import transform, normalize_column_names, convert_to_kpi_format
+from etl.postsecondary_readiness import transform, normalize_column_names, convert_to_kpi_format
 
 
-class TestGraduationRatesEndToEnd:
+class TestPostsecondaryReadinessEndToEnd:
     """Test complete transformation from raw data to KPI format."""
     
     def test_source_to_kpi_transformation(self):
         """Test that 10 random rows from each source file are correctly represented in processed file."""
         # Paths to actual data files
-        raw_data_dir = Path("/Users/scott/Projects/equity-etl/data/raw/graduation_rates")
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+        raw_data_dir = Path("/Users/scott/Projects/equity-etl/data/raw/postsecondary_readiness")
+        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
         
         # Ensure processed file exists
         if not processed_file.exists():
-            pytest.skip("Processed graduation_rates.csv not found. Run ETL pipeline first.")
+            pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
         
         # Load processed KPI data
         kpi_df = pd.read_csv(processed_file)
@@ -108,7 +108,7 @@ class TestGraduationRatesEndToEnd:
             actual_values = matching_rows['value'].values
             
             # Check if any matching row has the expected value (within tolerance)
-            value_match = any(abs(actual_val - expected_value) < 0.01 for actual_val in actual_values)
+            value_match = any(abs(actual_val - expected_value) < 0.01 for actual_val in actual_values if pd.notna(actual_val))
             
             assert value_match, (
                 f"Value mismatch for {source_filename}. "
@@ -157,15 +157,15 @@ class TestGraduationRatesEndToEnd:
         return []
 
 
-class TestGraduationRatesDataQuality:
-    """Test data quality of the processed graduation rates."""
+class TestPostsecondaryReadinessDataQuality:
+    """Test data quality of the processed postsecondary readiness data."""
     
     def test_kpi_format_compliance(self):
         """Test that processed file follows KPI format requirements."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
-            pytest.skip("Processed graduation_rates.csv not found. Run ETL pipeline first.")
+            pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
         
         kpi_df = pd.read_csv(processed_file)
         
@@ -191,11 +191,11 @@ class TestGraduationRatesDataQuality:
         if len(non_suppressed) > 0:
             assert not non_suppressed.isnull().all(axis=1).any(), "Found completely empty non-suppressed rows"
         
-        # Test graduation rate values are reasonable (excluding suppressed records)
-        grad_rate_rows = kpi_df[(kpi_df['metric'].str.contains('graduation_rate', na=False)) & (kpi_df['suppressed'] == 'N')]
-        if len(grad_rate_rows) > 0:
-            assert grad_rate_rows['value'].min() >= 0, "Graduation rates should be >= 0"
-            assert grad_rate_rows['value'].max() <= 100, "Graduation rates should be <= 100"
+        # Test postsecondary readiness rate values are reasonable (excluding suppressed records)
+        rate_rows = kpi_df[(kpi_df['metric'].str.contains('postsecondary_readiness_rate', na=False)) & (kpi_df['suppressed'] == 'N')]
+        if len(rate_rows) > 0:
+            assert rate_rows['value'].min() >= 0, "Postsecondary readiness rates should be >= 0"
+            assert rate_rows['value'].max() <= 100, "Postsecondary readiness rates should be <= 100"
         
         # Test that suppressed records have NaN values
         suppressed_rows = kpi_df[kpi_df['suppressed'] == 'Y']
@@ -204,10 +204,10 @@ class TestGraduationRatesDataQuality:
     
     def test_metric_coverage(self):
         """Test that expected metrics are present."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
-            pytest.skip("Processed graduation_rates.csv not found. Run ETL pipeline first.")
+            pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
         
         kpi_df = pd.read_csv(processed_file)
         
@@ -215,64 +215,35 @@ class TestGraduationRatesDataQuality:
         metrics = kpi_df['metric'].unique()
         
         # Rate metrics should always exist
-        assert 'graduation_rate_4_year' in metrics, "4-year graduation rate metric missing"
-        
-        # 5-year rate should exist for some years (2021 data has it)
-        if len(kpi_df[kpi_df['source_file'].str.contains('2021', na=False)]) > 0:
-            assert 'graduation_rate_5_year' in metrics, "5-year graduation rate metric missing from 2021 data"
-        
-        # Count metrics should exist for files that have count data (2021 data)
-        count_data_files = kpi_df[kpi_df['source_file'].str.contains('2021', na=False)]
-        if len(count_data_files) > 0:
-            assert 'graduation_count_4_year' in metrics, "4-year graduation count metric missing from 2021 data"
-            assert 'graduation_total_4_year' in metrics, "4-year graduation total metric missing from 2021 data"
-            assert 'graduation_count_5_year' in metrics, "5-year graduation count metric missing from 2021 data"
-            assert 'graduation_total_5_year' in metrics, "5-year graduation total metric missing from 2021 data"
+        assert 'postsecondary_readiness_rate' in metrics, "Base postsecondary readiness rate metric missing"
+        assert 'postsecondary_readiness_rate_with_bonus' in metrics, "Bonus postsecondary readiness rate metric missing"
         
         print(f"Found metrics: {list(metrics)}")
         
         # Test metric naming convention
-        rate_metrics = [m for m in metrics if m.endswith('_rate_4_year') or m.endswith('_rate_5_year')]
-        count_metrics = [m for m in metrics if m.endswith('_count_4_year') or m.endswith('_count_5_year')]
-        total_metrics = [m for m in metrics if m.endswith('_total_4_year') or m.endswith('_total_5_year')]
+        rate_metrics = [m for m in metrics if m.endswith('_rate') or m.endswith('_rate_with_bonus')]
         
         print(f"Rate metrics: {len(rate_metrics)}")
-        print(f"Count metrics: {len(count_metrics)}")
-        print(f"Total metrics: {len(total_metrics)}")
         
-        # Verify count and total metrics have integer values (excluding suppressed records)
-        if count_metrics:
-            count_data = kpi_df[kpi_df['metric'].isin(count_metrics)]
+        # Verify all rate values are valid percentages (excluding suppressed records)
+        for metric in rate_metrics:
+            metric_data = kpi_df[kpi_df['metric'] == metric]
+            non_suppressed = metric_data[metric_data['suppressed'] == 'N']['value']
             
-            # Test non-suppressed records have integer values
-            non_suppressed_counts = count_data[count_data['suppressed'] == 'N']['value']
-            if len(non_suppressed_counts) > 0:
-                assert all(non_suppressed_counts % 1 == 0), "Non-suppressed count metrics should have integer values"
-            
-            # Test suppressed records have NaN values
-            suppressed_counts = count_data[count_data['suppressed'] == 'Y']['value']
-            if len(suppressed_counts) > 0:
-                assert all(suppressed_counts.isna()), "Suppressed count metrics should have NaN values"
-            
-        if total_metrics:
-            total_data = kpi_df[kpi_df['metric'].isin(total_metrics)]
-            
-            # Test non-suppressed records have integer values
-            non_suppressed_totals = total_data[total_data['suppressed'] == 'N']['value']
-            if len(non_suppressed_totals) > 0:
-                assert all(non_suppressed_totals % 1 == 0), "Non-suppressed total metrics should have integer values"
+            if len(non_suppressed) > 0:
+                assert all((non_suppressed >= 0) & (non_suppressed <= 100)), f"All {metric} values should be 0-100%"
             
             # Test suppressed records have NaN values
-            suppressed_totals = total_data[total_data['suppressed'] == 'Y']['value']
-            if len(suppressed_totals) > 0:
-                assert all(suppressed_totals.isna()), "Suppressed total metrics should have NaN values"
+            suppressed_values = metric_data[metric_data['suppressed'] == 'Y']['value']
+            if len(suppressed_values) > 0:
+                assert all(suppressed_values.isna()), f"Suppressed {metric} values should be NaN"
     
     def test_source_file_tracking(self):
         """Test that source file tracking is working correctly."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
-            pytest.skip("Processed graduation_rates.csv not found. Run ETL pipeline first.")
+            pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
         
         kpi_df = pd.read_csv(processed_file)
         
@@ -280,10 +251,9 @@ class TestGraduationRatesDataQuality:
         source_files = kpi_df['source_file'].unique()
         
         expected_files = [
-            'KYRC24_ACCT_4_Year_High_School_Graduation.csv',
-            'graduation_rate_2021.csv',
-            'graduation_rate_2022.csv', 
-            'graduation_rate_2023.csv'
+            'KYRC24_ACCT_Postsecondary_Readiness.csv',
+            'postsecondary_readiness_2022.csv',
+            'postsecondary_readiness_2023.csv'
         ]
         
         for expected_file in expected_files:
@@ -293,10 +263,10 @@ class TestGraduationRatesDataQuality:
     
     def test_student_group_consistency(self):
         """Test that student groups are consistently named."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
-            pytest.skip("Processed graduation_rates.csv not found. Run ETL pipeline first.")
+            pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
         
         kpi_df = pd.read_csv(processed_file)
         
@@ -315,72 +285,44 @@ class TestGraduationRatesDataQuality:
         print(f"Student groups found: {len(student_groups)} unique groups")
         print(f"Sample groups: {list(student_groups)[:10]}")
     
-    def test_expanded_kpi_format(self):
-        """Test that expanded KPI format with counts and totals is working correctly."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+    def test_year_coverage(self):
+        """Test that expected years are present."""
+        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
-            pytest.skip("Processed graduation_rates.csv not found. Run ETL pipeline first.")
+            pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
         
         kpi_df = pd.read_csv(processed_file)
         
-        # Focus on 2021 data which should have count information
-        data_2021 = kpi_df[kpi_df['source_file'].str.contains('2021', na=False)]
+        # Test expected years exist (2022-2024)
+        years = kpi_df['year'].unique()
+        expected_years = [2022, 2023, 2024]
         
-        if len(data_2021) == 0:
-            pytest.skip("No 2021 data found (count data unavailable)")
+        for expected_year in expected_years:
+            assert expected_year in years, f"Expected year {expected_year} not found"
         
-        # Test that we have rate, count, and total metrics for the same school/group combinations
-        # Group by school_id, student_group, and year
-        grouped = data_2021.groupby(['school_id', 'student_group', 'year'])
+        print(f"Years found: {sorted(years)}")
         
-        complete_metric_sets = 0
-        
-        for (school_id, student_group, year), group in grouped:
-            metrics = set(group['metric'].values)
+        # Test each year has both base and bonus rate metrics
+        for year in expected_years:
+            year_data = kpi_df[kpi_df['year'] == year]
+            year_metrics = year_data['metric'].unique()
             
-            # Check for 4-year graduation metrics
-            if 'graduation_rate_4_year' in metrics:
-                has_count = 'graduation_count_4_year' in metrics
-                has_total = 'graduation_total_4_year' in metrics
-                
-                if has_count and has_total:
-                    complete_metric_sets += 1
-                    
-                    # Verify rate calculation consistency
-                    rate_row = group[group['metric'] == 'graduation_rate_4_year']
-                    count_row = group[group['metric'] == 'graduation_count_4_year']
-                    total_row = group[group['metric'] == 'graduation_total_4_year']
-                    
-                    if len(rate_row) > 0 and len(count_row) > 0 and len(total_row) > 0:
-                        rate_value = rate_row['value'].iloc[0]
-                        count_value = count_row['value'].iloc[0]
-                        total_value = total_row['value'].iloc[0]
-                        
-                        # Calculate expected rate
-                        if total_value > 0:
-                            expected_rate = (count_value / total_value) * 100
-                            # Allow for small floating point differences
-                            assert abs(rate_value - expected_rate) < 0.1, (
-                                f"Rate calculation inconsistent for {school_id}-{student_group}: "
-                                f"Rate={rate_value}, Count={count_value}, Total={total_value}, "
-                                f"Expected Rate={expected_rate:.2f}"
-                            )
-        
-        print(f"Found {complete_metric_sets} complete metric sets (rate + count + total)")
-        assert complete_metric_sets > 0, "No complete metric sets found in 2021 data"
+            assert 'postsecondary_readiness_rate' in year_metrics, f"Base rate missing for year {year}"
+            assert 'postsecondary_readiness_rate_with_bonus' in year_metrics, f"Bonus rate missing for year {year}"
 
 
 if __name__ == "__main__":
     # Run specific test
-    test = TestGraduationRatesEndToEnd()
+    test = TestPostsecondaryReadinessEndToEnd()
     test.test_source_to_kpi_transformation()
     
     # Run data quality tests
-    quality_test = TestGraduationRatesDataQuality()
+    quality_test = TestPostsecondaryReadinessDataQuality()
     quality_test.test_kpi_format_compliance()
     quality_test.test_metric_coverage()
     quality_test.test_source_file_tracking()
     quality_test.test_student_group_consistency()
+    quality_test.test_year_coverage()
     
     print("All tests passed!")

@@ -1,15 +1,21 @@
 """
-Graduation Rates ETL Module
+Postsecondary Readiness ETL Module
 
-Handles multiple file formats from Kentucky graduation rate data across years 2021-2024.
+Handles Kentucky postsecondary readiness data across years 2022-2024.
 Normalizes column names, handles schema variations, standardizes missing values, and
 applies demographic label standardization for consistent longitudinal reporting.
+
+Data includes two rate metrics:
+- Postsecondary Rate: Base readiness rate
+- Postsecondary Rate With Bonus: Enhanced rate including bonus indicators
 """
 from pathlib import Path
 import pandas as pd
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, Union
 import logging
+from datetime import datetime
+
 try:
     from .demographic_mapper import DemographicMapper
 except ImportError:
@@ -22,7 +28,7 @@ class Config(BaseModel):
     rename: Dict[str, str] = {}
     dtype: Dict[str, str] = {}
     derive: Dict[str, Union[str, int, float]] = {}
-    
+
 
 def normalize_column_names(df: pd.DataFrame) -> pd.DataFrame:
     """Normalize column names to lowercase with underscores."""
@@ -47,23 +53,17 @@ def normalize_column_names(df: pd.DataFrame) -> pd.DataFrame:
         'STATE SCHOOL ID': 'state_school_id',
         'NCES ID': 'nces_id',
         'CO-OP': 'co_op',
-        'CO-OP Code': 'co_op_code',
         'CO-OP CODE': 'co_op_code',
         'School Type': 'school_type',
         'SCHOOL TYPE': 'school_type',
         'Demographic': 'demographic',
         'DEMOGRAPHIC': 'demographic',
-        'Suppressed': 'suppressed_4_year',
-        'SUPPRESSED 4 YEAR': 'suppressed_4_year',
-        'Suppressed 4 Year': 'suppressed_4_year',
-        'SUPPRESSED 5 YEAR': 'suppressed_5_year',
-        '4 Year Cohort Graduation Rate': 'graduation_rate_4_year',
-        '4-YEAR GRADUATION RATE': 'graduation_rate_4_year',
-        '5-YEAR GRADUATION RATE': 'graduation_rate_5_year',
-        'NUMBER OF GRADS IN 4-YEAR COHORT': 'grads_4_year_cohort',
-        'NUMBER OF STUDENTS IN 4-YEAR COHORT': 'students_4_year_cohort',
-        'NUMBER OF GRADS IN 5-YEAR COHORT': 'grads_5_year_cohort',
-        'NUMBER OF STUDENTS IN 5-YEAR COHORT': 'students_5_year_cohort',
+        'Suppressed': 'suppressed',
+        'SUPPRESSED': 'suppressed',
+        'Postsecondary Rate': 'postsecondary_rate',
+        'POSTSECONDARY RATE': 'postsecondary_rate',
+        'Postsecondary Rate With Bonus': 'postsecondary_rate_with_bonus',
+        'POSTSECONDARY RATE WITH BONUS': 'postsecondary_rate_with_bonus',
     }
     
     # Apply mapping for columns that exist
@@ -77,8 +77,8 @@ def standardize_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     df = df.replace('', pd.NA)
     df = df.replace('""', pd.NA)
     
-    # Replace suppression markers with NaN but preserve in separate columns
-    rate_columns = [col for col in df.columns if 'graduation_rate' in col]
+    # Replace suppression markers with NaN in rate columns
+    rate_columns = [col for col in df.columns if 'postsecondary_rate' in col]
     for col in rate_columns:
         if col in df.columns:
             df[col] = df[col].replace('*', pd.NA)
@@ -91,20 +91,18 @@ def add_derived_fields(df: pd.DataFrame, derive_config: Dict[str, Any]) -> pd.Da
     for field, value in derive_config.items():
         df[field] = value
     
-    # Add data_source field based on columns present
-    if 'grads_4_year_cohort' in df.columns:
-        df['data_source'] = '2021_detailed'
-    elif 'graduation_rate_5_year' in df.columns:
-        df['data_source'] = '2022_2023_standard'
+    # Add data_source field based on columns present and format
+    if 'postsecondary_rate' in df.columns:
+        df['data_source'] = 'postsecondary_rates'
     else:
-        df['data_source'] = '2024_simplified'
+        df['data_source'] = 'unknown_format'
     
     return df
 
 
-def clean_graduation_rates(df: pd.DataFrame) -> pd.DataFrame:
-    """Clean and validate graduation rate values."""
-    rate_columns = [col for col in df.columns if 'graduation_rate' in col]
+def clean_readiness_data(df: pd.DataFrame) -> pd.DataFrame:
+    """Clean and validate postsecondary readiness rate values."""
+    rate_columns = [col for col in df.columns if 'postsecondary_rate' in col]
     
     for col in rate_columns:
         if col in df.columns:
@@ -114,25 +112,24 @@ def clean_graduation_rates(df: pd.DataFrame) -> pd.DataFrame:
             # Validate rates are between 0 and 100
             invalid_mask = (df[col] < 0) | (df[col] > 100)
             if invalid_mask.any():
-                logger.warning(f"Found {invalid_mask.sum()} invalid graduation rates in {col}")
+                logger.warning(f"Found {invalid_mask.sum()} invalid readiness rates in {col}")
                 df.loc[invalid_mask, col] = pd.NA
     
     return df
 
 
 def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[DemographicMapper] = None) -> pd.DataFrame:
-    """Convert wide format graduation data to long KPI format with expanded metrics and standardized demographics."""
-    from datetime import datetime
+    """Convert wide format postsecondary readiness data to long KPI format with standardized demographics."""
     
     # Initialize demographic mapper if not provided
     if demographic_mapper is None:
         demographic_mapper = DemographicMapper()
     
-    # Identify metric columns
-    metric_columns = [col for col in df.columns if 'graduation_rate' in col]
+    # Identify rate columns
+    rate_columns = [col for col in df.columns if 'postsecondary_rate' in col]
     
-    if not metric_columns:
-        logger.warning("No graduation rate columns found for KPI conversion")
+    if not rate_columns:
+        logger.warning("No postsecondary rate columns found for KPI conversion")
         return pd.DataFrame()
     
     # Define standard KPI columns that should be preserved
@@ -170,37 +167,36 @@ def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[Demogra
         
         # Map demographic to standard student group names using demographic mapper
         original_demographic = row.get('demographic', 'All Students')
-        source_file = row.get('source_file', 'graduation_rates.csv')
+        source_file = row.get('source_file', 'postsecondary_readiness.csv')
         student_group = demographic_mapper.map_demographic(original_demographic, year, source_file)
         
-        # Check if this record is suppressed (4-year or 5-year)
-        is_suppressed_4_year = row.get('suppressed_4_year', 'N') == 'Y'
-        is_suppressed_5_year = row.get('suppressed_5_year', 'N') == 'Y'
+        # Check if this record is suppressed
+        is_suppressed = row.get('suppressed', 'N') == 'Y'
         
-        # Common KPI row template (note: suppressed field will be set per metric based on period)
+        # Common KPI row template
         kpi_template = {
             'district': row.get('district_name', 'Fayette County'),
             'school_id': school_id,
             'school_name': row.get('school_name', 'Unknown School'),
             'year': year,
             'student_group': student_group,
-            'source_file': row.get('source_file', 'graduation_rates.csv'),
+            'suppressed': 'Y' if is_suppressed else 'N',
+            'source_file': row.get('source_file', 'postsecondary_readiness.csv'),
             'last_updated': datetime.now().isoformat()
         }
         
-        # Process each graduation rate metric
-        for metric_col in metric_columns:
-            # Determine period (4-year or 5-year)
-            period = '4_year' if '4' in metric_col else '5_year'
-            
-            # Check if this specific period is suppressed
-            is_suppressed = is_suppressed_4_year if period == '4_year' else is_suppressed_5_year
+        # Process each rate metric
+        for rate_col in rate_columns:
+            # Determine metric name based on column
+            if 'with_bonus' in rate_col:
+                metric_name = 'postsecondary_readiness_rate_with_bonus'
+            else:
+                metric_name = 'postsecondary_readiness_rate'
             
             # Create rate KPI row
             rate_kpi = kpi_template.copy()
             rate_kpi.update({
-                'metric': f'graduation_rate_{period}',
-                'suppressed': 'Y' if is_suppressed else 'N'
+                'metric': metric_name
             })
             
             if is_suppressed:
@@ -208,7 +204,7 @@ def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[Demogra
                 rate_kpi['value'] = pd.NA
             else:
                 # Process normal (non-suppressed) data
-                rate_value = row.get(metric_col)
+                rate_value = row.get(rate_col)
                 
                 # Skip if rate value is missing or invalid
                 if pd.isna(rate_value) or rate_value == '':
@@ -222,76 +218,6 @@ def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[Demogra
                     continue
             
             kpi_rows.append(rate_kpi)
-            
-            # Handle count and total KPIs (only if rate was processed, either normal or suppressed)
-            if is_suppressed:
-                # For suppressed records, create count and total KPIs with NaN values
-                count_kpi = kpi_template.copy()
-                count_kpi.update({
-                    'metric': f'graduation_count_{period}',
-                    'value': pd.NA,
-                    'suppressed': 'Y'
-                })
-                kpi_rows.append(count_kpi)
-                
-                total_kpi = kpi_template.copy()
-                total_kpi.update({
-                    'metric': f'graduation_total_{period}',
-                    'value': pd.NA,
-                    'suppressed': 'Y'
-                })
-                kpi_rows.append(total_kpi)
-            else:
-                # Look for corresponding count columns
-                count_columns = [
-                    f'grads_{period}_cohort',
-                    f'students_{period}_cohort',
-                    f'number_of_grads_in_{period.replace("_", "-")}_cohort',
-                    f'number_of_students_in_{period.replace("_", "-")}_cohort'
-                ]
-                
-                grads_count = None
-                total_count = None
-                
-                # Find graduation count and total count
-                for count_col in count_columns:
-                    if count_col in df.columns:
-                        if 'grads' in count_col:
-                            grads_count = row.get(count_col)
-                        elif 'students' in count_col:
-                            total_count = row.get(count_col)
-                
-                # Create count KPI rows if data is available
-                if grads_count is not None and not pd.isna(grads_count) and grads_count != '':
-                    try:
-                        numeric_grads = int(float(grads_count))
-                        count_kpi = kpi_template.copy()
-                        count_kpi.update({
-                            'metric': f'graduation_count_{period}',
-                            'value': numeric_grads,
-                            'suppressed': 'N'
-                        })
-                        kpi_rows.append(count_kpi)
-                    except (ValueError, TypeError):
-                        logger.warning(f"Could not convert grads count to numeric: {grads_count}")
-                
-                if total_count is not None and not pd.isna(total_count) and total_count != '':
-                    try:
-                        numeric_total = int(float(total_count))
-                        total_kpi = kpi_template.copy()
-                        total_kpi.update({
-                            'metric': f'graduation_total_{period}',
-                            'value': numeric_total,
-                            'suppressed': 'N'
-                        })
-                        kpi_rows.append(total_kpi)
-                    except (ValueError, TypeError):
-                        logger.warning(f"Could not convert total count to numeric: {total_count}")
-                
-                # If we have rate but no counts, try to calculate from rate and see if we can infer
-                # For files that only have rates, we can't generate counts
-                if grads_count is None and total_count is None:
-                    logger.debug(f"No count data available for {metric_col} in {row.get('source_file', 'unknown')}")
     
     if not kpi_rows:
         logger.warning("No valid KPI rows created")
@@ -312,7 +238,7 @@ def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[Demogra
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
-    """Read newest graduation rates files, normalize, and convert to KPI format with demographic standardization."""
+    """Read newest postsecondary readiness files, normalize, and convert to KPI format with demographic standardization."""
     source_name = Path(__file__).stem
     source_dir = raw_dir / source_name
     
@@ -326,7 +252,7 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
         logger.info(f"No CSV files found in {source_dir}; skipping.")
         return
     
-    logger.info(f"Found {len(csv_files)} graduation rate files to process")
+    logger.info(f"Found {len(csv_files)} postsecondary readiness files to process")
     
     # Initialize demographic mapper
     demographic_mapper = DemographicMapper()
@@ -350,7 +276,7 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
             df = normalize_column_names(df)
             df = standardize_missing_values(df)
             df = add_derived_fields(df, conf.derive)
-            df = clean_graduation_rates(df)
+            df = clean_readiness_data(df)
             
             # Apply configuration-based transformations
             if conf.rename:
@@ -404,7 +330,7 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     output_path = proc_dir / f"{source_name}.csv"
     combined_kpi_df.to_csv(output_path, index=False)
     
-    logger.info(f"Combined graduation rates KPI data written to {output_path}")
+    logger.info(f"Combined postsecondary readiness KPI data written to {output_path}")
     logger.info(f"Demographic audit log written to {audit_path}")
     logger.info(f"Total KPI rows: {len(combined_kpi_df)}, Total columns: {len(combined_kpi_df.columns)}")
     logger.info(f"Unique demographics standardized: {len(unique_demographics)}")
@@ -440,7 +366,7 @@ if __name__ == "__main__":
     
     test_config = {
         "derive": {
-            "processing_date": "2025-07-18",
+            "processing_date": "2025-07-19",
             "data_quality_flag": "reviewed"
         }
     }

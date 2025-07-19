@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equity ETL Monitoring Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .control-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9em;
+        }
+        
+        .control-group select {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 1em;
+            background: white;
+            min-width: 200px;
+        }
+        
+        .control-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .stats {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-height: 600px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background: #ffe6e6;
+            color: #d00;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #ffcccc;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .legend-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Equity ETL Monitoring Dashboard</h1>
+        <p>Fayette County Schools - Real-time data visualization for equity scorecard metrics</p>
+    </div>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label for="metricSelect">Select Metric:</label>
+            <select id="metricSelect">
+                <option value="">Loading metrics...</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="yearSelect">Select Year:</label>
+            <select id="yearSelect">
+                <option value="">Auto (Latest)</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="refreshBtn">Data:</label>
+            <button id="refreshBtn" onclick="loadDashboard()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">Refresh</button>
+        </div>
+    </div>
+    
+    <div class="stats" id="statsContainer" style="display: none;">
+        <div class="stats-grid" id="statsGrid">
+            <!-- Stats will be populated here -->
+        </div>
+    </div>
+    
+    <div class="chart-container">
+        <div class="legend-info">
+            <strong>Heatmap Guide:</strong> Schools are sorted by overall performance (highest at top). 
+            Darker colors indicate higher rates. Hover over cells for detailed values. 
+            Missing data appears as gaps.
+        </div>
+        <div id="heatmapChart">
+            <div class="loading">Loading dashboard...</div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Generated from Equity ETL pipeline • Last updated: <span id="lastUpdated">Loading...</span></p>
+    </div>
+
+    <script>
+        let dashboardConfig = null;
+        let currentData = null;
+        
+        async function loadDashboardConfig() {
+            try {
+                const response = await fetch('data/dashboard_config.json');
+                dashboardConfig = await response.json();
+                populateMetricDropdown();
+                updateLastUpdated();
+                return true;
+            } catch (error) {
+                console.error('Error loading dashboard config:', error);
+                showError('Failed to load dashboard configuration. Please ensure data files are generated.');
+                return false;
+            }
+        }
+        
+        function populateMetricDropdown() {
+            const metricSelect = document.getElementById('metricSelect');
+            metricSelect.innerHTML = '<option value="">Select a metric...</option>';
+            
+            // Build metric options from config
+            for (const [sourceName, sourceInfo] of Object.entries(dashboardConfig.sources)) {
+                if (sourceInfo.data_available) {
+                    for (const metric of sourceInfo.rate_metrics) {
+                        const displayName = formatMetricName(metric, sourceName);
+                        const value = `${sourceName}_${metric}`;
+                        metricSelect.innerHTML += `<option value="${value}">${displayName}</option>`;
+                    }
+                }
+            }
+        }
+        
+        function formatMetricName(metric, source) {
+            // Convert metric names to friendly display names
+            const metricNames = {
+                'graduation_rate_4_year': '4-Year Graduation Rate',
+                'graduation_rate_5_year': '5-Year Graduation Rate',
+                'kindergarten_readiness_rate': 'Kindergarten Readiness Rate',
+                'postsecondary_readiness_rate': 'Postsecondary Readiness Rate',
+                'postsecondary_readiness_rate_with_bonus': 'Postsecondary Readiness Rate (With Bonus)'
+            };
+            
+            const sourceNames = {
+                'graduation_rates': 'Graduation',
+                'kindergarten_readiness': 'Kindergarten Readiness',
+                'postsecondary_readiness': 'Postsecondary Readiness'
+            };
+            
+            const metricName = metricNames[metric] || metric;
+            const sourceName = sourceNames[source] || source;
+            
+            return `${sourceName}: ${metricName}`;
+        }
+        
+        function updateLastUpdated() {
+            const lastUpdatedElement = document.getElementById('lastUpdated');
+            if (dashboardConfig && dashboardConfig.generated_at) {
+                const date = new Date(dashboardConfig.generated_at);
+                lastUpdatedElement.textContent = date.toLocaleString();
+            }
+        }
+        
+        async function loadMetricData(metricKey) {
+            try {
+                const response = await fetch(`data/${metricKey}.json`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(`Data error: ${data.error}`);
+                    return null;
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('Error loading metric data:', error);
+                showError(`Failed to load data for ${metricKey}`);
+                return null;
+            }
+        }
+        
+        function showStats(data) {
+            const statsContainer = document.getElementById('statsContainer');
+            const statsGrid = document.getElementById('statsGrid');
+            
+            if (!data || !data.stats) {
+                statsContainer.style.display = 'none';
+                return;
+            }
+            
+            const stats = data.stats;
+            statsGrid.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${stats.total_schools}</div>
+                    <div class="stat-label">Schools</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${stats.total_demographics}</div>
+                    <div class="stat-label">Demographics</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${stats.data_points}</div>
+                    <div class="stat-label">Data Points</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${stats.avg_value ? stats.avg_value.toFixed(1) + '%' : 'N/A'}</div>
+                    <div class="stat-label">Average Rate</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${stats.min_value ? stats.min_value.toFixed(1) + '%' : 'N/A'}</div>
+                    <div class="stat-label">Minimum</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${stats.max_value ? stats.max_value.toFixed(1) + '%' : 'N/A'}</div>
+                    <div class="stat-label">Maximum</div>
+                </div>
+            `;
+            
+            statsContainer.style.display = 'block';
+        }
+        
+        function createHeatmap(data) {
+            if (!data || !data.values || data.values.length === 0) {
+                showError('No data available for visualization');
+                return;
+            }
+            
+            // Prepare data for Plotly heatmap
+            const trace = {
+                z: data.values,
+                x: data.demographics,
+                y: data.schools,
+                type: 'heatmap',
+                colorscale: [
+                    [0, '#fff5f0'],
+                    [0.1, '#fee0d2'],
+                    [0.3, '#fcbba1'],
+                    [0.5, '#fc9272'],
+                    [0.7, '#fb6a4a'],
+                    [0.9, '#ef3b2c'],
+                    [1, '#cb181d']
+                ],
+                hoverongaps: false,
+                hovertemplate: '<b>%{y}</b><br>' +
+                              '<b>%{x}</b><br>' +
+                              'Rate: %{z}%<br>' +
+                              '<extra></extra>',
+                zmin: 0,
+                zmax: 100,
+                colorbar: {
+                    title: 'Rate (%)',
+                    titleside: 'right'
+                }
+            };
+            
+            const layout = {
+                title: {
+                    text: `${formatMetricName(data.metric, '')} - ${data.year}`,
+                    font: { size: 18 }
+                },
+                xaxis: {
+                    title: 'Student Demographics',
+                    tickangle: -45,
+                    side: 'bottom'
+                },
+                yaxis: {
+                    title: 'Schools (Ranked by Performance)',
+                    autorange: 'reversed' // Highest performing schools at top
+                },
+                margin: {
+                    l: 200,
+                    r: 100,
+                    t: 100,
+                    b: 150
+                },
+                height: Math.max(400, data.schools.length * 30 + 200),
+                font: { size: 12 },
+                paper_bgcolor: 'white',
+                plot_bgcolor: 'white'
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
+                displaylogo: false
+            };
+            
+            Plotly.newPlot('heatmapChart', [trace], layout, config);
+        }
+        
+        function showError(message) {
+            document.getElementById('heatmapChart').innerHTML = 
+                `<div class="error">${message}</div>`;
+        }
+        
+        async function onMetricChange() {
+            const metricSelect = document.getElementById('metricSelect');
+            const selectedMetric = metricSelect.value;
+            
+            if (!selectedMetric) {
+                document.getElementById('heatmapChart').innerHTML = 
+                    '<div class="loading">Please select a metric to view the heatmap.</div>';
+                document.getElementById('statsContainer').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('heatmapChart').innerHTML = 
+                '<div class="loading">Loading heatmap...</div>';
+            
+            currentData = await loadMetricData(selectedMetric);
+            if (currentData) {
+                createHeatmap(currentData);
+                showStats(currentData);
+            }
+        }
+        
+        async function loadDashboard() {
+            document.getElementById('heatmapChart').innerHTML = 
+                '<div class="loading">Loading dashboard...</div>';
+            
+            const success = await loadDashboardConfig();
+            if (success) {
+                // Auto-select first metric if none selected
+                const metricSelect = document.getElementById('metricSelect');
+                if (!metricSelect.value && metricSelect.options.length > 1) {
+                    metricSelect.selectedIndex = 1;
+                    await onMetricChange();
+                }
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('metricSelect').addEventListener('change', onMetricChange);
+        
+        // Initialize dashboard on load
+        window.addEventListener('load', loadDashboard);
+    </script>
+</body>
+</html>

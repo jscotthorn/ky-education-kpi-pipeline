@@ -42,6 +42,19 @@ sources:
     derive:
       processing_date: "2025-07-18"
       data_quality_flag: "reviewed"
+
+  kindergarten_readiness:
+    rename: {}
+      # Normalization handled automatically in ETL module
+    dtype:
+      county_number: "str"
+      district_number: "str"
+      school_number: "str"
+      school_year: "str"
+      total_percent_ready: "float64"
+      number_tested: "int64"
+    derive:
+      processing_date: "2025-07-18"
       
 # Example configuration for field mappings and transformations
 # Add new sources here as they are onboarded
