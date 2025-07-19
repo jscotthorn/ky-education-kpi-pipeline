@@ -221,7 +221,19 @@ See [CLAUDE.md](./CLAUDE.md) for AI assistant usage patterns and workflows.
 
 ## 🎯 Future Roadmap
 
-- **Additional data sources** (test scores, teacher quality, facilities)
+### Data Expansion Strategy
+Based on comprehensive analysis of 94 additional Kentucky Department of Education data sources, the project roadmap includes **40+ high-value KPI opportunities** across school discipline, teacher quality, advanced coursework, vulnerable populations, and intersectional equity analysis.
+
+**Key Implementation Priorities**:
+- **School Discipline Equity** - Complete school-to-prison pipeline tracking through SAFE behavior event files
+- **Teacher Quality Disparities** - Resource equity analysis (Title I schools have 66.0% vs Non-Title I 35.4% students with inexperienced teachers)
+- **Vulnerable Population Analysis** - Extreme intersections (14.4% of migrant students experiencing homelessness)
+- **Advanced Academic Opportunities** - College prep and career readiness equity gaps
+- **Intersectional Analysis** - Multi-dimensional demographic combinations across all performance areas
+
+### Planning Documentation
+- **Journal 20** (`notes/20--kyrc24-new-data-sources-investigation.md`) - Comprehensive analysis of 94 files across 8 categories with detailed equity insights and discovery documentation
+- **Journal 21** (`notes/21--kyrc24-implementation-roadmap.md`) - Strategic implementation roadmap with 12 sprints across 4 phases, prioritized by equity impact
 
 For detailed technical implementation and AI usage guidelines, see [CLAUDE.md](./CLAUDE.md).
 
