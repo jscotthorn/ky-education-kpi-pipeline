@@ -5,8 +5,7 @@ __pycache__/
 .env
 
 # Data
-data/raw/
-data/staging/
+*.csv
 html/data/
 
 # CSV files (data should be hosted externally)

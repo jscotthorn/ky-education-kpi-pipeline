@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graduation Rates - Raw Data Files</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+        .file-list {
+            list-style: none;
+            padding: 0;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #e74c3c;
+            transition: background-color 0.2s;
+        }
+        .file-item:hover {
+            background: #e9ecef;
+        }
+        .file-item a {
+            text-decoration: none;
+            color: #2c3e50;
+            font-weight: 500;
+            flex-grow: 1;
+        }
+        .file-item a:hover {
+            color: #e74c3c;
+        }
+        .file-icon {
+            margin-right: 10px;
+            color: #e74c3c;
+        }
+        .year-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+        .breadcrumb {
+            background: #ecf0f1;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .alert {
+            background: #f8d7da;
+            border: 1px solid #f1aeb5;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="breadcrumb">
+            📁 <a href="https://github.com/jscotthorn/ky-education-kpi-pipeline">ky-education-kpi-pipeline</a> / <a href="https://education.kyopengov.org/data/">data</a> / <a href="https://education.kyopengov.org/data/raw/">raw</a> / graduation_rates
+        </div>
+        
+        <h1>🎓 Graduation Rates - Raw Data</h1>
+        
+        <div class="alert">
+            <strong>4-Year Graduation Rates:</strong> Original files from Kentucky Department of Education containing high school graduation outcome data by school, district, and demographic groups.
+        </div>
+        
+        <ul class="file-list">
+            <li class="file-item">
+                <span class="file-icon">📄</span>
+                <a href="https://education.kyopengov.org/data/raw/graduation_rates/KYRC24_ACCT_4_Year_High_School_Graduation.csv">KYRC24_ACCT_4_Year_High_School_Graduation.csv</a>
+                <span class="year-badge">2024</span>
+            </li>
+            <li class="file-item">
+                <span class="file-icon">📄</span>
+                <a href="https://education.kyopengov.org/data/raw/graduation_rates/graduation_rate_2023.csv">graduation_rate_2023.csv</a>
+                <span class="year-badge">2023</span>
+            </li>
+            <li class="file-item">
+                <span class="file-icon">📄</span>
+                <a href="https://education.kyopengov.org/data/raw/graduation_rates/graduation_rate_2022.csv">graduation_rate_2022.csv</a>
+                <span class="year-badge">2022</span>
+            </li>
+            <li class="file-item">
+                <span class="file-icon">📄</span>
+                <a href="https://education.kyopengov.org/data/raw/graduation_rates/graduation_rate_2021.csv">graduation_rate_2021.csv</a>
+                <span class="year-badge">2021</span>
+            </li>
+        </ul>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #ecf0f1;">
+        
+        <h2>📊 Data Description</h2>
+        <p>These files contain 4-year high school graduation rates for Kentucky schools and districts. The data includes:</p>
+        <ul style="color: #7f8c8d;">
+            <li><strong>School-level data</strong> - Individual school graduation outcomes</li>
+            <li><strong>District-level data</strong> - District-wide graduation summaries</li>
+            <li><strong>Demographic breakdowns</strong> - Graduation rates by student subgroups</li>
+            <li><strong>Suppression handling</strong> - Privacy protection for small student counts</li>
+        </ul>
+        
+        <h2>🔄 Processing Notes</h2>
+        <ul style="color: #7f8c8d;">
+            <li>Files are processed by <code>etl/graduation_rates.py</code></li>
+            <li>Original column names and formatting preserved</li>
+            <li>Standardized output available in <code>data/processed/graduation_rates.csv</code></li>
+            <li>Demographic mapping audit available in processed directory</li>
+        </ul>
+        
+        <p style="color: #7f8c8d; font-size: 0.9em; margin-top: 30px;">
+            <strong>Source:</strong> Kentucky Department of Education via Kentucky Report Card (KRC)
+        </p>
+    </div>
+</body>
+</html>
