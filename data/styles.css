@@ -76,6 +76,34 @@ body {
     font-size: 1.1em;
 }
 
+/* Mobile responsive header */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .github-link {
+        display: none;
+        /* Hide GitHub link on mobile */
+    }
+
+    .logo {
+        width: 50px;
+        height: 50px;
+        margin-right: 12px;
+    }
+
+    .header-text h1 {
+        font-size: 1.1em;
+    }
+
+    .header-text .tagline {
+        font-size: 0.8em;
+    }
+}
+
 /* Container and Content */
 .container {
     background: white;
@@ -148,6 +176,9 @@ h2 {
     color: #1e3c72;
     font-weight: 500;
     flex-grow: 1;
+    word-break: break-all;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .file-item a:hover {
@@ -170,6 +201,8 @@ h2 {
     color: #6c757d;
     font-size: 0.9em;
     margin-left: 10px;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 /* Year badges for file items */
@@ -180,33 +213,155 @@ h2 {
     border-radius: 12px;
     font-size: 0.8em;
     margin-left: 10px;
+    flex-shrink: 0;
+}
+
+/* Mobile responsive file lists */
+@media (max-width: 768px) {
+    .file-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px 12px;
+    }
+
+    .file-item a {
+        margin: 5px 0;
+        line-height: 1.3;
+    }
+
+    .description,
+    .year-badge {
+        margin-left: 0;
+        margin-top: 8px;
+        align-self: flex-start;
+    }
+
+    .year-badge {
+        margin-top: 5px;
+    }
+
+    .file-icon {
+        margin-bottom: 5px;
+    }
+
+    body {
+        padding: 15px;
+    }
+
+    .container {
+        padding: 20px;
+    }
+
+    .breadcrumb {
+        word-break: break-all;
+        overflow-wrap: break-word;
+        line-height: 1.4;
+    }
+}
+
+/* Small phone adjustments */
+@media (max-width: 450px) {
+    body {
+        padding: 0;
+        background-color: white;
+    }
+
+    .page-wrapper {
+        max-width: none;
+    }
+
+    .header {
+        padding: 15px 20px;
+        margin-bottom: 0;
+    }
+
+    .container {
+        border-radius: 0;
+        margin: 0;
+    }
 }
 
 /* Color variations for different metrics */
-.chronic-absenteeism .file-item { border-left-color: #e74c3c; }
-.chronic-absenteeism .file-icon { color: #e74c3c; }
-.chronic-absenteeism .year-badge { background: #e74c3c; }
+.chronic-absenteeism .file-item {
+    border-left-color: #e74c3c;
+}
 
-.english-learner-progress .file-item { border-left-color: #27ae60; }
-.english-learner-progress .file-icon { color: #27ae60; }
-.english-learner-progress .year-badge { background: #27ae60; }
+.chronic-absenteeism .file-icon {
+    color: #e74c3c;
+}
 
-.graduation-rates .file-item { border-left-color: #2980b9; }
-.graduation-rates .file-icon { color: #2980b9; }
-.graduation-rates .year-badge { background: #2980b9; }
+.chronic-absenteeism .year-badge {
+    background: #e74c3c;
+}
 
-.kindergarten-readiness .file-item { border-left-color: #f39c12; }
-.kindergarten-readiness .file-icon { color: #f39c12; }
-.kindergarten-readiness .year-badge { background: #f39c12; }
+.english-learner-progress .file-item {
+    border-left-color: #27ae60;
+}
 
-.out-of-school-suspension .file-item { border-left-color: #e74c3c; }
-.out-of-school-suspension .file-icon { color: #e74c3c; }
-.out-of-school-suspension .year-badge { background: #e74c3c; }
+.english-learner-progress .file-icon {
+    color: #27ae60;
+}
 
-.postsecondary-enrollment .file-item { border-left-color: #8e44ad; }
-.postsecondary-enrollment .file-icon { color: #8e44ad; }
-.postsecondary-enrollment .year-badge { background: #8e44ad; }
+.english-learner-progress .year-badge {
+    background: #27ae60;
+}
 
-.postsecondary-readiness .file-item { border-left-color: #3498db; }
-.postsecondary-readiness .file-icon { color: #3498db; }
-.postsecondary-readiness .year-badge { background: #3498db; }
+.graduation-rates .file-item {
+    border-left-color: #2980b9;
+}
+
+.graduation-rates .file-icon {
+    color: #2980b9;
+}
+
+.graduation-rates .year-badge {
+    background: #2980b9;
+}
+
+.kindergarten-readiness .file-item {
+    border-left-color: #f39c12;
+}
+
+.kindergarten-readiness .file-icon {
+    color: #f39c12;
+}
+
+.kindergarten-readiness .year-badge {
+    background: #f39c12;
+}
+
+.out-of-school-suspension .file-item {
+    border-left-color: #e74c3c;
+}
+
+.out-of-school-suspension .file-icon {
+    color: #e74c3c;
+}
+
+.out-of-school-suspension .year-badge {
+    background: #e74c3c;
+}
+
+.postsecondary-enrollment .file-item {
+    border-left-color: #8e44ad;
+}
+
+.postsecondary-enrollment .file-icon {
+    color: #8e44ad;
+}
+
+.postsecondary-enrollment .year-badge {
+    background: #8e44ad;
+}
+
+.postsecondary-readiness .file-item {
+    border-left-color: #3498db;
+}
+
+.postsecondary-readiness .file-icon {
+    color: #3498db;
+}
+
+.postsecondary-readiness .year-badge {
+    background: #3498db;
+}
