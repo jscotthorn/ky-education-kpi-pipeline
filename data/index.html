@@ -3,99 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kentucky Education KPI Data</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #2c3e50;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
-        }
-        .directory-list {
-            list-style: none;
-            padding: 0;
-        }
-        .directory-item {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            margin: 5px 0;
-            background: #f8f9fa;
-            border-radius: 5px;
-            border-left: 4px solid #3498db;
-            transition: background-color 0.2s;
-        }
-        .directory-item:hover {
-            background: #e9ecef;
-        }
-        .directory-item a {
-            text-decoration: none;
-            color: #2c3e50;
-            font-weight: 500;
-            flex-grow: 1;
-        }
-        .directory-item a:hover {
-            color: #3498db;
-        }
-        .folder-icon {
-            margin-right: 10px;
-            color: #f39c12;
-        }
-        .description {
-            color: #7f8c8d;
-            font-size: 0.9em;
-            margin-left: 10px;
-        }
-        .breadcrumb {
-            background: #ecf0f1;
-            padding: 10px 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 0.9em;
-            color: #7f8c8d;
-        }
-        .breadcrumb a {
-            color: #3498db;
-            text-decoration: none;
-        }
-    </style>
+    <title>Kentucky Education Data Portal</title>
+    <link rel="icon" href="/sites/default/files/KOGC-badge_1.png" type="image/png">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <div class="breadcrumb">
-            📁 <a href="https://github.com/jscotthorn/ky-education-kpi-pipeline">ky-education-kpi-pipeline</a> / data
+    <div class="page-wrapper">
+        <div class="header">
+            <div class="header-left">
+                <img src="https://kyopengov.org/sites/default/files/KOGC-badge.png" alt="Kentucky Open Government Coalition" class="logo">
+                <div class="header-text">
+                    <h1>Kentucky Education Data Portal</h1>
+                    <p class="tagline"><a href="https://kyopengov.org" class="coalition-link">Kentucky Open Government Coalition</a></p>
+                </div>
+            </div>
+            <a href="https://github.com/jscotthorn/ky-education-kpi-pipeline" class="github-link">
+                <span class="github-icon">⚡</span>Project on GitHub
+            </a>
         </div>
         
-        <h1>📊 Kentucky Education KPI Data</h1>
+        <div class="container">
+            <div class="breadcrumb">
+                📁 <a href="https://github.com/jscotthorn/ky-education-kpi-pipeline">ky-education-kpi-pipeline</a> / data
+            </div>
         
-        <p>This directory contains education performance indicator data for Kentucky schools and districts. Data is organized by metric type with both raw source files and processed KPI outputs.</p>
+        <div class="alert">
+            <strong>Education Data Portal:</strong> This directory contains education performance indicator data for Kentucky schools and districts. Data is organized by metric type with both raw source files and processed KPI outputs following standardized formatting for transparency and analysis.
+        </div>
         
-        <ul class="directory-list">
-            <li class="directory-item">
-                <span class="folder-icon">📊</span>
+        <h2>📂 Data Directories</h2>
+        <ul class="file-list">
+            <li class="file-item">
+                <span class="file-icon">📊</span>
                 <a href="https://education.kyopengov.org/data/kpi/">kpi/</a>
                 <span class="description">Master KPI dataset with all metrics in standardized format</span>
             </li>
-            <li class="directory-item">
-                <span class="folder-icon">⚙️</span>
+            <li class="file-item">
+                <span class="file-icon">⚙️</span>
                 <a href="https://education.kyopengov.org/data/processed/">processed/</a>
                 <span class="description">Cleaned and standardized metric files ready for analysis</span>
             </li>
-            <li class="directory-item">
-                <span class="folder-icon">📁</span>
+            <li class="file-item">
+                <span class="file-icon">📁</span>
                 <a href="https://education.kyopengov.org/data/raw/">raw/</a>
                 <span class="description">Original data files from Kentucky Department of Education</span>
             </li>
@@ -117,6 +66,7 @@
         <p style="color: #7f8c8d; font-size: 0.9em; margin-top: 30px;">
             <strong>Note:</strong> All data files follow standardized KPI format with demographic breakdowns and suppression handling for student privacy.
         </p>
+        </div>
     </div>
 </body>
 </html>

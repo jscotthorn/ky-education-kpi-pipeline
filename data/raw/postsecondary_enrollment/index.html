@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Graduation Rates - Kentucky Education Data Portal</title>
+    <title>Postsecondary Enrollment - Kentucky Education Data Portal</title>
     <link rel="icon" href="/sites/default/files/KOGC-badge_1.png" type="image/png">
     <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -22,36 +22,36 @@
             </a>
         </div>
         
-        <div class="container graduation-rates">
+        <div class="container postsecondary-enrollment">
             <div class="breadcrumb">
-                📁 <a href="https://github.com/jscotthorn/ky-education-kpi-pipeline">ky-education-kpi-pipeline</a> / <a href="https://education.kyopengov.org/data/">data</a> / <a href="https://education.kyopengov.org/data/raw/">raw</a> / graduation_rates
+                📁 <a href="https://github.com/jscotthorn/ky-education-kpi-pipeline">ky-education-kpi-pipeline</a> / <a href="https://education.kyopengov.org/data/">data</a> / <a href="https://education.kyopengov.org/data/raw/">raw</a> / postsecondary_enrollment
             </div>
             
-            <h1>🎓 Graduation Rates - Raw Data</h1>
+            <h1>🎓 Postsecondary Enrollment - Raw Data</h1>
             
             <div class="alert">
-                <strong>High School Completion:</strong> Original files from Kentucky Department of Education containing 4-year adjusted cohort graduation rates by school, district, and demographic groups. Tracks student success in completing high school within four years.
+                <strong>College Enrollment Tracking:</strong> Original files from Kentucky Department of Education containing postsecondary enrollment rates by school, district, and demographic groups. Tracks students' transition to Kentucky colleges and universities after high school graduation.
             </div>
             
             <ul class="file-list">
                 <li class="file-item">
                     <span class="file-icon">📄</span>
-                    <a href="https://education.kyopengov.org/data/raw/graduation_rates/KYRC24_ACCT_4_Year_High_School_Graduation.csv">KYRC24_ACCT_4_Year_High_School_Graduation.csv</a>
+                    <a href="https://education.kyopengov.org/data/raw/postsecondary_enrollment/KYRC24_ADLF_Transition_to_In_State_Postsecondary_Education.csv">KYRC24_ADLF_Transition_to_In_State_Postsecondary_Education.csv</a>
                     <span class="year-badge">2024</span>
                 </li>
                 <li class="file-item">
                     <span class="file-icon">📄</span>
-                    <a href="https://education.kyopengov.org/data/raw/graduation_rates/graduation_rate_2023.csv">graduation_rate_2023.csv</a>
+                    <a href="https://education.kyopengov.org/data/raw/postsecondary_enrollment/transition_in_state_postsecondary_education_2023.csv">transition_in_state_postsecondary_education_2023.csv</a>
                     <span class="year-badge">2023</span>
                 </li>
                 <li class="file-item">
                     <span class="file-icon">📄</span>
-                    <a href="https://education.kyopengov.org/data/raw/graduation_rates/graduation_rate_2022.csv">graduation_rate_2022.csv</a>
+                    <a href="https://education.kyopengov.org/data/raw/postsecondary_enrollment/transition_in_state_postsecondary_education_2022.csv">transition_in_state_postsecondary_education_2022.csv</a>
                     <span class="year-badge">2022</span>
                 </li>
                 <li class="file-item">
                     <span class="file-icon">📄</span>
-                    <a href="https://education.kyopengov.org/data/raw/graduation_rates/graduation_rate_2021.csv">graduation_rate_2021.csv</a>
+                    <a href="https://education.kyopengov.org/data/raw/postsecondary_enrollment/transition_in_state_postsecondary_education_2021.csv">transition_in_state_postsecondary_education_2021.csv</a>
                     <span class="year-badge">2021</span>
                 </li>
             </ul>
@@ -59,19 +59,19 @@
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #ecf0f1;">
             
             <h2>📊 Data Description</h2>
-            <p>These files contain 4-year adjusted cohort graduation rate data for Kentucky schools and districts. The data includes:</p>
+            <p>These files contain postsecondary enrollment data for Kentucky schools and districts. The data includes:</p>
             <ul style="color: #7f8c8d;">
-                <li><strong>4-year graduation rates</strong> - Percentage of students graduating within four years</li>
-                <li><strong>Adjusted cohort methodology</strong> - Standard federal calculation method</li>
-                <li><strong>School-level data</strong> - Individual high school graduation outcomes</li>
-                <li><strong>Demographic analysis</strong> - Graduation rates by student subgroups</li>
+                <li><strong>Public institution enrollment</strong> - Kentucky public college/university rates</li>
+                <li><strong>Private institution enrollment</strong> - Kentucky private college rates</li>
+                <li><strong>Total enrollment rates</strong> - Combined in-state postsecondary enrollment</li>
+                <li><strong>Demographic analysis</strong> - College-going rates by student subgroups</li>
             </ul>
             
             <h2>🔄 Processing Notes</h2>
             <ul style="color: #7f8c8d;">
-                <li>Files are processed by <code>etl/graduation_rates.py</code></li>
+                <li>Files are processed by <code>etl/postsecondary_enrollment.py</code></li>
                 <li>Original column names and formatting preserved</li>
-                <li>Standardized output available in <code>data/processed/graduation_rates.csv</code></li>
+                <li>Standardized output available in <code>data/processed/postsecondary_enrollment.csv</code></li>
                 <li>Demographic mapping audit available in processed directory</li>
             </ul>
             
