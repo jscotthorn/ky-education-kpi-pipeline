@@ -234,6 +234,7 @@ Based on comprehensive analysis of 94 additional Kentucky Department of Educatio
 ### Planning Documentation
 - **Journal 20** (`notes/20--kyrc24-new-data-sources-investigation.md`) - Comprehensive analysis of 94 files across 8 categories with detailed equity insights and discovery documentation
 - **Journal 21** (`notes/21--kyrc24-implementation-roadmap.md`) - Strategic implementation roadmap with 12 sprints across 4 phases, prioritized by equity impact
+- **Journal 22** (`notes/22--longitudinal-data-availability-analysis.md`) - Historical data availability analysis across all planned sprints, documenting 4 complete school years (2020-24) plus current year with specific legacy file naming patterns
 
 For detailed technical implementation and AI usage guidelines, see [CLAUDE.md](./CLAUDE.md).
 

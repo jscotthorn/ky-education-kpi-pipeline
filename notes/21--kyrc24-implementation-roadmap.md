@@ -1,9 +1,9 @@
 # Journal 21: KYRC24 Data Implementation Roadmap
 
-**Data Source Directory**: `/Users/scott/Projects/jupylter playground/equity/downloads/`
-
 ## Executive Summary
 Based on comprehensive analysis of 94 files across 8 categories (Journal 20), this roadmap prioritizes **40+ high-value KPI opportunities** that will enable complete school-to-prison pipeline tracking and comprehensive equity analysis across academic, disciplinary, and post-graduation domains.
+
+**Data Source Directory**: `/Users/scott/Projects/jupylter playground/equity/downloads/`
 
 ## Phase 1: Immediate Implementation (Highest Impact Categories)
 
