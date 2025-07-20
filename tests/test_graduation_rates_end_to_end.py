@@ -6,7 +6,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from etl.graduation_rates import transform, normalize_column_names, convert_to_kpi_format
+from etl.graduation_rates import transform, GraduationRatesETL
 
 
 class TestGraduationRatesEndToEnd:
@@ -53,17 +53,19 @@ class TestGraduationRatesEndToEnd:
     
     def _process_sample_rows(self, sample_df: pd.DataFrame, source_filename: str) -> pd.DataFrame:
         """Process sample rows through the transformation pipeline."""
-        # Apply the same transformations as the ETL pipeline
+        # Apply the same transformations as the ETL pipeline using BaseETL
+        etl = GraduationRatesETL('graduation_rates')
         df = sample_df.copy()
         
         # Apply normalization
-        df = normalize_column_names(df)
+        df = etl.normalize_column_names(df)
+        df = etl.standardize_missing_values(df)
         
         # Add source file for tracking
         df['source_file'] = source_filename
         
         # Convert to KPI format
-        kpi_df = convert_to_kpi_format(df)
+        kpi_df = etl.convert_to_kpi_format(df, source_filename)
         
         return kpi_df
     

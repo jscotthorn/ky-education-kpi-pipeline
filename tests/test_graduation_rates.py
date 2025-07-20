@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import tempfile
 import shutil
-from etl.graduation_rates import transform, normalize_column_names, standardize_missing_values, clean_graduation_rates
+from etl.graduation_rates import transform, clean_graduation_rates, GraduationRatesETL
 
 
 class TestGraduationRatesETL:
@@ -77,9 +77,10 @@ class TestGraduationRatesETL:
         return data
     
     def test_normalize_column_names(self):
-        """Test column name normalization."""
+        """Test column name normalization using BaseETL."""
+        etl = GraduationRatesETL('graduation_rates')
         df_2024 = self.create_sample_2024_data()
-        df_normalized = normalize_column_names(df_2024)
+        df_normalized = etl.normalize_column_names(df_2024)
         
         assert 'school_year' in df_normalized.columns
         assert 'county_name' in df_normalized.columns
@@ -88,12 +89,13 @@ class TestGraduationRatesETL:
     
     def test_standardize_missing_values(self):
         """Test missing value standardization with graduation rate columns."""
+        etl = GraduationRatesETL('graduation_rates')
         df = pd.DataFrame({
             'graduation_rate_4_year': [90.5, '', '*', 95.0],
             'suppressed_4_year': ['N', 'Y', '', 'N']
         })
         
-        df_clean = standardize_missing_values(df)
+        df_clean = etl.standardize_missing_values(df)
         
         assert pd.isna(df_clean.loc[1, 'graduation_rate_4_year'])
         assert pd.isna(df_clean.loc[2, 'graduation_rate_4_year'])
@@ -265,13 +267,14 @@ class TestGraduationRatesHelpers:
     
     def test_normalize_column_names_edge_cases(self):
         """Test column normalization with edge cases."""
+        etl = GraduationRatesETL('graduation_rates')
         df = pd.DataFrame({
             'Unknown Column': [1, 2, 3],
             'SCHOOL YEAR': ['2021', '2022', '2023'],
             'School Name': ['A', 'B', 'C']
         })
         
-        result = normalize_column_names(df)
+        result = etl.normalize_column_names(df)
         
         assert 'school_year' in result.columns
         assert 'school_name' in result.columns
@@ -279,19 +282,20 @@ class TestGraduationRatesHelpers:
     
     def test_standardize_missing_values_edge_cases(self):
         """Test missing value standardization with graduation rate columns."""
+        etl = GraduationRatesETL('graduation_rates')
         df = pd.DataFrame({
-            'graduation_rate_4_year': ['', '""', 'valid', None],
-            'graduation_rate_5_year': ['*', '', 'valid', '0']
+            'graduation_rate_4_year': ['', '""', '85.5', None],
+            'graduation_rate_5_year': ['*', '', '90.0', '0']
         })
         
-        result = standardize_missing_values(df)
+        result = etl.standardize_missing_values(df)
         
         assert pd.isna(result.loc[0, 'graduation_rate_4_year'])
         assert pd.isna(result.loc[1, 'graduation_rate_4_year'])
-        assert result.loc[2, 'graduation_rate_4_year'] == 'valid'
+        assert result.loc[2, 'graduation_rate_4_year'] == 85.5  # Now numeric after cleaning
         assert pd.isna(result.loc[3, 'graduation_rate_4_year'])
         
         assert pd.isna(result.loc[0, 'graduation_rate_5_year'])  # '*' in graduation rate column
         assert pd.isna(result.loc[1, 'graduation_rate_5_year'])
-        assert result.loc[2, 'graduation_rate_5_year'] == 'valid'
-        assert result.loc[3, 'graduation_rate_5_year'] == '0'
+        assert result.loc[2, 'graduation_rate_5_year'] == 90.0  # Now numeric after cleaning
+        assert result.loc[3, 'graduation_rate_5_year'] == 0.0
