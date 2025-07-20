@@ -6,11 +6,15 @@ import pytest
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from etl.postsecondary_readiness import transform, normalize_column_names, convert_to_kpi_format
+from etl.postsecondary_readiness import transform, PostsecondaryReadinessETL
 
 
 class TestPostsecondaryReadinessEndToEnd:
     """Test complete transformation from raw data to KPI format."""
+    
+    def setup_method(self):
+        """Setup ETL instance for testing."""
+        self.etl = PostsecondaryReadinessETL('postsecondary_readiness')
     
     def test_source_to_kpi_transformation(self):
         """Test that 10 random rows from each source file are correctly represented in processed file."""
@@ -57,13 +61,14 @@ class TestPostsecondaryReadinessEndToEnd:
         df = sample_df.copy()
         
         # Apply normalization
-        df = normalize_column_names(df)
+        df = self.etl.normalize_column_names(df)
+        df = self.etl.standardize_missing_values(df)
         
         # Add source file for tracking
         df['source_file'] = source_filename
         
         # Convert to KPI format
-        kpi_df = convert_to_kpi_format(df)
+        kpi_df = self.etl.convert_to_kpi_format(df, source_filename)
         
         return kpi_df
     

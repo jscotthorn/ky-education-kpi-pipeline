@@ -386,6 +386,9 @@ def _process_demographic_rows(df: pd.DataFrame, demographic_mapper: DemographicM
         value_name='value'
     )
     
+    # Convert value column to numeric immediately after melt
+    kpi_df['value'] = pd.to_numeric(kpi_df['value'], errors='coerce')
+    
     # Create standardized metric names for demographic equity analysis
     metric_mapping = {
         # Event type metrics
@@ -528,6 +531,9 @@ def _process_students_affected_rows(df: pd.DataFrame) -> pd.DataFrame:
         value_name='value'
     )
     
+    # Convert value column to numeric immediately after melt
+    kpi_df['value'] = pd.to_numeric(kpi_df['value'], errors='coerce')
+    
     # Create standardized metric names for students affected (scope metrics)
     metric_mapping = {
         # Event type metrics - students affected
@@ -665,6 +671,9 @@ def _process_total_events_rows(df: pd.DataFrame) -> pd.DataFrame:
         var_name='metric_raw',
         value_name='value'
     )
+    
+    # Convert value column to numeric immediately after melt
+    kpi_df['value'] = pd.to_numeric(kpi_df['value'], errors='coerce')
     
     # Create standardized metric names for total events (intensity metrics)
     metric_mapping = {
@@ -887,6 +896,9 @@ def _process_aggregate_rows(df: pd.DataFrame) -> pd.DataFrame:
         value_name='value'
     )
     
+    # Convert value column to numeric immediately after melt
+    kpi_df['value'] = pd.to_numeric(kpi_df['value'], errors='coerce')
+    
     # Create standardized metric names for aggregates (no demographic suffix)
     metric_mapping = {
         # Event type metrics - aggregates
@@ -1050,6 +1062,10 @@ def transform(raw_dir: str, proc_dir: str, config: Dict[str, Any]) -> str:
     # Combine all data
     if all_data:
         combined_df = pd.concat(all_data, ignore_index=True)
+        
+        # FIX: Ensure value column is numeric for etl_runner validation
+        # Convert value column to numeric, this will properly handle suppressed records as NaN
+        combined_df['value'] = pd.to_numeric(combined_df['value'], errors='coerce')
         
         # Save main output
         output_file = proc_path / 'safe_schools_events.csv'

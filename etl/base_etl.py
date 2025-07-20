@@ -243,6 +243,10 @@ class BaseETL(ABC):
         if pd.notna(school_id) and school_id != '':
             return self._clean_school_id(school_id)
         
+        # We should use a consistent identifier across years. Throwing an error to monitor our use of other columns as we migrate ETLs to this standard.
+        self.logger.error("CRITICAL: No valid school ID found in row, using fallback logic")
+        raise ValueError("No valid school ID found in row")
+        
         # Secondary: State School ID (most comprehensive when available)
         school_id = row.get('state_school_id', '')
         if pd.notna(school_id) and school_id != '':

@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import tempfile
 import shutil
-from etl.postsecondary_readiness import transform, normalize_column_names, standardize_missing_values, clean_readiness_data
+from etl.postsecondary_readiness import transform, clean_readiness_data, PostsecondaryReadinessETL
 
 
 class TestPostsecondaryReadinessETL:
@@ -21,6 +21,9 @@ class TestPostsecondaryReadinessETL:
         # Create sample raw data directory
         self.sample_dir = self.raw_dir / "postsecondary_readiness"
         self.sample_dir.mkdir(parents=True)
+        
+        # Create ETL instance for testing
+        self.etl = PostsecondaryReadinessETL('postsecondary_readiness')
     
     def teardown_method(self):
         """Clean up test directories."""
@@ -75,7 +78,7 @@ class TestPostsecondaryReadinessETL:
     def test_normalize_column_names(self):
         """Test column name normalization."""
         df_2024 = self.create_sample_2024_data()
-        df_normalized = normalize_column_names(df_2024)
+        df_normalized = self.etl.normalize_column_names(df_2024)
         
         assert 'school_year' in df_normalized.columns
         assert 'county_name' in df_normalized.columns
@@ -90,7 +93,7 @@ class TestPostsecondaryReadinessETL:
             'suppressed': ['N', 'Y', '', 'N']
         })
         
-        df_clean = standardize_missing_values(df)
+        df_clean = self.etl.standardize_missing_values(df)
         
         assert pd.isna(df_clean.loc[1, 'postsecondary_rate'])
         assert pd.isna(df_clean.loc[2, 'postsecondary_rate'])
@@ -283,6 +286,10 @@ class TestPostsecondaryReadinessETL:
 class TestPostsecondaryReadinessHelpers:
     """Test helper functions independently."""
     
+    def setup_method(self):
+        """Setup ETL instance for testing."""
+        self.etl = PostsecondaryReadinessETL('postsecondary_readiness')
+    
     def test_normalize_column_names_edge_cases(self):
         """Test column normalization with edge cases."""
         df = pd.DataFrame({
@@ -292,7 +299,7 @@ class TestPostsecondaryReadinessHelpers:
             'POSTSECONDARY RATE': [75.0, 80.0, 85.0]
         })
         
-        result = normalize_column_names(df)
+        result = self.etl.normalize_column_names(df)
         
         assert 'school_year' in result.columns
         assert 'school_name' in result.columns
@@ -302,18 +309,18 @@ class TestPostsecondaryReadinessHelpers:
     def test_standardize_missing_values_edge_cases(self):
         """Test missing value standardization with postsecondary rate columns."""
         df = pd.DataFrame({
-            'postsecondary_rate': ['', '""', 'valid', None],
-            'postsecondary_rate_with_bonus': ['*', '', 'valid', '0']
+            'postsecondary_rate': ['', '""', '75.5', None],
+            'postsecondary_rate_with_bonus': ['*', '', '80.0', '0']
         })
         
-        result = standardize_missing_values(df)
+        result = self.etl.standardize_missing_values(df)
         
         assert pd.isna(result.loc[0, 'postsecondary_rate'])
         assert pd.isna(result.loc[1, 'postsecondary_rate'])
-        assert result.loc[2, 'postsecondary_rate'] == 'valid'
+        assert result.loc[2, 'postsecondary_rate'] == 75.5  # Now converted to numeric
         assert pd.isna(result.loc[3, 'postsecondary_rate'])
         
         assert pd.isna(result.loc[0, 'postsecondary_rate_with_bonus'])  # '*' in rate column
         assert pd.isna(result.loc[1, 'postsecondary_rate_with_bonus'])
-        assert result.loc[2, 'postsecondary_rate_with_bonus'] == 'valid'
-        assert result.loc[3, 'postsecondary_rate_with_bonus'] == '0'
+        assert result.loc[2, 'postsecondary_rate_with_bonus'] == 80.0  # Converted to numeric
+        assert result.loc[3, 'postsecondary_rate_with_bonus'] == 0.0   # Converted to numeric
