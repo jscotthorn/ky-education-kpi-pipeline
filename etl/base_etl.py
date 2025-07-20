@@ -87,6 +87,10 @@ class BaseETL(ABC):
         'Demographic': 'demographic',
         'DEMOGRAPHIC': 'demographic',
         
+        # Grade field
+        'Grade': 'grade',
+        'GRADE': 'grade',
+        
         # Suppression indicators
         'Suppressed': 'suppressed',
         'SUPPRESSED': 'suppressed',
@@ -127,6 +131,23 @@ class BaseETL(ABC):
             
         Returns:
             Dictionary mapping metric names to values
+        """
+        pass
+    
+    @abstractmethod
+    def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
+        """
+        Get detaults for suppressed metrics for a row.
+        
+        This method allows each ETL module to define its own default metrics
+        when actual values cannot be extracted, particularly for suppressed
+        records that need to be preserved in the output with NA values.
+        
+        Args:
+            row: A pandas Series representing one row of data
+            
+        Returns:
+            Dictionary mapping metric names to pd.NA or other default values
         """
         pass
     
@@ -252,13 +273,12 @@ class BaseETL(ABC):
         if pd.isna(school_id) or school_id == '':
             return 'unknown'
         
-        # Convert to string without .0 suffix for numeric values
-        try:
-            # If it's a numeric value, convert to int then string to remove .0
-            cleaned_id = str(int(float(school_id)))
-        except (ValueError, TypeError):
-            # If conversion fails, use as string and strip whitespace
-            cleaned_id = str(school_id).strip()
+        # Convert to string and clean up formatting
+        cleaned_id = str(school_id).strip()
+        
+        # Remove .0 suffix if present (from float conversion) but preserve leading zeros
+        if cleaned_id.endswith('.0'):
+            cleaned_id = cleaned_id[:-2]
         
         return cleaned_id
     
@@ -282,6 +302,43 @@ class BaseETL(ABC):
             year = '2024'  # Default
         
         return year
+    
+    def normalize_grade_field(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Normalize grade field values for consistent reporting.
+        
+        Args:
+            df: Input DataFrame
+            
+        Returns:
+            DataFrame with normalized grade field
+        """
+        if 'grade' not in df.columns:
+            return df
+        
+        grade_mapping = {
+            'All Grades': 'all_grades',
+            'ALL GRADES': 'all_grades',
+            'Grade 1': 'grade_1',
+            'Grade 2': 'grade_2',
+            'Grade 3': 'grade_3',
+            'Grade 4': 'grade_4',
+            'Grade 5': 'grade_5',
+            'Grade 6': 'grade_6',
+            'Grade 7': 'grade_7',
+            'Grade 8': 'grade_8',
+            'Grade 9': 'grade_9',
+            'Grade 10': 'grade_10',
+            'Grade 11': 'grade_11',
+            'Grade 12': 'grade_12',
+            'Kindergarten': 'kindergarten',
+            'Pre-K': 'pre_k',
+            'Preschool': 'preschool'
+        }
+        
+        df['grade'] = df['grade'].map(grade_mapping).fillna(df['grade'].str.lower().str.replace(' ', '_'))
+        
+        return df
     
     def should_skip_row(self, row: pd.Series) -> bool:
         """
@@ -365,19 +422,9 @@ class BaseETL(ABC):
             metrics = self.extract_metrics(row)
             
             # Special handling for suppressed records: if no metrics extracted but record is suppressed,
-            # create default metrics based on module type to ensure suppressed records are never lost
+            # create default metrics to ensure suppressed records are never lost
             if not metrics and kpi_template['suppressed'] == 'Y':
-                # Try to infer standard metric names from module column mappings
-                module_mappings = self.module_column_mappings
-                default_metrics = {}
-                
-                # For postsecondary readiness, create standard metrics even when suppressed
-                if any('postsecondary' in col.lower() for col in module_mappings.keys()):
-                    default_metrics['postsecondary_readiness_rate'] = pd.NA
-                    default_metrics['postsecondary_readiness_rate_with_bonus'] = pd.NA
-                # Add more module-specific defaults as needed for other ETL types
-                
-                metrics = default_metrics
+                metrics = self.get_suppressed_metric_defaults(row)
             
             # Create KPI rows for each metric
             for metric_name, value in metrics.items():
@@ -457,6 +504,7 @@ class BaseETL(ABC):
                 # Apply standard transformations
                 df = self.normalize_column_names(df)
                 df = self.standardize_missing_values(df)
+                df = self.normalize_grade_field(df)
                 df = self.add_derived_fields(df, conf.derive, csv_file.name)
                 
                 # Apply configuration-based transformations
@@ -493,7 +541,6 @@ class BaseETL(ABC):
     
     def _validate_demographics(self, kpi_df: pd.DataFrame) -> None:
         """Validate demographic coverage for processed data."""
-        unique_demographics = kpi_df['student_group'].unique().tolist()
         years_processed = kpi_df['year'].unique().tolist()
         
         # Validate demographics for each year
@@ -517,6 +564,10 @@ class BaseETL(ABC):
         
         # Write processed KPI data
         output_path = proc_dir / f"{self.source_name}.csv"
+        # Ensure school_id is string type before writing to prevent integer inference on read
+        if 'school_id' in kpi_df.columns:
+            kpi_df = kpi_df.copy()
+            kpi_df['school_id'] = kpi_df['school_id'].astype(str)
         kpi_df.to_csv(output_path, index=False)
         
         logger.info(f"KPI data written to {output_path}")

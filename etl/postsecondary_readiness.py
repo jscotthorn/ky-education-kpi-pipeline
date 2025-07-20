@@ -129,6 +129,13 @@ def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[Demogra
                 metrics['postsecondary_readiness_rate_with_bonus'] = row['postsecondary_rate_with_bonus']
             
             return metrics
+        
+        def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
+            """Get default metrics for suppressed postsecondary readiness records."""
+            return {
+                'postsecondary_readiness_rate': pd.NA,
+                'postsecondary_readiness_rate_with_bonus': pd.NA
+            }
     
     # Create ETL instance  
     etl = PostsecondaryReadinessETL()
@@ -174,6 +181,13 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
                 metrics['postsecondary_readiness_rate_with_bonus'] = row['postsecondary_rate_with_bonus']
             
             return metrics
+        
+        def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
+            """Get default metrics for suppressed postsecondary readiness records."""
+            return {
+                'postsecondary_readiness_rate': pd.NA,
+                'postsecondary_readiness_rate_with_bonus': pd.NA
+            }
     
     # Use BaseETL for consistent processing
     etl = PostsecondaryReadinessETL('postsecondary_readiness')

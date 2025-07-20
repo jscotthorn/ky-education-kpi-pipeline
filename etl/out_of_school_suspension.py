@@ -376,6 +376,9 @@ def transform(raw_dir: str, proc_dir: str, config: Optional[Config] = None) -> D
     
     # Write processed KPI data
     output_path = proc_path / f"{source_name}.csv"
+    # Ensure school_id is string type before writing
+    if 'school_id' in combined_kpi_df.columns:
+        combined_kpi_df['school_id'] = combined_kpi_df['school_id'].astype(str)
     combined_kpi_df.to_csv(output_path, index=False)
     
     logger.info(f"Combined out-of-school suspension KPI data written to {output_path}")

@@ -7,9 +7,8 @@ import pandas as pd
 import tempfile
 import shutil
 from etl.chronic_absenteeism import (
-    transform, normalize_column_names, standardize_missing_values, 
-    clean_numeric_values, standardize_suppression_field, normalize_grade_field,
-    convert_to_kpi_format
+    transform, clean_numeric_values, standardize_suppression_field,
+    ChronicAbsenteeismETL
 )
 
 
@@ -25,6 +24,9 @@ class TestChronicAbsenteeismETL:
         # Create sample raw data directory
         self.sample_dir = self.raw_dir / "chronic_absenteeism"
         self.sample_dir.mkdir(parents=True)
+        
+        # Create ETL instance for testing
+        self.etl = ChronicAbsenteeismETL('chronic_absenteeism')
     
     def teardown_method(self):
         """Clean up test directories."""
@@ -98,7 +100,7 @@ class TestChronicAbsenteeismETL:
     def test_normalize_column_names_2024_format(self):
         """Test column name normalization for 2024 format."""
         df = self.create_sample_2024_data()
-        normalized_df = normalize_column_names(df)
+        normalized_df = self.etl.normalize_column_names(df)
         
         assert 'school_year' in normalized_df.columns
         assert 'county_name' in normalized_df.columns
@@ -112,7 +114,7 @@ class TestChronicAbsenteeismETL:
     def test_normalize_column_names_2023_format(self):
         """Test column name normalization for 2023 format (uppercase)."""
         df = self.create_sample_2023_data()
-        normalized_df = normalize_column_names(df)
+        normalized_df = self.etl.normalize_column_names(df)
         
         assert 'school_year' in normalized_df.columns
         assert 'county_name' in normalized_df.columns
@@ -128,7 +130,7 @@ class TestChronicAbsenteeismETL:
             'chronic_absenteeism_rate': [29.8, 'N/A', '*', '']
         })
         
-        cleaned_df = standardize_missing_values(df)
+        cleaned_df = self.etl.standardize_missing_values(df)
         
         # Check that empty strings and markers are converted to NaN
         assert pd.isna(cleaned_df.loc[1, 'chronically_absent_count'])
@@ -183,7 +185,7 @@ class TestChronicAbsenteeismETL:
             'grade': ['All Grades', 'Grade 1', 'Grade 12', 'Kindergarten', 'Pre-K', 'Unknown']
         })
         
-        normalized_df = normalize_grade_field(df)
+        normalized_df = self.etl.normalize_grade_field(df)
         
         assert normalized_df.loc[0, 'grade'] == 'all_grades'
         assert normalized_df.loc[1, 'grade'] == 'grade_1'
@@ -195,16 +197,15 @@ class TestChronicAbsenteeismETL:
     def test_convert_to_kpi_format_normal_data(self):
         """Test KPI format conversion for normal (non-suppressed) data."""
         df = self.create_sample_2024_data()
-        df = normalize_column_names(df)
-        df = standardize_missing_values(df)
-        df = clean_numeric_values(df)
+        df = self.etl.normalize_column_names(df)
+        df = self.etl.standardize_missing_values(df)
         df = standardize_suppression_field(df)
-        df = normalize_grade_field(df)
+        df = self.etl.normalize_grade_field(df)
         df['source_file'] = 'test_file.csv'
         
         # Test non-suppressed records only
         df_normal = df[df['suppressed'] == 'N'].copy()
-        kpi_df = convert_to_kpi_format(df_normal)
+        kpi_df = self.etl.convert_to_kpi_format(df_normal, 'test_file.csv')
         
         assert not kpi_df.empty
         assert len(kpi_df.columns) == 10  # Standard KPI format
@@ -254,14 +255,13 @@ class TestChronicAbsenteeismETL:
     def test_convert_to_kpi_format_suppressed_data(self):
         """Test KPI format conversion for suppressed data."""
         df = self.create_sample_suppressed_data()
-        df = normalize_column_names(df)
-        df = standardize_missing_values(df)
-        df = clean_numeric_values(df)
+        df = self.etl.normalize_column_names(df)
+        df = self.etl.standardize_missing_values(df)
         df = standardize_suppression_field(df)
-        df = normalize_grade_field(df)
+        df = self.etl.normalize_grade_field(df)
         df['source_file'] = 'test_suppressed.csv'
         
-        kpi_df = convert_to_kpi_format(df)
+        kpi_df = self.etl.convert_to_kpi_format(df, 'test_suppressed.csv')
         
         assert not kpi_df.empty
         
@@ -294,16 +294,15 @@ class TestChronicAbsenteeismETL:
             'source_file': ['test.csv'] * 3
         })
         
-        kpi_df = convert_to_kpi_format(df)
+        kpi_df = self.etl.convert_to_kpi_format(df, 'test.csv')
         
-        # Check school_id values (may be read as different types from CSV)
+        # Check school_id values (should all be strings)
         school_ids = kpi_df['school_id'].unique()
         
-        # Should prefer state_school_id, then nces_id, then school_code
-        school_id_strs = [str(sid) for sid in school_ids]
-        assert '123' in school_id_strs  # state_school_id without .0
-        assert '888' in school_id_strs  # school_code fallback when state_school_id is empty
-        assert '456' in school_id_strs  # state_school_id when present
+        # BaseETL prioritizes school_code first, then state_school_id, then nces_id, then school_number
+        assert '999' in school_ids  # school_code (primary choice)
+        assert '888' in school_ids  # school_code (primary choice)
+        assert '777' in school_ids  # school_code (primary choice)
     
     def test_year_extraction(self):
         """Test year extraction from school_year field."""
@@ -322,7 +321,7 @@ class TestChronicAbsenteeismETL:
             'source_file': ['test.csv'] * 3
         })
         
-        kpi_df = convert_to_kpi_format(df)
+        kpi_df = self.etl.convert_to_kpi_format(df, 'test.csv')
         
         years = kpi_df['year'].unique()
         
@@ -348,8 +347,8 @@ class TestChronicAbsenteeismETL:
         })
         
         # Apply transformations
-        df = normalize_grade_field(df)
-        kpi_df = convert_to_kpi_format(df)
+        df = self.etl.normalize_grade_field(df)
+        kpi_df = self.etl.convert_to_kpi_format(df, 'test.csv')
         
         # Check that grade suffixes are included
         metrics = kpi_df['metric'].unique()

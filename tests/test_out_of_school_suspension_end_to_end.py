@@ -65,7 +65,7 @@ class TestEndToEndIntegration:
         assert os.path.exists(result['audit_path'])
         
         # Load and validate output data
-        output_df = pd.read_csv(result['output_path'])
+        output_df = pd.read_csv(result['output_path'], dtype={'school_id': str})
         
         # Should have 21 KPI rows (3 schools × 3 demographics × 7 metrics each)
         assert len(output_df) == 21
@@ -111,8 +111,8 @@ class TestEndToEndIntegration:
         # Validate demographic audit file
         audit_df = pd.read_csv(result['audit_path'])
         assert len(audit_df) >= 3  # At least 3 demographic mappings
-        assert 'original_demographic' in audit_df.columns
-        assert 'mapped_demographic' in audit_df.columns
+        assert 'original' in audit_df.columns
+        assert 'mapped' in audit_df.columns
         assert 'year' in audit_df.columns
         assert 'source_file' in audit_df.columns
     
@@ -141,7 +141,7 @@ class TestEndToEndIntegration:
         assert result['demographics_found'] == 3
         
         # Load and validate output data
-        output_df = pd.read_csv(result['output_path'])
+        output_df = pd.read_csv(result['output_path'], dtype={'school_id': str})
         
         # Should have 3 KPI rows (3 schools × 3 demographics × 1 metric each)
         assert len(output_df) == 3
@@ -199,7 +199,7 @@ class TestEndToEndIntegration:
         assert set(result['years_covered']) == {2022, 2023}  # Both years processed
         
         # Load and validate output data
-        output_df = pd.read_csv(result['output_path'])
+        output_df = pd.read_csv(result['output_path'], dtype={'school_id': str})
         
         # Should have 8 KPI rows (7 from KYRC24 + 1 from Safe Schools)
         assert len(output_df) == 8
@@ -235,8 +235,8 @@ class TestEndToEndIntegration:
         # Should still succeed but handle problems gracefully
         assert result['success'] is True
         
-        # Load output data
-        output_df = pd.read_csv(result['output_path'])
+        # Load output data (ensure school_id is read as string)
+        output_df = pd.read_csv(result['output_path'], dtype={'school_id': str})
         
         # Should only process valid rows (first row only)
         # Empty demographic and 'Total Events' should be skipped
@@ -286,15 +286,15 @@ class TestEndToEndIntegration:
         # Should have at least 3 audit records
         assert len(audit_df) >= 3
         
-        # Validate audit columns
+        # Validate audit columns (updated column names)
         expected_audit_columns = [
-            'original_demographic', 'mapped_demographic', 'year', 'source_file', 'timestamp'
+            'original', 'mapped', 'year', 'source_file', 'timestamp'
         ]
         for col in expected_audit_columns:
             assert col in audit_df.columns
         
-        # Validate specific mappings
-        audit_mappings = dict(zip(audit_df['original_demographic'], audit_df['mapped_demographic']))
+        # Validate specific mappings (using updated column names)
+        audit_mappings = dict(zip(audit_df['original'], audit_df['mapped']))
         assert 'All Students' in audit_mappings
         assert audit_mappings['All Students'] == 'All Students'  # Should map to itself
         
