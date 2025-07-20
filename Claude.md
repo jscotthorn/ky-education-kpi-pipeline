@@ -13,9 +13,6 @@ district,school_id,school_name,year,student_group,metric,value,suppressed,source
 - **Counts**: `{indicator}_count_{period}` (e.g., `graduation_count_4_year`) 
 - **Totals**: `{indicator}_total_{period}` (e.g., `graduation_total_4_year`)
 
-**Validation**: Rate = (Count ÷ Total) × 100
-
-
 
 ### Testing Protocol
 **AI MUST test during development, not after:**
