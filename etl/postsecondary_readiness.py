@@ -16,10 +16,14 @@ from typing import Dict, Any, Optional, Union
 import logging
 from datetime import datetime
 
-try:
-    from .demographic_mapper import DemographicMapper
-except ImportError:
-    from etl.demographic_mapper import DemographicMapper
+import sys
+from pathlib import Path
+
+# Add etl directory to path for imports
+etl_dir = Path(__file__).parent
+sys.path.insert(0, str(etl_dir))
+
+from demographic_mapper import DemographicMapper
 
 logger = logging.getLogger(__name__)
 
@@ -31,40 +35,20 @@ class Config(BaseModel):
 
 
 def normalize_column_names(df: pd.DataFrame) -> pd.DataFrame:
-    """Normalize column names to lowercase with underscores."""
-    column_mapping = {
-        'School Year': 'school_year',
-        'SCHOOL YEAR': 'school_year',
-        'County Number': 'county_number',
-        'COUNTY NUMBER': 'county_number',
-        'County Name': 'county_name',
-        'COUNTY NAME': 'county_name',
-        'District Number': 'district_number',
-        'DISTRICT NUMBER': 'district_number',
-        'District Name': 'district_name',
-        'DISTRICT NAME': 'district_name',
-        'School Number': 'school_number',
-        'SCHOOL NUMBER': 'school_number',
-        'School Name': 'school_name',
-        'SCHOOL NAME': 'school_name',
-        'School Code': 'school_code',
-        'SCHOOL CODE': 'school_code',
-        'State School Id': 'state_school_id',
-        'STATE SCHOOL ID': 'state_school_id',
-        'NCES ID': 'nces_id',
-        'CO-OP': 'co_op',
-        'CO-OP CODE': 'co_op_code',
-        'School Type': 'school_type',
-        'SCHOOL TYPE': 'school_type',
-        'Demographic': 'demographic',
-        'DEMOGRAPHIC': 'demographic',
-        'Suppressed': 'suppressed',
-        'SUPPRESSED': 'suppressed',
+    """Normalize column names using BaseETL common mappings plus postsecondary-specific columns."""
+    from base_etl import BaseETL
+    
+    # Get common mappings from BaseETL
+    column_mapping = BaseETL.COMMON_COLUMN_MAPPINGS.copy()
+    
+    # Add postsecondary-specific column mappings
+    postsecondary_mappings = {
         'Postsecondary Rate': 'postsecondary_rate',
         'POSTSECONDARY RATE': 'postsecondary_rate',
         'Postsecondary Rate With Bonus': 'postsecondary_rate_with_bonus',
         'POSTSECONDARY RATE WITH BONUS': 'postsecondary_rate_with_bonus',
     }
+    column_mapping.update(postsecondary_mappings)
     
     # Apply mapping for columns that exist
     rename_dict = {col: column_mapping[col] for col in df.columns if col in column_mapping}
@@ -118,241 +102,82 @@ def clean_readiness_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+# Backward compatibility wrapper for tests
 def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[DemographicMapper] = None) -> pd.DataFrame:
-    """Convert wide format postsecondary readiness data to long KPI format with standardized demographics."""
+    """Backward compatibility wrapper for convert_to_kpi_format function."""
+    from base_etl import BaseETL
+    from typing import Dict, Any
     
-    # Initialize demographic mapper if not provided
-    if demographic_mapper is None:
-        demographic_mapper = DemographicMapper()
-    
-    # Identify rate columns
-    rate_columns = [col for col in df.columns if 'postsecondary_rate' in col]
-    
-    if not rate_columns:
-        logger.warning("No postsecondary rate columns found for KPI conversion")
-        return pd.DataFrame()
-    
-    # Define standard KPI columns that should be preserved
-    id_columns = ['school_year', 'county_name', 'district_name', 'school_name', 
-                  'school_code', 'state_school_id', 'nces_id', 'demographic', 'source_file']
-    
-    # Keep only columns that exist in the dataframe
-    available_id_columns = [col for col in id_columns if col in df.columns]
-    
-    kpi_rows = []
-    
-    for _, row in df.iterrows():
-        # Extract school identification
-        school_id = row.get('state_school_id', row.get('nces_id', row.get('school_code', '')))
-        if pd.isna(school_id) or school_id == '':
-            school_id = row.get('school_code', 'unknown')
+    class PostsecondaryReadinessETL(BaseETL):
+        @property
+        def module_column_mappings(self) -> Dict[str, str]:
+            return {
+                'Postsecondary Rate': 'postsecondary_rate',
+                'POSTSECONDARY RATE': 'postsecondary_rate',
+                'Postsecondary Rate With Bonus': 'postsecondary_rate_with_bonus',
+                'POSTSECONDARY RATE WITH BONUS': 'postsecondary_rate_with_bonus',
+            }
         
-        # Convert school_id to string without .0 suffix
-        if pd.notna(school_id) and school_id != '':
-            try:
-                # If it's a numeric value, convert to int then string to remove .0
-                school_id = str(int(float(school_id)))
-            except (ValueError, TypeError):
-                # If conversion fails, use as string
-                school_id = str(school_id)
-        
-        # Extract year from school_year (e.g., "20232024" -> "2024")
-        year = row.get('school_year', '')
-        if len(str(year)) == 8:  # Format: YYYYYYYY
-            year = str(year)[-4:]  # Take last 4 digits
-        elif len(str(year)) == 4:  # Already 4 digits
-            year = str(year)
-        else:
-            year = '2024'  # Default
-        
-        # Map demographic to standard student group names using demographic mapper
-        original_demographic = row.get('demographic', 'All Students')
-        source_file = row.get('source_file', 'postsecondary_readiness.csv')
-        student_group = demographic_mapper.map_demographic(original_demographic, year, source_file)
-        
-        # Check if this record is suppressed
-        is_suppressed = row.get('suppressed', 'N') == 'Y'
-        
-        # Common KPI row template
-        kpi_template = {
-            'district': row.get('district_name', 'Fayette County'),
-            'school_id': school_id,
-            'school_name': row.get('school_name', 'Unknown School'),
-            'year': year,
-            'student_group': student_group,
-            'suppressed': 'Y' if is_suppressed else 'N',
-            'source_file': row.get('source_file', 'postsecondary_readiness.csv'),
-            'last_updated': datetime.now().isoformat()
-        }
-        
-        # Process each rate metric
-        for rate_col in rate_columns:
-            # Determine metric name based on column
-            if 'with_bonus' in rate_col:
-                metric_name = 'postsecondary_readiness_rate_with_bonus'
-            else:
-                metric_name = 'postsecondary_readiness_rate'
+        def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
+            metrics = {}
             
-            # Create rate KPI row
-            rate_kpi = kpi_template.copy()
-            rate_kpi.update({
-                'metric': metric_name
-            })
+            # Extract postsecondary readiness rates
+            if 'postsecondary_rate' in row and pd.notna(row['postsecondary_rate']):
+                metrics['postsecondary_readiness_rate'] = row['postsecondary_rate']
             
-            if is_suppressed:
-                # For suppressed records, set value to NaN
-                rate_kpi['value'] = pd.NA
-            else:
-                # Process normal (non-suppressed) data
-                rate_value = row.get(rate_col)
-                
-                # Skip if rate value is missing or invalid
-                if pd.isna(rate_value) or rate_value == '':
-                    continue
-                
-                # Convert to numeric if it's a string
-                try:
-                    numeric_rate = float(rate_value)
-                    rate_kpi['value'] = numeric_rate
-                except (ValueError, TypeError):
-                    continue
+            if 'postsecondary_rate_with_bonus' in row and pd.notna(row['postsecondary_rate_with_bonus']):
+                metrics['postsecondary_readiness_rate_with_bonus'] = row['postsecondary_rate_with_bonus']
             
-            kpi_rows.append(rate_kpi)
+            return metrics
     
-    if not kpi_rows:
-        logger.warning("No valid KPI rows created")
-        return pd.DataFrame()
+    # Create ETL instance  
+    etl = PostsecondaryReadinessETL()
     
-    # Create KPI dataframe
-    kpi_df = pd.DataFrame(kpi_rows)
+    # Set demographic mapper if provided
+    if demographic_mapper is not None:
+        etl.demographic_mapper = demographic_mapper
     
-    # Ensure consistent column order
-    kpi_columns = ['district', 'school_id', 'school_name', 'year', 'student_group', 
-                   'metric', 'value', 'suppressed', 'source_file', 'last_updated']
+    # Extract source_file from dataframe if available
+    source_file = df['source_file'].iloc[0] if 'source_file' in df.columns else 'postsecondary_readiness.csv'
     
-    # Only include columns that exist
-    available_columns = [col for col in kpi_columns if col in kpi_df.columns]
-    kpi_df = kpi_df[available_columns]
+    # CRITICAL FIX: Normalize data before calling BaseETL convert_to_kpi_format
+    df_normalized = etl.normalize_column_names(df.copy())
+    df_normalized = etl.standardize_missing_values(df_normalized)
     
-    return kpi_df
+    # Use BaseETL convert_to_kpi_format method with pre-normalized data
+    return etl.convert_to_kpi_format(df_normalized, source_file)
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
-    """Read newest postsecondary readiness files, normalize, and convert to KPI format with demographic standardization."""
-    source_name = Path(__file__).stem
-    source_dir = raw_dir / source_name
+    """Read newest postsecondary readiness files, normalize, and convert to KPI format with demographic standardization using BaseETL."""
+    from base_etl import BaseETL
+    from typing import Dict, Any
     
-    if not source_dir.exists():
-        logger.info(f"No raw data directory for {source_name}; skipping.")
-        return
-    
-    # Find all CSV files in the source directory
-    csv_files = list(source_dir.glob("*.csv"))
-    if not csv_files:
-        logger.info(f"No CSV files found in {source_dir}; skipping.")
-        return
-    
-    logger.info(f"Found {len(csv_files)} postsecondary readiness files to process")
-    
-    # Initialize demographic mapper
-    demographic_mapper = DemographicMapper()
-    
-    all_kpi_dataframes = []
-    conf = Config(**cfg)
-    
-    for csv_file in csv_files:
-        logger.info(f"Processing {csv_file.name}")
+    class PostsecondaryReadinessETL(BaseETL):
+        @property
+        def module_column_mappings(self) -> Dict[str, str]:
+            return {
+                'Postsecondary Rate': 'postsecondary_rate',
+                'POSTSECONDARY RATE': 'postsecondary_rate',
+                'Postsecondary Rate With Bonus': 'postsecondary_rate_with_bonus',
+                'POSTSECONDARY RATE WITH BONUS': 'postsecondary_rate_with_bonus',
+            }
         
-        try:
-            # Read CSV file
-            df = pd.read_csv(csv_file)
+        def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
+            metrics = {}
             
-            # Skip if empty
-            if df.empty:
-                logger.warning(f"Empty file: {csv_file.name}")
-                continue
+            # Extract postsecondary readiness rates
+            if 'postsecondary_rate' in row and pd.notna(row['postsecondary_rate']):
+                metrics['postsecondary_readiness_rate'] = row['postsecondary_rate']
             
-            # Apply transformations
-            df = normalize_column_names(df)
-            df = standardize_missing_values(df)
-            df = add_derived_fields(df, conf.derive)
-            df = clean_readiness_data(df)
+            if 'postsecondary_rate_with_bonus' in row and pd.notna(row['postsecondary_rate_with_bonus']):
+                metrics['postsecondary_readiness_rate_with_bonus'] = row['postsecondary_rate_with_bonus']
             
-            # Apply configuration-based transformations
-            if conf.rename:
-                df = df.rename(columns=conf.rename)
-            
-            # Add file source for tracking
-            df['source_file'] = csv_file.name
-            
-            # Convert to KPI format with demographic mapping
-            kpi_df = convert_to_kpi_format(df, demographic_mapper)
-            
-            if not kpi_df.empty:
-                all_kpi_dataframes.append(kpi_df)
-                logger.info(f"Processed {len(df)} rows from {csv_file.name}, created {len(kpi_df)} KPI rows")
-            else:
-                logger.warning(f"No KPI data created from {csv_file.name}")
-            
-        except Exception as e:
-            logger.error(f"Error processing {csv_file.name}: {e}")
-            continue
+            return metrics
     
-    if not all_kpi_dataframes:
-        logger.warning("No valid KPI data files processed")
-        return
-    
-    # Combine all KPI dataframes
-    combined_kpi_df = pd.concat(all_kpi_dataframes, ignore_index=True, sort=False)
-    
-    # Validate demographic coverage
-    unique_demographics = combined_kpi_df['student_group'].unique().tolist()
-    years_processed = combined_kpi_df['year'].unique().tolist()
-    
-    # Validate demographics for each year
-    for year in years_processed:
-        year_demographics = combined_kpi_df[combined_kpi_df['year'] == year]['student_group'].unique().tolist()
-        validation_result = demographic_mapper.validate_demographics(year_demographics, year)
-        
-        if validation_result['missing_required']:
-            logger.warning(f"Missing required demographics for {year}: {validation_result['missing_required']}")
-        if validation_result['unexpected']:
-            logger.warning(f"Unexpected demographics for {year}: {validation_result['unexpected']}")
-        
-        logger.info(f"Year {year}: {len(validation_result['valid'])} valid demographics, "
-                   f"{len(validation_result['missing_optional'])} optional missing")
-    
-    # Save demographic mapping audit log
-    audit_path = proc_dir / f"{source_name}_demographic_audit.csv"
-    demographic_mapper.save_audit_log(audit_path)
-    
-    # Write processed KPI data
-    output_path = proc_dir / f"{source_name}.csv"
-    combined_kpi_df.to_csv(output_path, index=False)
-    
-    logger.info(f"Combined postsecondary readiness KPI data written to {output_path}")
-    logger.info(f"Demographic audit log written to {audit_path}")
-    logger.info(f"Total KPI rows: {len(combined_kpi_df)}, Total columns: {len(combined_kpi_df.columns)}")
-    logger.info(f"Unique demographics standardized: {len(unique_demographics)}")
-    
-    # Log summary statistics
-    if 'value' in combined_kpi_df.columns:
-        valid_values = combined_kpi_df['value'].dropna()
-        if len(valid_values) > 0:
-            logger.info(f"KPI value range: {valid_values.min():.1f} - {valid_values.max():.1f}")
-    
-    # Log metric distribution
-    if 'metric' in combined_kpi_df.columns:
-        metric_counts = combined_kpi_df['metric'].value_counts()
-        logger.info(f"Metrics created: {dict(metric_counts)}")
-    
-    # Log demographic distribution
-    if 'student_group' in combined_kpi_df.columns:
-        demo_counts = combined_kpi_df['student_group'].value_counts()
-        logger.info(f"Top 10 demographics: {dict(demo_counts.head(10))}")
-    
-    print(f"Wrote {output_path}")
-    print(f"Demographic audit: {audit_path}")
+    # Use BaseETL for consistent processing
+    etl = PostsecondaryReadinessETL('postsecondary_readiness')
+    etl.transform(raw_dir, proc_dir, cfg)
 
 
 if __name__ == "__main__":

@@ -195,12 +195,31 @@ class TestPostsecondaryReadinessDataQuality:
         rate_rows = kpi_df[(kpi_df['metric'].str.contains('postsecondary_readiness_rate', na=False)) & (kpi_df['suppressed'] == 'N')]
         if len(rate_rows) > 0:
             assert rate_rows['value'].min() >= 0, "Postsecondary readiness rates should be >= 0"
-            assert rate_rows['value'].max() <= 100, "Postsecondary readiness rates should be <= 100"
+            
+            # Base rate should not exceed 100%, but bonus rate can exceed 100%
+            base_rate_rows = rate_rows[rate_rows['metric'] == 'postsecondary_readiness_rate']
+            bonus_rate_rows = rate_rows[rate_rows['metric'] == 'postsecondary_readiness_rate_with_bonus']
+            
+            if len(base_rate_rows) > 0:
+                assert base_rate_rows['value'].max() <= 100, "Base postsecondary readiness rates should be <= 100%"
+            
+            if len(bonus_rate_rows) > 0:
+                # Bonus rates can exceed 100% due to bonus points, but should be reasonable (< 150%)
+                assert bonus_rate_rows['value'].max() < 150, "Bonus postsecondary readiness rates should be < 150%"
         
         # Test that suppressed records have NaN values
         suppressed_rows = kpi_df[kpi_df['suppressed'] == 'Y']
         if len(suppressed_rows) > 0:
             assert suppressed_rows['value'].isna().all(), "Suppressed records should have NaN values"
+            
+        # CRITICAL: Test suppressed record retention (no data loss)
+        print(f"Suppressed records: {len(suppressed_rows)}")
+        print(f"Non-suppressed records: {len(kpi_df[kpi_df['suppressed'] == 'N'])}")
+        
+        # Verify we have substantial suppressed data (regression prevention)
+        total_records = len(kpi_df)
+        suppressed_percentage = len(suppressed_rows) / total_records * 100 if total_records > 0 else 0
+        assert suppressed_percentage > 40, f"Suppressed records should be >40% of data (got {suppressed_percentage:.1f}%), indicating potential data loss"
     
     def test_metric_coverage(self):
         """Test that expected metrics are present."""
@@ -231,7 +250,17 @@ class TestPostsecondaryReadinessDataQuality:
             non_suppressed = metric_data[metric_data['suppressed'] == 'N']['value']
             
             if len(non_suppressed) > 0:
-                assert all((non_suppressed >= 0) & (non_suppressed <= 100)), f"All {metric} values should be 0-100%"
+                assert all(non_suppressed >= 0), f"All {metric} values should be >= 0%"
+                
+                # Different validation for base vs bonus rates
+                if metric == 'postsecondary_readiness_rate':
+                    assert all(non_suppressed <= 100), f"Base {metric} values should be <= 100%"
+                elif metric == 'postsecondary_readiness_rate_with_bonus':
+                    # Bonus rates can exceed 100% but should be reasonable
+                    assert all(non_suppressed < 150), f"Bonus {metric} values should be < 150%"
+                else:
+                    # Default check for any other rate metrics
+                    assert all(non_suppressed <= 100), f"Rate {metric} values should be <= 100%"
             
             # Test suppressed records have NaN values
             suppressed_values = metric_data[metric_data['suppressed'] == 'Y']['value']
@@ -310,6 +339,132 @@ class TestPostsecondaryReadinessDataQuality:
             
             assert 'postsecondary_readiness_rate' in year_metrics, f"Base rate missing for year {year}"
             assert 'postsecondary_readiness_rate_with_bonus' in year_metrics, f"Bonus rate missing for year {year}"
+            
+            # Validate bonus rate enhancement logic
+            base_rates = year_data[year_data['metric'] == 'postsecondary_readiness_rate']
+            bonus_rates = year_data[year_data['metric'] == 'postsecondary_readiness_rate_with_bonus']
+            
+            # Both metrics should have same number of records (same schools/demographics)
+            assert len(base_rates) == len(bonus_rates), f"Year {year}: Mismatch in base vs bonus rate record counts"
+            
+            print(f"Year {year}: {len(base_rates)} base rates, {len(bonus_rates)} bonus rates")
+
+
+class TestPostsecondaryReadinessAdvanced:
+    """Advanced validation tests for edge cases and data quality."""
+    
+    def test_bonus_rate_enhancement_validation(self):
+        """Test that bonus rates are properly enhanced and can exceed 100%."""
+        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        
+        if not processed_file.exists():
+            pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
+        
+        kpi_df = pd.read_csv(processed_file)
+        
+        # Find records where both base and bonus rates exist for same school/demographic/year
+        base_rates = kpi_df[kpi_df['metric'] == 'postsecondary_readiness_rate'].copy()
+        bonus_rates = kpi_df[kpi_df['metric'] == 'postsecondary_readiness_rate_with_bonus'].copy()
+        
+        if len(base_rates) == 0 or len(bonus_rates) == 0:
+            pytest.skip("No base or bonus rate data found")
+        
+        # Merge on identifying fields to compare base vs bonus
+        base_rates['merge_key'] = base_rates['school_id'].astype(str) + '_' + base_rates['student_group'] + '_' + base_rates['year'].astype(str)
+        bonus_rates['merge_key'] = bonus_rates['school_id'].astype(str) + '_' + bonus_rates['student_group'] + '_' + bonus_rates['year'].astype(str)
+        
+        merged = pd.merge(
+            base_rates[['merge_key', 'value', 'suppressed']].rename(columns={'value': 'base_rate'}),
+            bonus_rates[['merge_key', 'value', 'suppressed']].rename(columns={'value': 'bonus_rate'}),
+            on='merge_key',
+            suffixes=('_base', '_bonus')
+        )
+        
+        # Test non-suppressed records where both rates exist
+        non_suppressed = merged[
+            (merged['suppressed_base'] == 'N') & 
+            (merged['suppressed_bonus'] == 'N') &
+            pd.notna(merged['base_rate']) & 
+            pd.notna(merged['bonus_rate'])
+        ].copy()
+        
+        if len(non_suppressed) > 0:
+            # Bonus rate should generally be >= base rate
+            enhancement = non_suppressed['bonus_rate'] - non_suppressed['base_rate']
+            positive_enhancement = enhancement >= 0
+            positive_percentage = positive_enhancement.mean() * 100
+            
+            print(f"Records with bonus >= base rate: {positive_percentage:.1f}%")
+            assert positive_percentage > 85, f"Expected >85% of bonus rates to be >= base rates, got {positive_percentage:.1f}%"
+            
+            # Test for legitimate >100% bonus rates
+            over_100_bonus = non_suppressed[non_suppressed['bonus_rate'] > 100]
+            if len(over_100_bonus) > 0:
+                print(f"Bonus rates >100%: {len(over_100_bonus)} records (max: {over_100_bonus['bonus_rate'].max():.1f}%)")
+                
+                # Verify corresponding base rates are reasonable
+                base_rates_for_over_100 = over_100_bonus['base_rate']
+                assert base_rates_for_over_100.max() <= 100, "Base rates should never exceed 100% even when bonus rates do"
+                assert base_rates_for_over_100.min() > 50, "Base rates for >100% bonus should be reasonable (>50%)"
+    
+    def test_school_id_consistency_validation(self):
+        """Test that school IDs are consistently formatted and used."""
+        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        
+        if not processed_file.exists():
+            pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
+        
+        kpi_df = pd.read_csv(processed_file)
+        
+        # Test school ID format consistency
+        school_ids = kpi_df['school_id'].unique()
+        
+        # Should be numeric-like strings without .0 suffix
+        for school_id in school_ids[:10]:  # Test sample
+            if pd.notna(school_id) and school_id != 'unknown':
+                assert not str(school_id).endswith('.0'), f"School ID {school_id} has .0 suffix - format inconsistency"
+                
+        # Test school ID longitudinal consistency
+        # Same school should have same ID across years
+        school_name_groups = kpi_df.groupby('school_name')['school_id'].nunique()
+        multiple_ids = school_name_groups[school_name_groups > 1]
+        
+        if len(multiple_ids) > 0:
+            print(f"Schools with multiple IDs: {len(multiple_ids)}")
+            # Allow some variance for district totals and aggregated records
+            assert len(multiple_ids) < len(school_name_groups) * 0.1, "Too many schools have inconsistent IDs across years"
+        
+        print(f"School ID consistency: {len(school_ids)} unique IDs across {kpi_df['school_name'].nunique()} schools")
+    
+    def test_suppressed_record_retention_detailed(self):
+        """Detailed test of suppressed record handling to prevent regression."""
+        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        
+        if not processed_file.exists():
+            pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
+        
+        kpi_df = pd.read_csv(processed_file)
+        
+        # Count suppressed vs non-suppressed by metric
+        metric_suppression = kpi_df.groupby('metric')['suppressed'].value_counts().unstack(fill_value=0)
+        
+        for metric in metric_suppression.index:
+            suppressed_count = metric_suppression.loc[metric, 'Y'] if 'Y' in metric_suppression.columns else 0
+            non_suppressed_count = metric_suppression.loc[metric, 'N'] if 'N' in metric_suppression.columns else 0
+            total_count = suppressed_count + non_suppressed_count
+            
+            print(f"{metric}: {suppressed_count} suppressed, {non_suppressed_count} non-suppressed")
+            
+            # Critical: Ensure we have substantial suppressed data (prevents regression)
+            if total_count > 100:  # Only test metrics with substantial data
+                suppressed_percentage = suppressed_count / total_count * 100
+                assert suppressed_percentage > 30, f"{metric} has only {suppressed_percentage:.1f}% suppressed records - possible data loss"
+        
+        # Test suppressed records have correct values
+        suppressed_records = kpi_df[kpi_df['suppressed'] == 'Y']
+        assert len(suppressed_records) > 0, "No suppressed records found - critical data loss"
+        assert suppressed_records['value'].isna().all(), "All suppressed records must have NaN values"
+        assert (suppressed_records['suppressed'] == 'Y').all(), "All suppressed records must have suppressed='Y'"
 
 
 if __name__ == "__main__":
