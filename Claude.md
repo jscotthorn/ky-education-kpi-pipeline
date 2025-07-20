@@ -1,19 +1,4 @@
-# Claude.md - AI Assistant Usage Guide
-
-## Purpose
-This file documents AI usage patterns, instructions, and technical requirements specifically for AI assistants working on the Kentucky Education KPI Pipeline project. **This is not user documentation** - see README.md for user instructions.
-
-## Claude Code Integration
-This project is designed to work with Claude Code for:
-- Generating new ETL modules when new Kentucky Department of Education data sources are discovered
-- Analyzing raw CSV data dumps to create appropriate transformations
-- Debugging and refining ETL logic for educational metrics
-- Creating tests for new modules
-- Maintaining data quality and documentation
-
-## 🎯 Key Technical Requirements for AI
-
-### 1. KPI Output Format - CRITICAL
+### 1. KPI Output Format
 **ALL ETL modules MUST produce long format KPI data with exactly these 10 columns:**
 
 ```
@@ -22,7 +7,7 @@ district,school_id,school_name,year,student_group,metric,value,suppressed,source
 
 | Column | AI Validation Rules |
 |--------|-------------------|
-| `district` | String, Kentucky district name (e.g., "Jefferson County") |
+| `district` | String, Kentucky district name (e.g., "Fayette County") |
 | `school_id` | String, unique identifier (NCES/state ID) |
 | `school_name` | String, human-readable school name |
 | `year` | Integer, 4-digit academic year (e.g., 2024) |
@@ -61,13 +46,12 @@ student_group = demographic_mapper.map_demographic(
 ```
 
 **AI Validation**:
-- Check audit logs are generated
+- Check demograpihc audit logs are generated
 - Verify standardized demographics in output
 - Validate year-specific mapping rules applied
 
-## 🔧 AI Development Workflow
 
-### Testing Protocol - MANDATORY
+### Testing Protocol
 **AI MUST test during development, not after:**
 
 1. **Syntax Test**: `python3 etl/module_name.py` after each code change
@@ -89,6 +73,19 @@ student_group = demographic_mapper.map_demographic(
 - Validate data ranges (rates: 0-100%, counts: non-negative)
 - Add data source tracking for audit trails
 - Use `python3` command explicitly (system `python` may be Python 2.7)
+
+### Documentation Standards
+**AI must maintain:**
+- **Journal entries**: Numbered sequence for investigations
+- **Code comments**: Explain complex transformation logic
+- **Test documentation**: Clear test case descriptions
+- **README updates**: Keep user documentation current
+
+### Memory Management
+- Process data in chunks for large files
+- Clean up intermediate dataframes
+- Use appropriate data types (int8 vs int64)
+- Monitor memory usage during development
 
 ## 📋 AI Task Patterns
 
@@ -115,115 +112,4 @@ student_group = demographic_mapper.map_demographic(
 - Include before/after validation results
 - Update relevant code and tests
 - Regenerate affected outputs
-
-## 🚨 Critical AI Instructions
-
-### Data Format Validation
-**AI must validate these requirements:**
-- **Long format only**: One KPI per row, not wide format
-- **Exact column count**: 10 columns, no more, no less
-- **Naming consistency**: Follow metric naming convention exactly
-- **Suppression inclusion**: Suppressed records included with NaN values
-- **Demographic standardization**: All student groups mapped via DemographicMapper
-
-### Code Compatibility
-**Python environment constraints:**
-- **Minimum Python 3.8+**: Use compatible type annotations
-- **Import handling**: Use try/except for relative imports
-- **Dependency management**: Validate all required packages available
-- **Cross-platform**: Code works on macOS, Linux, Windows
-
-### Testing Requirements
-**AI must ensure:**
-- **Syntax validation**: Code runs without errors
-- **Type checking**: Compatible with Python 3.8+
-- **Unit tests**: All functions tested with sample data
-- **Integration tests**: Full ETL pipeline validation
-- **Data quality tests**: KPI format compliance
-
-### Documentation Standards
-**AI must maintain:**
-- **Journal entries**: Numbered sequence for investigations
-- **Code comments**: Explain complex transformation logic
-- **Test documentation**: Clear test case descriptions
-- **README updates**: Keep user documentation current
-
-## 🔄 AI Workflow Examples
-
-### Example 1: Adding New Data Source
-```python
-# 1. Analyze raw data structure
-df = pd.read_csv('data/raw/new_source/file.csv')
-# Profile: columns, types, ranges, patterns
-
-# 2. Create transformation module
-def transform(raw_dir, proc_dir, config):
-    # Follow existing pattern
-    # Include demographic mapping
-    # Generate KPI format output
-
-# 3. Create tests
-def test_transform_new_source():
-    # Test with sample data
-    # Validate KPI format
-    # Check demographic mapping
-
-# 4. Validate end-to-end
-python3 etl_runner.py  # Test full pipeline
-```
-
-### Example 2: Data Quality Investigation
-```markdown
-# notes/12--new-data-issue.md
-
-## Problem
-Data source showing unexpected values
-
-## Analysis
-- Value range analysis
-- Suppression pattern review
-- Demographic coverage check
-
-## Resolution
-- Code changes made
-- Validation results
-- Testing confirmation
-```
-
-## 🎛️ AI Configuration Management
-
-### Environment Variables
-**AI should respect:**
-- Virtual environment activation required
-- Use `python3` not `python`
-- Dependencies in `requirements.txt` or `pyproject.toml`
-
-### File Organization
-**AI must maintain:**
-- Raw data in `data/raw/source_name/`
-- Processed output in `data/processed/`
-- Tests in `tests/` with matching module names
-- Documentation in `notes/` with numbered sequence
-
-### Version Control
-**AI practices:**
-- Commit logical units of work
-- Include descriptive commit messages
-- Test before committing
-- Update documentation with code changes
-
-## 🚀 Performance Optimization
-
-### Efficiency Guidelines
-- Use pandas vectorized operations over loops
-- Implement data type optimization
-- Cache expensive operations when appropriate
-- Profile code for bottlenecks on large datasets
-
-### Memory Management
-- Process data in chunks for large files
-- Clean up intermediate dataframes
-- Use appropriate data types (int8 vs int64)
-- Monitor memory usage during development
-
-**This file serves as the definitive technical reference for AI assistants working on this project. All AI-generated code must comply with these requirements.**
+r bottlenecks on large datasets

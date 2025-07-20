@@ -138,6 +138,12 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
   - Years: 2021-2024
   - All districts with demographic breakdowns
 
+- **Safe Schools Events** (`safe_schools_events.csv`) ⭐ **NEW**
+  - Behavioral incident counts by type, grade, location, and context
+  - Years: 2020-2024 (5-year longitudinal coverage)
+  - Includes both demographic breakdowns and aggregate totals
+  - Supports school-to-prison pipeline analysis
+
 - **Kindergarten Readiness** (`kindergarten_readiness.csv`)
   - Kindergarten readiness screening rates and counts
   - Years: 2021-2024  

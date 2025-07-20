@@ -10,13 +10,14 @@ Comprehensive analysis of historical data availability in `/Users/scott/Projects
 ### Sprint 1: School Discipline Equity Analysis (SAFE) 🚨 HIGHEST PRIORITY
 **Status: ✅ EXCELLENT 5-year longitudinal coverage**
 
-#### Target KYRC24 Files (6/6 found):
+#### Target KYRC24 Files (7/7 found):
 1. `KYRC24_SAFE_Behavior_Events_by_Type.csv` ✅
 2. `KYRC24_SAFE_Discipline_Resolutions.csv` ✅  
 3. `KYRC24_SAFE_Behavior_Events_by_Grade_Level.csv` ✅
 4. `KYRC24_SAFE_Behavior_Events_by_Context.csv` ✅
 5. `KYRC24_SAFE_Behavior_Events_by_Location.csv` ✅
 6. `KYRC24_SAFE_Legal_Sanctions.csv` ✅
+7. `KYRC24_SAFE_Precautionary_Measures.csv` ✅ (Additional file discovered)
 
 #### Historical Data Available:
 **School Years: 2020-21, 2021-22, 2022-23, 2023-24, 2024-25 (4 complete years + current year)**
@@ -25,6 +26,120 @@ Comprehensive analysis of historical data availability in `/Users/scott/Projects
 - **Event Details**: `safe_schools_event_details_2020.csv`, `safe_schools_event_details_2021.csv`, `safe_schools_event_details_2022.csv`, `safe_schools_event_details_2023.csv`
 - **Grade Breakdown**: `safe_schools_events_by_grade_2020.csv`, `safe_schools_events_by_grade_2021.csv`, `safe_schools_events_by_grade_2022.csv`, `safe_schools_events_by_grade_2023.csv`
 - **Discipline Actions**: `safe_schools_discipline_2020.csv`, `safe_schools_discipline_2021.csv`, `safe_schools_discipline_2022.csv`, `safe_schools_discipline_2023.csv`
+
+#### KYRC24 to Historical File Mapping for ETL Development:
+
+**Confirmed Mappings:**
+1. **`KYRC24_SAFE_Behavior_Events_by_Type.csv`** → **`safe_schools_event_details_[year].csv`**
+   - Maps to event type columns: "ASSAULT 1ST DEGREE", "OTHER ASSAULT OR VIOLENCE", "WEAPONS", "HARASSMENT (INCLUDES BULLYING)", "DRUGS", "ALCOHOL", "TOBACCO", "OTHER EVENTS W_STATE RESOLUTION"
+   - KYRC24 structure: Separate columns per event type (Alcohol, Assault 1st Degree, Drugs, Harassment, Other Assault, Other Events, Tobacco, Weapons)
+   - Historical structure: Combined into single row with event type breakdowns
+
+2. **`KYRC24_SAFE_Behavior_Events_by_Grade_Level.csv`** → **`safe_schools_events_by_grade_[year].csv`**
+   - Direct mapping: Both files break down events by grade level (Preschool through Grade 12)
+   - Column names slightly different but data structure identical
+   - KYRC24: Grade 1, Grade 2, etc. | Historical: GRADE1 COUNT, GRADE2 COUNT, etc.
+
+3. **`KYRC24_SAFE_Discipline_Resolutions.csv`** → **`safe_schools_discipline_[year].csv`**
+   - Maps discipline resolution types with refined categorization
+   - KYRC24: Corporal Punishment (SSP5), Restraint (SSP7), Seclusion (SSP8), Expelled Not Receiving Services (SSP2), etc.
+   - Historical: Identical SSP codes - direct mapping possible
+
+4. **`KYRC24_SAFE_Behavior_Events_by_Context.csv`** → **Derived from `safe_schools_event_details_[year].csv`**
+   - KYRC24: School Sponsored/Non-School Sponsored + During/Not During School Hours (4 categories)
+   - Historical: "SCHOOL SPONSORED SCHOOL HOURS", "SCHOOL SPONSORED NOT SCHOOL HOURS", "NON-SCHOOL SPONSORED SCHOOL HOURS", "NON-SCHOOL SPONSORED NOT SCHOOL HOURS"
+   - Perfect 1:1 mapping available
+
+5. **`KYRC24_SAFE_Behavior_Events_by_Location.csv`** → **Derived from `safe_schools_event_details_[year].csv`**
+   - KYRC24: Classroom, Bus, Hallway/Stairwell, Cafeteria, Restroom, Gymnasium, Playground, Other, Campus Grounds
+   - Historical: "LOCATION - CLASSROOM", "LOCATION - BUS", "LOCATION - HALLWAY/STAIRWAY", "LOCATION - CAFETERIA", etc.
+   - Direct mapping with minor naming differences (Hallway/Stairwell vs HALLWAY/STAIRWAY)
+
+6. **`KYRC24_SAFE_Legal_Sanctions.csv`** → **Derived from `safe_schools_event_details_[year].csv`**
+   - KYRC24: Arrests, Charges, Civil Proceedings, Court Designated Worker Involvement, School Resource Officer Involvement
+   - Historical: "ARRESTS", "CHARGES", "CIVIL DAMAGES", "SCHOOL RESOURCE OFFICER INVOLVED", "COURT DESIGNATED WORKED INVOLVED"
+   - Nearly identical mapping (Civil Proceedings = Civil Damages, CDW involvement naming difference)
+
+7. **`KYRC24_SAFE_Precautionary_Measures.csv`** → **New in 2024**
+   - School-level safety policy questions (visitor sign-in, door locks, telephones, climate surveys, etc.)
+   - No historical equivalent - 2024 data only
+   - Contains binary Yes/No responses for 8 safety-related policies per school
+
+#### Longitudinal KPIs Extractable (2020-2024):
+
+**Behavior Event Metrics:**
+- `safe_event_rate_total` - Total behavior events per 1,000 students by demographics
+- `safe_event_rate_violence` - Violence-related events (assault, weapons) per 1,000 students  
+- `safe_event_rate_substance` - Substance-related events (drugs, alcohol, tobacco) per 1,000 students
+- `safe_event_rate_harassment` - Harassment/bullying events per 1,000 students
+
+**Discipline Resolution Metrics:**
+- `safe_suspension_rate_out_of_school` - Out-of-school suspension rate by demographics
+- `safe_suspension_rate_in_school` - In-school removal rate by demographics  
+- `safe_expulsion_rate_total` - Total expulsion rate (services + no services)
+- `safe_restraint_rate_physical` - Restraint/seclusion usage rate by demographics
+
+**Location & Context Analysis:**
+- `safe_classroom_incident_rate` - Classroom-based incidents per 1,000 students
+- `safe_school_hours_incident_rate` - Incidents during school hours vs after hours
+- `safe_transportation_incident_rate` - Bus-related incident rates
+
+**Legal Involvement Metrics:**
+- `safe_arrest_rate_student` - Student arrest rate by demographics
+- `safe_sro_involvement_rate` - School Resource Officer involvement rate
+- `safe_court_referral_rate` - Court/legal system referral rates
+
+**Grade Level Patterns:**
+- `safe_elementary_incident_rate` - Elementary (K-5) incident rates
+- `safe_middle_incident_rate` - Middle school (6-8) incident rates  
+- `safe_high_incident_rate` - High school (9-12) incident rates
+
+#### ETL Implementation Strategy:
+
+**Phase 1: KYRC24 Structure Implementation**
+1. Create base ETL for 2024 KYRC24 format files (7 files)
+2. Establish KPI output format following 10-column standard
+3. Implement DemographicMapper integration
+4. Test with current year data
+
+**Phase 2: Historical Integration**
+1. Create format detection logic (KYRC24 vs Legacy)
+2. Implement legacy file parsers for 2020-2023 data (12 files per year = 48 total)
+3. Map legacy columns to KYRC24 structure 
+4. Merge historical and current data into unified longitudinal dataset
+
+**Phase 3: Advanced Analytics**
+1. Calculate 5-year trend analysis for all metrics
+2. Implement comparative reporting (pre/post COVID impacts)
+3. Enable cross-demographic equity analysis
+4. Generate automated alerts for concerning trends
+
+#### Sprint 1 Implementation Plan - 3 ETL Pipelines
+
+**Pipeline 1: Safe Schools Behavioral Events** (`etl/safe_schools_events.py`)
+- **Files Covered:** 4 KYRC24 + 8 historical files
+  - `KYRC24_SAFE_Behavior_Events_by_Type.csv` ↔ `safe_schools_event_details_[year].csv`
+  - `KYRC24_SAFE_Behavior_Events_by_Grade_Level.csv` ↔ `safe_schools_events_by_grade_[year].csv`
+  - `KYRC24_SAFE_Behavior_Events_by_Context.csv` ↔ derived from event_details
+  - `KYRC24_SAFE_Behavior_Events_by_Location.csv` ↔ derived from event_details
+- **KPIs Generated:** ~8 metrics (event rates by type, grade, context, location)
+- **Test File:** `tests/test_safe_schools_events.py`
+
+**Pipeline 2: Safe Schools Discipline & Legal** (`etl/safe_schools_discipline.py`)
+- **Files Covered:** 2 KYRC24 + 4 historical files  
+  - `KYRC24_SAFE_Discipline_Resolutions.csv` ↔ `safe_schools_discipline_[year].csv`
+  - `KYRC24_SAFE_Legal_Sanctions.csv` ↔ derived from event_details
+- **KPIs Generated:** ~6 metrics (suspension rates, expulsion rates, arrest rates, SRO involvement)
+- **Test File:** `tests/test_safe_schools_discipline.py`
+
+**Pipeline 3: Safe Schools Climate & Safety** (`etl/safe_schools_climate.py`)
+- **Files Covered:** 1 KYRC24 + 10 climate survey files
+  - `KYRC24_SAFE_Precautionary_Measures.csv` (2024 only)
+  - `quality_of_school_climate_and_safety_survey_*` files (2021-2023)
+- **KPIs Generated:** ~4 metrics (climate index scores, safety policy compliance)
+- **Test File:** `tests/test_safe_schools_climate.py`
+
+**Rationale:** Logical grouping by domain, manageable complexity per pipeline, clean historical mapping patterns, comprehensive coverage of all 29 Sprint 1 files.
 
 **School Climate Survey Data:**
 - **Index Scores**: 2022-2023 (2 years)

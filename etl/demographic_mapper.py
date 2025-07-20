@@ -89,7 +89,8 @@ class DemographicMapper:
                 "Students without IEP",
                 "English Learner including Monitored",
                 "Military Dependent",
-                "Non-Military"
+                "Non-Military",
+                "Gifted and Talented"
             ],
             "mappings": {
                 # 2024 naming variations to standard format
@@ -214,6 +215,12 @@ class DemographicMapper:
             return "All Students"
         
         original_demographic = str(demographic).strip()
+        
+        # Check if already in standard demographics (no mapping needed)
+        standard_demographics = self.mappings.get("standard_demographics", [])
+        if original_demographic in standard_demographics:
+            self._log_mapping(original_demographic, original_demographic, year, source_file, "standard")
+            return original_demographic
         
         # Try year-specific mappings first
         if year in self.mappings.get("year_specific", {}):
