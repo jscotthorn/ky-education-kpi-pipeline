@@ -19,11 +19,11 @@ Provides standardized demographic label mapping across all ETL pipelines to ensu
 consistent longitudinal reporting. Handles year-specific variations, naming
 inconsistencies, and new/removed categories.
 """
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 import pandas as pd
 import logging
 from pathlib import Path
-import yaml
+from ruamel import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +52,9 @@ class DemographicMapper:
         """Load demographic mapping configuration."""
         try:
             if self.config_path.exists():
+                yaml_parser = yaml.YAML(typ="safe", pure=True)
                 with open(self.config_path, 'r') as f:
-                    return yaml.safe_load(f)
+                    return yaml_parser.load(f)
             else:
                 logger.warning(f"Mapping config not found at {self.config_path}, using defaults")
                 return self._get_default_mappings()
