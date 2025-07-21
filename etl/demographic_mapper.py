@@ -51,155 +51,15 @@ class DemographicMapper:
     def _load_mappings(self) -> Dict:
         """Load demographic mapping configuration."""
         try:
-            if self.config_path.exists():
-                yaml_parser = yaml.YAML(typ="safe", pure=True)
-                with open(self.config_path, 'r') as f:
-                    return yaml_parser.load(f)
-            else:
-                logger.warning(f"Mapping config not found at {self.config_path}, using defaults")
-                return self._get_default_mappings()
+            yaml_parser = yaml.YAML(typ="safe", pure=True)
+            with open(self.config_path, "r") as f:
+                return yaml_parser.load(f)
+        except FileNotFoundError as e:
+            logger.error(f"Mapping config not found at {self.config_path}")
+            raise e
         except Exception as e:
             logger.error(f"Error loading demographic mappings: {e}")
-            return self._get_default_mappings()
-    
-    def _get_default_mappings(self) -> Dict:
-        """Return default demographic mappings based on analysis."""
-        return {
-            "standard_demographics": [
-                "All Students",
-                "Female", 
-                "Male",
-                "African American",
-                "American Indian or Alaska Native",
-                "Asian",
-                "Hispanic or Latino",
-                "Native Hawaiian or Pacific Islander", 
-                "Two or More Races",
-                "White (non-Hispanic)",
-                "Economically Disadvantaged",
-                "Non-Economically Disadvantaged",
-                "English Learner",
-                "Non-English Learner", 
-                "Foster Care",
-                "Non-Foster Care",
-                "Homeless",
-                "Non-Homeless",
-                "Migrant",
-                "Non-Migrant",
-                "Students with Disabilities (IEP)",
-                "Students without IEP",
-                "English Learner including Monitored",
-                "Military Dependent",
-                "Non-Military",
-                "Gifted and Talented"
-            ],
-            "mappings": {
-                # 2024 naming variations to standard format
-                "Non Economically Disadvantaged": "Non-Economically Disadvantaged",
-                "Non English Learner": "Non-English Learner", 
-                "Non-Foster": "Non-Foster Care",
-                "Student without Disabilities (IEP)": "Students without IEP",
-                
-                # Case variations
-                "all students": "All Students",
-                "female": "Female",
-                "male": "Male",
-                "african american": "African American",
-                "american indian or alaska native": "American Indian or Alaska Native",
-                "asian": "Asian", 
-                "hispanic or latino": "Hispanic or Latino",
-                "native hawaiian or pacific islander": "Native Hawaiian or Pacific Islander",
-                "two or more races": "Two or More Races",
-                "white (non-hispanic)": "White (non-Hispanic)",
-                "economically disadvantaged": "Economically Disadvantaged",
-                "english learner": "English Learner",
-                "foster care": "Foster Care",
-                "homeless": "Homeless",
-                "migrant": "Migrant",
-                "students with disabilities (iep)": "Students with Disabilities (IEP)",
-                "military dependent": "Military Dependent",
-                
-                # Handle monitored English learner variations  
-                "Non-English Learner or monitored": "Non-English Learner",
-                "English Learner or monitored": "English Learner including Monitored"
-            },
-            "year_specific": {
-                "2021": {
-                    "available_demographics": [
-                        "All Students", "Female", "Male", "African American",
-                        "American Indian or Alaska Native", "Asian", "Hispanic or Latino",
-                        "Native Hawaiian or Pacific Islander", "Two or More Races", 
-                        "White (non-Hispanic)", "Economically Disadvantaged",
-                        "Non-Economically Disadvantaged", "English Learner", 
-                        "Non-English Learner", "Foster Care", "Non-Foster Care",
-                        "Homeless", "Migrant", "Students with Disabilities (IEP)",
-                        "Students without IEP", "English Learner including Monitored"
-                    ]
-                },
-                "2022": {
-                    "available_demographics": [
-                        "All Students", "Female", "Male", "African American",
-                        "American Indian or Alaska Native", "Asian", "Hispanic or Latino", 
-                        "Native Hawaiian or Pacific Islander", "Two or More Races",
-                        "White (non-Hispanic)", "Economically Disadvantaged",
-                        "Non-Economically Disadvantaged", "English Learner",
-                        "Non-English Learner", "Foster Care", "Non-Foster Care", 
-                        "Homeless", "Migrant", "Students with Disabilities (IEP)",
-                        "Students without IEP", "English Learner including Monitored",
-                        "Non-English Learner or monitored"
-                    ],
-                    "mappings": {
-                        "Non-English Learner or monitored": "Non-English Learner"
-                    }
-                },
-                "2023": {
-                    "available_demographics": [
-                        "All Students", "Female", "Male", "African American",
-                        "American Indian or Alaska Native", "Asian", "Hispanic or Latino",
-                        "Native Hawaiian or Pacific Islander", "Two or More Races", 
-                        "White (non-Hispanic)", "Economically Disadvantaged",
-                        "Non-Economically Disadvantaged", "English Learner",
-                        "Non-English Learner", "Foster Care", "Non-Foster Care",
-                        "Homeless", "Migrant", "Students with Disabilities (IEP)", 
-                        "Students without IEP", "English Learner including Monitored",
-                        "Non-English Learner or monitored"
-                    ],
-                    "mappings": {
-                        "Non-English Learner or monitored": "Non-English Learner"
-                    }
-                },
-                "2024": {
-                    "available_demographics": [
-                        "All Students", "Female", "Male", "African American",
-                        "American Indian or Alaska Native", "Asian", "Hispanic or Latino",
-                        "Native Hawaiian or Pacific Islander", "Two or More Races",
-                        "White (non-Hispanic)", "Economically Disadvantaged", 
-                        "Non Economically Disadvantaged", "English Learner",
-                        "Non English Learner", "Foster Care", "Non-Foster",
-                        "Non-Homeless", "Homeless", "Non-Migrant", "Migrant",
-                        "Students with Disabilities (IEP)", "Student without Disabilities (IEP)",
-                        "Military Dependent", "Non-Military"
-                    ],
-                    "mappings": {
-                        "Non Economically Disadvantaged": "Non-Economically Disadvantaged",
-                        "Non English Learner": "Non-English Learner",
-                        "Non-Foster": "Non-Foster Care", 
-                        "Student without Disabilities (IEP)": "Students without IEP"
-                    }
-                }
-            },
-            "validation": {
-                "required_demographics": [
-                    "All Students", "Female", "Male", "African American", "White (non-Hispanic)",
-                    "Economically Disadvantaged", "Students with Disabilities (IEP)"
-                ],
-                "allow_missing": [
-                    "English Learner including Monitored", "Military Dependent", 
-                    "Non-Homeless", "Non-Migrant", "Non-Military"
-                ]
-            }
-        }
-    
+            raise e
     def map_demographic(self, demographic: str, year: str, source_file: str = "unknown") -> str:
         """
         Map a demographic label to the standardized format.
@@ -332,28 +192,3 @@ def validate_demographic_coverage(demographics: List[str], year: str,
     mapper = create_demographic_mapper(config_path)
     return mapper.validate_demographics(demographics, year)
 
-
-if __name__ == "__main__":
-    # Test the mapper
-    mapper = DemographicMapper()
-    
-    # Test some mappings
-    test_cases = [
-        ("Non Economically Disadvantaged", "2024"),
-        ("Non English Learner", "2024"), 
-        ("Non-Foster", "2024"),
-        ("Student without Disabilities (IEP)", "2024"),
-        ("All Students", "2021"),
-        ("English Learner including Monitored", "2021")
-    ]
-    
-    print("Testing demographic mappings:")
-    for demographic, year in test_cases:
-        mapped = mapper.map_demographic(demographic, year, "test")
-        print(f"{demographic} ({year}) -> {mapped}")
-    
-    # Test validation
-    print("\nTesting validation:")
-    test_demographics = ["All Students", "Female", "Male", "Non Economically Disadvantaged"] 
-    validation = mapper.validate_demographics(test_demographics, "2024")
-    print(f"Validation results: {validation}")
