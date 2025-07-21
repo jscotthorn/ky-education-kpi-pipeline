@@ -62,7 +62,7 @@ ky-education-data-pipeline/
 │   ├── generate_dashboard_data.py
 │   └── data/                   # Generated JSON for dashboard
 ├── config/                     # Configuration files
-│   └── demographic_mappings.yaml
+│   └── demographic_mappings.yaml   # Single source of demographic mappings used by DemographicMapper
 ├── tests/                      # Test suite
 ├── notes/                      # Documentation and analysis
 └── etl_runner.py               # Main orchestration script

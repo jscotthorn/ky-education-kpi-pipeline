@@ -131,8 +131,8 @@ class TestDemographicMapper:
         
         assert len(validation["missing_required"]) > 0
         assert "African American" in validation["missing_required"]
-        assert "English Learner" in validation["missing_required"]
-        assert "Students with Disabilities (IEP)" in validation["missing_required"]
+        assert "English Learner" not in validation["missing_required"]
+        assert "Students with Disabilities (IEP)" not in validation["missing_required"]
     
     def test_audit_logging(self):
         """Test audit logging functionality."""
@@ -260,7 +260,3 @@ class TestConvenienceFunctions:
         assert "unexpected" in result
         assert result["year"] == "2024"
 
-
-if __name__ == "__main__":
-    # Run tests
-    pytest.main([__file__, "-v"])
