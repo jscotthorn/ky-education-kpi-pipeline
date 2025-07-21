@@ -17,6 +17,7 @@ python3 etl_runner.py
 
 # View results
 open data/processed/  # Individual source files
+open data/kpi/        # Combined master dataset (CSV & Parquet)
 ```
 
 ## 📋 Developer Workflow
@@ -123,8 +124,8 @@ python3 html/serve_dashboard.py                      # Start web server
 ### Online Data Browser
 Browse and download data files at: **https://education.kyopengov.org/data/**
 
-The data directory contains:
-- **📊 KPI Master Dataset** (`/kpi/`) - Combined dataset with all metrics in standardized format (175MB)
+- The data directory contains:
+- **📊 KPI Master Dataset** (`/kpi/`) - Combined dataset with all metrics in standardized format (CSV and Parquet, 175MB)
 - **⚙️ Processed Files** (`/processed/`) - Individual metric files ready for analysis with audit logs
 - **📁 Raw Data** (`/raw/`) - Original unmodified files from Kentucky Department of Education
 
