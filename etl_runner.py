@@ -97,7 +97,19 @@ def combine_kpi_files(
         print(f"  Processing {csv_file.name}")
 
         try:
-            df = pd.read_csv(csv_file)
+            kpi_dtype = {
+                "district": str,
+                "school_id": str,
+                "school_name": str,
+                "year": str,
+                "student_group": str,
+                "metric": str,
+                "value": "float64",
+                "suppressed": str,
+                "source_file": str,
+                "last_updated": str,
+            }
+            df = pd.read_csv(csv_file, dtype=kpi_dtype)
 
             if df.empty:
                 print(f"  Warning: Empty file: {csv_file.name}")
