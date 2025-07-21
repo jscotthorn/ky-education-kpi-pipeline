@@ -283,7 +283,7 @@ class TestSafeSchoolsEventsETL:
         assert len(output_df.columns) == 10
         
         # Check audit file exists
-        audit_file = self.proc_dir / 'safe_schools_events_demographic_audit.csv'
+        audit_file = self.proc_dir / 'safe_schools_events_demographic_report.md'
         assert audit_file.exists()
     
     def test_demographic_mapping(self):

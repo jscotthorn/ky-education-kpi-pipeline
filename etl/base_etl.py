@@ -536,35 +536,43 @@ class BaseETL(ABC):
         combined_kpi_df = pd.concat(all_kpi_dataframes, ignore_index=True, sort=False)
         
         # Validate demographic coverage
-        self._validate_demographics(combined_kpi_df)
-        
+        validation_results = self._validate_demographics(combined_kpi_df)
+
         # Save outputs
-        self._save_outputs(combined_kpi_df, proc_dir)
+        self._save_outputs(combined_kpi_df, proc_dir, validation_results)
         
         logger.info(f"Completed processing for {self.source_name}")
     
-    def _validate_demographics(self, kpi_df: pd.DataFrame) -> None:
-        """Validate demographic coverage for processed data."""
+    def _validate_demographics(self, kpi_df: pd.DataFrame) -> List[Dict[str, List[str]]]:
+        """Validate demographic coverage for processed data.
+
+        Returns a list of validation results for each year.
+        """
         years_processed = kpi_df['year'].unique().tolist()
+        results: List[Dict[str, List[str]]] = []
         
         # Validate demographics for each year
         for year in years_processed:
             year_demographics = kpi_df[kpi_df['year'] == year]['student_group'].unique().tolist()
             validation_result = self.demographic_mapper.validate_demographics(year_demographics, year)
+            results.append(validation_result)
             
             if validation_result['missing_required']:
                 logger.warning(f"Missing required demographics for {year}: {validation_result['missing_required']}")
             if validation_result['unexpected']:
                 logger.warning(f"Unexpected demographics for {year}: {validation_result['unexpected']}")
             
-            logger.info(f"Year {year}: {len(validation_result['valid'])} valid demographics, "
-                       f"{len(validation_result['missing_optional'])} optional missing")
-    
-    def _save_outputs(self, kpi_df: pd.DataFrame, proc_dir: Path) -> None:
+            logger.info(
+                f"Year {year}: {len(validation_result['valid'])} valid demographics, "
+                f"{len(validation_result['missing_optional'])} optional missing"
+            )
+        return results
+
+    def _save_outputs(self, kpi_df: pd.DataFrame, proc_dir: Path, validation_results: List[Dict[str, List[str]]]) -> None:
         """Save KPI data and demographic audit log."""
-        # Save demographic mapping audit log
-        audit_path = proc_dir / f"{self.source_name}_demographic_audit.csv"
-        self.demographic_mapper.save_audit_log(audit_path)
+        # Save demographic mapping report
+        audit_path = proc_dir / f"{self.source_name}_demographic_report.md"
+        self.demographic_mapper.save_audit_report(audit_path, validation_results)
         
         # Write processed KPI data
         output_path = proc_dir / f"{self.source_name}.csv"
@@ -575,7 +583,7 @@ class BaseETL(ABC):
         kpi_df.to_csv(output_path, index=False)
         
         logger.info(f"KPI data written to {output_path}")
-        logger.info(f"Demographic audit log written to {audit_path}")
+        logger.info(f"Demographic report written to {audit_path}")
         logger.info(f"Total KPI rows: {len(kpi_df)}, Total columns: {len(kpi_df.columns)}")
         
         # Log summary statistics
@@ -594,4 +602,4 @@ class BaseETL(ABC):
             logger.info(f"Top 10 demographics: {dict(demo_counts.head(10))}")
         
         print(f"Wrote {output_path}")
-        print(f"Demographic audit: {audit_path}")
+        print(f"Demographic report: {audit_path}")

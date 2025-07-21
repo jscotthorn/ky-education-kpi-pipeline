@@ -126,10 +126,10 @@ class TestChronicAbsenteeismEndToEnd:
         
         # Verify outputs exist
         output_file = self.proc_dir / "chronic_absenteeism.csv"
-        audit_file = self.proc_dir / "chronic_absenteeism_demographic_audit.csv"
+        audit_file = self.proc_dir / "chronic_absenteeism_demographic_report.md"
         
         assert output_file.exists(), "Main output file should exist"
-        assert audit_file.exists(), "Demographic audit file should exist"
+        assert audit_file.exists(), "Demographic report should exist"
         
         # Load and verify output format
         output_df = pd.read_csv(output_file)
@@ -341,19 +341,11 @@ class TestChronicAbsenteeismEndToEnd:
         transform(self.raw_dir, self.proc_dir, config)
         
         # Check audit file
-        audit_file = self.proc_dir / "chronic_absenteeism_demographic_audit.csv"
-        assert audit_file.exists(), "Demographic audit file should be created"
-        
-        audit_df = pd.read_csv(audit_file)
-        assert not audit_df.empty, "Audit file should contain data"
-        
-        # Verify audit columns
-        expected_audit_columns = [
-            'original', 'mapped', 'year', 
-            'source_file', 'mapping_type', 'timestamp'
-        ]
-        for col in expected_audit_columns:
-            assert col in audit_df.columns, f"Audit file missing column: {col}"
+        audit_file = self.proc_dir / "chronic_absenteeism_demographic_report.md"
+        assert audit_file.exists(), "Demographic report should be created"
+
+        content = audit_file.read_text()
+        assert "Mapping Log" in content
         
         # Verify demographic standardization
         output_file = self.proc_dir / "chronic_absenteeism.csv"

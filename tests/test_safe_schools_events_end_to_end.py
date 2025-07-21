@@ -408,15 +408,13 @@ class TestSafeSchoolsEventsEndToEnd:
             assert group in student_groups, f"Missing expected student group: {group}"
         
         # Check audit file was created
-        audit_file = self.proc_dir / 'safe_schools_events_demographic_audit.csv'
-        assert audit_file.exists(), "Demographic audit file should be created"
-        
-        audit_df = pd.read_csv(audit_file)
-        assert len(audit_df) > 0, "Audit file should contain mapping records"
-        assert 'original' in audit_df.columns, "Audit file should have original demographic column"
-        assert 'mapped' in audit_df.columns, "Audit file should have mapped demographic column"
-        
-        print(f"✅ Demographic mapping: {len(student_groups)} student groups, {len(audit_df)} audit records")
+        audit_file = self.proc_dir / 'safe_schools_events_demographic_report.md'
+        assert audit_file.exists(), "Demographic report should be created"
+
+        content = audit_file.read_text()
+        assert 'Mapping Log' in content
+
+        print(f"✅ Demographic mapping: {len(student_groups)} student groups")
     
     def test_longitudinal_data_consistency(self):
         """Test consistency across multiple years of data."""

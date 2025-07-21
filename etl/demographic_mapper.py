@@ -165,12 +165,33 @@ class DemographicMapper:
         """Return list of all standard demographic categories."""
         return self.mappings.get("standard_demographics", [])
     
-    def save_audit_log(self, output_path: Path):
-        """Save audit log to CSV file."""
+    def save_audit_report(self, output_path: Path, validation_results: Optional[List[Dict[str, List[str]]]] = None) -> None:
+        """Save audit information to a markdown report."""
+        lines = ["# Demographic Mapping Report", ""]
+
+        if validation_results:
+            lines.append("## Validation Summary")
+            for result in validation_results:
+                lines.append(f"### Year {result['year']}")
+                lines.append(f"- Found demographics: {len(result['valid'])}")
+                if result.get('missing_required'):
+                    missing_req = ', '.join(sorted(result['missing_required']))
+                    lines.append(f"- Missing required: {missing_req}")
+                if result.get('missing_optional'):
+                    missing_opt = ', '.join(sorted(result['missing_optional']))
+                    lines.append(f"- Missing optional: {missing_opt}")
+                if result.get('unexpected'):
+                    unexpected = ', '.join(sorted(result['unexpected']))
+                    lines.append(f"- Unexpected: {unexpected}")
+                lines.append("")
+
         if self.audit_log:
             audit_df = self.get_audit_report()
-            audit_df.to_csv(output_path, index=False)
-            logger.info(f"Demographic mapping audit log saved to {output_path}")
+            lines.append("## Mapping Log")
+            lines.append(audit_df.to_markdown(index=False))
+
+        output_path.write_text("\n".join(lines))
+        logger.info(f"Demographic mapping report saved to {output_path}")
 
 
 def create_demographic_mapper(config_path: Optional[Path] = None) -> DemographicMapper:

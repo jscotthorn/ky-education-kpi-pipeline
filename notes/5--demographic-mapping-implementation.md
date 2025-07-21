@@ -134,8 +134,8 @@ standardized_demographic = demographic_mapper.map_demographic(
 # Validate coverage
 validation = demographic_mapper.validate_demographics(demographics_list, year)
 
-# Save audit log
-demographic_mapper.save_audit_log(audit_path)
+# Save audit report
+demographic_mapper.save_audit_report(audit_path, [validation])
 ```
 
 ### Configuration Updates
