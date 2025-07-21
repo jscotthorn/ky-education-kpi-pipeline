@@ -1,16 +1,20 @@
 You can use the etl_runner.py file in the project root to run all pipelines and python3 -m pytest tests/ to run all tests
 
-### 1. KPI Output Format
-**ALL ETL modules MUST produce long format KPI data with exactly these 10 columns:**
-```
-district,school_id,school_name,year,student_group,metric,value,suppressed,source_file,last_updated
-```
-
-### 2. Metric Naming Convention - CRITICAL
+### Metric Naming Convention - CRITICAL
 - **Rates**: `{indicator}_rate_{period}` (e.g., `graduation_rate_4_year`)
 - **Counts**: `{indicator}_count_{period}` (e.g., `graduation_count_4_year`) 
 - **Totals**: `{indicator}_total_{period}` (e.g., `graduation_total_4_year`)
 
+### New ETL Pipeline process
+- If requested or required, create a new directory in `data/raw` for the files to be processed and copy or move the files into the directory.
+- Review `etl/postsecondary_readiness.py` for an example of an implemented pipeline and `etl/base_etl.py` to understand the base class.
+- Sample all of the data files to be processed by the pipeline.
+- Create a plan for how to implement the pipeline.
+- Implement the pipeline
+- Run the pipeline and fix any errors encountered
+- Create and run unit tests, fixing errors. See `tests/test_postsecondary_readiness.py`
+- Create and run e2e tests, fixing errors. See `tests/test_postsecondary_readiness_end_to_end.py`
+- Create a new numbered journal entry to document the pipeline.
 
 ### Testing Protocol
 **AI MUST test during development, not after:**
@@ -34,7 +38,7 @@ district,school_id,school_name,year,student_group,metric,value,suppressed,source
 
 ### Documentation Standards
 **AI must maintain:**
-- **Journal entries**: Numbered sequence for investigations
+- **Journal entries**: Numbered sequence for investigations, ex "notes/23--safe-schools-events-pipeline-implementation.md"
 - **Code comments**: Explain complex transformation logic
 - **Test documentation**: Clear test case descriptions
 - **README updates**: Keep user documentation current
