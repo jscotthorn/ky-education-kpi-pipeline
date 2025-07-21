@@ -327,430 +327,209 @@ def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[Demogra
         return pd.DataFrame()
 
 
-def _process_demographic_rows(df: pd.DataFrame, demographic_mapper: DemographicMapper) -> pd.DataFrame:
-    """Process rows with demographic breakdowns."""
+def _process_rows_helper(
+    df: pd.DataFrame,
+    data_source: str,
+    prefix: str,
+    student_group: Union[str, pd.Series],
+    suffix: str = "",
+) -> pd.DataFrame:
+    """Shared logic for melting and metric mapping across tiers."""
     from datetime import datetime
-    
-    # Identify the metric columns based on data source
-    data_source = df['data_source'].iloc[0] if 'data_source' in df.columns else 'unknown'
-    
-    if 'events_by_type' in data_source or 'event_details' in data_source:
-        # Event type metrics
+
+    if "events_by_type" in data_source or "event_details" in data_source:
         metric_columns = [
-            'total_events', 'alcohol_events', 'assault_1st_degree', 'drug_events',
-            'harassment_events', 'other_assault_events', 'other_state_events',
-            'tobacco_events', 'weapon_events'
+            "total_events",
+            "alcohol_events",
+            "assault_1st_degree",
+            "drug_events",
+            "harassment_events",
+            "other_assault_events",
+            "other_state_events",
+            "tobacco_events",
+            "weapon_events",
         ]
-    elif 'events_by_grade' in data_source:
-        # Grade level metrics
+    elif "events_by_grade" in data_source:
         metric_columns = [
-            'all_grades', 'preschool', 'kindergarten', 'grade_1', 'grade_2', 'grade_3',
-            'grade_4', 'grade_5', 'grade_6', 'grade_7', 'grade_8', 'grade_9',
-            'grade_10', 'grade_11', 'grade_12', 'grade_14'
+            "all_grades",
+            "preschool",
+            "kindergarten",
+            "grade_1",
+            "grade_2",
+            "grade_3",
+            "grade_4",
+            "grade_5",
+            "grade_6",
+            "grade_7",
+            "grade_8",
+            "grade_9",
+            "grade_10",
+            "grade_11",
+            "grade_12",
+            "grade_14",
         ]
-    elif 'events_by_location' in data_source:
-        # Location metrics
+    elif "events_by_location" in data_source:
         metric_columns = [
-            'total_events', 'classroom', 'bus', 'hallway_stairwell', 'cafeteria',
-            'restroom', 'gymnasium', 'playground', 'other_location', 'campus_grounds'
+            "total_events",
+            "classroom",
+            "bus",
+            "hallway_stairwell",
+            "cafeteria",
+            "restroom",
+            "gymnasium",
+            "playground",
+            "other_location",
+            "campus_grounds",
         ]
-    elif 'events_by_context' in data_source:
-        # Context metrics
+    elif "events_by_context" in data_source:
         metric_columns = [
-            'total_events', 'school_sponsored_during', 'school_sponsored_not_during',
-            'non_school_sponsored_during', 'non_school_sponsored_not_during'
+            "total_events",
+            "school_sponsored_during",
+            "school_sponsored_not_during",
+            "non_school_sponsored_during",
+            "non_school_sponsored_not_during",
         ]
     else:
         logger.warning(f"Unknown data source: {data_source}")
         return pd.DataFrame()
-    
-    # Filter to only existing columns
+
     metric_columns = [col for col in metric_columns if col in df.columns]
-    
     if not metric_columns:
         logger.warning("No metric columns found for KPI conversion")
         return pd.DataFrame()
-    
-    # Extract year from school_year column
-    df['year'] = df['school_year'].astype(str).str.extract(r'(\d{4})').astype(int)
-    
-    # Prepare base columns for melting
-    id_columns = ['district_name', 'state_school_id', 'school_name', 'year', 'demographic', 'data_source']
+
+    df["year"] = df["school_year"].astype(str).str.extract(r"(\d{4})").astype(int)
+
+    id_columns = [
+        "district_name",
+        "state_school_id",
+        "school_name",
+        "year",
+        "demographic",
+        "data_source",
+    ]
     id_columns = [col for col in id_columns if col in df.columns]
-    
-    # Melt to long format
+
     kpi_df = df.melt(
         id_vars=id_columns,
         value_vars=metric_columns,
-        var_name='metric_raw',
-        value_name='value'
+        var_name="metric_raw",
+        value_name="value",
     )
-    
-    # Convert value column to numeric immediately after melt
-    kpi_df['value'] = pd.to_numeric(kpi_df['value'], errors='coerce')
-    
-    # Create standardized metric names for demographic equity analysis
-    metric_mapping = {
-        # Event type metrics
-        'total_events': 'safe_event_count_total_by_demo',
-        'alcohol_events': 'safe_event_count_alcohol_by_demo',
-        'assault_1st_degree': 'safe_event_count_assault_1st_by_demo',
-        'drug_events': 'safe_event_count_drugs_by_demo',
-        'harassment_events': 'safe_event_count_harassment_by_demo',
-        'other_assault_events': 'safe_event_count_assault_other_by_demo',
-        'other_state_events': 'safe_event_count_other_state_by_demo',
-        'tobacco_events': 'safe_event_count_tobacco_by_demo',
-        'weapon_events': 'safe_event_count_weapons_by_demo',
-        
-        # Grade level metrics
-        'all_grades': 'safe_event_count_all_grades_by_demo',
-        'preschool': 'safe_event_count_preschool_by_demo',
-        'kindergarten': 'safe_event_count_kindergarten_by_demo',
-        'grade_1': 'safe_event_count_grade_1_by_demo',
-        'grade_2': 'safe_event_count_grade_2_by_demo',
-        'grade_3': 'safe_event_count_grade_3_by_demo',
-        'grade_4': 'safe_event_count_grade_4_by_demo',
-        'grade_5': 'safe_event_count_grade_5_by_demo',
-        'grade_6': 'safe_event_count_grade_6_by_demo',
-        'grade_7': 'safe_event_count_grade_7_by_demo',
-        'grade_8': 'safe_event_count_grade_8_by_demo',
-        'grade_9': 'safe_event_count_grade_9_by_demo',
-        'grade_10': 'safe_event_count_grade_10_by_demo',
-        'grade_11': 'safe_event_count_grade_11_by_demo',
-        'grade_12': 'safe_event_count_grade_12_by_demo',
-        'grade_14': 'safe_event_count_grade_14_by_demo',
-        
-        # Location metrics
-        'classroom': 'safe_event_count_classroom_by_demo',
-        'bus': 'safe_event_count_bus_by_demo',
-        'hallway_stairwell': 'safe_event_count_hallway_by_demo',
-        'cafeteria': 'safe_event_count_cafeteria_by_demo',
-        'restroom': 'safe_event_count_restroom_by_demo',
-        'gymnasium': 'safe_event_count_gymnasium_by_demo',
-        'playground': 'safe_event_count_playground_by_demo',
-        'other_location': 'safe_event_count_other_location_by_demo',
-        'campus_grounds': 'safe_event_count_campus_by_demo',
-        
-        # Context metrics
-        'school_sponsored_during': 'safe_event_count_school_sponsored_during_by_demo',
-        'school_sponsored_not_during': 'safe_event_count_school_sponsored_after_by_demo',
-        'non_school_sponsored_during': 'safe_event_count_non_school_during_by_demo',
-        'non_school_sponsored_not_during': 'safe_event_count_non_school_after_by_demo',
+
+    kpi_df["value"] = pd.to_numeric(kpi_df["value"], errors="coerce")
+
+    base_map = {
+        "total_events": "total",
+        "alcohol_events": "alcohol",
+        "assault_1st_degree": "assault_1st",
+        "drug_events": "drugs",
+        "harassment_events": "harassment",
+        "other_assault_events": "assault_other",
+        "other_state_events": "other_state",
+        "tobacco_events": "tobacco",
+        "weapon_events": "weapons",
+        "hallway_stairwell": "hallway",
+        "campus_grounds": "campus",
+        "school_sponsored_not_during": "school_sponsored_after",
+        "non_school_sponsored_not_during": "non_school_after",
     }
-    
-    kpi_df['metric'] = kpi_df['metric_raw'].map(metric_mapping)
-    
-    # Handle suppression
-    kpi_df['suppressed'] = 'N'
-    kpi_df.loc[kpi_df['value'].isna(), 'suppressed'] = 'Y'
-    
-    # Standardize demographics using DemographicMapper
-    source_file = f"safe_schools_events_{data_source}"
-    kpi_df['student_group'] = kpi_df.apply(
-        lambda row: demographic_mapper.map_demographic(
-            row['demographic'], row['year'], source_file
-        ), axis=1
+
+    metric_mapping = {
+        col: f"{prefix}_{base_map.get(col, col)}{suffix}"
+        for col in metric_columns
+    }
+    kpi_df["metric"] = kpi_df["metric_raw"].map(metric_mapping)
+
+    kpi_df["suppressed"] = "N"
+    kpi_df.loc[kpi_df["value"].isna(), "suppressed"] = "Y"
+
+    if isinstance(student_group, pd.Series):
+        repeated = pd.concat([
+            student_group.reset_index(drop=True)
+            for _ in range(len(metric_columns))
+        ], ignore_index=True)
+        kpi_df["student_group"] = repeated
+    else:
+        kpi_df["student_group"] = student_group
+
+    final_df = pd.DataFrame(
+        {
+            "district": kpi_df["district_name"]
+            if "district_name" in kpi_df.columns
+            else "Unknown",
+            "school_id": kpi_df["state_school_id"]
+            if "state_school_id" in kpi_df.columns
+            else kpi_df.get("nces_id", "Unknown"),
+            "school_name": kpi_df["school_name"]
+            if "school_name" in kpi_df.columns
+            else "Unknown",
+            "year": kpi_df["year"],
+            "student_group": kpi_df["student_group"],
+            "metric": kpi_df["metric"],
+            "value": kpi_df["value"],
+            "suppressed": kpi_df["suppressed"],
+        }
     )
-    
-    # Create final KPI format
-    final_df = pd.DataFrame({
-        'district': kpi_df['district_name'] if 'district_name' in kpi_df.columns else 'Unknown',
-        'school_id': kpi_df['state_school_id'] if 'state_school_id' in kpi_df.columns else kpi_df.get('nces_id', 'Unknown'),
-        'school_name': kpi_df['school_name'] if 'school_name' in kpi_df.columns else 'Unknown',
-        'year': kpi_df['year'],
-        'student_group': kpi_df['student_group'],
-        'metric': kpi_df['metric'],
-        'value': kpi_df['value'],
-        'suppressed': kpi_df['suppressed'],
-        'source_file': source_file,
-        'last_updated': datetime.now().isoformat()
-    })
-    
-    # Filter out rows with unknown metrics
-    final_df = final_df[final_df['metric'].notna()]
-    
+
+    final_df = final_df[final_df["metric"].notna()]
+    return final_df
+
+
+def _process_demographic_rows(
+    df: pd.DataFrame, demographic_mapper: DemographicMapper
+) -> pd.DataFrame:
+    """Process rows with demographic breakdowns."""
+    from datetime import datetime
+
+    data_source = df["data_source"].iloc[0] if "data_source" in df.columns else "unknown"
+    df["year"] = df["school_year"].astype(str).str.extract(r"(\d{4})").astype(int)
+    source_file = f"safe_schools_events_{data_source}"
+
+    student_groups = df.apply(
+        lambda row: demographic_mapper.map_demographic(
+            row["demographic"], row["year"], source_file
+        ),
+        axis=1,
+    )
+
+    final_df = _process_rows_helper(
+        df, data_source, "safe_event_count", student_groups, suffix="_by_demo"
+    )
+    if final_df.empty:
+        return final_df
+    final_df["source_file"] = source_file
+    final_df["last_updated"] = datetime.now().isoformat()
     return final_df
 
 
 def _process_students_affected_rows(df: pd.DataFrame) -> pd.DataFrame:
     """Process 'All Students' rows as students affected (scope metrics)."""
     from datetime import datetime
-    
-    # Identify the metric columns based on data source
-    data_source = df['data_source'].iloc[0] if 'data_source' in df.columns else 'unknown'
-    
-    if 'events_by_type' in data_source or 'event_details' in data_source:
-        # Event type metrics for students affected
-        metric_columns = [
-            'total_events', 'alcohol_events', 'assault_1st_degree', 'drug_events',
-            'harassment_events', 'other_assault_events', 'other_state_events',
-            'tobacco_events', 'weapon_events'
-        ]
-    elif 'events_by_grade' in data_source:
-        # Grade level metrics for students affected
-        metric_columns = [
-            'all_grades', 'preschool', 'kindergarten', 'grade_1', 'grade_2', 'grade_3',
-            'grade_4', 'grade_5', 'grade_6', 'grade_7', 'grade_8', 'grade_9',
-            'grade_10', 'grade_11', 'grade_12', 'grade_14'
-        ]
-    elif 'events_by_location' in data_source:
-        # Location metrics for students affected
-        metric_columns = [
-            'total_events', 'classroom', 'bus', 'hallway_stairwell', 'cafeteria',
-            'restroom', 'gymnasium', 'playground', 'other_location', 'campus_grounds'
-        ]
-    elif 'events_by_context' in data_source:
-        # Context metrics for students affected
-        metric_columns = [
-            'total_events', 'school_sponsored_during', 'school_sponsored_not_during',
-            'non_school_sponsored_during', 'non_school_sponsored_not_during'
-        ]
-    else:
-        logger.warning(f"Unknown data source for students affected: {data_source}")
-        return pd.DataFrame()
-    
-    # Filter to only existing columns
-    metric_columns = [col for col in metric_columns if col in df.columns]
-    
-    if not metric_columns:
-        logger.warning("No metric columns found for students affected KPI conversion")
-        return pd.DataFrame()
-    
-    # Extract year from school_year column
-    df['year'] = df['school_year'].astype(str).str.extract(r'(\d{4})').astype(int)
-    
-    # Prepare base columns for melting
-    id_columns = ['district_name', 'state_school_id', 'school_name', 'year', 'demographic', 'data_source']
-    id_columns = [col for col in id_columns if col in df.columns]
-    
-    # Melt to long format
-    kpi_df = df.melt(
-        id_vars=id_columns,
-        value_vars=metric_columns,
-        var_name='metric_raw',
-        value_name='value'
+
+    data_source = df["data_source"].iloc[0] if "data_source" in df.columns else "unknown"
+    final_df = _process_rows_helper(
+        df, data_source, "safe_students_affected", "All Students"
     )
-    
-    # Convert value column to numeric immediately after melt
-    kpi_df['value'] = pd.to_numeric(kpi_df['value'], errors='coerce')
-    
-    # Create standardized metric names for students affected (scope metrics)
-    metric_mapping = {
-        # Event type metrics - students affected
-        'total_events': 'safe_students_affected_total',
-        'alcohol_events': 'safe_students_affected_alcohol',
-        'assault_1st_degree': 'safe_students_affected_assault_1st',
-        'drug_events': 'safe_students_affected_drugs',
-        'harassment_events': 'safe_students_affected_harassment',
-        'other_assault_events': 'safe_students_affected_assault_other',
-        'other_state_events': 'safe_students_affected_other_state',
-        'tobacco_events': 'safe_students_affected_tobacco',
-        'weapon_events': 'safe_students_affected_weapons',
-        
-        # Grade level metrics - students affected
-        'all_grades': 'safe_students_affected_all_grades',
-        'preschool': 'safe_students_affected_preschool',
-        'kindergarten': 'safe_students_affected_kindergarten',
-        'grade_1': 'safe_students_affected_grade_1',
-        'grade_2': 'safe_students_affected_grade_2',
-        'grade_3': 'safe_students_affected_grade_3',
-        'grade_4': 'safe_students_affected_grade_4',
-        'grade_5': 'safe_students_affected_grade_5',
-        'grade_6': 'safe_students_affected_grade_6',
-        'grade_7': 'safe_students_affected_grade_7',
-        'grade_8': 'safe_students_affected_grade_8',
-        'grade_9': 'safe_students_affected_grade_9',
-        'grade_10': 'safe_students_affected_grade_10',
-        'grade_11': 'safe_students_affected_grade_11',
-        'grade_12': 'safe_students_affected_grade_12',
-        'grade_14': 'safe_students_affected_grade_14',
-        
-        # Location metrics - students affected
-        'classroom': 'safe_students_affected_classroom',
-        'bus': 'safe_students_affected_bus',
-        'hallway_stairwell': 'safe_students_affected_hallway',
-        'cafeteria': 'safe_students_affected_cafeteria',
-        'restroom': 'safe_students_affected_restroom',
-        'gymnasium': 'safe_students_affected_gymnasium',
-        'playground': 'safe_students_affected_playground',
-        'other_location': 'safe_students_affected_other_location',
-        'campus_grounds': 'safe_students_affected_campus',
-        
-        # Context metrics - students affected
-        'school_sponsored_during': 'safe_students_affected_school_sponsored_during',
-        'school_sponsored_not_during': 'safe_students_affected_school_sponsored_after',
-        'non_school_sponsored_during': 'safe_students_affected_non_school_during',
-        'non_school_sponsored_not_during': 'safe_students_affected_non_school_after',
-    }
-    
-    kpi_df['metric'] = kpi_df['metric_raw'].map(metric_mapping)
-    
-    # Handle suppression
-    kpi_df['suppressed'] = 'N'
-    kpi_df.loc[kpi_df['value'].isna(), 'suppressed'] = 'Y'
-    
-    # For students affected rows, use "All Students" as the student group
-    kpi_df['student_group'] = 'All Students'
-    
-    # Create final KPI format
-    source_file = f"safe_schools_events_{data_source}_students_affected"
-    final_df = pd.DataFrame({
-        'district': kpi_df['district_name'] if 'district_name' in kpi_df.columns else 'Unknown',
-        'school_id': kpi_df['state_school_id'] if 'state_school_id' in kpi_df.columns else kpi_df.get('nces_id', 'Unknown'),
-        'school_name': kpi_df['school_name'] if 'school_name' in kpi_df.columns else 'Unknown',
-        'year': kpi_df['year'],
-        'student_group': kpi_df['student_group'],
-        'metric': kpi_df['metric'],
-        'value': kpi_df['value'],
-        'suppressed': kpi_df['suppressed'],
-        'source_file': source_file,
-        'last_updated': datetime.now().isoformat()
-    })
-    
-    # Filter out rows with unknown metrics
-    final_df = final_df[final_df['metric'].notna()]
-    
+    if final_df.empty:
+        return final_df
+    final_df["source_file"] = f"safe_schools_events_{data_source}_students_affected"
+    final_df["last_updated"] = datetime.now().isoformat()
     return final_df
 
 
 def _process_total_events_rows(df: pd.DataFrame) -> pd.DataFrame:
     """Process 'Total Events' rows as intensity metrics."""
     from datetime import datetime
-    
-    # Identify the metric columns based on data source
-    data_source = df['data_source'].iloc[0] if 'data_source' in df.columns else 'unknown'
-    
-    if 'events_by_type' in data_source or 'event_details' in data_source:
-        # Event type metrics for total events
-        metric_columns = [
-            'total_events', 'alcohol_events', 'assault_1st_degree', 'drug_events',
-            'harassment_events', 'other_assault_events', 'other_state_events',
-            'tobacco_events', 'weapon_events'
-        ]
-    elif 'events_by_grade' in data_source:
-        # Grade level metrics for total events
-        metric_columns = [
-            'all_grades', 'preschool', 'kindergarten', 'grade_1', 'grade_2', 'grade_3',
-            'grade_4', 'grade_5', 'grade_6', 'grade_7', 'grade_8', 'grade_9',
-            'grade_10', 'grade_11', 'grade_12', 'grade_14'
-        ]
-    elif 'events_by_location' in data_source:
-        # Location metrics for total events
-        metric_columns = [
-            'total_events', 'classroom', 'bus', 'hallway_stairwell', 'cafeteria',
-            'restroom', 'gymnasium', 'playground', 'other_location', 'campus_grounds'
-        ]
-    elif 'events_by_context' in data_source:
-        # Context metrics for total events
-        metric_columns = [
-            'total_events', 'school_sponsored_during', 'school_sponsored_not_during',
-            'non_school_sponsored_during', 'non_school_sponsored_not_during'
-        ]
-    else:
-        logger.warning(f"Unknown data source for total events: {data_source}")
-        return pd.DataFrame()
-    
-    # Filter to only existing columns
-    metric_columns = [col for col in metric_columns if col in df.columns]
-    
-    if not metric_columns:
-        logger.warning("No metric columns found for total events KPI conversion")
-        return pd.DataFrame()
-    
-    # Extract year from school_year column
-    df['year'] = df['school_year'].astype(str).str.extract(r'(\d{4})').astype(int)
-    
-    # Prepare base columns for melting
-    id_columns = ['district_name', 'state_school_id', 'school_name', 'year', 'demographic', 'data_source']
-    id_columns = [col for col in id_columns if col in df.columns]
-    
-    # Melt to long format
-    kpi_df = df.melt(
-        id_vars=id_columns,
-        value_vars=metric_columns,
-        var_name='metric_raw',
-        value_name='value'
+
+    data_source = df["data_source"].iloc[0] if "data_source" in df.columns else "unknown"
+    final_df = _process_rows_helper(
+        df, data_source, "safe_event_count", "All Students - Total Events"
     )
-    
-    # Convert value column to numeric immediately after melt
-    kpi_df['value'] = pd.to_numeric(kpi_df['value'], errors='coerce')
-    
-    # Create standardized metric names for total events (intensity metrics)
-    metric_mapping = {
-        # Event type metrics - total events
-        'total_events': 'safe_event_count_total',
-        'alcohol_events': 'safe_event_count_alcohol',
-        'assault_1st_degree': 'safe_event_count_assault_1st',
-        'drug_events': 'safe_event_count_drugs',
-        'harassment_events': 'safe_event_count_harassment',
-        'other_assault_events': 'safe_event_count_assault_other',
-        'other_state_events': 'safe_event_count_other_state',
-        'tobacco_events': 'safe_event_count_tobacco',
-        'weapon_events': 'safe_event_count_weapons',
-        
-        # Grade level metrics - total events
-        'all_grades': 'safe_event_count_all_grades',
-        'preschool': 'safe_event_count_preschool',
-        'kindergarten': 'safe_event_count_kindergarten',
-        'grade_1': 'safe_event_count_grade_1',
-        'grade_2': 'safe_event_count_grade_2',
-        'grade_3': 'safe_event_count_grade_3',
-        'grade_4': 'safe_event_count_grade_4',
-        'grade_5': 'safe_event_count_grade_5',
-        'grade_6': 'safe_event_count_grade_6',
-        'grade_7': 'safe_event_count_grade_7',
-        'grade_8': 'safe_event_count_grade_8',
-        'grade_9': 'safe_event_count_grade_9',
-        'grade_10': 'safe_event_count_grade_10',
-        'grade_11': 'safe_event_count_grade_11',
-        'grade_12': 'safe_event_count_grade_12',
-        'grade_14': 'safe_event_count_grade_14',
-        
-        # Location metrics - total events
-        'classroom': 'safe_event_count_classroom',
-        'bus': 'safe_event_count_bus',
-        'hallway_stairwell': 'safe_event_count_hallway',
-        'cafeteria': 'safe_event_count_cafeteria',
-        'restroom': 'safe_event_count_restroom',
-        'gymnasium': 'safe_event_count_gymnasium',
-        'playground': 'safe_event_count_playground',
-        'other_location': 'safe_event_count_other_location',
-        'campus_grounds': 'safe_event_count_campus',
-        
-        # Context metrics - total events
-        'school_sponsored_during': 'safe_event_count_school_sponsored_during',
-        'school_sponsored_not_during': 'safe_event_count_school_sponsored_after',
-        'non_school_sponsored_during': 'safe_event_count_non_school_during',
-        'non_school_sponsored_not_during': 'safe_event_count_non_school_after',
-    }
-    
-    kpi_df['metric'] = kpi_df['metric_raw'].map(metric_mapping)
-    
-    # Handle suppression
-    kpi_df['suppressed'] = 'N'
-    kpi_df.loc[kpi_df['value'].isna(), 'suppressed'] = 'Y'
-    
-    # For total events rows, use "All Students - Total Events" as the student group
-    kpi_df['student_group'] = 'All Students - Total Events'
-    
-    # Create final KPI format
-    source_file = f"safe_schools_events_{data_source}_total_events"
-    final_df = pd.DataFrame({
-        'district': kpi_df['district_name'] if 'district_name' in kpi_df.columns else 'Unknown',
-        'school_id': kpi_df['state_school_id'] if 'state_school_id' in kpi_df.columns else kpi_df.get('nces_id', 'Unknown'),
-        'school_name': kpi_df['school_name'] if 'school_name' in kpi_df.columns else 'Unknown',
-        'year': kpi_df['year'],
-        'student_group': kpi_df['student_group'],
-        'metric': kpi_df['metric'],
-        'value': kpi_df['value'],
-        'suppressed': kpi_df['suppressed'],
-        'source_file': source_file,
-        'last_updated': datetime.now().isoformat()
-    })
-    
-    # Filter out rows with unknown metrics
-    final_df = final_df[final_df['metric'].notna()]
-    
+    if final_df.empty:
+        return final_df
+    final_df["source_file"] = f"safe_schools_events_{data_source}_total_events"
+    final_df["last_updated"] = datetime.now().isoformat()
     return final_df
 
 
@@ -840,141 +619,15 @@ def _calculate_derived_rates(kpi_df: pd.DataFrame) -> pd.DataFrame:
 def _process_aggregate_rows(df: pd.DataFrame) -> pd.DataFrame:
     """Process aggregate rows (Total Events) as separate KPIs."""
     from datetime import datetime
-    
-    # Identify the metric columns based on data source
-    data_source = df['data_source'].iloc[0] if 'data_source' in df.columns else 'unknown'
-    
-    if 'events_by_type' in data_source or 'event_details' in data_source:
-        # Event type metrics for aggregates
-        metric_columns = [
-            'total_events', 'alcohol_events', 'assault_1st_degree', 'drug_events',
-            'harassment_events', 'other_assault_events', 'other_state_events',
-            'tobacco_events', 'weapon_events'
-        ]
-    elif 'events_by_grade' in data_source:
-        # Grade level metrics for aggregates
-        metric_columns = [
-            'all_grades', 'preschool', 'kindergarten', 'grade_1', 'grade_2', 'grade_3',
-            'grade_4', 'grade_5', 'grade_6', 'grade_7', 'grade_8', 'grade_9',
-            'grade_10', 'grade_11', 'grade_12', 'grade_14'
-        ]
-    elif 'events_by_location' in data_source:
-        # Location metrics for aggregates
-        metric_columns = [
-            'total_events', 'classroom', 'bus', 'hallway_stairwell', 'cafeteria',
-            'restroom', 'gymnasium', 'playground', 'other_location', 'campus_grounds'
-        ]
-    elif 'events_by_context' in data_source:
-        # Context metrics for aggregates
-        metric_columns = [
-            'total_events', 'school_sponsored_during', 'school_sponsored_not_during',
-            'non_school_sponsored_during', 'non_school_sponsored_not_during'
-        ]
-    else:
-        logger.warning(f"Unknown data source for aggregates: {data_source}")
-        return pd.DataFrame()
-    
-    # Filter to only existing columns
-    metric_columns = [col for col in metric_columns if col in df.columns]
-    
-    if not metric_columns:
-        logger.warning("No metric columns found for aggregate KPI conversion")
-        return pd.DataFrame()
-    
-    # Extract year from school_year column
-    df['year'] = df['school_year'].astype(str).str.extract(r'(\d{4})').astype(int)
-    
-    # Prepare base columns for melting
-    id_columns = ['district_name', 'state_school_id', 'school_name', 'year', 'demographic', 'data_source']
-    id_columns = [col for col in id_columns if col in df.columns]
-    
-    # Melt to long format
-    kpi_df = df.melt(
-        id_vars=id_columns,
-        value_vars=metric_columns,
-        var_name='metric_raw',
-        value_name='value'
+
+    data_source = df["data_source"].iloc[0] if "data_source" in df.columns else "unknown"
+    final_df = _process_rows_helper(
+        df, data_source, "safe_event_count", "All Students - Aggregate", suffix="_aggregate"
     )
-    
-    # Convert value column to numeric immediately after melt
-    kpi_df['value'] = pd.to_numeric(kpi_df['value'], errors='coerce')
-    
-    # Create standardized metric names for aggregates (no demographic suffix)
-    metric_mapping = {
-        # Event type metrics - aggregates
-        'total_events': 'safe_event_count_total_aggregate',
-        'alcohol_events': 'safe_event_count_alcohol_aggregate',
-        'assault_1st_degree': 'safe_event_count_assault_1st_aggregate',
-        'drug_events': 'safe_event_count_drugs_aggregate',
-        'harassment_events': 'safe_event_count_harassment_aggregate',
-        'other_assault_events': 'safe_event_count_assault_other_aggregate',
-        'other_state_events': 'safe_event_count_other_state_aggregate',
-        'tobacco_events': 'safe_event_count_tobacco_aggregate',
-        'weapon_events': 'safe_event_count_weapons_aggregate',
-        
-        # Grade level metrics - aggregates
-        'all_grades': 'safe_event_count_all_grades_aggregate',
-        'preschool': 'safe_event_count_preschool_aggregate',
-        'kindergarten': 'safe_event_count_kindergarten_aggregate',
-        'grade_1': 'safe_event_count_grade_1_aggregate',
-        'grade_2': 'safe_event_count_grade_2_aggregate',
-        'grade_3': 'safe_event_count_grade_3_aggregate',
-        'grade_4': 'safe_event_count_grade_4_aggregate',
-        'grade_5': 'safe_event_count_grade_5_aggregate',
-        'grade_6': 'safe_event_count_grade_6_aggregate',
-        'grade_7': 'safe_event_count_grade_7_aggregate',
-        'grade_8': 'safe_event_count_grade_8_aggregate',
-        'grade_9': 'safe_event_count_grade_9_aggregate',
-        'grade_10': 'safe_event_count_grade_10_aggregate',
-        'grade_11': 'safe_event_count_grade_11_aggregate',
-        'grade_12': 'safe_event_count_grade_12_aggregate',
-        'grade_14': 'safe_event_count_grade_14_aggregate',
-        
-        # Location metrics - aggregates
-        'classroom': 'safe_event_count_classroom_aggregate',
-        'bus': 'safe_event_count_bus_aggregate',
-        'hallway_stairwell': 'safe_event_count_hallway_aggregate',
-        'cafeteria': 'safe_event_count_cafeteria_aggregate',
-        'restroom': 'safe_event_count_restroom_aggregate',
-        'gymnasium': 'safe_event_count_gymnasium_aggregate',
-        'playground': 'safe_event_count_playground_aggregate',
-        'other_location': 'safe_event_count_other_location_aggregate',
-        'campus_grounds': 'safe_event_count_campus_aggregate',
-        
-        # Context metrics - aggregates
-        'school_sponsored_during': 'safe_event_count_school_sponsored_during_aggregate',
-        'school_sponsored_not_during': 'safe_event_count_school_sponsored_after_aggregate',
-        'non_school_sponsored_during': 'safe_event_count_non_school_during_aggregate',
-        'non_school_sponsored_not_during': 'safe_event_count_non_school_after_aggregate',
-    }
-    
-    kpi_df['metric'] = kpi_df['metric_raw'].map(metric_mapping)
-    
-    # Handle suppression
-    kpi_df['suppressed'] = 'N'
-    kpi_df.loc[kpi_df['value'].isna(), 'suppressed'] = 'Y'
-    
-    # For aggregate rows, use the demographic value as the student_group (e.g., "Total Events")
-    kpi_df['student_group'] = 'All Students - Aggregate'
-    
-    # Create final KPI format
-    source_file = f"safe_schools_events_{data_source}_aggregate"
-    final_df = pd.DataFrame({
-        'district': kpi_df['district_name'] if 'district_name' in kpi_df.columns else 'Unknown',
-        'school_id': kpi_df['state_school_id'] if 'state_school_id' in kpi_df.columns else kpi_df.get('nces_id', 'Unknown'),
-        'school_name': kpi_df['school_name'] if 'school_name' in kpi_df.columns else 'Unknown',
-        'year': kpi_df['year'],
-        'student_group': kpi_df['student_group'],
-        'metric': kpi_df['metric'],
-        'value': kpi_df['value'],
-        'suppressed': kpi_df['suppressed'],
-        'source_file': source_file,
-        'last_updated': datetime.now().isoformat()
-    })
-    
-    # Filter out rows with unknown metrics
-    final_df = final_df[final_df['metric'].notna()]
-    
+    if final_df.empty:
+        return final_df
+    final_df["source_file"] = f"safe_schools_events_{data_source}_aggregate"
+    final_df["last_updated"] = datetime.now().isoformat()
     return final_df
 
 
