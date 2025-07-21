@@ -7,8 +7,9 @@ import pandas as pd
 import tempfile
 import shutil
 from etl.english_learner_progress import (
-    transform, normalize_column_names, standardize_missing_values, 
-    clean_percentage_scores, calculate_progress_metrics, convert_to_kpi_format
+    transform,
+    clean_percentage_scores,
+    EnglishLearnerProgressETL,
 )
 
 
@@ -24,6 +25,9 @@ class TestEnglishLearnerProgressETL:
         # Create sample raw data directory
         self.sample_dir = self.raw_dir / "english_learner_progress"
         self.sample_dir.mkdir(parents=True)
+
+        # Create ETL instance for testing
+        self.etl = EnglishLearnerProgressETL("english_learner_progress")
     
     def teardown_method(self):
         """Clean up test directories."""
@@ -102,7 +106,7 @@ class TestEnglishLearnerProgressETL:
     def test_normalize_column_names_2024_format(self):
         """Test column name normalization for 2024 format."""
         df = self.create_sample_2024_data()
-        normalized_df = normalize_column_names(df)
+        normalized_df = self.etl.normalize_column_names(df)
         
         assert 'school_year' in normalized_df.columns
         assert 'county_name' in normalized_df.columns
@@ -117,7 +121,7 @@ class TestEnglishLearnerProgressETL:
     def test_normalize_column_names_2022_format(self):
         """Test column name normalization for 2022 format (uppercase)."""
         df = self.create_sample_2022_data()
-        normalized_df = normalize_column_names(df)
+        normalized_df = self.etl.normalize_column_names(df)
         
         assert 'school_year' in normalized_df.columns
         assert 'county_name' in normalized_df.columns
@@ -133,7 +137,7 @@ class TestEnglishLearnerProgressETL:
             'percentage_score_100': [23, 'N/A', '*', '']
         })
         
-        cleaned_df = standardize_missing_values(df)
+        cleaned_df = self.etl.standardize_missing_values(df)
         
         # Check that empty strings and markers are converted to NaN
         assert pd.isna(cleaned_df.loc[1, 'percentage_score_0'])
@@ -159,7 +163,7 @@ class TestEnglishLearnerProgressETL:
         assert pd.isna(cleaned_df.loc[2, 'percentage_score_0'])  # -5 < 0
         assert pd.isna(cleaned_df.loc[3, 'percentage_score_0'])  # invalid text
     
-    def test_calculate_progress_metrics(self):
+    def test_extract_metrics(self):
         """Test direct score metric extraction."""
         row = pd.Series({
             'percentage_score_0': 29,
@@ -168,15 +172,15 @@ class TestEnglishLearnerProgressETL:
             'percentage_score_140': 13
         })
         
-        metrics = calculate_progress_metrics(row)
+        metrics = self.etl.extract_metrics(row)
         
         # Test direct score metrics
-        assert metrics['english_learner_score_0'] == 29
-        assert metrics['english_learner_score_60_80'] == 35
-        assert metrics['english_learner_score_100'] == 23
-        assert metrics['english_learner_score_140'] == 13
+        assert metrics['english_learner_score_0_all'] == 29
+        assert metrics['english_learner_score_60_80_all'] == 35
+        assert metrics['english_learner_score_100_all'] == 23
+        assert metrics['english_learner_score_140_all'] == 13
     
-    def test_calculate_progress_metrics_missing_values(self):
+    def test_extract_metrics_missing_values(self):
         """Test score metric extraction with missing values."""
         row = pd.Series({
             'percentage_score_0': pd.NA,
@@ -185,25 +189,25 @@ class TestEnglishLearnerProgressETL:
             'percentage_score_140': 13
         })
         
-        metrics = calculate_progress_metrics(row)
+        metrics = self.etl.extract_metrics(row)
         
         # Should only include metrics where values are present
-        assert 'english_learner_score_0' not in metrics  # Missing
-        assert 'english_learner_score_100' not in metrics  # Missing
-        assert metrics['english_learner_score_60_80'] == 35  # Available
-        assert metrics['english_learner_score_140'] == 13  # Available
+        assert 'english_learner_score_0_all' not in metrics  # Missing
+        assert 'english_learner_score_100_all' not in metrics  # Missing
+        assert metrics['english_learner_score_60_80_all'] == 35  # Available
+        assert metrics['english_learner_score_140_all'] == 13  # Available
     
     def test_convert_to_kpi_format_normal_data(self):
         """Test KPI format conversion for normal (non-suppressed) data."""
         df = self.create_sample_2024_data()
-        df = normalize_column_names(df)
-        df = standardize_missing_values(df)
+        df = self.etl.normalize_column_names(df)
+        df = self.etl.standardize_missing_values(df)
         df = clean_percentage_scores(df)
         df['source_file'] = 'test_file.csv'
         
         # Test non-suppressed records only
         df_normal = df[df['suppressed'] == 'N'].copy()
-        kpi_df = convert_to_kpi_format(df_normal)
+        kpi_df = self.etl.convert_to_kpi_format(df_normal, 'test_file.csv')
         
         assert not kpi_df.empty
         assert len(kpi_df.columns) == 10  # Standard KPI format
@@ -236,12 +240,12 @@ class TestEnglishLearnerProgressETL:
     def test_convert_to_kpi_format_suppressed_data(self):
         """Test KPI format conversion for suppressed data."""
         df = self.create_sample_suppressed_data()
-        df = normalize_column_names(df)
-        df = standardize_missing_values(df)
+        df = self.etl.normalize_column_names(df)
+        df = self.etl.standardize_missing_values(df)
         df = clean_percentage_scores(df)
         df['source_file'] = 'test_suppressed.csv'
         
-        kpi_df = convert_to_kpi_format(df)
+        kpi_df = self.etl.convert_to_kpi_format(df, 'test_suppressed.csv')
         
         assert not kpi_df.empty
         
@@ -273,7 +277,7 @@ class TestEnglishLearnerProgressETL:
             'source_file': ['test.csv'] * 6
         })
         
-        kpi_df = convert_to_kpi_format(df)
+        kpi_df = self.etl.convert_to_kpi_format(df, 'test.csv')
         
         # Check that level suffixes are normalized
         metrics = kpi_df['metric'].unique()
@@ -303,16 +307,15 @@ class TestEnglishLearnerProgressETL:
             'source_file': ['test.csv'] * 3
         })
         
-        kpi_df = convert_to_kpi_format(df)
+        kpi_df = self.etl.convert_to_kpi_format(df, 'test.csv')
         
         # Check school_id values
         school_ids = kpi_df['school_id'].unique()
         
-        # Should prefer state_school_id, then nces_id, then school_code
-        # Note: state_school_id takes precedence, so when it's empty, falls back to nces_id, then school_code
-        assert '123' in school_ids  # state_school_id without .0
-        assert '888' in school_ids  # school_code fallback when state_school_id is empty
-        assert '456' in school_ids  # state_school_id when present
+        # BaseETL prioritizes school_code as the identifier
+        assert '999' in school_ids
+        assert '888' in school_ids
+        assert '777' in school_ids
     
     def test_year_extraction(self):
         """Test year extraction from school_year field."""
@@ -332,7 +335,7 @@ class TestEnglishLearnerProgressETL:
             'source_file': ['test.csv'] * 3
         })
         
-        kpi_df = convert_to_kpi_format(df)
+        kpi_df = self.etl.convert_to_kpi_format(df, 'test.csv')
         
         years = kpi_df['year'].unique()
         
