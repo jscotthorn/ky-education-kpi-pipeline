@@ -245,7 +245,3 @@ class TestConvenienceFunctions:
         assert "unexpected" in result
         assert result["year"] == "2024"
 
-
-if __name__ == "__main__":
-    # Run tests
-    pytest.main([__file__, "-v"])
