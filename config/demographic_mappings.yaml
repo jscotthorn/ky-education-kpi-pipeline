@@ -98,6 +98,8 @@ year_specific:
       - "Students with Disabilities (IEP)"
       - "Students without IEP"
       - "English Learner including Monitored"
+      - "Gifted and Talented"
+      - "Military Dependent"
     
   "2022":
     available_demographics:
@@ -122,6 +124,8 @@ year_specific:
       - "Students with Disabilities (IEP)"
       - "Students without IEP"
       - "English Learner including Monitored"
+      - "Gifted and Talented"
+      - "Military Dependent"
       - "Non-English Learner or monitored"
     mappings:
       # Keep monitored English learner categories distinct from base categories
@@ -149,6 +153,8 @@ year_specific:
       - "Students with Disabilities (IEP)"
       - "Students without IEP"
       - "English Learner including Monitored"
+      - "Gifted and Talented"
+      - "Military Dependent"
       - "Non-English Learner or monitored"
     mappings:
       # Keep monitored English learner categories distinct from base categories
@@ -177,6 +183,9 @@ year_specific:
       - "Migrant"
       - "Students with Disabilities (IEP)"
       - "Student without Disabilities (IEP)"
+      - "Students without IEP"
+      - "Non-English Learner"
+      - "Non-Economically Disadvantaged"
       - "Military Dependent"
       - "Non-Military"
     mappings:
@@ -199,18 +208,19 @@ validation:
     - "Native Hawaiian or Pacific Islander"
     - "Two or More Races"
     - "White (non-Hispanic)"
-    - "Economically Disadvantaged"
-    - "English Learner"
-    - "Foster Care"
-    - "Homeless"
-    - "Migrant"
-    - "Students with Disabilities (IEP)"
+    - "English Learner"  # Only non-core demographic present in all years
   
   # Demographics that may be missing without raising errors (year-specific or optional)
   allow_missing:
+    - "Economically Disadvantaged"           # Not in all 2024 files
+    - "Foster Care"                          # Not in all 2024 files
+    - "Homeless"                             # Not in all 2024 files
+    - "Migrant"                              # Not in all 2024 files
+    - "Students with Disabilities (IEP)"     # Not in all 2024 files
+    - "Gifted and Talented"                  # 2021-2023 only
+    - "Military Dependent"                   # 2021-2023 only
     - "English Learner including Monitored"  # 2021-2023 only
     - "Non-English Learner or monitored"     # 2022-2023 only
-    - "Military Dependent"                   # 2024 only
     - "Non-Homeless"                         # 2024 only
     - "Non-Migrant"                          # 2024 only
     - "Non-Military"                         # 2024 only
@@ -241,3 +251,7 @@ data_quality:
     - "Asian"
     - "Hispanic or Latino"
     - "White (non-Hispanic)"
+  
+  # Non-demographic entries to filter out
+  filter_out:
+    - "Total Events"  # Appears in discipline data but not a demographic
