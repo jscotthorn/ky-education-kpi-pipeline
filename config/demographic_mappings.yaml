@@ -175,6 +175,7 @@ year_specific:
       - "Non Economically Disadvantaged"
       - "English Learner"
       - "Non English Learner"
+      - "English Learner including Monitored"
       - "Foster Care"
       - "Non-Foster"
       - "Non-Homeless"
@@ -200,8 +201,6 @@ validation:
   # Demographics that must be present in every dataset (core demographics present in all years)
   required_demographics:
     - "All Students"
-    - "Female"
-    - "Male"
     - "African American"
     - "American Indian or Alaska Native"
     - "Asian"
@@ -209,10 +208,12 @@ validation:
     - "Native Hawaiian or Pacific Islander"
     - "Two or More Races"
     - "White (non-Hispanic)"
-    - "English Learner"  # Only non-core demographic present in all years
   
   # Demographics that may be missing without raising errors (year-specific or optional)
   allow_missing:
+    - "Female"                               # Missing from english learner progress data 2022-2024
+    - "Male"                                 # Missing from english learner progress data 2022-2024
+    - "English Learner"                      # Missing from english learner progress data 2022-2024
     - "Economically Disadvantaged"           # Not in all 2024 files
     - "Foster Care"                          # Not in all 2024 files
     - "Homeless"                             # Not in all 2024 files
