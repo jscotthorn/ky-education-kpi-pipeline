@@ -1,30 +1,18 @@
 """
 End-to-end integration tests for Chronic Absenteeism ETL pipeline
 """
-import pytest
-from pathlib import Path
 import pandas as pd
-import tempfile
-import shutil
 from etl.chronic_absenteeism import transform
 
+from .end_to_end_base import BaseEndToEndTest
 
-class TestChronicAbsenteeismEndToEnd:
-    
-    def setup_method(self):
-        """Setup test directories and realistic sample data."""
-        self.test_dir = Path(tempfile.mkdtemp())
-        self.raw_dir = self.test_dir / "raw"
-        self.proc_dir = self.test_dir / "processed"
-        self.proc_dir.mkdir(parents=True)
-        
-        # Create sample raw data directory
+
+class TestChronicAbsenteeismEndToEnd(BaseEndToEndTest):
+
+    def setup_method(self) -> None:
+        super().setup_method()
         self.sample_dir = self.raw_dir / "chronic_absenteeism"
         self.sample_dir.mkdir(parents=True)
-    
-    def teardown_method(self):
-        """Clean up test directories."""
-        shutil.rmtree(self.test_dir)
     
     def create_realistic_2024_data(self):
         """Create realistic 2024 format data with Fayette County schools."""
@@ -131,19 +119,9 @@ class TestChronicAbsenteeismEndToEnd:
         assert output_file.exists(), "Main output file should exist"
         assert audit_file.exists(), "Demographic report should exist"
         
-        # Load and verify output format
+        # Load output and verify standard KPI format
         output_df = pd.read_csv(output_file)
-        
-        assert not output_df.empty, "Output should not be empty"
-        assert len(output_df.columns) == 10, "Should have exactly 10 columns in KPI format"
-        
-        # Verify required columns
-        expected_columns = [
-            'district', 'school_id', 'school_name', 'year', 'student_group',
-            'metric', 'value', 'suppressed', 'source_file', 'last_updated'
-        ]
-        for col in expected_columns:
-            assert col in output_df.columns, f"Missing required column: {col}"
+        self.assert_kpi_format(output_df)
         
         # Verify data quality
         assert output_df['district'].iloc[0] == 'Fayette County', "District should be Fayette County"
@@ -437,7 +415,7 @@ class TestChronicAbsenteeismEndToEnd:
             output_df = pd.read_csv(output_file)
             # If any data was processed, it should be in valid format
             if not output_df.empty:
-                assert len(output_df.columns) == 10, "Output should maintain KPI format even with errors"
+                self.assert_kpi_format(output_df)
     
     def test_end_to_end_performance_with_large_dataset(self):
         """Test performance with larger dataset."""
@@ -467,9 +445,9 @@ class TestChronicAbsenteeismEndToEnd:
         
         output_df = pd.read_csv(output_file)
         assert len(output_df) > len(base_df) * 3, "Should scale with input size"
-        
+
         # Verify data quality maintained with large dataset
-        assert len(output_df.columns) == 10
+        self.assert_kpi_format(output_df)
         assert output_df['district'].notna().all()
         assert output_df['year'].notna().all()
         assert len(output_df['school_name'].unique()) >= 15, "Should have many unique schools"

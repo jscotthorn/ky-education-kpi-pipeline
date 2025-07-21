@@ -10,6 +10,7 @@ dependencies = [
     "pyarrow",
     "pydantic",
     "ruamel-yaml",
+    "tabulate",
     "pytest"
 ]
 
