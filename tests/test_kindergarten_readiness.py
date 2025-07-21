@@ -1,0 +1,113 @@
+"""Unit tests for Kindergarten Readiness ETL module"""
+import shutil
+import tempfile
+from pathlib import Path
+
+import pandas as pd
+import pytest
+
+from etl.kindergarten_readiness import (
+    transform,
+    clean_readiness_data,
+    KindergartenReadinessETL,
+)
+
+
+class TestKindergartenReadinessETL:
+    def setup_method(self):
+        self.test_dir = Path(tempfile.mkdtemp())
+        self.raw_dir = self.test_dir / "raw"
+        self.proc_dir = self.test_dir / "processed"
+        self.proc_dir.mkdir(parents=True)
+        self.sample_dir = self.raw_dir / "kindergarten_readiness"
+        self.sample_dir.mkdir(parents=True)
+        self.etl = KindergartenReadinessETL("kindergarten_readiness")
+
+    def teardown_method(self):
+        shutil.rmtree(self.test_dir)
+
+    def create_sample_counts_data(self):
+        return pd.DataFrame({
+            "School Year": ["20232024", "20232024"],
+            "District Name": ["Fayette County", "Fayette County"],
+            "School Code": ["1001", "1002"],
+            "School Name": ["Test School A", "Test School B"],
+            "Demographic": ["All Students", "Female"],
+            "Ready With Interventions": [10, 5],
+            "Ready": [20, 10],
+            "Ready With Enrichments": [5, 3],
+            "Total Ready": [35, 18],
+            "Suppressed": ["N", "Y"],
+        })
+
+    def create_sample_percent_data(self):
+        return pd.DataFrame({
+            "SCHOOL YEAR": ["20212022", "20212022"],
+            "DISTRICT NAME": ["Fayette County", "Fayette County"],
+            "SCHOOL CODE": ["1001", "1001"],
+            "SCHOOL NAME": ["Test School A", "Test School A"],
+            "DEMOGRAPHIC": ["All Students", "Female"],
+            "TOTAL PERCENT READY": [55.0, 60.0],
+            "NUMBER TESTED": [100, 50],
+            "SUPPRESSED": ["N", "N"],
+        })
+
+    def test_normalize_column_names(self):
+        df = self.create_sample_counts_data()
+        result = self.etl.normalize_column_names(df)
+        assert "total_ready_count" in result.columns
+        assert "ready_with_interventions_count" in result.columns
+        assert "school_code" in result.columns
+
+    def test_standardize_missing_values(self):
+        df = pd.DataFrame({
+            "total_ready_count": ["", "*", "35"],
+            "ready_with_interventions_count": [10, "", "*"],
+            "suppressed": ["Yes", "No", None],
+        })
+        cleaned = self.etl.standardize_missing_values(df)
+        assert pd.isna(cleaned.loc[0, "total_ready_count"])
+        assert pd.isna(cleaned.loc[1, "total_ready_count"])
+        assert cleaned.loc[2, "total_ready_count"] == 35
+        assert cleaned.loc[0, "suppressed"] == "Y"
+        assert cleaned.loc[1, "suppressed"] == "N"
+        assert cleaned.loc[2, "suppressed"] == "N"
+
+    def test_extract_metrics_counts(self):
+        df = self.create_sample_counts_data()
+        df = self.etl.normalize_column_names(df)
+        df = self.etl.standardize_missing_values(df)
+        row = df.iloc[0]
+        metrics = self.etl.extract_metrics(row)
+        assert set(metrics.keys()) == {
+            "kindergarten_readiness_rate",
+            "kindergarten_readiness_count",
+            "kindergarten_readiness_total",
+        }
+
+    def test_extract_metrics_percentage(self):
+        df = self.create_sample_percent_data()
+        df = self.etl.normalize_column_names(df)
+        df = self.etl.standardize_missing_values(df)
+        row = df.iloc[0]
+        metrics = self.etl.extract_metrics(row)
+        assert metrics["kindergarten_readiness_rate"] == 55.0
+        assert metrics["kindergarten_readiness_total"] == 100
+        assert metrics["kindergarten_readiness_count"] == 55
+
+    def test_full_transform_pipeline(self):
+        counts = self.create_sample_counts_data()
+        perc = self.create_sample_percent_data()
+        counts.to_csv(self.sample_dir / "counts.csv", index=False)
+        perc.to_csv(self.sample_dir / "percent.csv", index=False)
+        config = {"derive": {"processing_date": "2025-07-20"}}
+        transform(self.raw_dir, self.proc_dir, config)
+        output_file = self.proc_dir / "kindergarten_readiness.csv"
+        assert output_file.exists()
+        df = pd.read_csv(output_file)
+        assert len(df.columns) == 10
+        metrics = df["metric"].unique()
+        assert "kindergarten_readiness_rate" in metrics
+        assert "kindergarten_readiness_count" in metrics
+        assert "kindergarten_readiness_total" in metrics
+

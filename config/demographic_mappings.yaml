@@ -183,6 +183,9 @@ year_specific:
       - "Migrant"
       - "Students with Disabilities (IEP)"
       - "Student without Disabilities (IEP)"
+      - "Students without IEP"
+      - "Non-English Learner"
+      - "Non-Economically Disadvantaged"
       - "Military Dependent"
       - "Non-Military"
     mappings:
