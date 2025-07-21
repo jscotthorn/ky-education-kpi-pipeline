@@ -29,6 +29,8 @@ standard_demographics:
   - "Military Dependent"
   - "Non-Military"
   - "Gifted and Talented"
+  - "Consolidated Student Group"
+  - "Alternate Assessment"
 
 # General demographic mappings (case variations, common misspellings, etc.)
 mappings:

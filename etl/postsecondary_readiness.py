@@ -70,12 +70,10 @@ class PostsecondaryReadinessETL(BaseETL):
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics = {}
         
-        # Extract postsecondary readiness rates
-        if 'postsecondary_rate' in row and pd.notna(row['postsecondary_rate']):
-            metrics['postsecondary_readiness_rate'] = row['postsecondary_rate']
-        
-        if 'postsecondary_rate_with_bonus' in row and pd.notna(row['postsecondary_rate_with_bonus']):
-            metrics['postsecondary_readiness_rate_with_bonus'] = row['postsecondary_rate_with_bonus']
+        # Always extract both postsecondary readiness rates for consistency
+        # Even if one or both are null/suppressed/invalid
+        metrics['postsecondary_readiness_rate'] = row.get('postsecondary_rate', pd.NA)
+        metrics['postsecondary_readiness_rate_with_bonus'] = row.get('postsecondary_rate_with_bonus', pd.NA)
         
         return metrics
     
@@ -85,6 +83,62 @@ class PostsecondaryReadinessETL(BaseETL):
             'postsecondary_readiness_rate': pd.NA,
             'postsecondary_readiness_rate_with_bonus': pd.NA
         }
+    
+    def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """
+        Override to ensure both postsecondary metrics are always created together.
+        """
+        kpi_rows = []
+        
+        for _, row in df.iterrows():
+            if self.should_skip_row(row):
+                continue
+            
+            kpi_template = self.create_kpi_template(row, source_file)
+            metrics = self.extract_metrics(row)
+            
+            # Special handling for postsecondary readiness: always create both metrics
+            base_value = metrics.get('postsecondary_readiness_rate')
+            bonus_value = metrics.get('postsecondary_readiness_rate_with_bonus')
+            
+            # Create base rate record
+            base_record = kpi_template.copy()
+            base_record['metric'] = 'postsecondary_readiness_rate'
+            if kpi_template['suppressed'] == 'Y' or pd.isna(base_value):
+                base_record['value'] = pd.NA
+            else:
+                try:
+                    base_record['value'] = float(base_value)
+                except (ValueError, TypeError):
+                    base_record['value'] = pd.NA
+            kpi_rows.append(base_record)
+            
+            # Create bonus rate record  
+            bonus_record = kpi_template.copy()
+            bonus_record['metric'] = 'postsecondary_readiness_rate_with_bonus'
+            if kpi_template['suppressed'] == 'Y' or pd.isna(bonus_value):
+                bonus_record['value'] = pd.NA
+            else:
+                try:
+                    bonus_record['value'] = float(bonus_value)
+                except (ValueError, TypeError):
+                    bonus_record['value'] = pd.NA
+            kpi_rows.append(bonus_record)
+        
+        if not kpi_rows:
+            logger.warning("No valid KPI rows created")
+            return pd.DataFrame()
+        
+        # Create KPI DataFrame with consistent column order
+        kpi_df = pd.DataFrame(kpi_rows)
+        kpi_columns = ['district', 'school_id', 'school_name', 'year', 'student_group', 
+                       'metric', 'value', 'suppressed', 'source_file', 'last_updated']
+        
+        # Only include columns that exist
+        available_columns = [col for col in kpi_columns if col in kpi_df.columns]
+        kpi_df = kpi_df[available_columns]
+        
+        return kpi_df
     
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         """Override to include postsecondary readiness specific missing value handling."""

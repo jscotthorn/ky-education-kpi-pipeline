@@ -12,6 +12,17 @@ python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e .
 
+# Optional: Install parquet support
+# Option 1: Try direct install (may require system libraries)
+pip install -e .[parquet]
+
+# Option 2: Install Apache Arrow first (macOS)
+brew install apache-arrow
+pip install -e .[parquet]
+
+# Option 3: Use conda for better pre-built support
+conda install -c conda-forge pyarrow
+
 # Run ETL pipeline
 python3 etl_runner.py
 

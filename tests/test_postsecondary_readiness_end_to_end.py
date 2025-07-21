@@ -249,23 +249,25 @@ class TestPostsecondaryReadinessDataQuality:
         
         print(f"Rate metrics: {len(rate_metrics)}")
         
-        # Verify all rate values are valid percentages (excluding suppressed records)
+        # Verify all rate values are valid percentages (excluding suppressed records and NaN values)
         for metric in rate_metrics:
             metric_data = kpi_df[kpi_df['metric'] == metric]
             non_suppressed = metric_data[metric_data['suppressed'] == 'N']['value']
+            # Exclude NaN values from validation
+            non_suppressed_valid = non_suppressed.dropna()
             
-            if len(non_suppressed) > 0:
-                assert all(non_suppressed >= 0), f"All {metric} values should be >= 0%"
+            if len(non_suppressed_valid) > 0:
+                assert all(non_suppressed_valid >= 0), f"All {metric} values should be >= 0%"
                 
                 # Different validation for base vs bonus rates
                 if metric == 'postsecondary_readiness_rate':
-                    assert all(non_suppressed <= 100), f"Base {metric} values should be <= 100%"
+                    assert all(non_suppressed_valid <= 100), f"Base {metric} values should be <= 100%"
                 elif metric == 'postsecondary_readiness_rate_with_bonus':
                     # Bonus rates can exceed 100% but should be reasonable
-                    assert all(non_suppressed < 150), f"Bonus {metric} values should be < 150%"
+                    assert all(non_suppressed_valid < 150), f"Bonus {metric} values should be < 150%"
                 else:
                     # Default check for any other rate metrics
-                    assert all(non_suppressed <= 100), f"Rate {metric} values should be <= 100%"
+                    assert all(non_suppressed_valid <= 100), f"Rate {metric} values should be <= 100%"
             
             # Test suppressed records have NaN values
             suppressed_values = metric_data[metric_data['suppressed'] == 'Y']['value']

@@ -137,12 +137,15 @@ def combine_kpi_files(
             ]
         )
         empty_df.to_csv(output_csv_path, index=False)
-        parquet_path = (
-            output_parquet_path
-            if output_parquet_path
-            else output_csv_path.with_suffix(".parquet")
-        )
-        empty_df.to_parquet(parquet_path, index=False)
+        try:
+            parquet_path = (
+                output_parquet_path
+                if output_parquet_path
+                else output_csv_path.with_suffix(".parquet")
+            )
+            empty_df.to_parquet(parquet_path, index=False)
+        except ImportError:
+            print("  Warning: pyarrow not available, skipping parquet output")
         return
 
     # Combine all KPI dataframes
@@ -174,12 +177,17 @@ def combine_kpi_files(
 
     # Write master KPI file
     master_df.to_csv(output_csv_path, index=False)
-    parquet_path = (
-        output_parquet_path
-        if output_parquet_path
-        else output_csv_path.with_suffix(".parquet")
-    )
-    master_df.to_parquet(parquet_path, index=False)
+    
+    # Try to write parquet if pyarrow is available
+    try:
+        parquet_path = (
+            output_parquet_path
+            if output_parquet_path
+            else output_csv_path.with_suffix(".parquet")
+        )
+        master_df.to_parquet(parquet_path, index=False)
+    except ImportError:
+        print("  Warning: pyarrow not available, skipping parquet output")
 
     print(f"  Combined {len(kpi_dfs)} KPI sources into {output_csv_path}")
     print(
