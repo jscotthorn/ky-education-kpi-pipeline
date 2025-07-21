@@ -372,7 +372,7 @@ class TestChronicAbsenteeismETL:
         
         # Check output files exist
         output_file = self.proc_dir / "chronic_absenteeism.csv"
-        audit_file = self.proc_dir / "chronic_absenteeism_demographic_audit.csv"
+        audit_file = self.proc_dir / "chronic_absenteeism_demographic_report.md"
         
         assert output_file.exists()
         assert audit_file.exists()

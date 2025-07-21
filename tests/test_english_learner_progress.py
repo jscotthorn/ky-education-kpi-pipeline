@@ -357,7 +357,7 @@ class TestEnglishLearnerProgressETL:
         
         # Check output files exist
         output_file = self.proc_dir / "english_learner_progress.csv"
-        audit_file = self.proc_dir / "english_learner_progress_demographic_audit.csv"
+        audit_file = self.proc_dir / "english_learner_progress_demographic_report.md"
         
         assert output_file.exists()
         assert audit_file.exists()

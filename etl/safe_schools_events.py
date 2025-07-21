@@ -724,12 +724,17 @@ def transform(raw_dir: str, proc_dir: str, config: Dict[str, Any]) -> str:
         output_file = proc_path / 'safe_schools_events.csv'
         combined_df.to_csv(output_file, index=False)
         
-        # Save demographic audit
-        audit_file = proc_path / 'safe_schools_events_demographic_audit.csv'
-        demographic_mapper.save_audit_log(audit_file)
+        # Save demographic report
+        audit_file = proc_path / 'safe_schools_events_demographic_report.md'
+        # Validate demographics for report
+        validation_results = []
+        for year in combined_df['year'].unique():
+            year_demographics = combined_df[combined_df['year'] == year]['student_group'].unique().tolist()
+            validation_results.append(demographic_mapper.validate_demographics(year_demographics, str(year)))
+        demographic_mapper.save_audit_report(audit_file, validation_results)
         
         logger.info(f"Saved {len(combined_df)} total KPI records to {output_file}")
-        logger.info(f"Saved demographic audit log to {audit_file}")
+        logger.info(f"Saved demographic report to {audit_file}")
         
         return str(output_file)
     else:

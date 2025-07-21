@@ -89,6 +89,6 @@ class TestTransform:
             transform(raw_dir, proc_dir, {'derive': {}})
 
             out_file = proc_dir / 'out_of_school_suspension.csv'
-            audit_file = proc_dir / 'out_of_school_suspension_demographic_audit.csv'
+            audit_file = proc_dir / 'out_of_school_suspension_demographic_report.md'
             assert out_file.exists()
             assert audit_file.exists()
