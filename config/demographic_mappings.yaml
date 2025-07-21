@@ -186,6 +186,7 @@ year_specific:
       - "Students without IEP"
       - "Non-English Learner"
       - "Non-Economically Disadvantaged"
+      - "Gifted and Talented"
       - "Military Dependent"
       - "Non-Military"
     mappings:
