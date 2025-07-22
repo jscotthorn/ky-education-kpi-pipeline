@@ -36,6 +36,16 @@ raw_directories:
     - "graduation_rate_2021.csv"
     - "graduation_rate_2020.csv"
 
+  kentucky_summative_assessment:
+    - "KYRC24_ACCT_Kentucky_Summative_Assessment.csv"
+    - "KYRC24_ASMT_Kentucky_Summative_Assessment.csv"
+    - "accountable_assessment_performance_2023.csv"
+    - "accountable_assessment_performance_2022.csv"
+    - "asmt_performance_by_level_2021.csv"
+    - "asmt_performance_by_grade_2023.csv"
+    - "asmt_performance_by_grade_2022.csv"
+    - "asmt_performance_by_grade_2021.csv"
+
   kindergarten_readiness:
     - "KYRC24_ASMT_Kindergarten_Screen_Composite.csv"
     - "kindergarten_screen_2023.csv"
@@ -83,7 +93,13 @@ raw_directories:
     - "safe_schools_events_by_grade_2020.csv"
 
   safe_schools_climate:
+    - "KYRC24_ACCT_Index_Scores.csv"
+    - "KYRC24_ACCT_Survey_Results.csv"
     - "KYRC24_SAFE_Precautionary_Measures.csv"
+    - "accountability_profile_2023.csv"
+    - "accountability_profile_2022.csv"
+    - "accountability_profile_2021.csv"
+    - "accountability_profile_2020.csv"
     - "precautionary_measures_2023.csv"
     - "precautionary_measures_2022.csv"
     - "precautionary_measures_2021.csv"

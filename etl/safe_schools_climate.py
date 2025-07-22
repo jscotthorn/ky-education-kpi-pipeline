@@ -12,6 +12,7 @@ Generates metrics:
 """
 from pathlib import Path
 import pandas as pd
+import re
 from pydantic import BaseModel
 from typing import Dict, Any, Union, List
 import logging
@@ -85,27 +86,66 @@ class SafeSchoolsClimateETL(BaseETL):
             'Does your school have a full-time School Resource Officer?': 'resource_officer',
             'Does your school have a process in place to provide mental health referrals for students?': 'mental_health_referrals',
             'Is the district discipline code distributed to parents?': 'discipline_code_distributed',
-            # Index score columns
+            # Index score columns (multiple variations)
             'CLIMATE INDEX': 'climate_index',
             'SAFETY INDEX': 'safety_index',
+            'Climate Index': 'climate_index',
+            'Safety Index': 'safety_index',
+            # Survey results columns
+            'Question Type': 'question_type',
+            'Question': 'question_text',
+            'Question Index': 'question_index',
+            'Agree / Strongly Agree': 'agree_strongly_agree_pct',
+            # Accountability profile columns
+            'QUALITY OF SCHOOL CLIMATE AND SAFETY STATUS': 'climate_safety_status',
+            'QUALITY OF SCHOOL CLIMATE AND SAFETY STATUS RATING': 'climate_safety_rating',
+            'QUALITY OF SCHOOL CLIMATE AND SAFETY COMBINED INDICATOR RATE': 'climate_safety_combined_rate',
         }
     
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
-        """Get default metrics for suppressed records."""
-        return {
-            'climate_index_score': pd.NA,
-            'safety_index_score': pd.NA,
-            'safety_policy_compliance_rate': pd.NA
-        }
-    
-    def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
-        """Extract metrics based on the data type (precautionary measures vs index scores)."""
+        """Get default metrics for suppressed records based on available data."""
         metrics = {}
         
-        # Check if this is index score data
-        if 'climate_index' in row or 'safety_index' in row:
+        # Only include index scores if we have index columns
+        if 'climate_index' in row or 'safety_index' in row or 'climate_safety_combined_rate' in row:
+            metrics['climate_index_score'] = pd.NA
+            metrics['safety_index_score'] = pd.NA
+            
+        # Only include policy compliance if we have policy columns  
+        policy_columns = [
+            'visitors_sign_in', 'classroom_doors_lock', 'classroom_phones',
+            'annual_climate_survey', 'student_survey_data', 'resource_officer',
+            'mental_health_referrals', 'discipline_code_distributed'
+        ]
+        if any(col in row for col in policy_columns):
+            metrics['safety_policy_compliance_rate'] = pd.NA
+            
+        return metrics
+    
+    def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
+        """Extract metrics based on the data type."""
+        metrics = {}
+        
+        # Check if this is direct index score data (KYRC24_ACCT_Index_Scores.csv)
+        if 'climate_index' in row and pd.notna(row.get('climate_index')):
             metrics['climate_index_score'] = row.get('climate_index', pd.NA)
+        if 'safety_index' in row and pd.notna(row.get('safety_index')):
             metrics['safety_index_score'] = row.get('safety_index', pd.NA)
+        
+        # Check if this is survey results data with question index
+        if 'question_type' in row and 'question_index' in row:
+            question_type = str(row.get('question_type', '')).lower()
+            if question_type == 'climate':
+                metrics['climate_index_score'] = row.get('question_index', pd.NA)
+            elif question_type == 'safety':
+                metrics['safety_index_score'] = row.get('question_index', pd.NA)
+        
+        # Check if this is accountability profile data
+        if 'climate_safety_combined_rate' in row and pd.notna(row.get('climate_safety_combined_rate')):
+            # Use combined rate as both climate and safety score for historical data
+            combined_rate = row.get('climate_safety_combined_rate', pd.NA)
+            metrics['climate_index_score'] = combined_rate
+            metrics['safety_index_score'] = combined_rate
         
         # Check if this is precautionary measures data
         policy_columns = [
@@ -114,15 +154,38 @@ class SafeSchoolsClimateETL(BaseETL):
             'mental_health_referrals', 'discipline_code_distributed'
         ]
         
-        if any(col in row for col in policy_columns):
+        # Only calculate if we have at least one policy column with actual data
+        if any(col in row and pd.notna(row.get(col)) for col in policy_columns):
             compliance_rate = calculate_policy_compliance_rate(row, policy_columns)
-            metrics['safety_policy_compliance_rate'] = compliance_rate
+            if pd.notna(compliance_rate):  # Only add if we got a valid rate
+                metrics['safety_policy_compliance_rate'] = compliance_rate
         
         return metrics
     
-    def process_precautionary_measures(self, file_path: Path) -> pd.DataFrame:
-        """Process precautionary measures file with special handling."""
-        logger.info(f"Processing precautionary measures file: {file_path}")
+    def identify_file_type(self, file_path: Path) -> str:
+        """Identify the type of file based on name and content."""
+        filename = file_path.name.lower()
+        
+        if 'index_scores' in filename:
+            return 'index_scores'
+        elif 'survey_results' in filename:
+            return 'survey_results'
+        elif 'precautionary' in filename:
+            return 'precautionary_measures'
+        elif 'accountability_profile' in filename:
+            return 'accountability_profile'
+        elif 'quality_of_school_climate' in filename:
+            if 'index' in filename:
+                return 'survey_index_scores'
+            else:
+                return 'survey_responses'
+        else:
+            return 'unknown'
+    
+    def process_file(self, file_path: Path) -> pd.DataFrame:
+        """Process a single file based on its type."""
+        file_type = self.identify_file_type(file_path)
+        logger.info(f"Processing {file_type} file: {file_path.name}")
         
         # Read the file
         df = pd.read_csv(file_path, encoding='utf-8-sig')
@@ -130,27 +193,36 @@ class SafeSchoolsClimateETL(BaseETL):
         # Apply column mappings
         df = self.normalize_column_names(df)
         
-        # Set demographic to 'All Students' for school-level data
-        df['demographic'] = 'All Students'
-        
-        # Extract year from School Year column (e.g., "20232024" -> 2024)
+        # Extract year based on file type
         if 'school_year' in df.columns:
             df['year'] = df['school_year'].astype(str).str[-4:]
         else:
-            df['year'] = '2024'
+            # Try to extract year from filename
+            year_match = re.search(r'(20\d{2})', file_path.name)
+            if year_match:
+                df['year'] = year_match.group(1)
+            else:
+                df['year'] = '2024'
         
-        # Process normally
-        df = self.standardize_missing_values(df)
+        # Set demographic if not present
+        if 'demographic' not in df.columns:
+            df['demographic'] = 'All Students'
         
-        # Apply demographic mapping if demographic column exists
+        # Apply demographic mapping
         if 'demographic' in df.columns and 'year' in df.columns:
             df['student_group'] = standardize_demographics(
                 df['demographic'], 
                 df['year'].iloc[0] if len(df) > 0 else '2024',
-                source_file=file_path.name
+                self.source_name
             )
         else:
             df['student_group'] = 'All Students'
+        
+        # Process missing values
+        df = self.standardize_missing_values(df)
+        
+        # Add source file info
+        df['source_file'] = file_path.name
         
         return df
     
@@ -162,34 +234,8 @@ class SafeSchoolsClimateETL(BaseETL):
             logger.info(f"Processing file: {file}")
             
             try:
-                # Special handling for precautionary measures
-                if 'KYRC24_SAFE_Precautionary_Measures' in file.name:
-                    df = self.process_precautionary_measures(file)
-                else:
-                    # Normal processing for index score files
-                    df = pd.read_csv(file, encoding='utf-8-sig')
-                    df = self.normalize_column_names(df)
-                    
-                    # Extract year from filename or school year column
-                    if 'index_scores' in file.name:
-                        year_match = file.name.split('_')[-1].replace('.csv', '')
-                        df['year'] = year_match
-                    elif 'school_year' in df.columns:
-                        # Convert "20222023" to "2023"
-                        df['year'] = df['school_year'].astype(str).str[-4:]
-                    
-                    df = self.standardize_missing_values(df)
-                    df = clean_index_scores(df)
-                    
-                    # Apply demographic mapping
-                    if 'demographic' in df.columns and 'year' in df.columns:
-                        df['student_group'] = standardize_demographics(
-                            df['demographic'], 
-                            df['year'].iloc[0] if len(df) > 0 else '2023',
-                            source_file=file.name
-                        )
-                    else:
-                        df['student_group'] = 'All Students'
+                # Use the unified process_file method
+                df = self.process_file(file)
                 
                 # Convert to KPI format
                 kpi_df = self.convert_to_kpi_format(df, file.name)
@@ -217,25 +263,28 @@ class SafeSchoolsClimateETL(BaseETL):
         return combined_df
     
     def get_files_to_process(self, raw_dir: Path) -> List[Path]:
-        """Override to only process specific files."""
+        """Get all files to process based on file patterns."""
         module_dir = raw_dir / self.source_name
-        
-        # Only process precautionary measures and index score files
         files_to_process = []
         
-        # Add precautionary measures file
-        precautionary_file = module_dir / 'KYRC24_SAFE_Precautionary_Measures.csv'
-        if precautionary_file.exists():
-            files_to_process.append(precautionary_file)
+        # Define file patterns to process
+        patterns = [
+            'KYRC24_ACCT_Index_Scores.csv',
+            'KYRC24_ACCT_Survey_Results.csv', 
+            'KYRC24_SAFE_Precautionary_Measures.csv',
+            'accountability_profile_*.csv',
+            'precautionary_measures_*.csv',
+            'quality_of_school_climate_and_safety_survey_*.csv'
+        ]
         
-        # Add index score files
-        for year in ['2021', '2022', '2023']:
-            index_file = module_dir / f'quality_of_school_climate_and_safety_survey_index_scores_{year}.csv'
-            if index_file.exists():
-                files_to_process.append(index_file)
+        # Find all matching files
+        for pattern in patterns:
+            for file_path in module_dir.glob(pattern):
+                if file_path.is_file():
+                    files_to_process.append(file_path)
         
         logger.info(f"Found {len(files_to_process)} files to process for safe schools climate")
-        return files_to_process
+        return sorted(files_to_process)
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

@@ -171,6 +171,10 @@ def test_safe_schools_climate_policy_compliance_calculation(setup_test_data):
     
     # Test High School should have 100% (all Yes)
     high_school = policy_df[policy_df['school_name'] == 'Test High School']
+    # Debug: print what we got
+    if len(high_school) != 1:
+        print(f"Expected 1 record for Test High School, got {len(high_school)}")
+        print(high_school[['school_name', 'year', 'source_file', 'value']])
     assert len(high_school) == 1
     assert high_school.iloc[0]['value'] == 100.0
     
