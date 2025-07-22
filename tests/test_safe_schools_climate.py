@@ -132,9 +132,11 @@ class TestSafeSchoolsClimateETL:
     def test_column_mappings(self, etl):
         """Test column mappings are defined."""
         mappings = etl.module_column_mappings
-        
+
         assert 'Are visitors to the building required to sign-in?' in mappings
         assert mappings['Are visitors to the building required to sign-in?'] == 'visitors_sign_in'
+        assert 'Visitors required to sign-in' in mappings
+        assert mappings['Visitors required to sign-in'] == 'visitors_sign_in'
         assert 'CLIMATE INDEX' in mappings
         assert mappings['CLIMATE INDEX'] == 'climate_index'
     
@@ -148,6 +150,22 @@ class TestSafeSchoolsClimateETL:
         })
         
         metrics = etl.extract_metrics(row)
+        assert 'safety_policy_compliance_rate' in metrics
+        assert metrics['safety_policy_compliance_rate'] == 75.0
+
+    def test_extract_metrics_precautionary_synonyms(self, etl):
+        """Ensure synonyms from older files are recognized."""
+        df = pd.DataFrame([
+            {
+                'Visitors required to sign-in': 'Yes',
+                'All classroom doors lock from the inside.': 'Yes',
+                'All classrooms have access to telephone': 'No',
+                'Student survey data collected and used': 'Yes'
+            }
+        ])
+
+        norm_df = etl.normalize_column_names(df)
+        metrics = etl.extract_metrics(norm_df.iloc[0])
         assert 'safety_policy_compliance_rate' in metrics
         assert metrics['safety_policy_compliance_rate'] == 75.0
     

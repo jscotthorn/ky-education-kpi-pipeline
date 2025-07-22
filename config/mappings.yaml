@@ -61,6 +61,11 @@ sources:
     dtype: {}
     derive: {}
 
+  safe_schools_climate:
+    rename: {}
+    dtype: {}
+    derive: {}
+
   safe_schools_discipline:
     rename: {}
     dtype: {}
