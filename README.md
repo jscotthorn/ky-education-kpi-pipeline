@@ -34,9 +34,21 @@ open data/kpi/        # Combined master dataset (CSV & Parquet)
 ## 📋 Developer Workflow
 
 ### 1. Adding New Data Sources
-1. **Drop files** → Place new CSV exports in `data/raw/source_name/`
-   - Files can be in source folder directly or in date-stamped subfolders
-   - Original filenames are preserved for audit trails
+1. **Download files** → Use the data downloader to populate raw directories:
+   ```bash
+   # Download all configured datasets
+   python3 data/download_kde_data.py
+   
+   # Download specific datasets
+   python3 data/download_kde_data.py chronic_absenteeism graduation_rates
+   
+   # List available datasets
+   python3 data/download_kde_data.py --list
+   ```
+   - Files are automatically downloaded to appropriate `data/raw/` directories
+   - Configuration managed in `config/kde_sources.yaml`
+   - Original filenames preserved for audit trails
+
 2. **Draft run** → `python3 etl_runner.py --draft` to generate initial ETL logic
 3. **Refine** → Edit generated ETL modules in `etl/` directory
 4. **Test** → `python3 -m pytest tests/` to validate processing logic
@@ -113,6 +125,11 @@ All ETL modules produce standardized **long format** KPI data:
 # Environment setup
 python3 --version                    # Should be 3.8+
 source .venv/bin/activate           # Activate virtual environment
+
+# Data acquisition
+python3 data/download_kde_data.py               # Download all configured datasets
+python3 data/download_kde_data.py --list       # List available datasets
+python3 data/download_kde_data.py chronic_absenteeism  # Download specific dataset
 
 # ETL operations
 python3 etl_runner.py               # Full pipeline
