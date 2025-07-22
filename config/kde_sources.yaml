@@ -30,6 +30,7 @@ raw_directories:
 
   graduation_rates:
     - "KYRC24_ACCT_4_Year_High_School_Graduation.csv"
+    - "KYRC24_ACCT_5_Year_High_School_Graduation.csv"
     - "graduation_rate_2023.csv"
     - "graduation_rate_2022.csv"
     - "graduation_rate_2021.csv"
