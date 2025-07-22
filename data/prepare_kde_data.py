@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Kentucky Department of Education (KDE) Data Downloader
+Kentucky Department of Education (KDE) Data Preparation Tool
 
-Downloads raw source files from KDE Historical Datasets to populate data/raw directories.
-Based on configuration in config/kde_sources.json.
+Prepares raw source files from KDE Historical Datasets to populate data/raw directories.
+Based on configuration in config/kde_sources.yaml.
 
 Usage:
-    python3 data/download_kde_data.py                    # Download all configured datasets
-    python3 data/download_kde_data.py chronic_absenteeism # Download specific dataset
-    python3 data/download_kde_data.py graduation_rates postsecondary_readiness # Multiple datasets
+    python3 data/prepare_kde_data.py                    # Prepare all configured datasets
+    python3 data/prepare_kde_data.py chronic_absenteeism # Prepare specific dataset
+    python3 data/prepare_kde_data.py graduation_rates postsecondary_readiness # Multiple datasets
 """
 
 import argparse
@@ -29,10 +29,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class KDEDownloader:
-    """Downloads files from Kentucky Department of Education Historical Datasets"""
+    """Prepares files from Kentucky Department of Education Historical Datasets"""
     
     def __init__(self, config_path: str = "config/kde_sources.yaml"):
-        """Initialize downloader with configuration file"""
+        """Initialize preparation tool with configuration file"""
         self.project_root = Path(__file__).parent.parent
         self.config_path = self.project_root / config_path
         self.raw_data_path = self.project_root / "data" / "raw"
@@ -44,9 +44,9 @@ class KDEDownloader:
             self.config = yaml.safe_load(f)
     
     def download_file(self, url: str, file_path: Path, timeout: int = 30) -> bool:
-        """Download a single file from KDE with retry logic"""
+        """Prepare a single file from KDE with retry logic"""
         try:
-            logger.info(f"Downloading {file_path.name}...")
+            logger.info(f"Preparing {file_path.name}...")
             response = requests.get(
                 url, 
                 headers=self.config["headers"],

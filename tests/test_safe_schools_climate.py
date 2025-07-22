@@ -172,18 +172,30 @@ class TestSafeSchoolsClimateETL:
         })
         
         metrics = etl.extract_metrics(row)
-        assert pd.isna(metrics['climate_index_score'])
+        # When climate_index is NA, it's not included in metrics
+        assert 'climate_index_score' not in metrics
         assert metrics['safety_index_score'] == 80.0
     
     def test_get_suppressed_metric_defaults(self, etl):
-        """Test suppressed metric defaults."""
-        row = pd.Series({})
-        defaults = etl.get_suppressed_metric_defaults(row)
-        
+        """Test suppressed metric defaults based on data type."""
+        # Test with index score data
+        row_index = pd.Series({'climate_index': 75.0, 'safety_index': 70.0})
+        defaults = etl.get_suppressed_metric_defaults(row_index)
         assert 'climate_index_score' in defaults
         assert 'safety_index_score' in defaults
+        assert 'safety_policy_compliance_rate' not in defaults
+        
+        # Test with policy data
+        row_policy = pd.Series({'visitors_sign_in': 'Yes', 'classroom_doors_lock': 'No'})
+        defaults = etl.get_suppressed_metric_defaults(row_policy)
+        assert 'climate_index_score' not in defaults
+        assert 'safety_index_score' not in defaults
         assert 'safety_policy_compliance_rate' in defaults
-        assert all(pd.isna(v) for v in defaults.values())
+        
+        # Test with no relevant data
+        row_empty = pd.Series({})
+        defaults = etl.get_suppressed_metric_defaults(row_empty)
+        assert len(defaults) == 0
     
     def test_get_files_to_process(self, etl, tmp_path):
         """Test file selection logic."""
@@ -200,12 +212,12 @@ class TestSafeSchoolsClimateETL:
         files = etl.get_files_to_process(tmp_path)
         file_names = [f.name for f in files]
         
-        # Should only include precautionary measures and index score files
-        assert len(files) == 3
+        # Should include all quality survey files now
+        assert len(files) == 4
         assert 'KYRC24_SAFE_Precautionary_Measures.csv' in file_names
         assert 'quality_of_school_climate_and_safety_survey_index_scores_2022.csv' in file_names
         assert 'quality_of_school_climate_and_safety_survey_index_scores_2023.csv' in file_names
-        assert 'quality_of_school_climate_and_safety_survey_elementary_school_2023.csv' not in file_names
+        assert 'quality_of_school_climate_and_safety_survey_elementary_school_2023.csv' in file_names
 
 
 if __name__ == "__main__":

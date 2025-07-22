@@ -345,7 +345,7 @@ class TestChronicAbsenteeismEndToEnd:
         assert audit_file.exists(), "Demographic report should be created"
 
         content = audit_file.read_text()
-        assert "Mapping Log" in content
+        assert "Mapping Types" in content
         
         # Verify demographic standardization
         output_file = self.proc_dir / "chronic_absenteeism.csv"

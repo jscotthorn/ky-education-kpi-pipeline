@@ -208,7 +208,7 @@ class TestDemographicMapperIntegration:
         if not audit_file.exists():
             pytest.skip("Demographic report not found. Run ETL pipeline first.")
         content = audit_file.read_text()
-        assert "Mapping Log" in content
+        assert "Mapping Types" in content
 
 
 class TestConvenienceFunctions:

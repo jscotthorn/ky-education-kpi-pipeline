@@ -165,30 +165,50 @@ class DemographicMapper:
         """Return list of all standard demographic categories."""
         return self.mappings.get("standard_demographics", [])
     
-    def save_audit_report(self, output_path: Path, validation_results: Optional[List[Dict[str, List[str]]]] = None) -> None:
-        """Save audit information to a markdown report."""
-        lines = ["# Demographic Mapping Report", ""]
+    def save_audit_report(
+        self,
+        output_path: Path,
+        validation_results: Optional[List[Dict[str, List[str]]]] = None,
+    ) -> None:
+        """Save concise audit information as a markdown report.
 
+        The report summarizes which files were processed, validation results, and
+        counts of mapping types used. This keeps the audit file small while still
+        providing useful traceability information.
+        """
+
+        lines = ["# Demographic Mapping Summary", ""]
+
+        # List processed files and mapping counts
+        if self.audit_log:
+            audit_df = self.get_audit_report()
+
+            unique_files = sorted(audit_df["source_file"].dropna().unique())
+            if unique_files:
+                lines.append("## Files Processed")
+                for f in unique_files:
+                    lines.append(f"- {f}")
+                lines.append("")
+
+            mapping_counts = audit_df["mapping_type"].value_counts().to_dict()
+            lines.append("## Mapping Types")
+            for mtype, count in mapping_counts.items():
+                lines.append(f"- {mtype}: {count}")
+            lines.append("")
+
+        # Include validation summary for each year
         if validation_results:
             lines.append("## Validation Summary")
             for result in validation_results:
                 lines.append(f"### Year {result['year']}")
                 lines.append(f"- Found demographics: {len(result['valid'])}")
-                if result.get('missing_required'):
-                    missing_req = ', '.join(sorted(result['missing_required']))
+                if result.get("missing_required"):
+                    missing_req = ", ".join(sorted(result["missing_required"]))
                     lines.append(f"- Missing required: {missing_req}")
-                if result.get('missing_optional'):
-                    missing_opt = ', '.join(sorted(result['missing_optional']))
+                if result.get("missing_optional"):
+                    missing_opt = ", ".join(sorted(result["missing_optional"]))
                     lines.append(f"- Missing optional: {missing_opt}")
-                if result.get('unexpected'):
-                    unexpected = ', '.join(sorted(result['unexpected']))
-                    lines.append(f"- Unexpected: {unexpected}")
                 lines.append("")
-
-        if self.audit_log:
-            audit_df = self.get_audit_report()
-            lines.append("## Mapping Log")
-            lines.append(audit_df.to_markdown(index=False))
 
         output_path.write_text("\n".join(lines))
         logger.info(f"Demographic mapping report saved to {output_path}")
