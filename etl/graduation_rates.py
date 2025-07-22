@@ -21,7 +21,6 @@ applies demographic label standardization for consistent longitudinal reporting.
 """
 from pathlib import Path
 import pandas as pd
-from pydantic import BaseModel
 from typing import Dict, Any, Optional, Union
 import logging
 import sys
@@ -31,16 +30,10 @@ from pathlib import Path
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
-from base_etl import BaseETL
+from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
 
-
-class Config(BaseModel):
-    rename: Dict[str, str] = {}
-    dtype: Dict[str, str] = {}
-    derive: Dict[str, Union[str, int, float]] = {}
-    
 
 
 
@@ -188,11 +181,8 @@ if __name__ == "__main__":
     proc_dir = Path(__file__).parent.parent / "data" / "processed"
     proc_dir.mkdir(exist_ok=True)
     
-    test_config = {
-        "derive": {
-            "processing_date": "2025-07-18",
-            "data_quality_flag": "reviewed"
-        }
-    }
-    
+    test_config = Config(
+        derive={"processing_date": "2025-07-18", "data_quality_flag": "reviewed"}
+    ).dict()
+
     transform(raw_dir, proc_dir, test_config)
