@@ -34,18 +34,18 @@ open data/kpi/        # Combined master dataset (CSV & Parquet)
 ## 📋 Developer Workflow
 
 ### 1. Adding New Data Sources
-1. **Download files** → Use the data downloader to populate raw directories:
+1. **Prepare files** → Use the data preparation tool to populate raw directories:
    ```bash
-   # Download all configured datasets
-   python3 data/download_kde_data.py
+   # Prepare all configured datasets
+   python3 data/prepare_kde_data.py
    
-   # Download specific datasets
-   python3 data/download_kde_data.py chronic_absenteeism graduation_rates
+   # Prepare specific datasets
+   python3 data/prepare_kde_data.py chronic_absenteeism graduation_rates
    
    # List available datasets
-   python3 data/download_kde_data.py --list
+   python3 data/prepare_kde_data.py --list
    ```
-   - Files are automatically downloaded to appropriate `data/raw/` directories
+   - Files are automatically prepared in appropriate `data/raw/` directories
    - Configuration managed in `config/kde_sources.yaml`
    - Original filenames preserved for audit trails
 
@@ -126,10 +126,10 @@ All ETL modules produce standardized **long format** KPI data:
 python3 --version                    # Should be 3.8+
 source .venv/bin/activate           # Activate virtual environment
 
-# Data acquisition
-python3 data/download_kde_data.py               # Download all configured datasets
-python3 data/download_kde_data.py --list       # List available datasets
-python3 data/download_kde_data.py chronic_absenteeism  # Download specific dataset
+# Data preparation
+python3 data/prepare_kde_data.py               # Prepare all configured datasets
+python3 data/prepare_kde_data.py --list       # List available datasets
+python3 data/prepare_kde_data.py chronic_absenteeism  # Prepare specific dataset
 
 # ETL operations
 python3 etl_runner.py               # Full pipeline

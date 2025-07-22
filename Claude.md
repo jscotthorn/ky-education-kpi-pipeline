@@ -5,15 +5,15 @@ You can use the etl_runner.py file in the project root to run all pipelines and 
 - **Counts**: `{indicator}_count_{period}` (e.g., `graduation_count_4_year`) 
 - **Totals**: `{indicator}_total_{period}` (e.g., `graduation_total_4_year`)
 
-### Data Download
-Use the KDE data downloader to populate raw directories:
-- **Download all**: `python3 data/download_kde_data.py`
-- **Specific dataset**: `python3 data/download_kde_data.py chronic_absenteeism`
-- **List available**: `python3 data/download_kde_data.py --list`
+### Data Preparation
+Use the KDE data preparation tool to populate raw directories:
+- **Prepare all**: `python3 data/prepare_kde_data.py`
+- **Specific dataset**: `python3 data/prepare_kde_data.py chronic_absenteeism`
+- **List available**: `python3 data/prepare_kde_data.py --list`
 - Configuration in `config/kde_sources.yaml`
 
 ### New ETL Pipeline process
-- Use data downloader to populate `data/raw/source_name` directories automatically, adding config for your source if needed.
+- Use data preparation tool to populate `data/raw/source_name` directories automatically, adding config for your source if needed.
 - Review `etl/postsecondary_readiness.py` and `etl/base_etl.py` to understand the base class and implementation.
 - Sample all of the data files to be processed by the pipeline.
 - Create a plan for how to implement the pipeline.
