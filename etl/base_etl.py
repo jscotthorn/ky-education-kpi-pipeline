@@ -340,7 +340,10 @@ class BaseETL(ABC):
             'Preschool': 'preschool'
         }
         
-        df['grade'] = df['grade'].map(grade_mapping).fillna(df['grade'].str.lower().str.replace(' ', '_'))
+        df['grade'] = df['grade'].astype(str)
+        df['grade'] = df['grade'].map(grade_mapping).fillna(
+            df['grade'].str.lower().str.replace(' ', '_')
+        )
         
         return df
     

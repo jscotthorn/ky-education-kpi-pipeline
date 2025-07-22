@@ -28,9 +28,14 @@ standard_demographics:
   - "Students without IEP"
   - "Military Dependent"
   - "Non-Military"
+  - "Non-Military Dependent"
   - "Gifted and Talented"
+  - "Non-Gifted and Talented"
   - "Consolidated Student Group"
   - "Alternate Assessment"
+  - "Students with Disabilities/IEP Regular Assessment"
+  - "Students with Disabilities/IEP with Accommodations"
+  - "Students with Disabilities/IEP without Accommodations"
 
 # General demographic mappings (case variations, common misspellings, etc.)
 mappings:
@@ -39,6 +44,11 @@ mappings:
   "Non English Learner": "Non-English Learner"
   "Non-Foster": "Non-Foster Care"
   "Student without Disabilities (IEP)": "Students without IEP"
+  "Students with Disabilities/IEP Regular Assessment": "Students with Disabilities (IEP)"
+  "Students with Disabilities/IEP with Accommodations": "Students with Disabilities (IEP)"
+  "Students with Disabilities/IEP without Accommodations": "Students with Disabilities (IEP)"
+  "Non-Gifted and Talented": "Non-Gifted and Talented"
+  "Non-Military Dependent": "Non-Military Dependent"
   
   # Historical format variations 
   "White (Non Hispanic)": "White (non-Hispanic)"
@@ -190,8 +200,13 @@ year_specific:
       - "Non-English Learner"
       - "Non-Economically Disadvantaged"
       - "Gifted and Talented"
+      - "Non-Gifted and Talented"
       - "Military Dependent"
       - "Non-Military"
+      - "Non-Military Dependent"
+      - "Students with Disabilities/IEP Regular Assessment"
+      - "Students with Disabilities/IEP with Accommodations"
+      - "Students with Disabilities/IEP without Accommodations"
     mappings:
       "Non Economically Disadvantaged": "Non-Economically Disadvantaged"
       "Non English Learner": "Non-English Learner"
@@ -228,6 +243,11 @@ validation:
     - "Non-Homeless"                         # 2024 only
     - "Non-Migrant"                          # 2024 only
     - "Non-Military"                         # 2024 only
+    - "Non-Military Dependent"               # 2024 only
+    - "Non-Gifted and Talented"              # 2024 only
+    - "Students with Disabilities/IEP Regular Assessment"  # 2024 only
+    - "Students with Disabilities/IEP with Accommodations"  # 2024 only
+    - "Students with Disabilities/IEP without Accommodations"  # 2024 only
     - "Non-Economically Disadvantaged"      # Present in all years but not critical
     - "Non-English Learner"                 # Present in all years but not critical
     - "Non-Foster Care"                      # Present in all years but not critical
