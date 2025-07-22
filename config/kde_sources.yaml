@@ -1,0 +1,108 @@
+# Kentucky Department of Education (KDE) Data Source Configuration
+# Maps raw data directories to their corresponding KDE Historical Dataset files
+
+base_url: "https://www.education.ky.gov/Open-House/data/HistoricalDatasets/"
+
+headers:
+  Referer: "https://www.education.ky.gov/Open-House/data/Pages/Historical-SRC-Datasets.aspx"
+  Upgrade-Insecure-Requests: "1"
+  User-Agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+  sec-ch-ua: '"Chromium";v="136", "Google Chrome";v="136", "Not.A/Brand";v="99"'
+  sec-ch-ua-mobile: "?0"
+  sec-ch-ua-platform: '"macOS"'
+
+raw_directories:
+  chronic_absenteeism:
+    - "KYRC24_OVW_Chronic_Absenteeism.csv"
+    - "chronic_absenteeism_2023.csv"
+
+  cte_participation:
+    - "KYRC24_CTE_Participation.csv"
+    - "cte_by_student_group_2023.csv"
+    - "cte_by_student_group_2022.csv"
+
+  english_learner_progress:
+    - "KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv"
+    - "english_language_proficiency_2023.csv"
+    - "english_language_proficiency_2022.csv"
+    - "english_learner_proficiency_2021.csv"
+    - "english_learner_proficiency_2020.csv"
+
+  graduation_rates:
+    - "KYRC24_ACCT_4_Year_High_School_Graduation.csv"
+    - "graduation_rate_2023.csv"
+    - "graduation_rate_2022.csv"
+    - "graduation_rate_2021.csv"
+    - "graduation_rate_2020.csv"
+
+  kindergarten_readiness:
+    - "KYRC24_ASMT_Kindergarten_Screen_Composite.csv"
+    - "kindergarten_screen_2023.csv"
+    - "kindergarten_screen_2022.csv"
+    - "kindergarten_screen_2021.csv"
+    - "kindergarten_screen_2020.csv"
+
+  out_of_school_suspension:
+    - "KYRC24_OVW_Student_Suspensions.csv"
+    - "safe_schools_discipline_2023.csv"
+    - "safe_schools_discipline_2022.csv"
+    - "safe_schools_discipline_2021.csv"
+    - "safe_schools_discipline_2020.csv"
+
+  postsecondary_enrollment:
+    - "KYRC24_ADLF_Transition_to_In_State_Postsecondary_Education.csv"
+    - "transition_in_state_postsecondary_education_2023.csv"
+    - "transition_in_state_postsecondary_education_2022.csv"
+    - "transition_in_state_postsecondary_education_2021.csv"
+
+  postsecondary_readiness:
+    - "KYRC24_ACCT_Postsecondary_Readiness.csv"
+    - "postsecondary_readiness_2023.csv"
+    - "postsecondary_readiness_2022.csv"
+
+  safe_schools:
+    - "KYRC24_SAFE_Behavior_Events_by_Context.csv"
+    - "KYRC24_SAFE_Behavior_Events_by_Grade_Level.csv"
+    - "KYRC24_SAFE_Behavior_Events_by_Location.csv"
+    - "KYRC24_SAFE_Behavior_Events_by_Type.csv"
+    - "KYRC24_SAFE_Discipline_Resolutions.csv"
+    - "KYRC24_SAFE_Legal_Sanctions.csv"
+    - "KYRC24_SAFE_Precautionary_Measures.csv"
+    - "safe_schools_discipline_2023.csv"
+    - "safe_schools_discipline_2022.csv"
+    - "safe_schools_discipline_2021.csv"
+    - "safe_schools_discipline_2020.csv"
+    - "safe_schools_event_details_2023.csv"
+    - "safe_schools_event_details_2022.csv"
+    - "safe_schools_event_details_2021.csv"
+    - "safe_schools_event_details_2020.csv"
+    - "safe_schools_events_by_grade_2023.csv"
+    - "safe_schools_events_by_grade_2022.csv"
+    - "safe_schools_events_by_grade_2021.csv"
+    - "safe_schools_events_by_grade_2020.csv"
+
+  safe_schools_climate:
+    - "KYRC24_SAFE_Precautionary_Measures.csv"
+    - "precautionary_measures_2023.csv"
+    - "precautionary_measures_2022.csv"
+    - "precautionary_measures_2021.csv"
+    - "precautionary_measures_2020.csv"
+    - "quality_of_school_climate_and_safety_survey_elementary_school_2023.csv"
+    - "quality_of_school_climate_and_safety_survey_elementary_school_2022.csv"
+    - "quality_of_school_climate_and_safety_survey_elementary_school_2021.csv"
+    - "quality_of_school_climate_and_safety_survey_high_school_2023.csv"
+    - "quality_of_school_climate_and_safety_survey_high_school_2022.csv"
+    - "quality_of_school_climate_and_safety_survey_high_school_2021.csv"
+    - "quality_of_school_climate_and_safety_survey_middle_school_2023.csv"
+    - "quality_of_school_climate_and_safety_survey_middle_school_2022.csv"
+    - "quality_of_school_climate_and_safety_survey_middle_school_2021.csv"
+    - "quality_of_school_climate_and_safety_survey_index_scores_2023.csv"
+    - "quality_of_school_climate_and_safety_survey_index_scores_2022.csv"
+
+  safe_schools_discipline:
+    - "KYRC24_SAFE_Discipline_Resolutions.csv"
+    - "KYRC24_SAFE_Legal_Sanctions.csv"
+    - "safe_schools_discipline_2023.csv"
+    - "safe_schools_discipline_2022.csv"
+    - "safe_schools_discipline_2021.csv"
+    - "safe_schools_discipline_2020.csv"
