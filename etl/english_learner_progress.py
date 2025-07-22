@@ -4,7 +4,6 @@ Refactored to derive from BaseETL for standardized processing.
 """
 from pathlib import Path
 import pandas as pd
-from pydantic import BaseModel
 from typing import Dict, Any, Union
 import logging
 import sys
@@ -12,15 +11,9 @@ import sys
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
-from base_etl import BaseETL
+from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
-
-
-class Config(BaseModel):
-    rename: Dict[str, str] = {}
-    dtype: Dict[str, str] = {}
-    derive: Dict[str, Union[str, int, float]] = {}
 
 
 def clean_percentage_scores(df: pd.DataFrame) -> pd.DataFrame:
@@ -117,7 +110,9 @@ if __name__ == "__main__":
     proc_dir = Path(__file__).parent.parent / "data" / "processed"
     proc_dir.mkdir(exist_ok=True)
 
-    test_config = {"derive": {"processing_date": "2025-07-19", "data_quality_flag": "reviewed"}}
+    test_config = Config(
+        derive={"processing_date": "2025-07-19", "data_quality_flag": "reviewed"}
+    ).dict()
 
     transform(raw_dir, proc_dir, test_config)
 

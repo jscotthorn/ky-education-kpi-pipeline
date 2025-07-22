@@ -21,8 +21,8 @@ Covers event types, grade levels, locations, and contexts for school safety metr
 """
 from pathlib import Path
 import pandas as pd
-from pydantic import BaseModel
 from typing import Dict, Any, Optional, Union
+from base_etl import Config
 import logging
 try:
     from .demographic_mapper import DemographicMapper
@@ -36,12 +36,6 @@ except ImportError:
         from demographic_mapper import DemographicMapper
 
 logger = logging.getLogger(__name__)
-
-
-class Config(BaseModel):
-    rename: Dict[str, str] = {}
-    dtype: Dict[str, str] = {}
-    derive: Dict[str, Union[str, int, float]] = {}
 
 
 def normalize_column_names(df: pd.DataFrame) -> pd.DataFrame:
@@ -754,15 +748,11 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     
     # Test with sample configuration
-    config = {
-        "derive": {
-            "data_version": "2024"
-        }
-    }
-    
+    config = Config(derive={"data_version": "2024"}).dict()
+
     raw_dir = "data/raw/safe_schools"
     proc_dir = "data/processed"
-    
+
     result = transform(raw_dir, proc_dir, config)
     if result:
         print(f"Successfully processed safe schools events data: {result}")

@@ -4,13 +4,8 @@ Copy-rename this file (e.g., `attendance.py`) and fill in logic.
 """
 from pathlib import Path
 import pandas as pd
-from pydantic import BaseModel
+from base_etl import Config
 
-
-class Config(BaseModel):
-    rename: dict[str, str] = {}
-    dtype: dict[str, str] = {}
-    derive: dict[str, str | int | float] = {}
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
