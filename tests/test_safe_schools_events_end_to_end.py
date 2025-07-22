@@ -412,7 +412,7 @@ class TestSafeSchoolsEventsEndToEnd:
         assert audit_file.exists(), "Demographic report should be created"
 
         content = audit_file.read_text()
-        assert 'Mapping Log' in content
+        assert 'Mapping Types' in content
 
         print(f"✅ Demographic mapping: {len(student_groups)} student groups")
     
