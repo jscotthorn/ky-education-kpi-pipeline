@@ -226,11 +226,8 @@ class BaseETL(ABC):
         """
         Extract and clean school ID from row data.
         
-        Uses standardized hierarchy for maximum longitudinal consistency:
-        1. School Code (primary - universal availability across all years)
-        2. State School ID (secondary - comprehensive when available)
-        3. NCES ID (tertiary - federal integration)
-        4. School Number (fallback - basic but reliable)
+        Uses a standardized identifier for maximum longitudinal consistency:
+        School Code is required across all years.
         
         Args:
             row: Data row
@@ -242,27 +239,12 @@ class BaseETL(ABC):
         school_id = row.get('school_code', '')
         if pd.notna(school_id) and school_id != '':
             return self._clean_school_id(school_id)
-        
-        # We should use a consistent identifier across years. Throwing an error to monitor our use of other columns as we migrate ETLs to this standard.
-        self.logger.error("CRITICAL: No valid school ID found in row, using fallback logic")
+
+        # We should use a consistent identifier across years. Throwing an error
+        # to monitor our use of other columns as we migrate ETLs to this
+        # standard.
+        logger.error("CRITICAL: No valid school ID found in row")
         raise ValueError("No valid school ID found in row")
-        
-        # Secondary: State School ID (most comprehensive when available)
-        school_id = row.get('state_school_id', '')
-        if pd.notna(school_id) and school_id != '':
-            return self._clean_school_id(school_id)
-        
-        # Tertiary: NCES ID (federal standard)
-        school_id = row.get('nces_id', '')
-        if pd.notna(school_id) and school_id != '':
-            return self._clean_school_id(school_id)
-        
-        # Final fallback: School Number (basic but reliable)
-        school_id = row.get('school_number', '')
-        if pd.notna(school_id) and school_id != '':
-            return self._clean_school_id(school_id)
-        
-        return 'unknown'
     
     def _clean_school_id(self, school_id: Any) -> str:
         """
