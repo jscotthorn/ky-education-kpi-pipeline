@@ -152,7 +152,6 @@ class GitHubPRReviewer:
             
     def create_claude_prompt(self, pr_info, diff_content, files_changed):
         """Create a detailed prompt for Claude"""
-        # Note: Using single quotes for the outer string to avoid escaping issues with the CLI
         prompt = f'''Review this GitHub PR #{pr_info['number']} "{pr_info['title']}" by {pr_info['user']['login']}. 
 
 Description: {pr_info.get('body', 'No description provided')[:200]}
@@ -165,14 +164,11 @@ Run any ETL pipelines and/or tests that were touched by this PR.
 
 Structure your review with sections: Summary, Code Quality, Potential Issues, Testing, Breaking Changes, Suggestions, and Overall Assessment.
 
-Provide a comprehensive markdown review suitable for a GitHub comment.
-
 Diff:
 {diff_content[:8000]}
 '''
         
-        # Escape any single quotes in the prompt
-        return prompt.replace("'", "'\"'\"'")
+        return prompt
 
     def review_pr(self, pr):
         """Review PR using existing local repository"""
@@ -238,9 +234,18 @@ Diff:
             claude_cmd = self.config.get("claude_path", "claude")
             logger.info(f"Using Claude command: {claude_cmd}")
             
-            # Use claude code with -p flag for inline prompt
-            cmd = f"{claude_cmd} code -p '{prompt}'"
-            review_output = self.run_command(cmd, cwd=repo_dir)
+            # Write prompt to temporary file to pipe to Claude
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+                f.write(prompt)
+                prompt_file = f.name
+            
+            try:
+                # Use cat to pipe prompt to claude code
+                cmd = f"cat '{prompt_file}' | {claude_cmd} code -p 'Review the code changes in this repository based on the prompt content piped in. Provide a comprehensive markdown review suitable for a GitHub comment.'"
+                review_output = self.run_command(cmd, cwd=repo_dir, shell_escape=False)
+            finally:
+                # Clean up temporary file
+                os.unlink(prompt_file)
             
             # Create review comment
             review_comment = self.format_github_comment(pr, review_output)
@@ -483,7 +488,7 @@ if __name__ == "__main__":
         
     # Set up signal handler for clean exit
     def signal_handler(sig, frame):
-        logger.info("Caught signal, cleaning up...")
+        logger.info(f"Caught signal {sig}, cleaning up...")
         sys.exit(0)
         
     signal.signal(signal.SIGINT, signal_handler)
