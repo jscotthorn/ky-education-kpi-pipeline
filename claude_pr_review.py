@@ -15,14 +15,15 @@ import sys
 
 # Configuration
 CONFIG = {
-    "repo_path": "/Users/scott/Projects/equity-etl/ky-education-kpi-pipeline",  # Path to your existing local repository
+    "repo_path": "/Users/scott/Projects/equity-etl/ky-education-kpi-pipeline",  # Your repo path
     "github_token": os.environ.get("GITHUB_TOKEN", "your_token_here"),
     "repo_owner": "jscotthorn",
     "repo_name": "ky-education-kpi-pipeline",
     "check_interval": 300,  # seconds
-    "base_branch": "develop",
+    "base_branch": "develop",  # Changed from "main" to "develop"
     "required_label": "codex",  # Only process PRs with this label
     "max_prs_to_review": None,  # Set to a number to limit reviews (e.g., 5), None for unlimited
+    "claude_path": "/Users/scott/.claude/local/claude",  # Full path to claude executable
     "review_dir": Path.home() / ".pr_reviewer",
     "processed_prs_file": Path.home() / ".pr_reviewer" / "processed_prs.json"
 }
@@ -160,7 +161,7 @@ Files changed ({len(files_changed)}): {', '.join(files_changed[:10])}{' and more
 
 Analyze the diff below for bugs, security issues, performance problems, and code quality. Check if tests are adequate and documentation is updated. 
 
-Run any ETL piplines and/or tests that were touched by this PR.
+Run any ETL pipelines and/or tests that were touched by this PR.
 
 Structure your review with sections: Summary, Code Quality, Potential Issues, Testing, Breaking Changes, Suggestions, and Overall Assessment.
 
@@ -233,8 +234,12 @@ Diff:
             logger.info(f"Working directory: {repo_dir}")
             logger.info(f"Prompt length: {len(prompt)} characters")
             
+            # Use the configured claude path
+            claude_cmd = self.config.get("claude_path", "claude")
+            logger.info(f"Using Claude command: {claude_cmd}")
+            
             # Use claude code with -p flag for inline prompt
-            cmd = f"claude code -p '{prompt}'"
+            cmd = f"{claude_cmd} code -p '{prompt}'"
             review_output = self.run_command(cmd, cwd=repo_dir)
             
             # Create review comment
