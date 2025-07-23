@@ -158,12 +158,17 @@ Description: {pr_info.get('body', 'No description provided')[:200]}
 
 Files changed ({len(files_changed)}): {', '.join(files_changed[:10])}{' and more' if len(files_changed) > 10 else ''}
 
-Analyze the diff below for bugs, security issues, performance problems, and code quality. Check if tests are adequate and documentation is updated. Structure your review with sections: Summary, Code Quality, Potential Issues, Testing, Breaking Changes, Suggestions, and Overall Assessment.
+Analyze the diff below for bugs, security issues, performance problems, and code quality. Check if tests are adequate and documentation is updated. 
+
+Run any ETL piplines and/or tests that were touched by this PR.
+
+Structure your review with sections: Summary, Code Quality, Potential Issues, Testing, Breaking Changes, Suggestions, and Overall Assessment.
+
+Provide a comprehensive markdown review suitable for a GitHub comment.
 
 Diff:
 {diff_content[:8000]}
-
-Provide a comprehensive markdown review suitable for a GitHub comment.'''
+'''
         
         # Escape any single quotes in the prompt
         return prompt.replace("'", "'\"'\"'")
