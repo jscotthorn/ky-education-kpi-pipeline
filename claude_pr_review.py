@@ -15,12 +15,12 @@ import sys
 
 # Configuration
 CONFIG = {
-    "repo_path": "/path/to/your/existing/repo",  # Path to your existing local repository
+    "repo_path": "/Users/scott/Projects/equity-etl/ky-education-kpi-pipeline",  # Path to your existing local repository
     "github_token": os.environ.get("GITHUB_TOKEN", "your_token_here"),
-    "repo_owner": "owner",
-    "repo_name": "repository",
+    "repo_owner": "jscotthorn",
+    "repo_name": "ky-education-kpi-pipeline",
     "check_interval": 300,  # seconds
-    "base_branch": "main",
+    "base_branch": "develop",
     "required_label": "codex",  # Only process PRs with this label
     "max_prs_to_review": None,  # Set to a number to limit reviews (e.g., 5), None for unlimited
     "review_dir": Path.home() / ".pr_reviewer",
