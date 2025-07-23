@@ -31,6 +31,7 @@ class TestKindergartenReadinessEndToEnd:
             "Ready With Enrichments": [5],
             "Total Ready": [35],
             "Suppressed": ["N"],
+            "Prior Setting": ["Child Care"],
         })
 
     def create_percent_data(self):
@@ -43,6 +44,7 @@ class TestKindergartenReadinessEndToEnd:
             "TOTAL PERCENT READY": [55.0],
             "NUMBER TESTED": [100],
             "SUPPRESSED": ["N"],
+            "Prior Setting": ["Child Care"],
         })
 
     def test_end_to_end_single_file(self):
@@ -52,11 +54,19 @@ class TestKindergartenReadinessEndToEnd:
         out_file = self.proc_dir / "kindergarten_readiness.csv"
         assert out_file.exists()
         result = pd.read_csv(out_file)
-        assert len(result) == 3  # rate, count, total
+        assert len(result) == 11
         assert set(result["metric"].unique()) == {
-            "kindergarten_readiness_rate",
-            "kindergarten_readiness_count",
-            "kindergarten_readiness_total",
+            "kindergarten_ready_with_interventions_count_all_students",
+            "kindergarten_ready_count_all_students",
+            "kindergarten_ready_with_enrichments_count_all_students",
+            "kindergarten_ready_with_interventions_rate_all_students",
+            "kindergarten_ready_rate_all_students",
+            "kindergarten_ready_with_enrichments_rate_all_students",
+            "kindergarten_readiness_count_all_students",
+            "kindergarten_readiness_total_all_students",
+            "kindergarten_readiness_rate_all_students",
+            "kindergarten_child_care_count_all_students",
+            "kindergarten_child_care_rate_all_students",
         }
 
     def test_end_to_end_multiple_files(self):
@@ -67,7 +77,7 @@ class TestKindergartenReadinessEndToEnd:
         assert out_file.exists()
         result = pd.read_csv(out_file)
         metrics = result["metric"].unique()
-        assert "kindergarten_readiness_rate" in metrics
-        assert "kindergarten_readiness_count" in metrics
-        assert "kindergarten_readiness_total" in metrics
+        assert "kindergarten_readiness_rate_all_students" in metrics
+        assert "kindergarten_readiness_count_all_students" in metrics
+        assert "kindergarten_readiness_total_all_students" in metrics
 

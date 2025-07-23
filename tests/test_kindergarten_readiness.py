@@ -38,6 +38,7 @@ class TestKindergartenReadinessETL:
             "Ready With Enrichments": [5, 3],
             "Total Ready": [35, 18],
             "Suppressed": ["N", "Y"],
+            "Prior Setting": ["Child Care", "Head Start"],
         })
 
     def create_sample_percent_data(self):
@@ -50,6 +51,7 @@ class TestKindergartenReadinessETL:
             "TOTAL PERCENT READY": [55.0, 60.0],
             "NUMBER TESTED": [100, 50],
             "SUPPRESSED": ["N", "N"],
+            "Prior Setting": ["Child Care", "Child Care"],
         })
 
     def test_normalize_column_names(self):
@@ -79,11 +81,20 @@ class TestKindergartenReadinessETL:
         df = self.etl.standardize_missing_values(df)
         row = df.iloc[0]
         metrics = self.etl.extract_metrics(row)
-        assert set(metrics.keys()) == {
-            "kindergarten_readiness_rate",
-            "kindergarten_readiness_count",
-            "kindergarten_readiness_total",
+        expected = {
+            "kindergarten_readiness_rate_all_students",
+            "kindergarten_readiness_count_all_students",
+            "kindergarten_readiness_total_all_students",
+            "kindergarten_ready_with_interventions_count_all_students",
+            "kindergarten_ready_with_interventions_rate_all_students",
+            "kindergarten_ready_count_all_students",
+            "kindergarten_ready_rate_all_students",
+            "kindergarten_ready_with_enrichments_count_all_students",
+            "kindergarten_ready_with_enrichments_rate_all_students",
+            "kindergarten_child_care_count_all_students",
+            "kindergarten_child_care_rate_all_students",
         }
+        assert set(metrics.keys()) == expected
 
     def test_extract_metrics_percentage(self):
         df = self.create_sample_percent_data()
@@ -91,9 +102,11 @@ class TestKindergartenReadinessETL:
         df = self.etl.standardize_missing_values(df)
         row = df.iloc[0]
         metrics = self.etl.extract_metrics(row)
-        assert metrics["kindergarten_readiness_rate"] == 55.0
-        assert metrics["kindergarten_readiness_total"] == 100
-        assert metrics["kindergarten_readiness_count"] == 55
+        assert metrics["kindergarten_readiness_rate_all_students"] == 55.0
+        assert metrics["kindergarten_readiness_total_all_students"] == 100
+        assert metrics["kindergarten_readiness_count_all_students"] == 55
+        assert metrics["kindergarten_child_care_rate_all_students"] == 55.0
+        assert metrics["kindergarten_child_care_count_all_students"] == 55
 
     def test_full_transform_pipeline(self):
         counts = self.create_sample_counts_data()
@@ -107,7 +120,8 @@ class TestKindergartenReadinessETL:
         df = pd.read_csv(output_file)
         assert len(df.columns) == 10
         metrics = df["metric"].unique()
-        assert "kindergarten_readiness_rate" in metrics
-        assert "kindergarten_readiness_count" in metrics
-        assert "kindergarten_readiness_total" in metrics
+        assert "kindergarten_readiness_rate_all_students" in metrics
+        assert "kindergarten_readiness_count_all_students" in metrics
+        assert "kindergarten_readiness_total_all_students" in metrics
+        assert "kindergarten_ready_with_interventions_count_all_students" in metrics
 
