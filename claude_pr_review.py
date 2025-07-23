@@ -152,7 +152,6 @@ class GitHubPRReviewer:
             
     def create_claude_prompt(self, pr_info, diff_content, files_changed):
         """Create a detailed prompt for Claude"""
-        # Note: Using single quotes for the outer string to avoid escaping issues with the CLI
         prompt = f'''Review this GitHub PR #{pr_info['number']} "{pr_info['title']}" by {pr_info['user']['login']}. 
 
 Description: {pr_info.get('body', 'No description provided')[:200]}
@@ -161,18 +160,15 @@ Files changed ({len(files_changed)}): {', '.join(files_changed[:10])}{' and more
 
 Analyze the diff below for bugs, security issues, performance problems, and code quality. Check if tests are adequate and documentation is updated. 
 
-Run any ETL pipelines and/or tests that were touched by this PR.
+Run any ETL pipelines and/or tests that were touched by this PR. Allow for a long timeout (up to 10 minutes) for individual etl pipelines, and 30 minutes if testing the full etl pipeline (only needed when changes affect the full pipeline or build process).
 
 Structure your review with sections: Summary, Code Quality, Potential Issues, Testing, Breaking Changes, Suggestions, and Overall Assessment.
-
-Provide a comprehensive markdown review suitable for a GitHub comment.
 
 Diff:
 {diff_content[:8000]}
 '''
         
-        # Escape any single quotes in the prompt
-        return prompt.replace("'", "'\"'\"'")
+        return prompt
 
     def review_pr(self, pr):
         """Review PR using existing local repository"""
@@ -238,15 +234,99 @@ Diff:
             claude_cmd = self.config.get("claude_path", "claude")
             logger.info(f"Using Claude command: {claude_cmd}")
             
-            # Use claude code with -p flag for inline prompt
-            cmd = f"{claude_cmd} code -p '{prompt}'"
-            review_output = self.run_command(cmd, cwd=repo_dir)
+            # Write prompt to temporary file to pipe to Claude
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+                f.write(prompt)
+                prompt_file = f.name
+            
+            try:
+                # First, let's verify the prompt file contents
+                with open(prompt_file, 'r') as f:
+                    prompt_content = f.read()
+                logger.info(f"Prompt length: {len(prompt_content)} characters")
+                logger.info(f"First 100 chars of prompt: {prompt_content[:100]}...")
+                
+                # Try using subprocess.Popen to send input via stdin
+                logger.info(f"Running command: {claude_cmd} (with stdin, 30-minute timeout)")
+                logger.info(f"Working directory: {repo_dir}")
+                
+                process = subprocess.Popen(
+                    [claude_cmd],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    cwd=repo_dir
+                )
+                
+                stdout, stderr = process.communicate(input=prompt_content, timeout=1800)  # 30 minutes
+                
+                result = subprocess.CompletedProcess(
+                    args=[claude_cmd],
+                    returncode=process.returncode,
+                    stdout=stdout,
+                    stderr=stderr
+                )
+                
+                logger.info(f"Claude command return code: {result.returncode}")
+                logger.info(f"Claude stdout length: {len(result.stdout)} characters")
+                logger.info(f"Claude stderr length: {len(result.stderr)} characters")
+                
+                # Log full stdout and stderr for debugging
+                logger.info(f"Claude stdout: {repr(result.stdout)}")
+                if result.stderr:
+                    logger.warning(f"Claude stderr: {repr(result.stderr)}")
+                
+                if result.returncode != 0:
+                    logger.error(f"Claude command failed with return code {result.returncode}")
+                    logger.error(f"stderr: {result.stderr}")
+                    raise subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)
+                
+                # Try stderr first if stdout only contains error
+                if result.stdout.strip().lower() == "execution error" and result.stderr:
+                    logger.info("Stdout contains 'Execution error', checking stderr for actual output")
+                    review_output = result.stderr
+                else:
+                    review_output = result.stdout
+                
+                # Check if we still only have an error message
+                if review_output.strip().lower() == "execution error":
+                    logger.error("Claude returned 'Execution error' - trying alternative approach")
+                    # Let's try running without stdin and see what happens
+                    test_result = subprocess.run(
+                        [claude_cmd, "--version"],
+                        capture_output=True,
+                        text=True,
+                        cwd=repo_dir
+                    )
+                    logger.info(f"Claude version check: {test_result.stdout} {test_result.stderr}")
+                
+                logger.info(f"Claude review completed, output length: {len(review_output)} characters")
+                logger.info(f"First 200 chars of output: {review_output[:200]}...")
+                
+                if not review_output.strip():
+                    raise Exception("Claude returned empty output")
+            finally:
+                # Clean up temporary file
+                os.unlink(prompt_file)
             
             # Create review comment
-            review_comment = self.format_github_comment(pr, review_output)
+            try:
+                logger.info("Formatting GitHub comment...")
+                review_comment = self.format_github_comment(pr, review_output)
+                logger.info(f"Comment formatted, length: {len(review_comment)} characters")
+            except Exception as e:
+                logger.error(f"Error formatting GitHub comment: {e}")
+                raise Exception(f"Failed to format GitHub comment: {e}")
             
             # Post review comment on GitHub
-            self.post_github_comment(pr_number, review_comment)
+            try:
+                logger.info("Posting comment to GitHub...")
+                self.post_github_comment(pr_number, review_comment)
+                logger.info("Comment posted successfully")
+            except Exception as e:
+                logger.error(f"Error posting GitHub comment: {e}")
+                raise Exception(f"Failed to post GitHub comment: {e}")
             
             # Mark as processed
             self.processed_prs[str(pr_number)] = {
@@ -263,9 +343,15 @@ Diff:
             
         except Exception as e:
             logger.error(f"Failed to review PR #{pr_number}: {e}")
+            logger.error(f"Exception type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             # Post error comment
             error_comment = self.format_error_comment(pr, str(e))
-            self.post_github_comment(pr_number, error_comment)
+            try:
+                self.post_github_comment(pr_number, error_comment)
+            except Exception as posting_error:
+                logger.error(f"Failed to post error comment: {posting_error}")
             raise
             
         finally:
@@ -483,7 +569,7 @@ if __name__ == "__main__":
         
     # Set up signal handler for clean exit
     def signal_handler(sig, frame):
-        logger.info("Caught signal, cleaning up...")
+        logger.info(f"Caught signal {sig}, cleaning up...")
         sys.exit(0)
         
     signal.signal(signal.SIGINT, signal_handler)
