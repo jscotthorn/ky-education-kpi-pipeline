@@ -16,6 +16,7 @@ import sys
 # Configuration
 CONFIG = {
     "repo_path": "/Users/scott/Projects/equity-etl/ky-education-kpi-pipeline",  # Your repo path
+    "data_path": "/Users/scott/Projects/equity-etl/ky-education-kpi-pipeline/data",  # Path to data directory
     "github_token": os.environ.get("GITHUB_TOKEN", "your_token_here"),
     "repo_owner": "jscotthorn",
     "repo_name": "ky-education-kpi-pipeline",
@@ -171,84 +172,88 @@ Diff:
         return prompt
 
     def review_pr(self, pr):
-        """Review PR using existing local repository"""
+        """Review PR using temporary clone"""
         pr_number = pr['number']
         branch_name = pr['head']['ref']
         sha = pr['head']['sha']
         
         logger.info(f"Starting review of PR #{pr_number}: {pr['title']}")
         
-        # Store current branch to restore later
-        original_branch = None
-        repo_dir = Path(self.config['repo_path'])
+        # Create temporary directory for clone
+        temp_clone_dir = None
         
         try:
-            # Get current branch
-            original_branch = self.run_command(
-                "git branch --show-current",
-                cwd=repo_dir
-            ).strip()
+            # Create temporary directory
+            temp_clone_dir = Path(tempfile.mkdtemp(prefix=f"pr_{pr_number}_"))
+            logger.info(f"Created temporary directory: {temp_clone_dir}")
             
-            # Check for uncommitted changes
-            status = self.run_command("git status --porcelain", cwd=repo_dir).strip()
-            if status:
-                logger.warning("Uncommitted changes detected, stashing them...")
-                self.run_command("git stash push -m 'PR reviewer auto-stash'", cwd=repo_dir)
-                stashed = True
-            else:
-                stashed = False
+            # Clone repository
+            logger.info("Cloning repository...")
+            repo_url = f"https://github.com/{self.config['repo_owner']}/{self.config['repo_name']}.git"
+            self.run_command(
+                f"git clone {repo_url} .",
+                cwd=temp_clone_dir
+            )
             
-            # Fetch latest changes
-            logger.info("Fetching latest changes from origin...")
-            self.run_command("git fetch origin", cwd=repo_dir)
-            
-            # Fetch and checkout PR branch
+            # Fetch PR branch
             logger.info(f"Fetching PR branch: {branch_name}")
             self.run_command(
                 f"git fetch origin pull/{pr_number}/head:pr_{pr_number}",
-                cwd=repo_dir
+                cwd=temp_clone_dir
             )
-            self.run_command(f"git checkout pr_{pr_number}", cwd=repo_dir)
+            self.run_command(f"git checkout pr_{pr_number}", cwd=temp_clone_dir)
+            
+            # Create symlink to data directory
+            data_symlink = temp_clone_dir / "data"
+            if data_symlink.exists():
+                # Remove existing data directory if it exists
+                if data_symlink.is_symlink():
+                    data_symlink.unlink()
+                else:
+                    shutil.rmtree(data_symlink)
+            
+            logger.info(f"Creating symlink: {data_symlink} -> {self.config['data_path']}")
+            data_symlink.symlink_to(Path(self.config['data_path']))
             
             # Get list of changed files
             files_changed = self.run_command(
                 f"git diff --name-only origin/{self.config['base_branch']}...HEAD",
-                cwd=repo_dir
+                cwd=temp_clone_dir
             ).strip().split('\n')
             
             # Get diff
             diff_content = self.run_command(
                 f"git diff origin/{self.config['base_branch']}...HEAD",
-                cwd=repo_dir
+                cwd=temp_clone_dir
             )
             
             # Create Claude prompt
             prompt = self.create_claude_prompt(pr, diff_content, files_changed)
             
-            # Run Claude CLI with -p flag
-            logger.info("Running Claude review from existing repository...")
-            logger.info(f"Working directory: {repo_dir}")
+            # Run Claude review
+            logger.info("Running Claude review from temporary clone...")
+            logger.info(f"Working directory: {temp_clone_dir}")
             logger.info(f"Prompt length: {len(prompt)} characters")
             
             # Use the configured claude path
             claude_cmd = self.config.get("claude_path", "claude")
             logger.info(f"Using Claude command: {claude_cmd}")
             
-            # Write prompt to temporary file to pipe to Claude
+            # Write prompt to temporary file
             with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
                 f.write(prompt)
                 prompt_file = f.name
             
             try:
-                # First, let's verify the prompt file contents
+                # Verify prompt file contents
                 with open(prompt_file, 'r') as f:
                     prompt_content = f.read()
                 logger.info(f"Prompt length: {len(prompt_content)} characters")
                 logger.info(f"First 100 chars of prompt: {prompt_content[:100]}...")
                 
-                # Try using subprocess.Popen to send input via stdin
+                # Run Claude with stdin
                 logger.info(f"Running command: {claude_cmd} (with stdin, 30-minute timeout)")
-                logger.info(f"Working directory: {repo_dir}")
+                logger.info(f"Working directory: {temp_clone_dir}")
                 
                 process = subprocess.Popen(
                     [claude_cmd],
@@ -256,7 +261,7 @@ Diff:
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
-                    cwd=repo_dir
+                    cwd=temp_clone_dir
                 )
                 
                 stdout, stderr = process.communicate(input=prompt_content, timeout=1800)  # 30 minutes
@@ -272,45 +277,24 @@ Diff:
                 logger.info(f"Claude stdout length: {len(result.stdout)} characters")
                 logger.info(f"Claude stderr length: {len(result.stderr)} characters")
                 
-                # Log full stdout and stderr for debugging
-                logger.info(f"Claude stdout: {repr(result.stdout)}")
-                if result.stderr:
-                    logger.warning(f"Claude stderr: {repr(result.stderr)}")
-                
                 if result.returncode != 0:
                     logger.error(f"Claude command failed with return code {result.returncode}")
                     logger.error(f"stderr: {result.stderr}")
-                    raise subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)
+                    raise subprocess.CalledProcessError(result.returncode, [claude_cmd], result.stdout, result.stderr)
                 
-                # Try stderr first if stdout only contains error
-                if result.stdout.strip().lower() == "execution error" and result.stderr:
-                    logger.info("Stdout contains 'Execution error', checking stderr for actual output")
-                    review_output = result.stderr
-                else:
-                    review_output = result.stdout
-                
-                # Check if we still only have an error message
-                if review_output.strip().lower() == "execution error":
-                    logger.error("Claude returned 'Execution error' - trying alternative approach")
-                    # Let's try running without stdin and see what happens
-                    test_result = subprocess.run(
-                        [claude_cmd, "--version"],
-                        capture_output=True,
-                        text=True,
-                        cwd=repo_dir
-                    )
-                    logger.info(f"Claude version check: {test_result.stdout} {test_result.stderr}")
+                review_output = result.stdout
                 
                 logger.info(f"Claude review completed, output length: {len(review_output)} characters")
                 logger.info(f"First 200 chars of output: {review_output[:200]}...")
                 
                 if not review_output.strip():
                     raise Exception("Claude returned empty output")
+                    
             finally:
-                # Clean up temporary file
+                # Clean up prompt file
                 os.unlink(prompt_file)
             
-            # Create review comment
+            # Create and post review comment
             try:
                 logger.info("Formatting GitHub comment...")
                 review_comment = self.format_github_comment(pr, review_output)
@@ -319,7 +303,6 @@ Diff:
                 logger.error(f"Error formatting GitHub comment: {e}")
                 raise Exception(f"Failed to format GitHub comment: {e}")
             
-            # Post review comment on GitHub
             try:
                 logger.info("Posting comment to GitHub...")
                 self.post_github_comment(pr_number, review_comment)
@@ -355,22 +338,14 @@ Diff:
             raise
             
         finally:
-            # Always try to restore original state
-            try:
-                if original_branch:
-                    logger.info(f"Restoring original branch: {original_branch}")
-                    self.run_command(f"git checkout {original_branch}", cwd=repo_dir)
-                    
-                    # Clean up PR branch
-                    self.run_command(f"git branch -D pr_{pr_number}", cwd=repo_dir)
-                
-                # Restore stashed changes if any
-                if stashed:
-                    logger.info("Restoring stashed changes...")
-                    self.run_command("git stash pop", cwd=repo_dir)
-                    
-            except Exception as e:
-                logger.error(f"Error restoring repository state: {e}")
+            # Clean up temporary directory
+            if temp_clone_dir and temp_clone_dir.exists():
+                logger.info(f"Cleaning up temporary directory: {temp_clone_dir}")
+                try:
+                    shutil.rmtree(temp_clone_dir)
+                    logger.info("Temporary directory cleaned up successfully")
+                except Exception as cleanup_error:
+                    logger.error(f"Failed to clean up temporary directory: {cleanup_error}")
                 
     def format_github_comment(self, pr, claude_output):
         """Format Claude's review for GitHub comment"""
