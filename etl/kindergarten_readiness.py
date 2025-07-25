@@ -7,7 +7,6 @@ across multiple years.
 """
 from pathlib import Path
 import pandas as pd
-from pydantic import BaseModel
 from typing import Dict, Any, Union
 import logging
 
@@ -18,15 +17,9 @@ from pathlib import Path
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
-from base_etl import BaseETL
+from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
-
-
-class Config(BaseModel):
-    rename: Dict[str, str] = {}
-    dtype: Dict[str, str] = {}
-    derive: Dict[str, Union[str, int, float]] = {}
 
 
 def clean_readiness_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -138,4 +131,5 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     root = Path(__file__).parent.parent
-    transform(root / "data" / "raw", root / "data" / "processed", {"derive": {}})
+    conf = Config(derive={})
+    transform(root / "data" / "raw", root / "data" / "processed", conf.dict())

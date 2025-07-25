@@ -198,6 +198,11 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
   - Years: 2020-2024
   - All districts with demographic breakdowns
 
+- **Kentucky Summative Assessment** (`kentucky_summative_assessment.csv`)
+  - Performance levels and content index by subject with metrics for both grade and school level
+  - Years: 2021-2024
+  - All districts with demographic breakdowns
+
 - **Out-of-School Suspension** (`out_of_school_suspension.csv`)
   - Discipline action counts by type
   - Years: 2020-2023
@@ -253,6 +258,7 @@ See [CLAUDE.md](./CLAUDE.md) for AI assistant usage patterns and workflows.
 - **Comprehensive Testing**: Full test coverage with validation checks
 - **Documentation**: Detailed journal entries tracking all changes
 - **S3-based data hosting** for public access
+- **Type Enforcement**: Uses `config/mappings.yaml` to enforce column dtypes
 
 ## 🎯 Future Roadmap
 

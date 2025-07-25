@@ -1,14 +1,6 @@
 sources:
-  chronic_absenteeism:
-    rename: {}
-    dtype: {}
-    derive: {}
-
-  english_learner_progress:
-    rename: {}
-    dtype: {}
-    derive: {}
-
+  chronic_absenteeism: {}
+  english_learner_progress: {}
   graduation_rates:
     rename: {}
       # Additional custom field mappings if needed
@@ -41,35 +33,12 @@ sources:
     derive:
       processing_date: "2025-07-18"
 
-  out_of_school_suspension:
-    rename: {}
-    dtype: {}
-    derive: {}
-
-  postsecondary_enrollment:
-    rename: {}
-    dtype: {}
-    derive: {}
-
-  postsecondary_readiness:
-    rename: {}
-    dtype: {}
-    derive: {}
-
-  safe_schools_events:
-    rename: {}
-    dtype: {}
-    derive: {}
-
+  out_of_school_suspension: {}
+  postsecondary_enrollment: {}
+  postsecondary_readiness: {}
+  safe_schools_events: {}
   safe_schools_climate:
-    rename: {}
-    dtype: {}
-    derive: {}
-
-  safe_schools_discipline:
-    rename: {}
-    dtype: {}
-    derive: {}
+  safe_schools_discipline: {}
       
 # Example configuration for field mappings and transformations
 # Add new sources here as they are onboarded

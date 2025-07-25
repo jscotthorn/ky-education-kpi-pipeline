@@ -123,3 +123,54 @@ raw_directories:
     - "safe_schools_discipline_2022.csv"
     - "safe_schools_discipline_2021.csv"
     - "safe_schools_discipline_2020.csv"
+
+  benchmark_assessment:
+    - "KYRC24_ASMT_Benchmark.csv"
+
+  act_scores:
+    - "KYRC24_ASMT_The_ACT.csv"
+    - "College_Admissions_Exam_2023.csv"
+    - "College_Admissions_Exam_2022.csv"
+    - "College_Admissions_Exam_2021.csv"
+
+  students_taught_by_inexperienced_teachers:
+    - "KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
+    - "students_taught_by_inexperienced_teachers_2023.csv"
+    - "students_taught_by_inexperienced_teachers_2022.csv"
+    - "students_taught_by_inexperienced_teachers_2021.csv"
+    - "students_taught_by_inexperienced_teachers_2020.csv"
+
+  student_retention:
+    - "KYRC24_OVW_Student_Retention_Grades_4_12.csv"
+    - "retention_2023.csv"
+    - "retention_2022.csv"
+    - "retention_2021.csv"
+    - "retention_2020.csv"
+
+  dropout_rate:
+    - "KYRC24_OVW_Dropout_Rate.csv"
+    - "dropout_2023.csv"
+    - "dropout_2022.csv"
+    - "dropout_2021.csv"
+    - "dropout_2020.csv"
+
+  homeless_students:
+    - "KYRC24_OVW_Homeless.csv"
+    - "homeless_2023.csv"
+    - "homeless_2022.csv"
+    - "homeless_2021.csv"
+    - "homeless_2020.csv"
+
+  migrant_students:
+    - "KYRC24_OVW_Migrant.csv"
+    - "migrant_2023.csv"
+    - "migrant_2022.csv"
+    - "migrant_2021.csv"
+    - "migrant_2020.csv"
+
+  students_with_disabilities:
+    - "KYRC24_OVW_Students_with_Disabilities_IEP.csv"
+    - "students_with_disabilities_2023.csv"
+    - "students_with_disabilities_2022.csv"
+    - "students_with_disabilities_2021.csv"
+    - "students_with_disabilities_2020.csv"

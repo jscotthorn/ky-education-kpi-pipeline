@@ -24,16 +24,10 @@ from pathlib import Path
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
-from base_etl import BaseETL
+from base_etl import BaseETL, Config
 from demographic_mapper import standardize_demographics
 
 logger = logging.getLogger(__name__)
-
-
-class Config(BaseModel):
-    rename: Dict[str, str] = {}
-    dtype: Dict[str, str] = {}
-    derive: Dict[str, Union[str, int, float]] = {}
 
 
 def calculate_policy_compliance_rate(row: pd.Series, policy_columns: List[str]) -> float:
@@ -335,11 +329,8 @@ if __name__ == "__main__":
     proc_dir = Path(__file__).parent.parent / "data" / "processed"
     proc_dir.mkdir(exist_ok=True)
     
-    test_config = {
-        "derive": {
-            "processing_date": "2025-07-21",
-            "data_quality_flag": "reviewed"
-        }
-    }
-    
+    test_config = Config(
+        derive={"processing_date": "2025-07-21", "data_quality_flag": "reviewed"}
+    ).dict()
+
     transform(raw_dir, proc_dir, test_config)

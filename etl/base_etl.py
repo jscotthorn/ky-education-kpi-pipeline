@@ -192,9 +192,11 @@ class BaseETL(ABC):
             DataFrame with standardized missing values
         """
         # Replace missing indicators with pandas NA
+        pd.set_option("future.no_silent_downcasting", True)
         for col in df.columns:
-            if df[col].dtype == 'object':
-                df[col] = df[col].replace(self.MISSING_VALUE_INDICATORS, pd.NA)
+            if df[col].dtype == "object":
+                result = df[col].replace(self.MISSING_VALUE_INDICATORS, pd.NA)
+                df[col] = result.infer_objects(copy=False)
         
         return df
     
@@ -226,11 +228,8 @@ class BaseETL(ABC):
         """
         Extract and clean school ID from row data.
         
-        Uses standardized hierarchy for maximum longitudinal consistency:
-        1. School Code (primary - universal availability across all years)
-        2. State School ID (secondary - comprehensive when available)
-        3. NCES ID (tertiary - federal integration)
-        4. School Number (fallback - basic but reliable)
+        Uses a standardized identifier for maximum longitudinal consistency:
+        School Code is required across all years.
         
         Args:
             row: Data row
@@ -242,27 +241,12 @@ class BaseETL(ABC):
         school_id = row.get('school_code', '')
         if pd.notna(school_id) and school_id != '':
             return self._clean_school_id(school_id)
-        
-        # We should use a consistent identifier across years. Throwing an error to monitor our use of other columns as we migrate ETLs to this standard.
-        self.logger.error("CRITICAL: No valid school ID found in row, using fallback logic")
+
+        # We should use a consistent identifier across years. Throwing an error
+        # to monitor our use of other columns as we migrate ETLs to this
+        # standard.
+        logger.error("CRITICAL: No valid school ID found in row")
         raise ValueError("No valid school ID found in row")
-        
-        # Secondary: State School ID (most comprehensive when available)
-        school_id = row.get('state_school_id', '')
-        if pd.notna(school_id) and school_id != '':
-            return self._clean_school_id(school_id)
-        
-        # Tertiary: NCES ID (federal standard)
-        school_id = row.get('nces_id', '')
-        if pd.notna(school_id) and school_id != '':
-            return self._clean_school_id(school_id)
-        
-        # Final fallback: School Number (basic but reliable)
-        school_id = row.get('school_number', '')
-        if pd.notna(school_id) and school_id != '':
-            return self._clean_school_id(school_id)
-        
-        return 'unknown'
     
     def _clean_school_id(self, school_id: Any) -> str:
         """
@@ -340,7 +324,10 @@ class BaseETL(ABC):
             'Preschool': 'preschool'
         }
         
-        df['grade'] = df['grade'].map(grade_mapping).fillna(df['grade'].str.lower().str.replace(' ', '_'))
+        df['grade'] = df['grade'].astype(str)
+        df['grade'] = df['grade'].map(grade_mapping).fillna(
+            df['grade'].str.lower().str.replace(' ', '_')
+        )
         
         return df
     
@@ -497,8 +484,8 @@ class BaseETL(ABC):
             logger.info(f"Processing {csv_file.name}")
             
             try:
-                # Read CSV file
-                df = pd.read_csv(csv_file, encoding='utf-8-sig')
+                # Read CSV file as strings to avoid mixed-type warnings
+                df = pd.read_csv(csv_file, encoding='utf-8-sig', dtype=str, low_memory=False)
                 
                 # Skip if empty
                 if df.empty:
@@ -510,10 +497,21 @@ class BaseETL(ABC):
                 df = self.standardize_missing_values(df)
                 df = self.normalize_grade_field(df)
                 df = self.add_derived_fields(df, conf.derive, csv_file.name)
-                
+
                 # Apply configuration-based transformations
                 if conf.rename:
                     df = df.rename(columns=conf.rename)
+
+                # Enforce data types from configuration
+                if conf.dtype:
+                    for col, dtype in conf.dtype.items():
+                        if col in df.columns:
+                            try:
+                                if dtype.startswith('float') or dtype.startswith('int'):
+                                    df[col] = pd.to_numeric(df[col], errors='coerce')
+                                df[col] = df[col].astype(dtype)
+                            except Exception as e:
+                                logger.warning(f"Failed to convert column {col} to {dtype}: {e}")
                 
                 # Convert to KPI format
                 kpi_df = self.convert_to_kpi_format(df, csv_file.name)
