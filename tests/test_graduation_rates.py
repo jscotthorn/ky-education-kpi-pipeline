@@ -5,6 +5,7 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+from etl.constants import KPI_COLUMNS
 import shutil
 from etl.graduation_rates import transform, clean_graduation_rates, GraduationRatesETL
 
@@ -140,8 +141,7 @@ class TestGraduationRatesETL:
         df = pd.read_csv(output_file)
         
         # Verify KPI format columns
-        required_columns = ['district', 'school_id', 'school_name', 'year', 'student_group', 
-                           'metric', 'value', 'suppressed', 'source_file', 'last_updated']
+        required_columns = KPI_COLUMNS
         for col in required_columns:
             assert col in df.columns, f"Required KPI column '{col}' missing"
         
@@ -183,8 +183,7 @@ class TestGraduationRatesETL:
         df = pd.read_csv(output_file)
         
         # Verify KPI format columns
-        required_columns = ['district', 'school_id', 'school_name', 'year', 'student_group', 
-                           'metric', 'value', 'suppressed', 'source_file', 'last_updated']
+        required_columns = KPI_COLUMNS
         for col in required_columns:
             assert col in df.columns, f"Required KPI column '{col}' missing"
         

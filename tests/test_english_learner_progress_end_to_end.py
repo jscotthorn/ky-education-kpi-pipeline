@@ -155,11 +155,13 @@ class TestEnglishLearnerProgressEndToEnd:
         output_df = pd.read_csv(output_file)
         
         assert not output_df.empty, "Output should not be empty"
-        assert len(output_df.columns) == 10, "Should have exactly 10 columns in KPI format"
+        assert len(output_df.columns) == 19, "Should have exactly 19 columns in KPI format"
         
         # Verify required columns
         expected_columns = [
             'district', 'school_id', 'school_name', 'year', 'student_group',
+            'county_number', 'county_name', 'district_number', 'school_code',
+            'state_school_id', 'nces_id', 'co_op', 'co_op_code', 'school_type',
             'metric', 'value', 'suppressed', 'source_file', 'last_updated'
         ]
         for col in expected_columns:
@@ -395,7 +397,7 @@ class TestEnglishLearnerProgressEndToEnd:
             output_df = pd.read_csv(output_file)
             # If any data was processed, it should be in valid format
             if not output_df.empty:
-                assert len(output_df.columns) == 10, "Output should maintain KPI format even with errors"
+                assert len(output_df.columns) == 19, "Output should maintain KPI format even with errors"
     
     def test_end_to_end_performance_with_large_dataset(self):
         """Test performance with larger dataset."""
@@ -427,7 +429,7 @@ class TestEnglishLearnerProgressEndToEnd:
         assert len(output_df) > len(base_df) * 5, "Should scale with input size"
         
         # Verify data quality maintained with large dataset
-        assert len(output_df.columns) == 10
+        assert len(output_df.columns) == 19
         assert output_df['district'].notna().all()
         assert output_df['year'].notna().all()
         assert len(output_df['school_name'].unique()) >= 50, "Should have many unique schools"

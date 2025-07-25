@@ -11,11 +11,10 @@ Data includes two rate metrics:
 """
 from pathlib import Path
 import pandas as pd
+from .constants import KPI_COLUMNS
 from typing import Dict, Any, Union
 import logging
-
 import sys
-from pathlib import Path
 
 # Add etl directory to path for imports
 etl_dir = Path(__file__).parent
@@ -132,11 +131,9 @@ class PostsecondaryReadinessETL(BaseETL):
         
         # Create KPI DataFrame with consistent column order
         kpi_df = pd.DataFrame(kpi_rows)
-        kpi_columns = ['district', 'school_id', 'school_name', 'year', 'student_group', 
-                       'metric', 'value', 'suppressed', 'source_file', 'last_updated']
-        
+
         # Only include columns that exist
-        available_columns = [col for col in kpi_columns if col in kpi_df.columns]
+        available_columns = [col for col in KPI_COLUMNS if col in kpi_df.columns]
         kpi_df = kpi_df[available_columns]
         
         return kpi_df

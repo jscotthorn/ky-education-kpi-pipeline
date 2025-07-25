@@ -7,6 +7,7 @@ Tests the complete four-tier KPI structure implementation including:
 - Tier 3: Total Events (intensity metrics)
 - Tier 4: Derived Rates (analytical metrics)
 """
+from etl.constants import KPI_COLUMNS
 import pytest
 import pandas as pd
 import tempfile
@@ -207,7 +208,7 @@ class TestSafeSchoolsEventsEndToEnd:
         # Load and validate output
         output_df = pd.read_csv(result_file)
         assert len(output_df) > 0
-        assert len(output_df.columns) == 10
+        assert len(output_df.columns) == 19
         
         # Validate four-tier structure
         metrics = output_df['metric'].unique()

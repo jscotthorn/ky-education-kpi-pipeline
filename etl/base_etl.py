@@ -7,6 +7,10 @@ to reduce code duplication and ensure consistency across modules.
 """
 
 from abc import ABC, abstractmethod
+try:
+    from .constants import KPI_COLUMNS
+except ImportError:  # pragma: no cover - allow running as script
+    from constants import KPI_COLUMNS
 from pathlib import Path
 import pandas as pd
 from pydantic import BaseModel
@@ -383,6 +387,15 @@ class BaseETL(ABC):
             'school_name': row.get('school_name', 'Unknown School'),
             'year': year,
             'student_group': student_group,
+            'county_number': row.get('county_number', pd.NA),
+            'county_name': row.get('county_name', pd.NA),
+            'district_number': row.get('district_number', pd.NA),
+            'school_code': row.get('school_code', pd.NA),
+            'state_school_id': row.get('state_school_id', pd.NA),
+            'nces_id': row.get('nces_id', pd.NA),
+            'co_op': row.get('co_op', pd.NA),
+            'co_op_code': row.get('co_op_code', pd.NA),
+            'school_type': row.get('school_type', pd.NA),
             'suppressed': 'Y' if is_suppressed else 'N',
             'source_file': source_file,
             'last_updated': datetime.now().isoformat()
@@ -445,11 +458,9 @@ class BaseETL(ABC):
         
         # Create KPI DataFrame with consistent column order
         kpi_df = pd.DataFrame(kpi_rows)
-        kpi_columns = ['district', 'school_id', 'school_name', 'year', 'student_group', 
-                       'metric', 'value', 'suppressed', 'source_file', 'last_updated']
-        
+
         # Only include columns that exist
-        available_columns = [col for col in kpi_columns if col in kpi_df.columns]
+        available_columns = [col for col in KPI_COLUMNS if col in kpi_df.columns]
         kpi_df = kpi_df[available_columns]
         
         return kpi_df

@@ -17,7 +17,7 @@ All modules follow identical structural patterns:
 - `normalize_column_names()` - Column mapping dictionaries
 - `standardize_missing_values()` - Handle `*`, `**`, empty strings → `pd.NA`
 - `add_derived_fields()` - Add source_file, data_source metadata
-- `convert_to_kpi_format()` - Main transformation to 10-column format
+ - `convert_to_kpi_format()` - Main transformation to 19-column format
 - `transform()` - Main orchestrator with file discovery and processing
 
 ### 2. Configuration Pattern
@@ -43,8 +43,8 @@ All modules integrate DemographicMapper consistently:
 - Audit log generation and validation
 
 ### 5. KPI Format Generation
-All produce identical 10-column output:
-`district, school_id, school_name, year, student_group, metric, value, suppressed, source_file, last_updated`
+All produce identical 19-column output:
+`district, school_id, school_name, year, student_group, county_number, county_name, district_number, school_code, state_school_id, nces_id, co_op, co_op_code, school_type, metric, value, suppressed, source_file, last_updated`
 
 ### 6. File Processing Loops
 Similar patterns for:

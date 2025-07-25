@@ -114,7 +114,7 @@ class TestKindergartenReadinessETL:
         output_file = self.proc_dir / "kindergarten_readiness.csv"
         assert output_file.exists()
         df = pd.read_csv(output_file)
-        assert len(df.columns) == 10
+        assert len(df.columns) == 19
         assert len(df) == 23
         metrics = set(df["metric"].unique())
         expected = {

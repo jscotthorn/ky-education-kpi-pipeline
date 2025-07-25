@@ -98,7 +98,7 @@ assert school_ids == ['4001'] or school_ids == [4001]
 - **Processing speed**: Maintained efficiency across all modules
 
 ### ✅ Data Quality
-- **KPI format compliance**: All outputs maintain required 10-column format
+- **KPI format compliance**: All outputs maintain required 19-column format (previously 10 columns)
 - **Demographic standardization**: No regressions in mapping accuracy
 - **Suppression handling**: Enhanced for chronic absenteeism, preserved for others
 - **Metric naming**: Consistent conventions maintained

@@ -1,0 +1,22 @@
+"""Shared constants for KPI processing"""
+KPI_COLUMNS = [
+    "district",
+    "school_id",
+    "school_name",
+    "year",
+    "student_group",
+    "county_number",
+    "county_name",
+    "district_number",
+    "school_code",
+    "state_school_id",
+    "nces_id",
+    "co_op",
+    "co_op_code",
+    "school_type",
+    "metric",
+    "value",
+    "suppressed",
+    "source_file",
+    "last_updated",
+]

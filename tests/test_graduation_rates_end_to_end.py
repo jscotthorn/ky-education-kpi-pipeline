@@ -5,6 +5,7 @@ Tests that sample rows from each source file are correctly transformed to KPI fo
 import pytest
 import pandas as pd
 import numpy as np
+from etl.constants import KPI_COLUMNS
 from pathlib import Path
 from etl.graduation_rates import transform, GraduationRatesETL
 
@@ -172,8 +173,7 @@ class TestGraduationRatesDataQuality:
         kpi_df = pd.read_csv(processed_file)
         
         # Test required columns exist
-        required_columns = ['district', 'school_id', 'school_name', 'year', 
-                           'student_group', 'metric', 'value', 'suppressed', 'source_file', 'last_updated']
+        required_columns = KPI_COLUMNS
         
         for col in required_columns:
             assert col in kpi_df.columns, f"Required column '{col}' missing from KPI file"

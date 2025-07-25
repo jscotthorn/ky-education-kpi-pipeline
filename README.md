@@ -103,6 +103,15 @@ All ETL modules produce standardized **long format** KPI data:
 | `school_name` | School display name | `"Bryan Station High School"` |
 | `year` | Academic year (4-digit) | `2024` |
 | `student_group` | Standardized demographic | `"Hispanic or Latino"` |
+| `county_number` | KDE county number | `161` |
+| `county_name` | County name | `"Fayette"` |
+| `district_number` | KDE district number | `175` |
+| `school_code` | KDE school code | `020` |
+| `state_school_id` | State-assigned school ID | `"175020"` |
+| `nces_id` | NCES ID if available | `"210090000123"` |
+| `co_op` | Education cooperative | `pd.NA` |
+| `co_op_code` | Cooperative code | `pd.NA` |
+| `school_type` | School classification | `"High"` |
 | `metric` | KPI identifier | `"graduation_rate_4_year"` |
 | `value` | Numeric value (NaN if suppressed) | `85.2` |
 | `suppressed` | Privacy suppression flag | `"Y"` or `"N"` |
@@ -159,7 +168,7 @@ Browse and download data files at: **https://education.kyopengov.org/data/**
 - **⚙️ Processed Files** (`/processed/`) - Individual metric files ready for analysis with audit logs
 - **📁 Raw Data** (`/raw/`) - Original unmodified files from Kentucky Department of Education
 
-Each directory includes detailed descriptions, file metadata, and direct download links. All data follows the standardized 10-column KPI format with demographic breakdowns and suppression handling.
+Each directory includes detailed descriptions, file metadata, and direct download links. All datasets now follow a standardized **19-column** KPI format that captures detailed location context alongside demographic breakdowns and suppression handling.
 
 ## 📊 Available Data Sources
 

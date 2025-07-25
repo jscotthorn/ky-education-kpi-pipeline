@@ -23,6 +23,7 @@ from pathlib import Path
 import pandas as pd
 from typing import Dict, Any, Optional, Union
 import logging
+from .constants import KPI_COLUMNS
 try:
     from .base_etl import Config
 except ImportError:
@@ -335,6 +336,7 @@ def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[Demogra
         else:
             logger.warning("No derived rates were generated")
         
+        combined_df = combined_df.reindex(columns=KPI_COLUMNS)
         return combined_df
     else:
         logger.warning("No valid data found for KPI conversion")
@@ -470,17 +472,20 @@ def _process_rows_helper(
 
     final_df = pd.DataFrame(
         {
-            "district": kpi_df["district_name"]
-            if "district_name" in kpi_df.columns
-            else "Unknown",
-            "school_id": kpi_df["state_school_id"]
-            if "state_school_id" in kpi_df.columns
-            else kpi_df.get("nces_id", "Unknown"),
-            "school_name": kpi_df["school_name"]
-            if "school_name" in kpi_df.columns
-            else "Unknown",
+            "district": kpi_df.get("district_name", "Unknown"),
+            "school_id": kpi_df.get("state_school_id", kpi_df.get("nces_id", pd.NA)),
+            "school_name": kpi_df.get("school_name", "Unknown"),
             "year": kpi_df["year"],
             "student_group": kpi_df["student_group"],
+            "county_number": kpi_df.get("county_number", pd.NA),
+            "county_name": kpi_df.get("county_name", pd.NA),
+            "district_number": kpi_df.get("district_number", pd.NA),
+            "school_code": kpi_df.get("school_code", pd.NA),
+            "state_school_id": kpi_df.get("state_school_id", pd.NA),
+            "nces_id": kpi_df.get("nces_id", pd.NA),
+            "co_op": kpi_df.get("co_op", pd.NA),
+            "co_op_code": kpi_df.get("co_op_code", pd.NA),
+            "school_type": kpi_df.get("school_type", pd.NA),
             "metric": kpi_df["metric"],
             "value": kpi_df["value"],
             "suppressed": kpi_df["suppressed"],
@@ -488,6 +493,8 @@ def _process_rows_helper(
     )
 
     final_df = final_df[final_df["metric"].notna()]
+    # Ensure standard column ordering
+    final_df = final_df.reindex(columns=KPI_COLUMNS[:-2])
     return final_df
 
 
@@ -516,6 +523,7 @@ def _process_demographic_rows(
         return final_df
     final_df["source_file"] = source_file
     final_df["last_updated"] = datetime.now().isoformat()
+    final_df = final_df.reindex(columns=KPI_COLUMNS)
     return final_df
 
 
@@ -531,6 +539,7 @@ def _process_students_affected_rows(df: pd.DataFrame) -> pd.DataFrame:
         return final_df
     final_df["source_file"] = f"safe_schools_events_{data_source}_students_affected"
     final_df["last_updated"] = datetime.now().isoformat()
+    final_df = final_df.reindex(columns=KPI_COLUMNS)
     return final_df
 
 
@@ -546,6 +555,7 @@ def _process_total_events_rows(df: pd.DataFrame) -> pd.DataFrame:
         return final_df
     final_df["source_file"] = f"safe_schools_events_{data_source}_total_events"
     final_df["last_updated"] = datetime.now().isoformat()
+    final_df = final_df.reindex(columns=KPI_COLUMNS)
     return final_df
 
 
@@ -578,15 +588,24 @@ def _calculate_derived_rates(kpi_df: pd.DataFrame) -> pd.DataFrame:
     students_affected_df['base_metric'] = students_affected_df['metric'].str.replace('safe_students_affected_', '')
     total_events_df['base_metric'] = total_events_df['metric'].str.replace('safe_event_count_', '')
     
-    # Merge on key fields to calculate rates
+    # Merge on key fields to calculate rates and retain location columns
     merge_cols = ['district', 'school_id', 'school_name', 'year', 'base_metric']
-    
+    location_cols = [
+        'county_number', 'county_name', 'district_number', 'school_code',
+        'state_school_id', 'nces_id', 'co_op', 'co_op_code', 'school_type'
+    ]
+
     merged_df = pd.merge(
-        students_affected_df[merge_cols + ['value']].rename(columns={'value': 'students_affected'}),
-        total_events_df[merge_cols + ['value']].rename(columns={'value': 'total_events'}),
+        students_affected_df[merge_cols + location_cols + ['value']].rename(columns={'value': 'students_affected'}),
+        total_events_df[merge_cols + location_cols + ['value']].rename(columns={'value': 'total_events'}),
         on=merge_cols,
-        how='inner'
+        how='inner',
+        suffixes=('_sa', '_te')
     )
+
+    for col in location_cols:
+        merged_df[col] = merged_df[f"{col}_sa"].combine_first(merged_df[f"{col}_te"])
+        merged_df.drop(columns=[f"{col}_sa", f"{col}_te"], inplace=True)
     
     if merged_df.empty:
         logger.info("No matching data for rate calculation after merge")
@@ -616,16 +635,26 @@ def _calculate_derived_rates(kpi_df: pd.DataFrame) -> pd.DataFrame:
     # Create final rate records
     rate_records = pd.DataFrame({
         'district': valid_df['district'],
-        'school_id': valid_df['school_id'], 
+        'school_id': valid_df['school_id'],
         'school_name': valid_df['school_name'],
         'year': valid_df['year'],
         'student_group': 'All Students',
+        'county_number': valid_df['county_number'],
+        'county_name': valid_df['county_name'],
+        'district_number': valid_df['district_number'],
+        'school_code': valid_df['school_code'],
+        'state_school_id': valid_df['state_school_id'],
+        'nces_id': valid_df['nces_id'],
+        'co_op': valid_df['co_op'],
+        'co_op_code': valid_df['co_op_code'],
+        'school_type': valid_df['school_type'],
         'metric': 'safe_incident_rate_' + valid_df['base_metric'],
         'value': valid_df['incident_rate'],
         'suppressed': 'N',
         'source_file': 'derived_rates_' + valid_df['base_metric'],
         'last_updated': datetime.now().isoformat()
     })
+    rate_records = rate_records.reindex(columns=KPI_COLUMNS)
     
     logger.info(f"Generated {len(rate_records)} derived rate records")
     return rate_records
@@ -643,6 +672,7 @@ def _process_aggregate_rows(df: pd.DataFrame) -> pd.DataFrame:
         return final_df
     final_df["source_file"] = f"safe_schools_events_{data_source}_aggregate"
     final_df["last_updated"] = datetime.now().isoformat()
+    final_df = final_df.reindex(columns=KPI_COLUMNS)
     return final_df
 
 
@@ -730,7 +760,10 @@ def transform(raw_dir: str, proc_dir: str, config: Dict[str, Any]) -> str:
     # Combine all data
     if all_data:
         combined_df = pd.concat(all_data, ignore_index=True)
-        
+
+        # Ensure standard column order
+        combined_df = combined_df.reindex(columns=KPI_COLUMNS)
+
         # FIX: Ensure value column is numeric for etl_runner validation
         # Convert value column to numeric, this will properly handle suppressed records as NaN
         combined_df['value'] = pd.to_numeric(combined_df['value'], errors='coerce')
