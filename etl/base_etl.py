@@ -192,9 +192,11 @@ class BaseETL(ABC):
             DataFrame with standardized missing values
         """
         # Replace missing indicators with pandas NA
+        pd.set_option("future.no_silent_downcasting", True)
         for col in df.columns:
-            if df[col].dtype == 'object':
-                df[col] = df[col].replace(self.MISSING_VALUE_INDICATORS, pd.NA)
+            if df[col].dtype == "object":
+                result = df[col].replace(self.MISSING_VALUE_INDICATORS, pd.NA)
+                df[col] = result.infer_objects(copy=False)
         
         return df
     
@@ -479,8 +481,8 @@ class BaseETL(ABC):
             logger.info(f"Processing {csv_file.name}")
             
             try:
-                # Read CSV file
-                df = pd.read_csv(csv_file, encoding='utf-8-sig')
+                # Read CSV file as strings to avoid mixed-type warnings
+                df = pd.read_csv(csv_file, encoding='utf-8-sig', dtype=str, low_memory=False)
                 
                 # Skip if empty
                 if df.empty:
@@ -492,10 +494,21 @@ class BaseETL(ABC):
                 df = self.standardize_missing_values(df)
                 df = self.normalize_grade_field(df)
                 df = self.add_derived_fields(df, conf.derive, csv_file.name)
-                
+
                 # Apply configuration-based transformations
                 if conf.rename:
                     df = df.rename(columns=conf.rename)
+
+                # Enforce data types from configuration
+                if conf.dtype:
+                    for col, dtype in conf.dtype.items():
+                        if col in df.columns:
+                            try:
+                                if dtype.startswith('float') or dtype.startswith('int'):
+                                    df[col] = pd.to_numeric(df[col], errors='coerce')
+                                df[col] = df[col].astype(dtype)
+                            except Exception as e:
+                                logger.warning(f"Failed to convert column {col} to {dtype}: {e}")
                 
                 # Convert to KPI format
                 kpi_df = self.convert_to_kpi_format(df, csv_file.name)
