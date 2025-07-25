@@ -105,30 +105,30 @@ class KindergartenReadinessETL(BaseETL):
 
             if is_prior_all:
                 metrics[
-                    "kindergarten_ready_with_interventions_count_all_students"
+                    "kindergarten_ready_with_interventions_count"
                 ] = rwi
-                metrics["kindergarten_ready_count_all_students"] = r
+                metrics["kindergarten_ready_count"] = r
                 metrics[
-                    "kindergarten_ready_with_enrichments_count_all_students"
+                    "kindergarten_ready_with_enrichments_count"
                 ] = rwe
 
                 if total_tested > 0:
                     metrics[
-                        "kindergarten_ready_with_interventions_rate_all_students"
+                        "kindergarten_ready_with_interventions_rate"
                     ] = (rwi / total_tested) * 100
-                    metrics["kindergarten_ready_rate_all_students"] = (
+                    metrics["kindergarten_ready_rate"] = (
                         r / total_tested
                     ) * 100
                     metrics[
-                        "kindergarten_ready_with_enrichments_rate_all_students"
+                        "kindergarten_ready_with_enrichments_rate"
                     ] = (rwe / total_tested) * 100
 
                 if pd.notna(row.get("total_ready_count")):
                     ready = float(row["total_ready_count"])
-                    metrics["kindergarten_readiness_count_all_students"] = ready
-                    metrics["kindergarten_readiness_total_all_students"] = total_tested
+                    metrics["kindergarten_readiness_count"] = ready
+                    metrics["kindergarten_readiness_total"] = total_tested
                     if total_tested > 0:
-                        metrics["kindergarten_readiness_rate_all_students"] = (
+                        metrics["kindergarten_readiness_rate"] = (
                             ready / total_tested
                         ) * 100
 
@@ -139,9 +139,9 @@ class KindergartenReadinessETL(BaseETL):
                 and pd.notna(row.get("total_ready_count"))
             ):
                 ready = float(row["total_ready_count"])
-                metrics[f"kindergarten_{prior_slug}_count_all_students"] = ready
+                metrics[f"kindergarten_{prior_slug}_count"] = ready
                 if total_tested > 0:
-                    metrics[f"kindergarten_{prior_slug}_rate_all_students"] = (
+                    metrics[f"kindergarten_{prior_slug}_rate"] = (
                         ready / total_tested
                     ) * 100
             return metrics
@@ -155,11 +155,11 @@ class KindergartenReadinessETL(BaseETL):
             total = float(total)
 
         if is_prior_all and pd.notna(rate):
-            metrics["kindergarten_readiness_rate_all_students"] = float(rate)
+            metrics["kindergarten_readiness_rate"] = float(rate)
         if is_prior_all and pd.notna(total):
-            metrics["kindergarten_readiness_total_all_students"] = total
+            metrics["kindergarten_readiness_total"] = total
             if pd.notna(rate):
-                metrics["kindergarten_readiness_count_all_students"] = round(
+                metrics["kindergarten_readiness_count"] = round(
                     (float(rate) / 100) * total
                 )
 
@@ -170,8 +170,8 @@ class KindergartenReadinessETL(BaseETL):
             and pd.notna(total)
             and pd.notna(rate)
         ):
-            metrics[f"kindergarten_{prior_slug}_rate_all_students"] = float(rate)
-            metrics[f"kindergarten_{prior_slug}_count_all_students"] = round(
+            metrics[f"kindergarten_{prior_slug}_rate"] = float(rate)
+            metrics[f"kindergarten_{prior_slug}_count"] = round(
                 (float(rate) / 100) * total
             )
 
@@ -179,15 +179,15 @@ class KindergartenReadinessETL(BaseETL):
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         metrics = {
-            "kindergarten_readiness_rate_all_students": pd.NA,
-            "kindergarten_readiness_count_all_students": pd.NA,
-            "kindergarten_readiness_total_all_students": pd.NA,
-            "kindergarten_ready_with_interventions_count_all_students": pd.NA,
-            "kindergarten_ready_with_interventions_rate_all_students": pd.NA,
-            "kindergarten_ready_count_all_students": pd.NA,
-            "kindergarten_ready_rate_all_students": pd.NA,
-            "kindergarten_ready_with_enrichments_count_all_students": pd.NA,
-            "kindergarten_ready_with_enrichments_rate_all_students": pd.NA,
+            "kindergarten_readiness_rate": pd.NA,
+            "kindergarten_readiness_count": pd.NA,
+            "kindergarten_readiness_total": pd.NA,
+            "kindergarten_ready_with_interventions_count": pd.NA,
+            "kindergarten_ready_with_interventions_rate": pd.NA,
+            "kindergarten_ready_count": pd.NA,
+            "kindergarten_ready_rate": pd.NA,
+            "kindergarten_ready_with_enrichments_count": pd.NA,
+            "kindergarten_ready_with_enrichments_rate": pd.NA,
         }
 
         prior_setting = row.get("prior_setting")
@@ -197,8 +197,8 @@ class KindergartenReadinessETL(BaseETL):
             and str(prior_setting).strip().lower() != "all students"
         ):
             slug = _slugify(prior_setting)
-            metrics[f"kindergarten_{slug}_count_all_students"] = pd.NA
-            metrics[f"kindergarten_{slug}_rate_all_students"] = pd.NA
+            metrics[f"kindergarten_{slug}_count"] = pd.NA
+            metrics[f"kindergarten_{slug}_rate"] = pd.NA
 
         return metrics
 

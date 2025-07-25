@@ -56,17 +56,17 @@ class TestKindergartenReadinessEndToEnd:
         result = pd.read_csv(out_file)
         assert len(result) == 11
         assert set(result["metric"].unique()) == {
-            "kindergarten_ready_with_interventions_count_all_students",
-            "kindergarten_ready_count_all_students",
-            "kindergarten_ready_with_enrichments_count_all_students",
-            "kindergarten_ready_with_interventions_rate_all_students",
-            "kindergarten_ready_rate_all_students",
-            "kindergarten_ready_with_enrichments_rate_all_students",
-            "kindergarten_readiness_count_all_students",
-            "kindergarten_readiness_total_all_students",
-            "kindergarten_readiness_rate_all_students",
-            "kindergarten_child_care_count_all_students",
-            "kindergarten_child_care_rate_all_students",
+            "kindergarten_ready_with_interventions_count",
+            "kindergarten_ready_count",
+            "kindergarten_ready_with_enrichments_count",
+            "kindergarten_ready_with_interventions_rate",
+            "kindergarten_ready_rate",
+            "kindergarten_ready_with_enrichments_rate",
+            "kindergarten_readiness_count",
+            "kindergarten_readiness_total",
+            "kindergarten_readiness_rate",
+            "kindergarten_child_care_count",
+            "kindergarten_child_care_rate",
         }
 
     def test_end_to_end_multiple_files(self):
@@ -79,17 +79,17 @@ class TestKindergartenReadinessEndToEnd:
         assert len(result) == 14
         metrics = set(result["metric"].unique())
         expected = {
-            "kindergarten_ready_with_interventions_count_all_students",
-            "kindergarten_ready_count_all_students",
-            "kindergarten_ready_with_enrichments_count_all_students",
-            "kindergarten_ready_with_interventions_rate_all_students",
-            "kindergarten_ready_rate_all_students",
-            "kindergarten_ready_with_enrichments_rate_all_students",
-            "kindergarten_readiness_count_all_students",
-            "kindergarten_readiness_total_all_students",
-            "kindergarten_readiness_rate_all_students",
-            "kindergarten_child_care_count_all_students",
-            "kindergarten_child_care_rate_all_students",
+            "kindergarten_ready_with_interventions_count",
+            "kindergarten_ready_count",
+            "kindergarten_ready_with_enrichments_count",
+            "kindergarten_ready_with_interventions_rate",
+            "kindergarten_ready_rate",
+            "kindergarten_ready_with_enrichments_rate",
+            "kindergarten_readiness_count",
+            "kindergarten_readiness_total",
+            "kindergarten_readiness_rate",
+            "kindergarten_child_care_count",
+            "kindergarten_child_care_rate",
         }
         assert metrics == expected
 
