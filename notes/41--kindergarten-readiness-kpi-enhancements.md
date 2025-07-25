@@ -6,6 +6,8 @@
 ## Summary
 Implemented additional metrics in the kindergarten readiness pipeline. The ETL now exposes counts and rates for each readiness component and prior setting. Existing metrics were renamed with an `_all_students` suffix for clarity.
 
+To avoid duplicated KPI rows, all-students metrics are now emitted only when the prior setting column equals "All Students". Prior-setting metrics are generated exclusively for the "All Students" demographic rows.
+
 ### Final KPI Names
 - `kindergarten_ready_with_interventions_count_all_students` – number of students needing interventions
 - `kindergarten_ready_with_interventions_rate_all_students` – percent of students needing interventions

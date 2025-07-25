@@ -28,30 +28,30 @@ class TestKindergartenReadinessETL:
 
     def create_sample_counts_data(self):
         return pd.DataFrame({
-            "School Year": ["20232024", "20232024"],
-            "District Name": ["Fayette County", "Fayette County"],
-            "School Code": ["1001", "1002"],
-            "School Name": ["Test School A", "Test School B"],
-            "Demographic": ["All Students", "Female"],
-            "Ready With Interventions": [10, 5],
-            "Ready": [20, 10],
-            "Ready With Enrichments": [5, 3],
-            "Total Ready": [35, 18],
-            "Suppressed": ["N", "Y"],
-            "Prior Setting": ["Child Care", "Head Start"],
+            "School Year": ["20232024", "20232024", "20232024"],
+            "District Name": ["Fayette County", "Fayette County", "Fayette County"],
+            "School Code": ["1001", "1002", "1001"],
+            "School Name": ["Test School A", "Test School B", "Test School A"],
+            "Demographic": ["All Students", "Female", "All Students"],
+            "Ready With Interventions": [10, 5, 8],
+            "Ready": [20, 10, 15],
+            "Ready With Enrichments": [5, 3, 4],
+            "Total Ready": [35, 18, 27],
+            "Suppressed": ["N", "Y", "N"],
+            "Prior Setting": ["All Students", "All Students", "Child Care"],
         })
 
     def create_sample_percent_data(self):
         return pd.DataFrame({
-            "SCHOOL YEAR": ["20212022", "20212022"],
-            "DISTRICT NAME": ["Fayette County", "Fayette County"],
-            "SCHOOL CODE": ["1001", "1001"],
-            "SCHOOL NAME": ["Test School A", "Test School A"],
-            "DEMOGRAPHIC": ["All Students", "Female"],
-            "TOTAL PERCENT READY": [55.0, 60.0],
-            "NUMBER TESTED": [100, 50],
-            "SUPPRESSED": ["N", "N"],
-            "Prior Setting": ["Child Care", "Child Care"],
+            "SCHOOL YEAR": ["20212022"],
+            "DISTRICT NAME": ["Fayette County"],
+            "SCHOOL CODE": ["1001"],
+            "SCHOOL NAME": ["Test School A"],
+            "DEMOGRAPHIC": ["All Students"],
+            "TOTAL PERCENT READY": [55.0],
+            "NUMBER TESTED": [100],
+            "SUPPRESSED": ["N"],
+            "Prior Setting": ["All Students"],
         })
 
     def test_normalize_column_names(self):
@@ -91,8 +91,6 @@ class TestKindergartenReadinessETL:
             "kindergarten_ready_rate_all_students",
             "kindergarten_ready_with_enrichments_count_all_students",
             "kindergarten_ready_with_enrichments_rate_all_students",
-            "kindergarten_child_care_count_all_students",
-            "kindergarten_child_care_rate_all_students",
         }
         assert set(metrics.keys()) == expected
 
@@ -105,8 +103,6 @@ class TestKindergartenReadinessETL:
         assert metrics["kindergarten_readiness_rate_all_students"] == 55.0
         assert metrics["kindergarten_readiness_total_all_students"] == 100
         assert metrics["kindergarten_readiness_count_all_students"] == 55
-        assert metrics["kindergarten_child_care_rate_all_students"] == 55.0
-        assert metrics["kindergarten_child_care_count_all_students"] == 55
 
     def test_full_transform_pipeline(self):
         counts = self.create_sample_counts_data()
@@ -119,9 +115,20 @@ class TestKindergartenReadinessETL:
         assert output_file.exists()
         df = pd.read_csv(output_file)
         assert len(df.columns) == 10
-        metrics = df["metric"].unique()
-        assert "kindergarten_readiness_rate_all_students" in metrics
-        assert "kindergarten_readiness_count_all_students" in metrics
-        assert "kindergarten_readiness_total_all_students" in metrics
-        assert "kindergarten_ready_with_interventions_count_all_students" in metrics
+        assert len(df) == 23
+        metrics = set(df["metric"].unique())
+        expected = {
+            "kindergarten_ready_with_interventions_count_all_students",
+            "kindergarten_ready_count_all_students",
+            "kindergarten_ready_with_enrichments_count_all_students",
+            "kindergarten_ready_with_interventions_rate_all_students",
+            "kindergarten_ready_rate_all_students",
+            "kindergarten_ready_with_enrichments_rate_all_students",
+            "kindergarten_readiness_count_all_students",
+            "kindergarten_readiness_total_all_students",
+            "kindergarten_readiness_rate_all_students",
+            "kindergarten_child_care_count_all_students",
+            "kindergarten_child_care_rate_all_students",
+        }
+        assert metrics == expected
 

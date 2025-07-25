@@ -21,17 +21,17 @@ class TestKindergartenReadinessEndToEnd:
 
     def create_counts_data(self):
         return pd.DataFrame({
-            "School Year": ["20232024"],
-            "District Name": ["Fayette County"],
-            "School Code": ["1001"],
-            "School Name": ["Test School"],
-            "Demographic": ["All Students"],
-            "Ready With Interventions": [10],
-            "Ready": [20],
-            "Ready With Enrichments": [5],
-            "Total Ready": [35],
-            "Suppressed": ["N"],
-            "Prior Setting": ["Child Care"],
+            "School Year": ["20232024", "20232024"],
+            "District Name": ["Fayette County", "Fayette County"],
+            "School Code": ["1001", "1001"],
+            "School Name": ["Test School", "Test School"],
+            "Demographic": ["All Students", "All Students"],
+            "Ready With Interventions": [10, 8],
+            "Ready": [20, 15],
+            "Ready With Enrichments": [5, 4],
+            "Total Ready": [35, 27],
+            "Suppressed": ["N", "N"],
+            "Prior Setting": ["All Students", "Child Care"],
         })
 
     def create_percent_data(self):
@@ -44,7 +44,7 @@ class TestKindergartenReadinessEndToEnd:
             "TOTAL PERCENT READY": [55.0],
             "NUMBER TESTED": [100],
             "SUPPRESSED": ["N"],
-            "Prior Setting": ["Child Care"],
+            "Prior Setting": ["All Students"],
         })
 
     def test_end_to_end_single_file(self):
@@ -76,8 +76,20 @@ class TestKindergartenReadinessEndToEnd:
         out_file = self.proc_dir / "kindergarten_readiness.csv"
         assert out_file.exists()
         result = pd.read_csv(out_file)
-        metrics = result["metric"].unique()
-        assert "kindergarten_readiness_rate_all_students" in metrics
-        assert "kindergarten_readiness_count_all_students" in metrics
-        assert "kindergarten_readiness_total_all_students" in metrics
+        assert len(result) == 14
+        metrics = set(result["metric"].unique())
+        expected = {
+            "kindergarten_ready_with_interventions_count_all_students",
+            "kindergarten_ready_count_all_students",
+            "kindergarten_ready_with_enrichments_count_all_students",
+            "kindergarten_ready_with_interventions_rate_all_students",
+            "kindergarten_ready_rate_all_students",
+            "kindergarten_ready_with_enrichments_rate_all_students",
+            "kindergarten_readiness_count_all_students",
+            "kindergarten_readiness_total_all_students",
+            "kindergarten_readiness_rate_all_students",
+            "kindergarten_child_care_count_all_students",
+            "kindergarten_child_care_rate_all_students",
+        }
+        assert metrics == expected
 
