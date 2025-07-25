@@ -70,34 +70,34 @@ class PostsecondaryEnrollmentETL(BaseETL):
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics = {}
-        metrics["postsecondary_enrollment_total_cohort"] = row.get("total_in_group")
-        metrics["postsecondary_enrollment_public_count"] = row.get(
+        metrics["postsecondary_enrollment_total_in_cohort"] = row.get("total_in_group")
+        metrics["postsecondary_enrollment_public_ky_college_count"] = row.get(
             "public_college_enrolled"
         )
-        metrics["postsecondary_enrollment_private_count"] = row.get(
+        metrics["postsecondary_enrollment_private_ky_college_count"] = row.get(
             "private_college_enrolled"
         )
-        metrics["postsecondary_enrollment_total_count"] = row.get(
+        metrics["postsecondary_enrollment_total_ky_college_count"] = row.get(
             "college_enrolled_total"
         )
-        metrics["postsecondary_enrollment_public_rate"] = row.get("public_college_rate")
-        metrics["postsecondary_enrollment_private_rate"] = row.get(
+        metrics["postsecondary_enrollment_public_ky_college_rate"] = row.get("public_college_rate")
+        metrics["postsecondary_enrollment_private_ky_college_rate"] = row.get(
             "private_college_rate"
         )
-        metrics["postsecondary_enrollment_total_rate"] = row.get(
+        metrics["postsecondary_enrollment_total_ky_college_rate"] = row.get(
             "college_enrollment_rate"
         )
         return metrics
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         return {
-            "postsecondary_enrollment_total_cohort": pd.NA,
-            "postsecondary_enrollment_public_count": pd.NA,
-            "postsecondary_enrollment_private_count": pd.NA,
-            "postsecondary_enrollment_total_count": pd.NA,
-            "postsecondary_enrollment_public_rate": pd.NA,
-            "postsecondary_enrollment_private_rate": pd.NA,
-            "postsecondary_enrollment_total_rate": pd.NA,
+            "postsecondary_enrollment_total_in_cohort": pd.NA,
+            "postsecondary_enrollment_public_ky_college_count": pd.NA,
+            "postsecondary_enrollment_private_ky_college_count": pd.NA,
+            "postsecondary_enrollment_total_ky_college_count": pd.NA,
+            "postsecondary_enrollment_public_ky_college_rate": pd.NA,
+            "postsecondary_enrollment_private_ky_college_rate": pd.NA,
+            "postsecondary_enrollment_total_ky_college_rate": pd.NA,
         }
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:

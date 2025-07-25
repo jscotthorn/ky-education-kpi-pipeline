@@ -62,7 +62,7 @@ class TestPostsecondaryEnrollmentETL:
         df["source_file"] = "test.csv"
         kpi = self.etl.convert_to_kpi_format(df, "test.csv")
         metrics = set(kpi["metric"].unique())
-        assert "postsecondary_enrollment_total_rate" in metrics
+        assert "postsecondary_enrollment_total_ky_college_rate" in metrics
         assert len(kpi) == 7
 
     def test_transform_integration(self):
