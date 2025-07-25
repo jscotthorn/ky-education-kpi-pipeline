@@ -31,10 +31,10 @@ All education data files (both raw and processed) are available through the Kent
 ## 📊 Data Format Standards
 
 All processed data follows the **standardized 19-column KPI format**:
-`district`, `school_id`, `school_name`, `year`, `student_group`,
-`county_number`, `county_name`, `district_number`, `school_code`,
-`state_school_id`, `nces_id`, `co_op`, `co_op_code`, `school_type`,
-`metric`, `value`, `suppressed`, `source_file`, `last_updated`
+`year`, `metric`, `district`, `school_name`, `student_group`,
+`value`, `suppressed`, `county_number`, `county_name`, `district_number`,
+`school_id`, `school_code`, `state_school_id`, `nces_id`,
+`co_op`, `co_op_code`, `school_type`, `source_file`, `last_updated`
 
 ## 🏛️ About the Portal
 

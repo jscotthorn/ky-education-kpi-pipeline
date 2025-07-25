@@ -98,23 +98,23 @@ All ETL modules produce standardized **long format** KPI data:
 
 | Column | Description | Example |
 |--------|-------------|---------|
-| `district` | District name | `"Jefferson County"` |
-| `school_id` | Unique school identifier | `"210090000123"` |
-| `school_name` | School display name | `"Bryan Station High School"` |
 | `year` | Academic year (4-digit) | `2024` |
+| `metric` | KPI identifier | `"graduation_rate_4_year"` |
+| `district` | District name | `"Jefferson County"` |
+| `school_name` | School display name | `"Bryan Station High School"` |
 | `student_group` | Standardized demographic | `"Hispanic or Latino"` |
+| `value` | Numeric value (NaN if suppressed) | `85.2` |
+| `suppressed` | Privacy suppression flag | `"Y"` or `"N"` |
 | `county_number` | KDE county number | `161` |
 | `county_name` | County name | `"Fayette"` |
 | `district_number` | KDE district number | `175` |
+| `school_id` | Unique school identifier | `"210090000123"` |
 | `school_code` | KDE school code | `020` |
 | `state_school_id` | State-assigned school ID | `"175020"` |
 | `nces_id` | NCES ID if available | `"210090000123"` |
 | `co_op` | Education cooperative | `pd.NA` |
 | `co_op_code` | Cooperative code | `pd.NA` |
 | `school_type` | School classification | `"High"` |
-| `metric` | KPI identifier | `"graduation_rate_4_year"` |
-| `value` | Numeric value (NaN if suppressed) | `85.2` |
-| `suppressed` | Privacy suppression flag | `"Y"` or `"N"` |
 | `source_file` | Data provenance | `"graduation_rates.csv"` |
 | `last_updated` | Processing timestamp | `"2025-07-19T10:30:00"` |
 

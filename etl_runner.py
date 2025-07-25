@@ -162,8 +162,22 @@ def combine_kpi_files(
     if existing_sort_columns:
         master_df = master_df.sort_values(existing_sort_columns).reset_index(drop=True)
 
+    # Cast identifier columns to integers when possible for consistent output
+    id_columns = [
+        "school_id",
+        "district_number",
+        "county_number",
+        "state_school_id",
+        "nces_id",
+        "year",
+    ]
+    for col in id_columns:
+        if col in master_df.columns:
+            master_df[col] = pd.to_numeric(master_df[col], errors="ignore")
+
     # Write master KPI file
-    master_df.to_csv(output_csv_path, index=False)
+    import csv
+    master_df.to_csv(output_csv_path, index=False, quoting=csv.QUOTE_NONNUMERIC)
     
     # Try to write parquet if pyarrow is available
     try:
