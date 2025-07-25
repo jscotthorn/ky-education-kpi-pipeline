@@ -236,6 +236,7 @@ See [CLAUDE.md](./CLAUDE.md) for AI assistant usage patterns and workflows.
 - **Comprehensive Testing**: Full test coverage with validation checks
 - **Documentation**: Detailed journal entries tracking all changes
 - **S3-based data hosting** for public access
+- **Type Enforcement**: Uses `config/mappings.yaml` to enforce column dtypes
 
 ## 🎯 Future Roadmap
 

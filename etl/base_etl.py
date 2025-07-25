@@ -192,9 +192,11 @@ class BaseETL(ABC):
             DataFrame with standardized missing values
         """
         # Replace missing indicators with pandas NA
+        pd.set_option("future.no_silent_downcasting", True)
         for col in df.columns:
-            if df[col].dtype == 'object':
-                df[col] = df[col].replace(self.MISSING_VALUE_INDICATORS, pd.NA)
+            if df[col].dtype == "object":
+                result = df[col].replace(self.MISSING_VALUE_INDICATORS, pd.NA)
+                df[col] = result.infer_objects(copy=False)
         
         return df
     
