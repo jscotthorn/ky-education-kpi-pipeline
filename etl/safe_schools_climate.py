@@ -2,8 +2,9 @@
 Safe Schools Climate ETL Module
 
 Handles Kentucky safe schools climate and safety data:
-- Precautionary measures/safety policy compliance data (2024)
-- Quality of school climate and safety survey index scores (2021-2023)
+- Direct climate and safety index scores (2024)
+- Precautionary measures/safety policy compliance data (2020-2024)
+- Accountability profile climate/safety indicators (2020-2023)
 
 Generates metrics:
 - climate_index_score: School climate perception index (0-100)
@@ -95,13 +96,20 @@ class SafeSchoolsClimateETL(BaseETL):
             'Safety Index': 'safety_index',
             # Survey results columns
             'Question Type': 'question_type',
+            'QUESTION TYPE': 'question_type', 
             'Question': 'question_text',
+            'QUESTION': 'question_text',
             'Question Index': 'question_index',
+            'QUESTION INDEX': 'question_index',
+            'Question Number': 'question_number',
+            'QUESTION NUMBER': 'question_number',
             'Agree / Strongly Agree': 'agree_strongly_agree_pct',
             # Accountability profile columns
             'QUALITY OF SCHOOL CLIMATE AND SAFETY STATUS': 'climate_safety_status',
             'QUALITY OF SCHOOL CLIMATE AND SAFETY STATUS RATING': 'climate_safety_rating',
             'QUALITY OF SCHOOL CLIMATE AND SAFETY COMBINED INDICATOR RATE': 'climate_safety_combined_rate',
+            'QUALITY OF SCHOOL CLIMATE AND SAFETY INDICATOR RATE': 'climate_safety_combined_rate',
+            'QUALITY OF SCHOOL CLIMATE AND SAFETY INDICATOR RATING': 'climate_safety_rating',
         }
     
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
@@ -136,11 +144,16 @@ class SafeSchoolsClimateETL(BaseETL):
         
         # Check if this is survey results data with question index
         if 'question_type' in row and 'question_index' in row:
-            question_type = str(row.get('question_type', '')).lower()
-            if question_type == 'climate':
-                metrics['climate_index_score'] = row.get('question_index', pd.NA)
-            elif question_type == 'safety':
-                metrics['safety_index_score'] = row.get('question_index', pd.NA)
+            question_type = str(row.get('question_type', '')).upper().strip()
+            question_index = row.get('question_index', pd.NA)
+            
+            # Handle single letter codes: S=Safety, C=Climate
+            if question_type in ['C', 'CLIMATE']:
+                if pd.notna(question_index):
+                    metrics['climate_index_score'] = question_index
+            elif question_type in ['S', 'SAFETY']:
+                if pd.notna(question_index):
+                    metrics['safety_index_score'] = question_index
         
         # Check if this is accountability profile data
         if 'climate_safety_combined_rate' in row and pd.notna(row.get('climate_safety_combined_rate')):
@@ -189,8 +202,22 @@ class SafeSchoolsClimateETL(BaseETL):
         file_type = self.identify_file_type(file_path)
         logger.info(f"Processing {file_type} file: {file_path.name}")
         
-        # Read the file
-        df = pd.read_csv(file_path, encoding='utf-8-sig')
+        # Check for empty file
+        if file_path.stat().st_size == 0:
+            logger.warning(f"Empty file (0 bytes): {file_path.name}")
+            return pd.DataFrame()
+        
+        # Read the file with proper options to avoid warnings and handle large files
+        try:
+            df = pd.read_csv(file_path, encoding='utf-8-sig', low_memory=False, dtype=str)
+        except pd.errors.EmptyDataError:
+            logger.warning(f"No data found in file: {file_path.name}")
+            return pd.DataFrame()
+        
+        # Skip if empty DataFrame
+        if df.empty:
+            logger.warning(f"Empty DataFrame: {file_path.name}")
+            return pd.DataFrame()
         
         # Apply column mappings
         df = self.normalize_column_names(df)
@@ -272,11 +299,10 @@ class SafeSchoolsClimateETL(BaseETL):
         # Define file patterns to process
         patterns = [
             'KYRC24_ACCT_Index_Scores.csv',
-            'KYRC24_ACCT_Survey_Results.csv', 
             'KYRC24_SAFE_Precautionary_Measures.csv',
-            'accountability_profile_*.csv',
-            'precautionary_measures_*.csv',
-            'quality_of_school_climate_and_safety_survey_*.csv'
+            'accountability_profile_2022.csv',  # Climate data only available 2022+
+            'accountability_profile_2023.csv', 
+            'precautionary_measures_*.csv'
         ]
         
         # Find all matching files
@@ -293,31 +319,55 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Process safe schools climate data using BaseETL."""
     etl = SafeSchoolsClimateETL('safe_schools_climate')
     
-    # Override the default transform to use only specific files
+    # Use custom file selection instead of BaseETL's automatic CSV discovery
     source_dir = raw_dir / etl.source_name
-    
     if not source_dir.exists():
         logger.info(f"No raw data directory for {etl.source_name}; skipping.")
         return
     
-    # Get only the files we want to process
+    # Get files using our custom method
     csv_files = etl.get_files_to_process(raw_dir)
-    
     if not csv_files:
-        logger.info(f"No files to process for {etl.source_name}")
+        logger.info(f"No relevant files found for {etl.source_name}; skipping.")
         return
     
-    # Process the files
-    combined_df = etl.process_files(csv_files)
+    # Process files using the SafeSchoolsClimateETL logic
+    result_df = etl.process_files(csv_files)
     
-    if combined_df.empty:
-        logger.warning("No data processed")
-        return
-    
-    # Save to processed directory
-    output_file = proc_dir / f"{etl.source_name}_kpi.csv"
-    combined_df.to_csv(output_file, index=False)
-    logger.info(f"Saved {len(combined_df)} records to {output_file}")
+    if not result_df.empty:
+        # Save results
+        output_file = proc_dir / f"{etl.source_name}.csv"
+        result_df.to_csv(output_file, index=False)
+        logger.info(f"KPI data written to {output_file}")
+        
+        # Generate demographic report
+        report_file = proc_dir / f"{etl.source_name}_demographic_report.md"
+        etl.demographic_mapper.save_audit_report(report_file)
+        logger.info(f"Demographic report written to {report_file}")
+        
+        # Log summary statistics
+        logger.info(f"Total KPI rows: {len(result_df)}, Total columns: {len(result_df.columns)}")
+        
+        if 'value' in result_df.columns:
+            numeric_values = pd.to_numeric(result_df['value'], errors='coerce')
+            valid_values = numeric_values.dropna()
+            if len(valid_values) > 0:
+                logger.info(f"KPI value range: {valid_values.min()} - {valid_values.max()}")
+        
+        if 'metric' in result_df.columns:
+            metric_counts = result_df['metric'].value_counts()
+            logger.info(f"Metrics created: {metric_counts.to_dict()}")
+        
+        if 'student_group' in result_df.columns:
+            demo_counts = result_df['student_group'].value_counts().head(10)
+            logger.info(f"Top 10 demographics: {demo_counts.to_dict()}")
+        
+        logger.info(f"Completed processing for {etl.source_name}")
+        
+        print(f"Wrote {output_file}")
+        print(f"Demographic report: {report_file}")
+    else:
+        logger.warning(f"No KPI data generated for {etl.source_name}")
 
 
 if __name__ == "__main__":

@@ -484,12 +484,17 @@ class BaseETL(ABC):
             logger.info(f"Processing {csv_file.name}")
             
             try:
-                # Read CSV file as strings to avoid mixed-type warnings
+                # Check if file is empty before attempting to read
+                if csv_file.stat().st_size == 0:
+                    logger.warning(f"Empty file (0 bytes): {csv_file.name}")
+                    continue
+                
+                # Read CSV file as strings to avoid mixed-type warnings and handle large files
                 df = pd.read_csv(csv_file, encoding='utf-8-sig', dtype=str, low_memory=False)
                 
-                # Skip if empty
+                # Skip if empty DataFrame
                 if df.empty:
-                    logger.warning(f"Empty file: {csv_file.name}")
+                    logger.warning(f"Empty DataFrame: {csv_file.name}")
                     continue
                 
                 # Apply standard transformations
@@ -507,7 +512,10 @@ class BaseETL(ABC):
                     for col, dtype in conf.dtype.items():
                         if col in df.columns:
                             try:
-                                if dtype.startswith('float') or dtype.startswith('int'):
+                                # Handle numeric types (float, int, and nullable Int64)
+                                if (dtype.lower().startswith('float') or 
+                                    dtype.lower().startswith('int') or 
+                                    dtype in ['Int64', 'Int32', 'Float64']):
                                     df[col] = pd.to_numeric(df[col], errors='coerce')
                                 df[col] = df[col].astype(dtype)
                             except Exception as e:

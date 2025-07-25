@@ -19,8 +19,8 @@ class TestPostsecondaryReadinessEndToEnd:
     def test_source_to_kpi_transformation(self):
         """Test that 10 random rows from each source file are correctly represented in processed file."""
         # Paths to actual data files
-        raw_data_dir = Path("/Users/scott/Projects/equity-etl/data/raw/postsecondary_readiness")
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        raw_data_dir = Path("data/raw/postsecondary_readiness")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         # Ensure processed file exists
         if not processed_file.exists():
@@ -167,7 +167,7 @@ class TestPostsecondaryReadinessDataQuality:
     
     def test_kpi_format_compliance(self):
         """Test that processed file follows KPI format requirements."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -228,7 +228,7 @@ class TestPostsecondaryReadinessDataQuality:
     
     def test_metric_coverage(self):
         """Test that expected metrics are present."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -276,7 +276,7 @@ class TestPostsecondaryReadinessDataQuality:
     
     def test_source_file_tracking(self):
         """Test that source file tracking is working correctly."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -299,7 +299,7 @@ class TestPostsecondaryReadinessDataQuality:
     
     def test_student_group_consistency(self):
         """Test that student groups are consistently named."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -323,7 +323,7 @@ class TestPostsecondaryReadinessDataQuality:
     
     def test_year_coverage(self):
         """Test that expected years are present."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -362,7 +362,7 @@ class TestPostsecondaryReadinessAdvanced:
     
     def test_bonus_rate_enhancement_validation(self):
         """Test that bonus rates are properly enhanced and can exceed 100%."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -416,7 +416,7 @@ class TestPostsecondaryReadinessAdvanced:
     
     def test_school_id_consistency_validation(self):
         """Test that school IDs are consistently formatted and used."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -445,7 +445,7 @@ class TestPostsecondaryReadinessAdvanced:
     
     def test_suppressed_record_retention_detailed(self):
         """Detailed test of suppressed record handling to prevent regression."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")

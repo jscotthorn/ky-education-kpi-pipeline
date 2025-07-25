@@ -12,10 +12,10 @@ sources:
       school_year: "str"
       graduation_rate_4_year: "float64"
       graduation_rate_5_year: "float64"
-      grads_4_year_cohort: "int64"
-      students_4_year_cohort: "int64"
-      grads_5_year_cohort: "int64"
-      students_5_year_cohort: "int64"
+      grads_4_year_cohort: "Int64"
+      students_4_year_cohort: "Int64"
+      grads_5_year_cohort: "Int64"
+      students_5_year_cohort: "Int64"
     derive:
       processing_date: "2025-07-18"
       data_quality_flag: "reviewed"
@@ -29,7 +29,7 @@ sources:
       school_number: "str"
       school_year: "str"
       total_percent_ready: "float64"
-      number_tested: "int64"
+      number_tested: "Int64"
     derive:
       processing_date: "2025-07-18"
 
@@ -37,8 +37,10 @@ sources:
   postsecondary_enrollment: {}
   postsecondary_readiness: {}
   safe_schools_events: {}
-  safe_schools_climate:
+  safe_schools_climate: {}
   safe_schools_discipline: {}
+  kentucky_summative_assessment: {}
+  cte_participation: {}
       
 # Example configuration for field mappings and transformations
 # Add new sources here as they are onboarded

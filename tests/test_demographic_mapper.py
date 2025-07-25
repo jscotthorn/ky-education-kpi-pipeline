@@ -174,7 +174,7 @@ class TestDemographicMapperIntegration:
     
     def test_graduation_rates_mapping(self):
         """Test that graduation rates pipeline uses demographic mapping correctly."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+        processed_file = Path("data/processed/graduation_rates.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed graduation_rates.csv not found. Run ETL pipeline first.")
@@ -203,7 +203,7 @@ class TestDemographicMapperIntegration:
     
     def test_audit_file_exists(self):
         """Test that demographic audit file is created."""
-        audit_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates_demographic_report.md")
+        audit_file = Path("data/processed/graduation_rates_demographic_report.md")
         
         if not audit_file.exists():
             pytest.skip("Demographic report not found. Run ETL pipeline first.")

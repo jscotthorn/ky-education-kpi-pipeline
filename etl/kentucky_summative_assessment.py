@@ -22,6 +22,43 @@ class Config(BaseModel):
 
 class KentuckySummativeAssessmentETL(BaseETL):
     """ETL for processing Kentucky Summative Assessment data."""
+    
+    def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """Optimized KPI conversion for large KSA datasets."""
+        if df.empty:
+            return pd.DataFrame()
+        
+        logger.info(f"Converting {len(df)} rows to KPI format using chunked processing")
+        
+        # Process in chunks to manage memory usage
+        chunk_size = 50000  # Process 50K rows at a time for better performance
+        kpi_chunks = []
+        
+        import time
+        start_time = time.time()
+        
+        for chunk_idx, start_idx in enumerate(range(0, len(df), chunk_size)):
+            end_idx = min(start_idx + chunk_size, len(df))
+            chunk_df = df.iloc[start_idx:end_idx].copy()
+            
+            chunk_start = time.time()
+            logger.info(f"Processing chunk {chunk_idx + 1}: rows {start_idx:,} to {end_idx:,}")
+            
+            # Use parent class method for this chunk
+            chunk_kpi = super().convert_to_kpi_format(chunk_df, source_file)
+            
+            if not chunk_kpi.empty:
+                kpi_chunks.append(chunk_kpi)
+            
+            chunk_time = time.time() - chunk_start
+            logger.info(f"Chunk {chunk_idx + 1} completed in {chunk_time:.1f}s, created {len(chunk_kpi):,} KPI rows")
+        
+        if kpi_chunks:
+            result = pd.concat(kpi_chunks, ignore_index=True)
+            logger.info(f"Generated {len(result):,} KPI rows from {len(df):,} input rows")
+            return result
+        else:
+            return pd.DataFrame()
 
     @property
     def module_column_mappings(self) -> Dict[str, str]:
@@ -157,23 +194,34 @@ class KentuckySummativeAssessmentETL(BaseETL):
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         df = super().standardize_missing_values(df)
-        numeric_cols = [
+        # Percentage columns (0-100 range)
+        percentage_cols = [
             'novice',
             'apprentice',
             'proficient',
             'distinguished',
             'proficient_distinguished',
-            'content_index',
         ]
-        for col in numeric_cols:
+        for col in percentage_cols:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
                 invalid = (df[col] < 0) | (df[col] > 100)
                 if invalid.any():
                     logger.warning(
-                        f'Found {invalid.sum()} invalid values in {col}'
+                        f'Found {invalid.sum()} invalid percentage values in {col}'
                     )
                     df.loc[invalid, col] = pd.NA
+        
+        # Content index column (scale score, not percentage - can exceed 100)
+        if 'content_index' in df.columns:
+            df['content_index'] = pd.to_numeric(df['content_index'], errors='coerce')
+            # Only validate for negative values (scale scores should be positive)
+            invalid = df['content_index'] < 0
+            if invalid.any():
+                logger.warning(
+                    f'Found {invalid.sum()} invalid content index values (negative scores)'
+                )
+                df.loc[invalid, 'content_index'] = pd.NA
         return df
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

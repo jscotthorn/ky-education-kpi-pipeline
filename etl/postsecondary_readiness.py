@@ -37,11 +37,19 @@ def clean_readiness_data(df: pd.DataFrame) -> pd.DataFrame:
             # Convert to numeric, errors='coerce' will make invalid values NaN
             df[col] = pd.to_numeric(df[col], errors='coerce')
             
-            # Validate rates are between 0 and 100
-            invalid_mask = (df[col] < 0) | (df[col] > 100)
-            if invalid_mask.any():
-                logger.warning(f"Found {invalid_mask.sum()} invalid readiness rates in {col}")
-                df.loc[invalid_mask, col] = pd.NA
+            # Different validation rules for different rate types
+            if 'with_bonus' in col.lower():
+                # Bonus rates can exceed 100% but should be reasonable (0-150%)
+                invalid_mask = (df[col] < 0) | (df[col] > 150)
+                if invalid_mask.any():
+                    logger.warning(f"Found {invalid_mask.sum()} invalid bonus readiness rates in {col} (outside 0-150%)")
+                    df.loc[invalid_mask, col] = pd.NA
+            else:
+                # Standard rates should be between 0 and 100%
+                invalid_mask = (df[col] < 0) | (df[col] > 100)
+                if invalid_mask.any():
+                    logger.warning(f"Found {invalid_mask.sum()} invalid readiness rates in {col} (outside 0-100%)")
+                    df.loc[invalid_mask, col] = pd.NA
     
     return df
 

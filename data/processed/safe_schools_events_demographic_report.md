@@ -1,33 +1,33 @@
 # Demographic Mapping Summary
 
 ## Files Processed
-- KYRC24_ACCT_4_Year_High_School_Graduation.csv
-- graduation_rate_2020.csv
-- graduation_rate_2021.csv
-- graduation_rate_2022.csv
-- graduation_rate_2023.csv
+- safe_schools_events_historical_event_details
+- safe_schools_events_historical_events_by_grade
+- safe_schools_events_kyrc24_events_by_context
+- safe_schools_events_kyrc24_events_by_location
+- safe_schools_events_kyrc24_events_by_type
 
 ## Mapping Types
-- standard: 41227
-- year_specific: 1588
+- standard: 315720
+- general: 12652
 
 ## Validation Summary
 ### Year 2024
-- Found demographics: 24
+- Found demographics: 18
 - Missing optional: Alternate Assessment, Consolidated Student Group, Non Economically Disadvantaged, Non English Learner, Student without Disabilities (IEP)
 
-### Year 2021
-- Found demographics: 21
+### Year 2020
+- Found demographics: 18
 - Missing optional: Alternate Assessment, Consolidated Student Group
 
-### Year 2020
-- Found demographics: 19
+### Year 2021
+- Found demographics: 18
 - Missing optional: Alternate Assessment, Consolidated Student Group
 
 ### Year 2022
-- Found demographics: 22
+- Found demographics: 18
 - Missing optional: Alternate Assessment, Consolidated Student Group
 
 ### Year 2023
-- Found demographics: 22
+- Found demographics: 18
 - Missing optional: Alternate Assessment, Consolidated Student Group

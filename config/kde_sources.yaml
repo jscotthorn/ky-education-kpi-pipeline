@@ -94,7 +94,6 @@ raw_directories:
 
   safe_schools_climate:
     - "KYRC24_ACCT_Index_Scores.csv"
-    - "KYRC24_ACCT_Survey_Results.csv"
     - "KYRC24_SAFE_Precautionary_Measures.csv"
     - "accountability_profile_2023.csv"
     - "accountability_profile_2022.csv"
@@ -104,17 +103,6 @@ raw_directories:
     - "precautionary_measures_2022.csv"
     - "precautionary_measures_2021.csv"
     - "precautionary_measures_2020.csv"
-    - "quality_of_school_climate_and_safety_survey_elementary_school_2023.csv"
-    - "quality_of_school_climate_and_safety_survey_elementary_school_2022.csv"
-    - "quality_of_school_climate_and_safety_survey_elementary_school_2021.csv"
-    - "quality_of_school_climate_and_safety_survey_high_school_2023.csv"
-    - "quality_of_school_climate_and_safety_survey_high_school_2022.csv"
-    - "quality_of_school_climate_and_safety_survey_high_school_2021.csv"
-    - "quality_of_school_climate_and_safety_survey_middle_school_2023.csv"
-    - "quality_of_school_climate_and_safety_survey_middle_school_2022.csv"
-    - "quality_of_school_climate_and_safety_survey_middle_school_2021.csv"
-    - "quality_of_school_climate_and_safety_survey_index_scores_2023.csv"
-    - "quality_of_school_climate_and_safety_survey_index_scores_2022.csv"
 
   safe_schools_discipline:
     - "KYRC24_SAFE_Discipline_Resolutions.csv"

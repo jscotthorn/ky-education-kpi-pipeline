@@ -75,8 +75,8 @@ def setup_test_data(tmp_path):
     old_file = raw_dir / "precautionary_measures_2022.csv"
     older_precautionary.to_csv(old_file, index=False)
     
-    # Create test index scores file for 2023
-    index_data_2023 = pd.DataFrame({
+    # Create accountability profile file for 2023 with climate/safety data
+    accountability_data_2023 = pd.DataFrame({
         'SCHOOL YEAR': ['20222023', '20222023', '20222023'],
         'COUNTY NUMBER': ['001', '001', '001'],
         'COUNTY NAME': ['TEST COUNTY', 'TEST COUNTY', 'TEST COUNTY'],
@@ -93,37 +93,36 @@ def setup_test_data(tmp_path):
         'DEMOGRAPHIC': ['All Students', 'Female', 'Male'],
         'LEVEL': ['MS', 'MS', 'MS'],
         'SUPPRESSED': ['N', 'N', 'N'],
-        'CLIMATE INDEX': [75.5, 78.8, 72.2],
-        'SAFETY INDEX': [68.2, 71.6, 64.8]
+        'QUALITY OF SCHOOL CLIMATE AND SAFETY COMBINED INDICATOR RATE': [75.5, 78.8, 72.2]
     })
     
-    index_file_2023 = raw_dir / "quality_of_school_climate_and_safety_survey_index_scores_2023.csv"
-    index_data_2023.to_csv(index_file_2023, index=False)
+    accountability_file_2023 = raw_dir / "accountability_profile_2023.csv"
+    accountability_data_2023.to_csv(accountability_file_2023, index=False)
     
-    # Create test index scores file for 2022 with some suppressed data
-    index_data_2022 = pd.DataFrame({
-        'SCHOOL YEAR': ['20212022', '20212022'],
-        'COUNTY NUMBER': ['001', '001'],
-        'COUNTY NAME': ['TEST COUNTY', 'TEST COUNTY'],
-        'DISTRICT NUMBER': ['001', '001'],
-        'DISTRICT NAME': ['Test District', 'Test District'],
-        'SCHOOL NUMBER': ['010', '010'],
-        'SCHOOL NAME': ['Test High School', 'Test High School'],
-        'SCHOOL CODE': ['001010', '001010'],
-        'STATE SCHOOL ID': ['001001010', '001001010'],
-        'NCES ID': ['210003000001', '210003000001'],
-        'CO-OP': ['GRREC', 'GRREC'],
-        'CO-OP CODE': ['902', '902'],
-        'SCHOOL TYPE': ['A1', 'A1'],
-        'DEMOGRAPHIC': ['All Students', 'African American'],
-        'LEVEL': ['HS', 'HS'],
-        'SUPPRESSED': ['N', 'Y'],
-        'CLIMATE INDEX': [70.0, ''],
-        'SAFETY INDEX': [65.0, '']
+    # Create 2024 KYRC index scores file with direct index data
+    index_data_2024 = pd.DataFrame({
+        'School Year': ['20232024', '20232024', '20232024'],
+        'County Number': ['001', '001', '001'],
+        'County Name': ['TEST COUNTY', 'TEST COUNTY', 'TEST COUNTY'],
+        'District Number': ['001', '001', '001'],
+        'District Name': ['Test District', 'Test District', 'Test District'],
+        'School Number': ['010', '010', '020'],
+        'School Name': ['Test High School', 'Test High School', 'Test Middle School'],
+        'School Code': ['001010', '001010', '001020'],
+        'State School Id': ['001001010', '001001010', '001001020'],
+        'NCES ID': ['210003000001', '210003000001', '210003000002'],
+        'CO-OP': ['GRREC', 'GRREC', 'GRREC'],
+        'CO-OP Code': ['902', '902', '902'],
+        'School Type': ['A1', 'A1', 'A1'],
+        'Demographic': ['All Students', 'African American', 'All Students'],
+        'Level': ['High School', 'High School', 'Middle School'],
+        'Suppressed': ['N', 'Y', 'N'],
+        'Climate Index': [70.0, '', 82.5],
+        'Safety Index': [65.0, '', 78.3]
     })
     
-    index_file_2022 = raw_dir / "quality_of_school_climate_and_safety_survey_index_scores_2022.csv"
-    index_data_2022.to_csv(index_file_2022, index=False)
+    index_file_2024 = raw_dir / "KYRC24_ACCT_Index_Scores.csv"
+    index_data_2024.to_csv(index_file_2024, index=False)
     
     return raw_dir.parent, processed_dir
 
@@ -231,19 +230,20 @@ def test_safe_schools_climate_index_scores(setup_test_data):
     
     df = pd.read_csv(processed_dir / "safe_schools_climate_kpi.csv")
     
-    # Check 2023 climate scores (note: years are integers)
-    climate_2023 = df[(df['metric'] == 'climate_index_score') & 
+    # Check 2024 climate scores from direct index file
+    climate_2024 = df[(df['metric'] == 'climate_index_score') & 
+                      (df['year'] == 2024) & 
+                      (df['student_group'] == 'All Students') &
+                      (df['school_name'] == 'Test High School')]
+    assert len(climate_2024) == 1
+    assert climate_2024.iloc[0]['value'] == 70.0
+    
+    # Check 2023 combined scores from accountability profile
+    combined_2023 = df[(df['metric'] == 'climate_index_score') & 
                       (df['year'] == 2023) & 
                       (df['student_group'] == 'All Students')]
-    assert len(climate_2023) == 1
-    assert climate_2023.iloc[0]['value'] == 75.5
-    
-    # Check 2023 safety scores (Female demographic)
-    safety_2023 = df[(df['metric'] == 'safety_index_score') & 
-                     (df['year'] == 2023) & 
-                     (df['student_group'] == 'Female')]
-    assert len(safety_2023) == 1
-    assert safety_2023.iloc[0]['value'] == 71.6
+    assert len(combined_2023) == 1
+    assert combined_2023.iloc[0]['value'] == 75.5
 
 
 def test_safe_schools_climate_suppressed_data(setup_test_data):
@@ -255,8 +255,8 @@ def test_safe_schools_climate_suppressed_data(setup_test_data):
     
     df = pd.read_csv(processed_dir / "safe_schools_climate_kpi.csv")
     
-    # Check suppressed records (note: years are integers)
-    suppressed = df[(df['year'] == 2022) & 
+    # Check suppressed records from 2024 index file
+    suppressed = df[(df['year'] == 2024) & 
                    (df['student_group'] == 'African American')]
     
     assert len(suppressed) == 2  # climate and safety scores
@@ -276,9 +276,9 @@ def test_safe_schools_climate_year_extraction(setup_test_data):
     
     # Check years (note: years are stored as integers)
     years = df['year'].unique()
-    assert 2022 in years  # From index file 2022
-    assert 2023 in years  # From index file 2023
-    assert 2024 in years  # From precautionary measures
+    assert 2022 in years  # From precautionary measures 2022
+    assert 2023 in years  # From accountability profile 2023
+    assert 2024 in years  # From KYRC24 files
 
 
 def test_safe_schools_climate_no_duplicates(setup_test_data):

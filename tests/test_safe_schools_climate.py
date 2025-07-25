@@ -194,6 +194,18 @@ class TestSafeSchoolsClimateETL:
         assert 'climate_index_score' not in metrics
         assert metrics['safety_index_score'] == 80.0
     
+    def test_extract_metrics_accountability_profile(self, etl):
+        """Test metric extraction for accountability profile data."""
+        row = pd.Series({
+            'climate_safety_combined_rate': 74.2
+        })
+        
+        metrics = etl.extract_metrics(row)
+        assert 'climate_index_score' in metrics
+        assert 'safety_index_score' in metrics
+        assert metrics['climate_index_score'] == 74.2
+        assert metrics['safety_index_score'] == 74.2
+    
     def test_get_suppressed_metric_defaults(self, etl):
         """Test suppressed metric defaults based on data type."""
         # Test with index score data
@@ -221,21 +233,27 @@ class TestSafeSchoolsClimateETL:
         module_dir = tmp_path / 'safe_schools_climate'
         module_dir.mkdir()
         
-        # Create test files
+        # Create test files - only the ones we want to process
+        (module_dir / 'KYRC24_ACCT_Index_Scores.csv').touch()
         (module_dir / 'KYRC24_SAFE_Precautionary_Measures.csv').touch()
-        (module_dir / 'quality_of_school_climate_and_safety_survey_index_scores_2022.csv').touch()
-        (module_dir / 'quality_of_school_climate_and_safety_survey_index_scores_2023.csv').touch()
+        (module_dir / 'accountability_profile_2023.csv').touch()
+        (module_dir / 'precautionary_measures_2022.csv').touch()
+        # Create files that should be excluded
+        (module_dir / 'KYRC24_ACCT_Survey_Results.csv').touch()
         (module_dir / 'quality_of_school_climate_and_safety_survey_elementary_school_2023.csv').touch()
         
         files = etl.get_files_to_process(tmp_path)
         file_names = [f.name for f in files]
         
-        # Should include all quality survey files now
+        # Should only include streamlined file patterns
         assert len(files) == 4
+        assert 'KYRC24_ACCT_Index_Scores.csv' in file_names
         assert 'KYRC24_SAFE_Precautionary_Measures.csv' in file_names
-        assert 'quality_of_school_climate_and_safety_survey_index_scores_2022.csv' in file_names
-        assert 'quality_of_school_climate_and_safety_survey_index_scores_2023.csv' in file_names
-        assert 'quality_of_school_climate_and_safety_survey_elementary_school_2023.csv' in file_names
+        assert 'accountability_profile_2023.csv' in file_names
+        assert 'precautionary_measures_2022.csv' in file_names
+        # Should exclude survey files
+        assert 'KYRC24_ACCT_Survey_Results.csv' not in file_names
+        assert 'quality_of_school_climate_and_safety_survey_elementary_school_2023.csv' not in file_names
 
 
 if __name__ == "__main__":

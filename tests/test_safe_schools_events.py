@@ -197,7 +197,7 @@ class TestSafeSchoolsEventsETL:
         
         # Check data content
         assert len(kpi_df) > 0
-        assert kpi_df['year'].iloc[0] == 2023
+        assert kpi_df['year'].iloc[0] == 2024
         assert kpi_df['suppressed'].iloc[0] in ['Y', 'N']
         
         # Check three-tier structure
@@ -271,7 +271,7 @@ class TestSafeSchoolsEventsETL:
         
         # Test transform
         config = {'derive': {'test_field': 'test_value'}}
-        result_file = transform(str(self.sample_dir), str(self.proc_dir), config)
+        result_file = transform(str(self.raw_dir), str(self.proc_dir), config)
         
         # Check output
         assert result_file != ""

@@ -15,16 +15,20 @@
 ## Validation Summary
 ### Year 2024
 - Found demographics: 18
-- Missing optional: Non Economically Disadvantaged, Non English Learner, Non-Foster, Student without Disabilities (IEP)
+- Missing optional: Alternate Assessment, Consolidated Student Group, Non Economically Disadvantaged, Non English Learner, Student without Disabilities (IEP)
 
 ### Year 2022
 - Found demographics: 18
+- Missing optional: Alternate Assessment, Consolidated Student Group
 
 ### Year 2023
 - Found demographics: 18
+- Missing optional: Alternate Assessment, Consolidated Student Group
 
 ### Year 2021
 - Found demographics: 18
+- Missing optional: Alternate Assessment, Consolidated Student Group
 
 ### Year 2020
-- Found demographics: 0
+- Found demographics: 18
+- Missing optional: Alternate Assessment, Consolidated Student Group

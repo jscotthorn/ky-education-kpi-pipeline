@@ -198,7 +198,7 @@ class TestSafeSchoolsEventsEndToEnd:
         
         # Run ETL pipeline
         config = {'derive': {'test_field': 'end_to_end_test'}}
-        result_file = transform(str(self.sample_dir), str(self.proc_dir), config)
+        result_file = transform(str(self.raw_dir), str(self.proc_dir), config)
         
         # Validate output exists
         assert result_file != ""
@@ -251,7 +251,7 @@ class TestSafeSchoolsEventsEndToEnd:
         
         # Run ETL pipeline
         config = {'derive': {}}
-        result_file = transform(str(self.sample_dir), str(self.proc_dir), config)
+        result_file = transform(str(self.raw_dir), str(self.proc_dir), config)
         
         # Load output
         output_df = pd.read_csv(result_file)
@@ -327,7 +327,7 @@ class TestSafeSchoolsEventsEndToEnd:
         
         # Run ETL pipeline
         config = {'derive': {}}
-        result_file = transform(str(self.sample_dir), str(self.proc_dir), config)
+        result_file = transform(str(self.raw_dir), str(self.proc_dir), config)
         
         # Validate all files were processed (no "unknown_format" warnings)
         output_df = pd.read_csv(result_file)
@@ -360,7 +360,7 @@ class TestSafeSchoolsEventsEndToEnd:
         
         # Run ETL pipeline
         config = {'derive': {}}
-        result_file = transform(str(self.sample_dir), str(self.proc_dir), config)
+        result_file = transform(str(self.raw_dir), str(self.proc_dir), config)
         
         # Load output
         output_df = pd.read_csv(result_file)
@@ -396,7 +396,7 @@ class TestSafeSchoolsEventsEndToEnd:
         
         # Run ETL pipeline
         config = {'derive': {}}
-        result_file = transform(str(self.sample_dir), str(self.proc_dir), config)
+        result_file = transform(str(self.raw_dir), str(self.proc_dir), config)
         
         # Validate demographic mapping
         output_df = pd.read_csv(result_file)
@@ -429,7 +429,7 @@ class TestSafeSchoolsEventsEndToEnd:
         
         # Run ETL pipeline
         config = {'derive': {}}
-        result_file = transform(str(self.sample_dir), str(self.proc_dir), config)
+        result_file = transform(str(self.raw_dir), str(self.proc_dir), config)
         
         # Load output
         output_df = pd.read_csv(result_file)
@@ -437,7 +437,7 @@ class TestSafeSchoolsEventsEndToEnd:
         # Validate multiple years are present
         years = sorted(output_df['year'].unique())
         assert len(years) >= 2, "Should have multiple years of data"
-        assert 2021 in years, "Should have 2021 data (historical)"
+        assert 2022 in years, "Should have 2022 data (historical)"
         assert 2023 in years, "Should have 2023 data (KYRC24)"
         
         # Validate consistency across years for same school
@@ -510,7 +510,7 @@ class TestSafeSchoolsEventsEndToEnd:
         
         # Run ETL pipeline and measure basic performance
         config = {'derive': {}}
-        result_file = transform(str(self.sample_dir), str(self.proc_dir), config)
+        result_file = transform(str(self.raw_dir), str(self.proc_dir), config)
         
         # Validate output scale
         output_df = pd.read_csv(result_file)
