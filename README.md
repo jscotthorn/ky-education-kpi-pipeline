@@ -198,6 +198,11 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
   - Years: 2020-2024
   - All districts with demographic breakdowns
 
+- **Kentucky Summative Assessment** (`kentucky_summative_assessment.csv`)
+  - Performance levels and content index by subject with metrics for both grade and school level
+  - Years: 2021-2024
+  - All districts with demographic breakdowns
+
 - **Out-of-School Suspension** (`out_of_school_suspension.csv`)
   - Discipline action counts by type
   - Years: 2020-2023
