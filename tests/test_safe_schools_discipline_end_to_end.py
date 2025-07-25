@@ -131,7 +131,8 @@ class TestSafeSchoolsDisciplineEndToEnd:
 
         # Check data quality
         assert df_result['value'].min() >= 0
-        assert df_result['value'].max() <= 100
+        rate_values = df_result[df_result['metric'].str.contains('_rate')]['value']
+        assert rate_values.max() <= 100
         assert df_result['district'].notna().all()
         assert df_result['school_id'].notna().all()
 
@@ -239,7 +240,8 @@ class TestSafeSchoolsDisciplineEndToEnd:
 
         # Validate data quality
         assert df_result['value'].min() >= 0
-        assert df_result['value'].max() <= 100
+        rate_values = df_result[df_result['metric'].str.contains('_rate')]['value']
+        assert rate_values.max() <= 100
         assert df_result['district'].notna().all()
         assert df_result['school_id'].notna().all()
         assert df_result['metric'].notna().all()

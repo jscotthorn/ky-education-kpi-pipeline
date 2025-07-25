@@ -137,7 +137,7 @@ class TestSafeSchoolsDisciplineETL:
         })
         
         metrics = etl.extract_metrics(row)
-        
+
         assert 'restraint_rate' in metrics
         assert metrics['restraint_rate'] == 2.0
         assert 'out_of_school_suspension_rate' in metrics
@@ -148,6 +148,9 @@ class TestSafeSchoolsDisciplineETL:
         assert metrics['expelled_receiving_services_rate'] == 1.0
         assert 'unilateral_removal_rate' in metrics
         assert metrics['unilateral_removal_rate'] == 1.0
+        # Count metrics
+        assert metrics['restraint_count'] == 2
+        assert metrics['discipline_resolutions_total_count'] == 100
         
     def test_extract_metrics_kyrc24_legal(self):
         """Test metric extraction from KYRC24 legal sanctions data."""
@@ -172,6 +175,9 @@ class TestSafeSchoolsDisciplineETL:
         assert metrics['court_designated_worker_rate'] == 5.0
         assert 'school_resource_officer_rate' in metrics
         assert metrics['school_resource_officer_rate'] == 75.0
+        # Count metrics
+        assert metrics['arrest_count'] == 2
+        assert metrics['legal_sanctions_total_count'] == 20
     
     def test_extract_metrics_historical(self):
         """Test metric extraction from historical data."""
@@ -199,6 +205,8 @@ class TestSafeSchoolsDisciplineETL:
         assert metrics['restraint_rate'] == round(1/85*100, 2)
         assert 'unilateral_removal_rate' in metrics
         assert metrics['unilateral_removal_rate'] == round(1/85*100, 2)
+        assert metrics['discipline_resolutions_total_count'] == 85
+        assert metrics['restraint_count'] == 1
     
     def test_extract_metrics_zero_total(self):
         """Test metric extraction with zero total."""
@@ -212,7 +220,12 @@ class TestSafeSchoolsDisciplineETL:
         })
         
         metrics = etl.extract_metrics(row)
-        assert len(metrics) == 0  # Should return no metrics when total is 0
+        # Should return count metrics but no rates when total is 0
+        assert 'restraint_count' in metrics
+        assert metrics['restraint_count'] == 1
+        assert 'discipline_resolutions_total_count' in metrics
+        assert metrics['discipline_resolutions_total_count'] == 0
+        assert 'restraint_rate' not in metrics
     
     def test_extract_metrics_zero_counts(self):
         """Test metric extraction with zero counts."""
@@ -233,6 +246,7 @@ class TestSafeSchoolsDisciplineETL:
         assert 'in_school_removal_rate' not in metrics
         assert 'out_of_school_suspension_rate' in metrics
         assert metrics['out_of_school_suspension_rate'] == 10.0
+        assert metrics['restraint_count'] == 0
     
     def test_get_suppressed_metric_defaults(self):
         """Test suppressed metric defaults."""
@@ -247,7 +261,14 @@ class TestSafeSchoolsDisciplineETL:
             'in_school_removal_rate', 'out_of_school_suspension_rate',
             'removal_by_hearing_officer_rate', 'unilateral_removal_rate',
             'arrest_rate', 'charges_rate', 'civil_proceedings_rate',
-            'court_designated_worker_rate', 'school_resource_officer_rate'
+            'court_designated_worker_rate', 'school_resource_officer_rate',
+            'corporal_punishment_count', 'restraint_count', 'seclusion_count',
+            'expelled_not_receiving_services_count', 'expelled_receiving_services_count',
+            'in_school_removal_count', 'out_of_school_suspension_count',
+            'removal_by_hearing_officer_count', 'unilateral_removal_count',
+            'arrest_count', 'charges_count', 'civil_proceedings_count',
+            'court_designated_worker_count', 'school_resource_officer_count',
+            'discipline_resolutions_total_count', 'legal_sanctions_total_count'
         ]
         
         for metric in expected_metrics:
