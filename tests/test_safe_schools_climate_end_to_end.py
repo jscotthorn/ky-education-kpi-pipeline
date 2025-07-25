@@ -140,53 +140,36 @@ def test_safe_schools_climate_output_structure(setup_test_data):
 
 
 def test_safe_schools_climate_metrics_generated(setup_test_data):
-    """Test that all three metric types are generated."""
+    """Test that raw column metrics are generated."""
     raw_dir, processed_dir = setup_test_data
-    
+
     config = {}
     transform(raw_dir, processed_dir, config)
-    
-    # Read output
-    output_file = processed_dir / "safe_schools_climate_kpi.csv"
-    df = pd.read_csv(output_file)
-    
-    # Check metrics
-    metrics = df['metric'].unique()
-    assert 'safety_policy_compliance_rate' in metrics
-    assert 'climate_index_score' in metrics
-    assert 'safety_index_score' in metrics
 
-
-def test_safe_schools_climate_policy_compliance_calculation(setup_test_data):
-    """Test policy compliance rate calculations."""
-    raw_dir, processed_dir = setup_test_data
-    
-    config = {}
-    transform(raw_dir, processed_dir, config)
-    
     df = pd.read_csv(processed_dir / "safe_schools_climate_kpi.csv")
-    
-    # Check policy compliance rates
-    policy_df = df[df['metric'] == 'safety_policy_compliance_rate']
-    
-    # Test High School should have 100% (all Yes)
-    high_school = policy_df[policy_df['school_name'] == 'Test High School']
-    # Debug: print what we got
-    if len(high_school) != 1:
-        print(f"Expected 1 record for Test High School, got {len(high_school)}")
-        print(high_school[['school_name', 'year', 'source_file', 'value']])
-    assert len(high_school) == 1
-    assert high_school.iloc[0]['value'] == 100.0
-    
-    # Test Middle School should have 75% (6 Yes out of 8)
-    middle_school = policy_df[policy_df['school_name'] == 'Test Middle School']
-    assert len(middle_school) == 1
-    assert middle_school.iloc[0]['value'] == 75.0
-    
-    # Test Elementary should have 75% (6 Yes out of 8)
-    elementary = policy_df[policy_df['school_name'] == 'Test Elementary']
-    assert len(elementary) == 1
-    assert elementary.iloc[0]['value'] == 75.0
+
+    metrics = df['metric'].unique()
+    assert 'visitors_sign_in' in metrics
+    assert 'climate_index' in metrics
+    assert 'safety_index' in metrics
+
+
+def test_safe_schools_climate_precautionary_values(setup_test_data):
+    """Test precautionary yes/no values are exposed."""
+    raw_dir, processed_dir = setup_test_data
+
+    config = {}
+    transform(raw_dir, processed_dir, config)
+
+    df = pd.read_csv(processed_dir / "safe_schools_climate_kpi.csv")
+
+    visitors = df[(df['metric'] == 'visitors_sign_in') & (df['school_name'] == 'Test High School')]
+    assert len(visitors) == 1
+    assert visitors.iloc[0]['value'] == 'Yes'
+
+    doors_lock = df[(df['metric'] == 'classroom_doors_lock') & (df['school_name'] == 'Test Middle School')]
+    assert len(doors_lock) == 1
+    assert doors_lock.iloc[0]['value'] == 'No'
 
 
 def test_safe_schools_climate_index_scores(setup_test_data):
@@ -199,18 +182,18 @@ def test_safe_schools_climate_index_scores(setup_test_data):
     df = pd.read_csv(processed_dir / "safe_schools_climate_kpi.csv")
     
     # Check 2023 climate scores (note: years are integers)
-    climate_2023 = df[(df['metric'] == 'climate_index_score') & 
-                      (df['year'] == 2023) & 
+    climate_2023 = df[(df['metric'] == 'climate_index') &
+                      (df['year'] == 2023) &
                       (df['student_group'] == 'All Students')]
     assert len(climate_2023) == 1
-    assert climate_2023.iloc[0]['value'] == 75.5
+    assert float(climate_2023.iloc[0]['value']) == 75.5
     
     # Check 2023 safety scores (Female demographic)
-    safety_2023 = df[(df['metric'] == 'safety_index_score') & 
-                     (df['year'] == 2023) & 
+    safety_2023 = df[(df['metric'] == 'safety_index') &
+                     (df['year'] == 2023) &
                      (df['student_group'] == 'Female')]
     assert len(safety_2023) == 1
-    assert safety_2023.iloc[0]['value'] == 71.6
+    assert float(safety_2023.iloc[0]['value']) == 71.6
 
 
 def test_safe_schools_climate_suppressed_data(setup_test_data):
@@ -223,10 +206,11 @@ def test_safe_schools_climate_suppressed_data(setup_test_data):
     df = pd.read_csv(processed_dir / "safe_schools_climate_kpi.csv")
     
     # Check suppressed records (note: years are integers)
-    suppressed = df[(df['year'] == 2022) & 
+    suppressed = df[(df['year'] == 2022) &
                    (df['student_group'] == 'African American')]
-    
-    assert len(suppressed) == 2  # climate and safety scores
+
+    assert len(suppressed) == 2
+    assert set(suppressed['metric'].unique()) == {'climate_index', 'safety_index'}
     for _, row in suppressed.iterrows():
         assert row['suppressed'] == 'Y'
         assert pd.isna(row['value'])

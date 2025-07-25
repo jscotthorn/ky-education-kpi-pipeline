@@ -97,64 +97,57 @@ class SafeSchoolsClimateETL(BaseETL):
         }
     
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
-        """Get default metrics for suppressed records based on available data."""
+        """Return NA defaults for all raw columns present in the row."""
         metrics = {}
-        
-        # Only include index scores if we have index columns
-        if 'climate_index' in row or 'safety_index' in row or 'climate_safety_combined_rate' in row:
-            metrics['climate_index_score'] = pd.NA
-            metrics['safety_index_score'] = pd.NA
-            
-        # Only include policy compliance if we have policy columns  
-        policy_columns = [
-            'visitors_sign_in', 'classroom_doors_lock', 'classroom_phones',
-            'annual_climate_survey', 'student_survey_data', 'resource_officer',
-            'mental_health_referrals', 'discipline_code_distributed'
-        ]
-        if any(col in row for col in policy_columns):
-            metrics['safety_policy_compliance_rate'] = pd.NA
-            
+        for col in self.module_column_mappings.values():
+            if col in row:
+                metrics[col] = pd.NA
         return metrics
     
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
-        """Extract metrics based on the data type."""
+        """Return raw column values as metrics without derivations."""
         metrics = {}
-        
-        # Check if this is direct index score data (KYRC24_ACCT_Index_Scores.csv)
-        if 'climate_index' in row and pd.notna(row.get('climate_index')):
-            metrics['climate_index_score'] = row.get('climate_index', pd.NA)
-        if 'safety_index' in row and pd.notna(row.get('safety_index')):
-            metrics['safety_index_score'] = row.get('safety_index', pd.NA)
-        
-        # Check if this is survey results data with question index
-        if 'question_type' in row and 'question_index' in row:
-            question_type = str(row.get('question_type', '')).lower()
-            if question_type == 'climate':
-                metrics['climate_index_score'] = row.get('question_index', pd.NA)
-            elif question_type == 'safety':
-                metrics['safety_index_score'] = row.get('question_index', pd.NA)
-        
-        # Check if this is accountability profile data
-        if 'climate_safety_combined_rate' in row and pd.notna(row.get('climate_safety_combined_rate')):
-            # Use combined rate as both climate and safety score for historical data
-            combined_rate = row.get('climate_safety_combined_rate', pd.NA)
-            metrics['climate_index_score'] = combined_rate
-            metrics['safety_index_score'] = combined_rate
-        
-        # Check if this is precautionary measures data
-        policy_columns = [
-            'visitors_sign_in', 'classroom_doors_lock', 'classroom_phones',
-            'annual_climate_survey', 'student_survey_data', 'resource_officer',
-            'mental_health_referrals', 'discipline_code_distributed'
-        ]
-        
-        # Only calculate if we have at least one policy column with actual data
-        if any(col in row and pd.notna(row.get(col)) for col in policy_columns):
-            compliance_rate = calculate_policy_compliance_rate(row, policy_columns)
-            if pd.notna(compliance_rate):  # Only add if we got a valid rate
-                metrics['safety_policy_compliance_rate'] = compliance_rate
-        
+        for col in self.module_column_mappings.values():
+            if col in row and pd.notna(row.get(col)):
+                metrics[col] = row.get(col)
         return metrics
+
+    def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """Convert data rows to KPI format allowing string values."""
+        kpi_rows = []
+
+        for _, row in df.iterrows():
+            if self.should_skip_row(row):
+                continue
+
+            template = self.create_kpi_template(row, source_file)
+            metrics = self.extract_metrics(row)
+
+            if not metrics and template['suppressed'] == 'Y':
+                metrics = self.get_suppressed_metric_defaults(row)
+
+            for metric_name, value in metrics.items():
+                record = template.copy()
+                record['metric'] = metric_name
+                if template['suppressed'] == 'Y':
+                    record['value'] = pd.NA
+                else:
+                    try:
+                        num_val = pd.to_numeric(value, errors='coerce')
+                        record['value'] = num_val if pd.notna(num_val) else value
+                    except Exception:
+                        record['value'] = value
+                kpi_rows.append(record)
+
+        if not kpi_rows:
+            logger.warning("No valid KPI rows created")
+            return pd.DataFrame()
+
+        kpi_df = pd.DataFrame(kpi_rows)
+        columns = ['district', 'school_id', 'school_name', 'year', 'student_group',
+                   'metric', 'value', 'suppressed', 'source_file', 'last_updated']
+        available = [c for c in columns if c in kpi_df.columns]
+        return kpi_df[available]
     
     def identify_file_type(self, file_path: Path) -> str:
         """Identify the type of file based on name and content."""

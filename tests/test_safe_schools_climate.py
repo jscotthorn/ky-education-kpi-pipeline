@@ -146,10 +146,13 @@ class TestSafeSchoolsClimateETL:
             'classroom_phones': 'Yes',
             'annual_climate_survey': 'Yes'
         })
-        
+
         metrics = etl.extract_metrics(row)
-        assert 'safety_policy_compliance_rate' in metrics
-        assert metrics['safety_policy_compliance_rate'] == 75.0
+        assert metrics['visitors_sign_in'] == 'Yes'
+        assert metrics['classroom_doors_lock'] == 'No'
+        assert metrics['classroom_phones'] == 'Yes'
+        assert metrics['annual_climate_survey'] == 'Yes'
+        assert 'safety_policy_compliance_rate' not in metrics
     
     def test_extract_metrics_index_scores(self, etl):
         """Test metric extraction for index scores."""
@@ -159,10 +162,8 @@ class TestSafeSchoolsClimateETL:
         })
         
         metrics = etl.extract_metrics(row)
-        assert 'climate_index_score' in metrics
-        assert 'safety_index_score' in metrics
-        assert metrics['climate_index_score'] == 75.5
-        assert metrics['safety_index_score'] == 80.0
+        assert metrics['climate_index'] == 75.5
+        assert metrics['safety_index'] == 80.0
     
     def test_extract_metrics_missing_values(self, etl):
         """Test metric extraction with missing values."""
@@ -173,24 +174,23 @@ class TestSafeSchoolsClimateETL:
         
         metrics = etl.extract_metrics(row)
         # When climate_index is NA, it's not included in metrics
-        assert 'climate_index_score' not in metrics
-        assert metrics['safety_index_score'] == 80.0
+        assert 'climate_index' not in metrics
+        assert metrics['safety_index'] == 80.0
     
     def test_get_suppressed_metric_defaults(self, etl):
         """Test suppressed metric defaults based on data type."""
         # Test with index score data
         row_index = pd.Series({'climate_index': 75.0, 'safety_index': 70.0})
         defaults = etl.get_suppressed_metric_defaults(row_index)
-        assert 'climate_index_score' in defaults
-        assert 'safety_index_score' in defaults
+        assert 'climate_index' in defaults
+        assert 'safety_index' in defaults
         assert 'safety_policy_compliance_rate' not in defaults
         
         # Test with policy data
         row_policy = pd.Series({'visitors_sign_in': 'Yes', 'classroom_doors_lock': 'No'})
         defaults = etl.get_suppressed_metric_defaults(row_policy)
-        assert 'climate_index_score' not in defaults
-        assert 'safety_index_score' not in defaults
-        assert 'safety_policy_compliance_rate' in defaults
+        assert 'visitors_sign_in' in defaults
+        assert 'classroom_doors_lock' in defaults
         
         # Test with no relevant data
         row_empty = pd.Series({})
