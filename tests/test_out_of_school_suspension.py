@@ -63,6 +63,22 @@ class TestOutOfSchoolSuspensionETL:
         assert kpi['suppressed'].iloc[0] == 'Y'
         assert pd.isna(kpi['value'].iloc[0])
 
+    def test_extract_metrics_additional_counts(self):
+        row = pd.Series({
+            'single_out_of_school_with_disabilities': 1,
+            'single_out_of_school_without_disabilities': 2,
+            'multiple_out_of_school_with_disabilities': 0,
+            'multiple_out_of_school_without_disabilities': 1,
+            'in_school_with_disabilities': 3,
+            'in_school_without_disabilities': 4,
+            'expelled_receiving_services': 1,
+            'total_discipline_resolutions': 10
+        })
+        metrics = self.etl.extract_metrics(row)
+        assert metrics['in_school_suspension_total_count'] == 7
+        assert metrics['expelled_receiving_services_count'] == 1
+        assert metrics['discipline_resolution_total_count'] == 10
+
 
 class TestTransform:
     def test_transform_creates_files(self):

@@ -46,17 +46,29 @@ class OutOfSchoolSuspensionETL(BaseETL):
         }
 
     def _numeric_clean(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Remove commas and convert numeric columns to numbers."""
-        numeric_cols = [c for c in df.columns if 'out_of_school' in c.lower()]
+        """Remove commas and convert numeric columns to numeric types."""
+        numeric_keywords = [
+            'out_of_school',
+            'in_school',
+            'expelled',
+            'corporal_punishment',
+            'restraint',
+            'seclusion',
+            'unilateral_removal',
+            'removal_by_hearing_officer',
+            'total_discipline_resolutions',
+        ]
+        numeric_cols = [
+            c for c in df.columns if any(k in c.lower() for k in numeric_keywords)
+        ]
         for col in numeric_cols:
-            if col in df.columns:
-                df[col] = (
-                    df[col]
-                    .astype(str)
-                    .str.replace(',', '')
-                    .replace('nan', pd.NA)
-                )
-                df[col] = pd.to_numeric(df[col], errors='coerce')
+            df[col] = (
+                df[col]
+                .astype(str)
+                .str.replace(',', '')
+                .replace('nan', pd.NA)
+            )
+            df[col] = pd.to_numeric(df[col], errors='coerce')
         return df
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -102,11 +114,36 @@ class OutOfSchoolSuspensionETL(BaseETL):
             metrics = {
                 'out_of_school_suspension_count': row.get('out_of_school_suspension')
             }
+
+        # Additional counts available in both formats
+        in_swd = row.get('in_school_with_disabilities') if 'in_school_with_disabilities' in row.index else None
+        in_swod = row.get('in_school_without_disabilities') if 'in_school_without_disabilities' in row.index else None
+        if 'in_school_with_disabilities' in row.index or 'in_school_without_disabilities' in row.index:
+            metrics['in_school_suspension_with_disabilities_count'] = in_swd
+            metrics['in_school_suspension_without_disabilities_count'] = in_swod
+            ins_total = sum(v for v in [in_swd, in_swod] if pd.notna(v))
+            metrics['in_school_suspension_total_count'] = ins_total
+
+        count_map = {
+            'expelled_receiving_services': 'expelled_receiving_services_count',
+            'expelled_not_receiving_services': 'expelled_not_receiving_services_count',
+            'corporal_punishment': 'corporal_punishment_count',
+            'in_school_removal': 'in_school_removal_count',
+            'restraint': 'restraint_count',
+            'seclusion': 'seclusion_count',
+            'unilateral_removal': 'unilateral_removal_count',
+            'removal_by_hearing_officer': 'removal_by_hearing_officer_count',
+            'total_discipline_resolutions': 'discipline_resolution_total_count',
+        }
+        for src, metric_name in count_map.items():
+            if src in row.index:
+                metrics[metric_name] = row.get(src)
+
         return metrics
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         if 'single_out_of_school_with_disabilities' in row.index:
-            return {
+            defaults = {
                 'out_of_school_suspension_single_with_disabilities_count': pd.NA,
                 'out_of_school_suspension_single_without_disabilities_count': pd.NA,
                 'out_of_school_suspension_multiple_with_disabilities_count': pd.NA,
@@ -115,7 +152,28 @@ class OutOfSchoolSuspensionETL(BaseETL):
                 'out_of_school_suspension_multiple_total_count': pd.NA,
                 'out_of_school_suspension_total_count': pd.NA,
             }
-        return {'out_of_school_suspension_count': pd.NA}
+        else:
+            defaults = {'out_of_school_suspension_count': pd.NA}
+
+        extra_defaults = [
+            'in_school_suspension_with_disabilities_count',
+            'in_school_suspension_without_disabilities_count',
+            'in_school_suspension_total_count',
+            'expelled_receiving_services_count',
+            'expelled_not_receiving_services_count',
+            'corporal_punishment_count',
+            'in_school_removal_count',
+            'restraint_count',
+            'seclusion_count',
+            'unilateral_removal_count',
+            'removal_by_hearing_officer_count',
+            'discipline_resolution_total_count',
+        ]
+
+        for metric in extra_defaults:
+            defaults[metric] = pd.NA
+
+        return defaults
 
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
         """Override to apply metric-level suppression handling."""
