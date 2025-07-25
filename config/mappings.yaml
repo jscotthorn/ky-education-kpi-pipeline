@@ -37,6 +37,7 @@ sources:
   postsecondary_enrollment: {}
   postsecondary_readiness: {}
   safe_schools_events: {}
+  safe_schools_climate:
   safe_schools_discipline: {}
       
 # Example configuration for field mappings and transformations

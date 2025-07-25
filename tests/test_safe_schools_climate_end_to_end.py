@@ -46,6 +46,34 @@ def setup_test_data(tmp_path):
     
     precautionary_file = raw_dir / "KYRC24_SAFE_Precautionary_Measures.csv"
     precautionary_data.to_csv(precautionary_file, index=False)
+
+    # Create older precautionary measures file with synonym columns
+    older_precautionary = pd.DataFrame({
+        'SCHOOL YEAR': ['20212022'],
+        'COUNTY NUMBER': ['001'],
+        'COUNTY NAME': ['TEST COUNTY'],
+        'DISTRICT NUMBER': ['001'],
+        'DISTRICT NAME': ['Test District'],
+        'SCHOOL NUMBER': ['050'],
+        'SCHOOL NAME': ['Legacy School'],
+        'SCHOOL CODE': ['001050'],
+        'STATE SCHOOL ID': ['001001050'],
+        'NCES ID': ['210003000005'],
+        'CO-OP': ['GRREC'],
+        'CO-OP CODE': ['902'],
+        'SCHOOL TYPE': ['A1'],
+        'Visitors required to sign-in': ['Yes'],
+        'All classroom doors lock from the inside.': ['Yes'],
+        'All classrooms have access to telephone': ['Yes'],
+        'School climate survey administered annually.': ['Yes'],
+        'Student survey data collected and used': ['Yes'],
+        'Full-time resource officer': ['No'],
+        'Mental health referral process in place': ['Yes'],
+        'District discipline code distributed to parents': ['Yes']
+    })
+
+    old_file = raw_dir / "precautionary_measures_2022.csv"
+    older_precautionary.to_csv(old_file, index=False)
     
     # Create test index scores file for 2023
     index_data_2023 = pd.DataFrame({
@@ -187,6 +215,11 @@ def test_safe_schools_climate_policy_compliance_calculation(setup_test_data):
     elementary = policy_df[policy_df['school_name'] == 'Test Elementary']
     assert len(elementary) == 1
     assert elementary.iloc[0]['value'] == 75.0
+
+    # Legacy School from 2022 file should have 87.5% (7 Yes out of 8)
+    legacy = policy_df[policy_df['school_name'] == 'Legacy School']
+    assert len(legacy) == 1
+    assert legacy.iloc[0]['value'] == 87.5
 
 
 def test_safe_schools_climate_index_scores(setup_test_data):

@@ -73,13 +73,21 @@ class SafeSchoolsClimateETL(BaseETL):
         return {
             # Precautionary measures columns
             'Are visitors to the building required to sign-in?': 'visitors_sign_in',
+            'Visitors required to sign-in': 'visitors_sign_in',
             'Do all classroom doors lock from the inside?': 'classroom_doors_lock',
+            'All classroom doors lock from the inside.': 'classroom_doors_lock',
             'Do all classrooms have access to a telephone accessing outside lines?': 'classroom_phones',
+            'All classrooms have access to telephone': 'classroom_phones',
             'Does your school administer a school climate survey annually?': 'annual_climate_survey',
+            'School climate survey administered annually.': 'annual_climate_survey',
             'Does your school collect and use student survey data?': 'student_survey_data',
+            'Student survey data collected and used': 'student_survey_data',
             'Does your school have a full-time School Resource Officer?': 'resource_officer',
+            'Full-time resource officer': 'resource_officer',
             'Does your school have a process in place to provide mental health referrals for students?': 'mental_health_referrals',
+            'Mental health referral process in place': 'mental_health_referrals',
             'Is the district discipline code distributed to parents?': 'discipline_code_distributed',
+            'District discipline code distributed to parents': 'discipline_code_distributed',
             # Index score columns (multiple variations)
             'CLIMATE INDEX': 'climate_index',
             'SAFETY INDEX': 'safety_index',
