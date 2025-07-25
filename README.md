@@ -119,6 +119,8 @@ All ETL modules produce standardized **long format** KPI data:
 - `graduation_count_4_year` = 201 (students graduating)
 - `graduation_total_4_year` = 236 (students in cohort)
 
+📋 **For a complete list of all KPIs by data source, see [KPIS.md](./KPIS.md)**
+
 ## 🔧 Common Commands
 
 ```bash
@@ -161,52 +163,27 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
 
 ## 📊 Available Data Sources
 
-### Working Pipelines
-- **Graduation Rates** (`graduation_rates.csv`)
-  - 4-year and 5-year graduation rates, counts, and totals
-  - Years: 2021-2024
-  - All districts with demographic breakdowns
-
-- **Safe Schools Events** (`safe_schools_events.csv`) ⭐ **NEW**
-  - Behavioral incident counts by type, grade, location, and context
-  - Years: 2020-2024 (5-year longitudinal coverage)
-  - Includes both demographic breakdowns and aggregate totals
-  - Supports school-to-prison pipeline analysis
-
-- **Kindergarten Readiness** (`kindergarten_readiness.csv`)
-  - Kindergarten readiness screening rates and counts
-  - Years: 2021-2024  
-  - All districts with demographic breakdowns
-
-- **Chronic Absenteeism** (`chronic_absenteeism.csv`)
-  - Chronic absenteeism rates, counts, and enrollment
-  - Years: 2023-2024
-  - All districts with demographic breakdowns
-
-- **English Learner Progress** (`english_learner_progress.csv`)
-  - Proficiency rates across elementary, middle, and high school
-  - Years: 2022-2024
-  - All districts with demographic breakdowns
-
-- **Postsecondary Readiness** (`postsecondary_readiness.csv`)
-  - College and career readiness rates
-  - Years: 2022-2024
-  - All districts with demographic breakdowns
-
-- **Postsecondary Enrollment** (`postsecondary_enrollment.csv`)
-  - Post-graduation enrollment in Kentucky institutions
-  - Years: 2020-2024
-  - All districts with demographic breakdowns
-
-- **Kentucky Summative Assessment** (`kentucky_summative_assessment.csv`)
-  - Performance levels and content index by subject with metrics for both grade and school level
-  - Years: 2021-2024
-  - All districts with demographic breakdowns
-
-- **Out-of-School Suspension** (`out_of_school_suspension.csv`)
-  - Discipline action counts by type
-  - Years: 2020-2023
-  - All districts with demographic breakdowns
+### Data Sources
+- **Graduation Rates** - 4-year and 5-year graduation rates, counts, and totals
+- **Safe Schools Events** ⭐ **NEW** - Behavioral incident counts by type, grade, location, and context
+- **Kindergarten Readiness** ⭐ **ENHANCED** - Overall readiness rates and component breakdowns
+- **Chronic Absenteeism** - Chronic absenteeism rates, counts, and enrollment
+- **English Learner Progress** - Proficiency rates across elementary, middle, and high school
+- **Postsecondary Readiness** - College and career readiness rates
+- **Postsecondary Enrollment** - Post-graduation enrollment in Kentucky institutions
+- **Kentucky Summative Assessment** - Performance levels and content index by subject
+- **Out-of-School Suspension** ⭐ **ENHANCED** - Discipline action counts by type and disability status
+- **CTE Participation** - Career and technical education participation rates
+- **Safe Schools Climate** - School climate survey results and index scores  
+- **Safe Schools Discipline** - Detailed discipline resolution tracking
+- **Benchmark Assessment** - Interim assessment performance data
+- **ACT Scores** - College admission test performance
+- **Students Taught by Inexperienced Teachers** - Teacher quality metrics
+- **Student Retention** - Grade retention rates (grades 4-12)
+- **Dropout Rate** - Student dropout tracking
+- **Homeless Students** - Homeless student population metrics
+- **Migrant Students** - Migrant student population metrics  
+- **Students with Disabilities** - IEP student population metrics
 
 ### Dashboard Features
 - **Interactive heatmaps** showing schools vs demographics  

@@ -49,4 +49,5 @@ Use the KDE data preparation tool to populate raw directories:
 - **Code comments**: Explain complex transformation logic
 - **Test documentation**: Clear test case descriptions
 - **README updates**: Keep user documentation current
+- **KPI documentation**: Update KPIS.md when new KPIs are added or changed, and update README.md data source list when pipelines are added/modified
 
