@@ -7,17 +7,32 @@ across multiple years.
 """
 from pathlib import Path
 import pandas as pd
-from typing import Dict, Any, Union
+from typing import Dict, Any
 import logging
 
 import sys
-from pathlib import Path
 
 # Add etl directory to path for imports
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
 from base_etl import BaseETL, Config
+
+
+def _slugify(value: Any) -> str:
+    """Convert a string to a metric-friendly slug."""
+    if pd.isna(value):
+        return "unknown"
+    slug = (
+        str(value)
+        .lower()
+        .strip()
+        .replace(" ", "_")
+        .replace("/", "_")
+        .replace("-", "_")
+    )
+    slug = slug.replace("__", "_")
+    return "".join(ch for ch in slug if ch.isalnum() or ch == "_")
 
 logger = logging.getLogger(__name__)
 
@@ -73,44 +88,119 @@ class KindergartenReadinessETL(BaseETL):
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics: Dict[str, Any] = {}
 
+        prior_setting = row.get("prior_setting")
+        prior_slug = _slugify(prior_setting) if pd.notna(prior_setting) else None
+        is_prior_all = pd.isna(prior_setting) or str(prior_setting).strip().lower() == "all students"
+
         if (
             pd.notna(row.get("ready_with_interventions_count"))
             and pd.notna(row.get("ready_count"))
             and pd.notna(row.get("ready_with_enrichments_count"))
         ):
             # 2024 count format
-            total_tested = (
-                float(row["ready_with_interventions_count"])
-                + float(row["ready_count"])
-                + float(row["ready_with_enrichments_count"])
-            )
-            if pd.notna(row.get("total_ready_count")):
-                ready = float(row["total_ready_count"])
-                metrics["kindergarten_readiness_count"] = ready
+            rwi = float(row["ready_with_interventions_count"])
+            r = float(row["ready_count"])
+            rwe = float(row["ready_with_enrichments_count"])
+            total_tested = rwi + r + rwe
+
+            if is_prior_all:
+                metrics[
+                    "kindergarten_ready_with_interventions_count"
+                ] = rwi
+                metrics["kindergarten_ready_count"] = r
+                metrics[
+                    "kindergarten_ready_with_enrichments_count"
+                ] = rwe
+
                 if total_tested > 0:
-                    metrics["kindergarten_readiness_rate"] = (ready / total_tested) * 100
-                metrics["kindergarten_readiness_total"] = total_tested
+                    metrics[
+                        "kindergarten_ready_with_interventions_rate"
+                    ] = (rwi / total_tested) * 100
+                    metrics["kindergarten_ready_rate"] = (
+                        r / total_tested
+                    ) * 100
+                    metrics[
+                        "kindergarten_ready_with_enrichments_rate"
+                    ] = (rwe / total_tested) * 100
+
+                if pd.notna(row.get("total_ready_count")):
+                    ready = float(row["total_ready_count"])
+                    metrics["kindergarten_readiness_count"] = ready
+                    metrics["kindergarten_readiness_total"] = total_tested
+                    if total_tested > 0:
+                        metrics["kindergarten_readiness_rate"] = (
+                            ready / total_tested
+                        ) * 100
+
+            if (
+                prior_slug
+                and not is_prior_all
+                and str(row.get("demographic", "")).strip().lower() == "all students"
+                and pd.notna(row.get("total_ready_count"))
+            ):
+                ready = float(row["total_ready_count"])
+                metrics[f"kindergarten_{prior_slug}_count"] = ready
+                if total_tested > 0:
+                    metrics[f"kindergarten_{prior_slug}_rate"] = (
+                        ready / total_tested
+                    ) * 100
             return metrics
 
         # Percentage formats
         rate = row.get("total_percent_ready")
         if pd.isna(rate):
             rate = row.get("total_ready_count")  # some 2024 files label rate this way
-        if pd.notna(rate):
+        total = row.get("number_tested")
+        if pd.notna(total):
+            total = float(total)
+
+        if is_prior_all and pd.notna(rate):
             metrics["kindergarten_readiness_rate"] = float(rate)
-        if pd.notna(row.get("number_tested")):
-            total = float(row["number_tested"])
+        if is_prior_all and pd.notna(total):
             metrics["kindergarten_readiness_total"] = total
             if pd.notna(rate):
-                metrics["kindergarten_readiness_count"] = round((float(rate) / 100) * total)
+                metrics["kindergarten_readiness_count"] = round(
+                    (float(rate) / 100) * total
+                )
+
+        if (
+            prior_slug
+            and not is_prior_all
+            and str(row.get("demographic", "")).strip().lower() == "all students"
+            and pd.notna(total)
+            and pd.notna(rate)
+        ):
+            metrics[f"kindergarten_{prior_slug}_rate"] = float(rate)
+            metrics[f"kindergarten_{prior_slug}_count"] = round(
+                (float(rate) / 100) * total
+            )
+
         return metrics
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
-        return {
+        metrics = {
             "kindergarten_readiness_rate": pd.NA,
             "kindergarten_readiness_count": pd.NA,
             "kindergarten_readiness_total": pd.NA,
+            "kindergarten_ready_with_interventions_count": pd.NA,
+            "kindergarten_ready_with_interventions_rate": pd.NA,
+            "kindergarten_ready_count": pd.NA,
+            "kindergarten_ready_rate": pd.NA,
+            "kindergarten_ready_with_enrichments_count": pd.NA,
+            "kindergarten_ready_with_enrichments_rate": pd.NA,
         }
+
+        prior_setting = row.get("prior_setting")
+        if (
+            pd.notna(prior_setting)
+            and str(row.get("demographic", "")).strip().lower() == "all students"
+            and str(prior_setting).strip().lower() != "all students"
+        ):
+            slug = _slugify(prior_setting)
+            metrics[f"kindergarten_{slug}_count"] = pd.NA
+            metrics[f"kindergarten_{slug}_rate"] = pd.NA
+
+        return metrics
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         df = super().standardize_missing_values(df)

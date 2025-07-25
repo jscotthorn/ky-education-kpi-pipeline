@@ -21,16 +21,17 @@ class TestKindergartenReadinessEndToEnd:
 
     def create_counts_data(self):
         return pd.DataFrame({
-            "School Year": ["20232024"],
-            "District Name": ["Fayette County"],
-            "School Code": ["1001"],
-            "School Name": ["Test School"],
-            "Demographic": ["All Students"],
-            "Ready With Interventions": [10],
-            "Ready": [20],
-            "Ready With Enrichments": [5],
-            "Total Ready": [35],
-            "Suppressed": ["N"],
+            "School Year": ["20232024", "20232024"],
+            "District Name": ["Fayette County", "Fayette County"],
+            "School Code": ["1001", "1001"],
+            "School Name": ["Test School", "Test School"],
+            "Demographic": ["All Students", "All Students"],
+            "Ready With Interventions": [10, 8],
+            "Ready": [20, 15],
+            "Ready With Enrichments": [5, 4],
+            "Total Ready": [35, 27],
+            "Suppressed": ["N", "N"],
+            "Prior Setting": ["All Students", "Child Care"],
         })
 
     def create_percent_data(self):
@@ -43,6 +44,7 @@ class TestKindergartenReadinessEndToEnd:
             "TOTAL PERCENT READY": [55.0],
             "NUMBER TESTED": [100],
             "SUPPRESSED": ["N"],
+            "Prior Setting": ["All Students"],
         })
 
     def test_end_to_end_single_file(self):
@@ -52,11 +54,19 @@ class TestKindergartenReadinessEndToEnd:
         out_file = self.proc_dir / "kindergarten_readiness.csv"
         assert out_file.exists()
         result = pd.read_csv(out_file)
-        assert len(result) == 3  # rate, count, total
+        assert len(result) == 11
         assert set(result["metric"].unique()) == {
-            "kindergarten_readiness_rate",
+            "kindergarten_ready_with_interventions_count",
+            "kindergarten_ready_count",
+            "kindergarten_ready_with_enrichments_count",
+            "kindergarten_ready_with_interventions_rate",
+            "kindergarten_ready_rate",
+            "kindergarten_ready_with_enrichments_rate",
             "kindergarten_readiness_count",
             "kindergarten_readiness_total",
+            "kindergarten_readiness_rate",
+            "kindergarten_child_care_count",
+            "kindergarten_child_care_rate",
         }
 
     def test_end_to_end_multiple_files(self):
@@ -66,8 +76,20 @@ class TestKindergartenReadinessEndToEnd:
         out_file = self.proc_dir / "kindergarten_readiness.csv"
         assert out_file.exists()
         result = pd.read_csv(out_file)
-        metrics = result["metric"].unique()
-        assert "kindergarten_readiness_rate" in metrics
-        assert "kindergarten_readiness_count" in metrics
-        assert "kindergarten_readiness_total" in metrics
+        assert len(result) == 14
+        metrics = set(result["metric"].unique())
+        expected = {
+            "kindergarten_ready_with_interventions_count",
+            "kindergarten_ready_count",
+            "kindergarten_ready_with_enrichments_count",
+            "kindergarten_ready_with_interventions_rate",
+            "kindergarten_ready_rate",
+            "kindergarten_ready_with_enrichments_rate",
+            "kindergarten_readiness_count",
+            "kindergarten_readiness_total",
+            "kindergarten_readiness_rate",
+            "kindergarten_child_care_count",
+            "kindergarten_child_care_rate",
+        }
+        assert metrics == expected
 
