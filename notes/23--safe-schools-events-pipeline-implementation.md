@@ -105,7 +105,7 @@ Each metric generated for both demographic groups and aggregate totals = **36 to
 - ✅ Suppression flag correctness
 
 **Output Validation**:
-- **Exact KPI Format**: 10 columns as specified in CLAUDE.md
+- **Exact KPI Format**: 19 columns (superseding the earlier 10-column specification)
 - **Metric Naming**: Follows `{indicator}_{type}_{period}` convention
 - **Longitudinal Consistency**: 2020-2024 data processed uniformly
 

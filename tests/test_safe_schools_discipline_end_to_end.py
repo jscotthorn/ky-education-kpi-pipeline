@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 from etl.safe_schools_discipline import transform
 
+from etl.constants import KPI_COLUMNS
 
 class TestSafeSchoolsDisciplineEndToEnd:
     def setup_method(self):
@@ -106,10 +107,7 @@ class TestSafeSchoolsDisciplineEndToEnd:
         assert len(df_result) > 0
 
         # Check required columns
-        required_columns = [
-            'district', 'school_id', 'school_name', 'year', 'student_group',
-            'metric', 'value', 'suppressed', 'source_file', 'last_updated'
-        ]
+        required_columns = KPI_COLUMNS
         for col in required_columns:
             assert col in df_result.columns
 
@@ -246,7 +244,7 @@ class TestSafeSchoolsDisciplineEndToEnd:
         assert df_result['value'].notna().all()
 
         # Check that standard KPI structure is maintained
-        assert len(df_result.columns) == 10  # Standard KPI format has 10 columns
+        assert len(df_result.columns) == 19  # Standard KPI format has 19 columns
 
     def test_end_to_end_multiple_historical_years(self):
         """Test with multiple historical years."""

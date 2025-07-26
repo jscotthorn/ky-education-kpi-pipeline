@@ -4,6 +4,7 @@ import pandas as pd
 import tempfile
 from pathlib import Path
 import sys
+from etl.constants import KPI_COLUMNS
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -142,7 +143,7 @@ def test_safe_schools_climate_transform_creates_output(setup_test_data):
     transform(raw_dir, processed_dir, config)
     
     # Check output file exists
-    output_file = processed_dir / "safe_schools_climate_kpi.csv"
+    output_file = processed_dir / "safe_schools_climate.csv"
     assert output_file.exists()
 
 
@@ -154,14 +155,12 @@ def test_safe_schools_climate_output_structure(setup_test_data):
     transform(raw_dir, processed_dir, config)
     
     # Read output
-    output_file = processed_dir / "safe_schools_climate_kpi.csv"
+    output_file = processed_dir / "safe_schools_climate.csv"
     df = pd.read_csv(output_file)
     
     # Check required columns
-    required_columns = ['district', 'school_id', 'school_name', 'year', 
-                       'student_group', 'metric', 'value', 'suppressed', 
-                       'source_file', 'last_updated']
-    
+    required_columns = KPI_COLUMNS
+
     for col in required_columns:
         assert col in df.columns, f"Missing required column: {col}"
 
@@ -174,7 +173,7 @@ def test_safe_schools_climate_metrics_generated(setup_test_data):
     transform(raw_dir, processed_dir, config)
     
     # Read output
-    output_file = processed_dir / "safe_schools_climate_kpi.csv"
+    output_file = processed_dir / "safe_schools_climate.csv"
     df = pd.read_csv(output_file)
     
     # Check metrics
@@ -191,7 +190,7 @@ def test_safe_schools_climate_policy_compliance_calculation(setup_test_data):
     config = {}
     transform(raw_dir, processed_dir, config)
     
-    df = pd.read_csv(processed_dir / "safe_schools_climate_kpi.csv")
+    df = pd.read_csv(processed_dir / "safe_schools_climate.csv")
     
     # Check policy compliance rates
     policy_df = df[df['metric'] == 'safety_policy_compliance_rate']
@@ -228,7 +227,7 @@ def test_safe_schools_climate_index_scores(setup_test_data):
     config = {}
     transform(raw_dir, processed_dir, config)
     
-    df = pd.read_csv(processed_dir / "safe_schools_climate_kpi.csv")
+    df = pd.read_csv(processed_dir / "safe_schools_climate.csv")
     
     # Check 2024 climate scores from direct index file
     climate_2024 = df[(df['metric'] == 'climate_index_score') & 
@@ -253,7 +252,7 @@ def test_safe_schools_climate_suppressed_data(setup_test_data):
     config = {}
     transform(raw_dir, processed_dir, config)
     
-    df = pd.read_csv(processed_dir / "safe_schools_climate_kpi.csv")
+    df = pd.read_csv(processed_dir / "safe_schools_climate.csv")
     
     # Check suppressed records from 2024 index file
     suppressed = df[(df['year'] == 2024) & 
@@ -272,7 +271,7 @@ def test_safe_schools_climate_year_extraction(setup_test_data):
     config = {}
     transform(raw_dir, processed_dir, config)
     
-    df = pd.read_csv(processed_dir / "safe_schools_climate_kpi.csv")
+    df = pd.read_csv(processed_dir / "safe_schools_climate.csv")
     
     # Check years (note: years are stored as integers)
     years = df['year'].unique()
@@ -288,7 +287,7 @@ def test_safe_schools_climate_no_duplicates(setup_test_data):
     config = {}
     transform(raw_dir, processed_dir, config)
     
-    df = pd.read_csv(processed_dir / "safe_schools_climate_kpi.csv")
+    df = pd.read_csv(processed_dir / "safe_schools_climate.csv")
     
     # Check for duplicates
     duplicate_check = df.duplicated(

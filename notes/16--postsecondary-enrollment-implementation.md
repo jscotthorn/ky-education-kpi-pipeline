@@ -136,7 +136,7 @@ if mask_8digit.any():
 ## Integration with Existing Project
 
 ### Follows All Project Standards
-1. **KPI Output Format**: Exact 10-column specification
+1. **KPI Output Format**: 19-column specification (previously 10 columns)
 2. **Demographic Mapping**: Uses centralized DemographicMapper
 3. **Audit Logging**: Comprehensive mapping audit trail
 4. **Error Handling**: Graceful degradation with logging

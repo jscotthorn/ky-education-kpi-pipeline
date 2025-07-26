@@ -4,6 +4,7 @@ Tests for Safe Schools Discipline ETL module
 import pytest
 from pathlib import Path
 import pandas as pd
+from etl.constants import KPI_COLUMNS
 import tempfile
 import shutil
 from etl.safe_schools_discipline import transform, SafeSchoolsDisciplineETL
@@ -284,10 +285,7 @@ class TestSafeSchoolsDisciplineETL:
         result_df = pd.read_csv(output_file)
         
         # Check required columns
-        required_columns = [
-            'district', 'school_id', 'school_name', 'year', 'student_group',
-            'metric', 'value', 'suppressed', 'source_file', 'last_updated'
-        ]
+        required_columns = KPI_COLUMNS
         for col in required_columns:
             assert col in result_df.columns
         

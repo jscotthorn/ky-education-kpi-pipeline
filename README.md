@@ -98,14 +98,23 @@ All ETL modules produce standardized **long format** KPI data:
 
 | Column | Description | Example |
 |--------|-------------|---------|
-| `district` | District name | `"Jefferson County"` |
-| `school_id` | Unique school identifier | `"210090000123"` |
-| `school_name` | School display name | `"Bryan Station High School"` |
 | `year` | Academic year (4-digit) | `2024` |
-| `student_group` | Standardized demographic | `"Hispanic or Latino"` |
 | `metric` | KPI identifier | `"graduation_rate_4_year"` |
+| `district` | District name | `"Jefferson County"` |
+| `school_name` | School display name | `"Bryan Station High School"` |
+| `student_group` | Standardized demographic | `"Hispanic or Latino"` |
 | `value` | Numeric value (NaN if suppressed) | `85.2` |
 | `suppressed` | Privacy suppression flag | `"Y"` or `"N"` |
+| `county_number` | KDE county number | `161` |
+| `county_name` | County name | `"Fayette"` |
+| `district_number` | KDE district number | `175` |
+| `school_id` | Unique school identifier | `"210090000123"` |
+| `school_code` | KDE school code | `020` |
+| `state_school_id` | State-assigned school ID | `"175020"` |
+| `nces_id` | NCES ID if available | `"210090000123"` |
+| `co_op` | Education cooperative | `pd.NA` |
+| `co_op_code` | Cooperative code | `pd.NA` |
+| `school_type` | School classification | `"High"` |
 | `source_file` | Data provenance | `"graduation_rates.csv"` |
 | `last_updated` | Processing timestamp | `"2025-07-19T10:30:00"` |
 
@@ -159,7 +168,7 @@ Browse and download data files at: **https://education.kyopengov.org/data/**
 - **⚙️ Processed Files** (`/processed/`) - Individual metric files ready for analysis with audit logs
 - **📁 Raw Data** (`/raw/`) - Original unmodified files from Kentucky Department of Education
 
-Each directory includes detailed descriptions, file metadata, and direct download links. All data follows the standardized 10-column KPI format with demographic breakdowns and suppression handling.
+Each directory includes detailed descriptions, file metadata, and direct download links. All datasets now follow a standardized **19-column** KPI format that captures detailed location context alongside demographic breakdowns and suppression handling.
 
 ## 📊 Available Data Sources
 

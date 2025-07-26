@@ -29,14 +29,14 @@ Records with `SUPPRESSED = 'Y'` due to small student counts (<10) for privacy pr
 ## Solution Design
 
 ### Enhanced KPI Format
-Expand from 9 to 10 columns by adding explicit suppression tracking:
+Originally expanded from 9 to 10 columns by adding explicit suppression tracking (now further expanded to 19 columns):
 
 **Before (9 columns):**
 ```csv
 district,school_id,school_name,year,student_group,metric,value,source_file,last_updated
 ```
 
-**After (10 columns):**
+**After (10 columns, later 19 columns):**
 ```csv
 district,school_id,school_name,year,student_group,metric,value,suppressed,source_file,last_updated
 ```
@@ -167,7 +167,7 @@ This enhancement represents a significant improvement in data transparency and u
 
 #### 1. **Core Infrastructure Updates**
 - ✅ **Updated CLAUDE.md** - Modified standard column definitions to include `suppressed` column
-- ✅ **Enhanced KPI format** - Expanded from 9 to 10 columns with explicit suppression tracking
+- ✅ **Enhanced KPI format** - Expanded from 9 to 10 columns with explicit suppression tracking (foundation for today's 19-column schema)
 - ✅ **Documentation** - Added numbered journal pattern (`#--descriptive-title.md`)
 
 #### 2. **ETL Pipeline Updates**
@@ -195,7 +195,7 @@ This enhancement represents a significant improvement in data transparency and u
 district,school_id,school_name,year,student_group,metric,value,source_file,last_updated
 ```
 
-**After (10 columns):**
+**After (10 columns, later expanded to 19):**
 ```csv
 district,school_id,school_name,year,student_group,metric,value,suppressed,source_file,last_updated
 ```

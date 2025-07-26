@@ -15,6 +15,10 @@ etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
 from base_etl import BaseETL
+try:
+    from constants import KPI_COLUMNS
+except ImportError:
+    KPI_COLUMNS = []
 
 logger = logging.getLogger(__name__)
 
@@ -203,17 +207,15 @@ class OutOfSchoolSuspensionETL(BaseETL):
         if not kpi_records:
             return pd.DataFrame()
         kpi_df = pd.DataFrame(kpi_records)
-        columns = [
-            'district', 'school_id', 'school_name', 'year', 'student_group',
-            'metric', 'value', 'suppressed', 'source_file', 'last_updated'
-        ]
-        return kpi_df[columns]
+        # Use standard KPI columns, only including those that exist
+        available_columns = [col for col in KPI_COLUMNS if col in kpi_df.columns]
+        return kpi_df[available_columns]
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Entry point for pipeline execution."""
     etl = OutOfSchoolSuspensionETL('out_of_school_suspension')
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 if __name__ == '__main__':

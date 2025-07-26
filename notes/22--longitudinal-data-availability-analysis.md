@@ -98,7 +98,7 @@ Comprehensive analysis of historical data availability in `/Users/scott/Projects
 
 **Phase 1: KYRC24 Structure Implementation**
 1. Create base ETL for 2024 KYRC24 format files (7 files)
-2. Establish KPI output format following 10-column standard
+2. Establish KPI output format following 19-column standard (superseding original 10-column design)
 3. Implement DemographicMapper integration
 4. Test with current year data
 
@@ -288,7 +288,7 @@ Comprehensive analysis of historical data availability in `/Users/scott/Projects
 ### ETL Pipeline Considerations:
 - **Format detection logic** to handle legacy vs KYRC24 files
 - **Year-specific processing rules** for data structure differences
-- **Unified output format** maintaining KPI standard (10 columns)
+- **Unified output format** maintaining KPI standard (19 columns, updated from the original 10)
 - **Audit trail preservation** across format transitions
 
 ## Strategic Value Assessment

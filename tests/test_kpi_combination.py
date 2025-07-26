@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from etl.constants import KPI_COLUMNS
 import sys
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -38,6 +39,15 @@ class TestKpiCombination:
                 "school_name": ["School A", "School A"],
                 "year": [2024, 2024],
                 "student_group": ["All Students", "All Students"],
+                "county_number": ["01", "01"],
+                "county_name": ["Fayette", "Fayette"],
+                "district_number": ["111", "111"],
+                "school_code": ["A1", "A1"],
+                "state_school_id": ["1001", "1001"],
+                "nces_id": ["999999001", "999999001"],
+                "co_op": ["Central" , "Central"],
+                "co_op_code": ["C1", "C1"],
+                "school_type": ["HS", "HS"],
                 "metric": ["sample_metric_rate_4_year", "sample_metric_count_4_year"],
                 "value": [95.0, 50.0],
                 "suppressed": ["N", "N"],
@@ -52,6 +62,15 @@ class TestKpiCombination:
                 "school_name": ["School B"],
                 "year": [2024],
                 "student_group": ["All Students"],
+                "county_number": ["01"],
+                "county_name": ["Fayette"],
+                "district_number": ["111"],
+                "school_code": ["B1"],
+                "state_school_id": ["1002"],
+                "nces_id": ["999999002"],
+                "co_op": ["Central"],
+                "co_op_code": ["C1"],
+                "school_type": ["HS"],
                 "metric": ["sample_metric_rate_4_year"],
                 "value": [88.0],
                 "suppressed": ["N"],
@@ -79,18 +98,7 @@ class TestKpiCombination:
 
         assert len(csv_df) == 3
         assert len(parquet_df) == 3
-        assert list(csv_df.columns) == [
-            "district",
-            "school_id",
-            "school_name",
-            "year",
-            "student_group",
-            "metric",
-            "value",
-            "suppressed",
-            "source_file",
-            "last_updated",
-        ]
+        assert list(csv_df.columns) == KPI_COLUMNS
         pd.testing.assert_frame_equal(csv_df, parquet_df[csv_df.columns])
 
     @pytest.mark.skipif(not PYARROW_AVAILABLE, reason="pyarrow not available")

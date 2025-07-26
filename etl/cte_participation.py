@@ -36,25 +36,23 @@ def clean_numeric_with_commas(series: pd.Series) -> pd.Series:
 
 def clean_cte_data(df: pd.DataFrame) -> pd.DataFrame:
     """Clean and validate CTE participation values."""
-    # Clean participation values (can be rates or counts)
-    if 'cte_participation_value' in df.columns:
-        df['cte_participation_value'] = clean_numeric_with_commas(df['cte_participation_value'])
-        
-        # Only flag clearly invalid values (negative)
-        invalid_mask = df['cte_participation_value'] < 0
+    # Clean participation rates
+    if 'cte_participation_rate' in df.columns:
+        df['cte_participation_rate'] = clean_numeric_with_commas(df['cte_participation_rate'])
+
+        invalid_mask = (df['cte_participation_rate'] < 0) | (df['cte_participation_rate'] > 100)
         if invalid_mask.any():
-            logger.warning(f"Found {invalid_mask.sum()} invalid CTE participation values (< 0)")
-            df.loc[invalid_mask, 'cte_participation_value'] = pd.NA
+            logger.warning(f"Found {invalid_mask.sum()} invalid CTE participation rates (outside 0-100%)")
+            df.loc[invalid_mask, 'cte_participation_rate'] = pd.NA
     
-    # Clean completion values (can be rates or counts)
-    if 'cte_completion_value' in df.columns:
-        df['cte_completion_value'] = clean_numeric_with_commas(df['cte_completion_value'])
-        
-        # Only flag clearly invalid values (negative)
-        invalid_mask = df['cte_completion_value'] < 0
+    # Clean completion rates
+    if 'cte_completion_rate' in df.columns:
+        df['cte_completion_rate'] = clean_numeric_with_commas(df['cte_completion_rate'])
+
+        invalid_mask = (df['cte_completion_rate'] < 0) | (df['cte_completion_rate'] > 100)
         if invalid_mask.any():
-            logger.warning(f"Found {invalid_mask.sum()} invalid CTE completion values (< 0)")
-            df.loc[invalid_mask, 'cte_completion_value'] = pd.NA
+            logger.warning(f"Found {invalid_mask.sum()} invalid CTE completion rates (outside 0-100%)")
+            df.loc[invalid_mask, 'cte_completion_rate'] = pd.NA
     
     # Clean eligible completer count
     if 'cte_eligible_completer_count' in df.columns:
@@ -85,17 +83,17 @@ class CTEParticipationETL(BaseETL):
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {
-            # Participation columns (may be rates or counts depending on year)
-            'CTE Participants in All Grades': 'cte_participation_value',
-            'CTE PARTICIPANTS IN ALL GRADES': 'cte_participation_value',
+            # Participation rate columns
+            'CTE Participants in All Grades': 'cte_participation_rate',
+            'CTE PARTICIPANTS IN ALL GRADES': 'cte_participation_rate',
             
             # Eligible completer count columns
             'Grade 12 CTE Eligible Completer': 'cte_eligible_completer_count',
             'GRADE 12 CTE ELIGIBLE COMPLETER': 'cte_eligible_completer_count',
             
-            # Completion columns (may be rates or counts depending on year)
-            'Grade 12 CTE Completers': 'cte_completion_value',
-            'GRADE 12 CTE COMPLETERS': 'cte_completion_value',
+            # Completion rate columns
+            'Grade 12 CTE Completers': 'cte_completion_rate',
+            'GRADE 12 CTE COMPLETERS': 'cte_completion_rate',
             
             # Total student count for calculating rates when needed
             'Total Number of Student': 'total_student_count',
@@ -106,9 +104,9 @@ class CTEParticipationETL(BaseETL):
         """Detect whether columns contain rates (0-100) or counts (>100)."""
         format_info = {}
         
-        # Check participation values
-        if 'cte_participation_value' in df.columns:
-            participation_values = clean_numeric_with_commas(df['cte_participation_value']).dropna()
+        # Check participation rates
+        if 'cte_participation_rate' in df.columns:
+            participation_values = clean_numeric_with_commas(df['cte_participation_rate']).dropna()
             if len(participation_values) > 0:
                 max_val = participation_values.max()
                 # If most values are > 100, it's likely counts; if <= 100, it's likely rates
@@ -116,9 +114,9 @@ class CTEParticipationETL(BaseETL):
             else:
                 format_info['participation_is_rate'] = True  # Default assumption
         
-        # Check completion values  
-        if 'cte_completion_value' in df.columns:
-            completion_values = clean_numeric_with_commas(df['cte_completion_value']).dropna()
+        # Check completion rates
+        if 'cte_completion_rate' in df.columns:
+            completion_values = clean_numeric_with_commas(df['cte_completion_rate']).dropna()
             if len(completion_values) > 0:
                 max_val = completion_values.max()
                 format_info['completion_is_rate'] = max_val <= 100
@@ -131,7 +129,7 @@ class CTEParticipationETL(BaseETL):
         metrics = {}
         
         # Extract CTE participation (rate or count)
-        participation_value = row.get('cte_participation_value', pd.NA)
+        participation_value = row.get('cte_participation_rate', pd.NA)
         total_students = row.get('total_student_count', pd.NA)
         
         if pd.notna(participation_value):
@@ -155,7 +153,7 @@ class CTEParticipationETL(BaseETL):
             metrics['cte_eligible_completer_count_grade_12'] = eligible_count
         
         # Extract Grade 12 CTE completion (rate or count)
-        completion_value = row.get('cte_completion_value', pd.NA)
+        completion_value = row.get('cte_completion_rate', pd.NA)
         if pd.notna(completion_value):
             if completion_value <= 100:
                 # This appears to be a rate (0-100%)
@@ -204,7 +202,7 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Read newest CTE participation files, normalize, and convert to KPI format with demographic standardization using BaseETL."""
     # Use BaseETL for consistent processing
     etl = CTEParticipationETL('cte_participation')
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 if __name__ == "__main__":

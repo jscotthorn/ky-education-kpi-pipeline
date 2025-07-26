@@ -8,7 +8,7 @@ Develop a new ETL pipeline for safe schools discipline data that combines multip
 
 ## Pipeline Requirements
 - Generate ~6 KPI metrics: suspension rates, expulsion rates, arrest rates, SRO involvement
-- Follow standard KPI output format with 10 columns
+ - Follow standard KPI output format with 19 columns (updated from the original 10)
 - Use metric naming convention: {indicator}_rate_{period}
 - Determine if BaseETL class can be used or if custom structure needed (like first safe schools pipeline)
 
