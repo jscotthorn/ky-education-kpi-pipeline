@@ -101,7 +101,7 @@ class EnglishLearnerProgressETL(BaseETL):
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Entry point used by etl_runner and tests."""
     etl = EnglishLearnerProgressETL("english_learner_progress")
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 if __name__ == "__main__":

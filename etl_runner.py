@@ -173,7 +173,11 @@ def combine_kpi_files(
     ]
     for col in id_columns:
         if col in master_df.columns:
-            master_df[col] = pd.to_numeric(master_df[col], errors="ignore")
+            try:
+                master_df[col] = pd.to_numeric(master_df[col], errors="coerce")
+            except Exception as e:
+                logger.warning(f"Could not convert {col} to numeric: {e}")
+                # Keep original values if conversion fails
 
     # Write master KPI file
     import csv

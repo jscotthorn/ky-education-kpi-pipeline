@@ -11,7 +11,6 @@ Data includes two rate metrics:
 """
 from pathlib import Path
 import pandas as pd
-from .constants import KPI_COLUMNS
 from typing import Dict, Any, Union
 import logging
 import sys
@@ -19,6 +18,8 @@ import sys
 # Add etl directory to path for imports
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
+
+from constants import KPI_COLUMNS
 
 from base_etl import BaseETL, Config
 
@@ -153,7 +154,7 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Read newest postsecondary readiness files, normalize, and convert to KPI format with demographic standardization using BaseETL."""
     # Use BaseETL for consistent processing
     etl = PostsecondaryReadinessETL('postsecondary_readiness')
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 if __name__ == "__main__":

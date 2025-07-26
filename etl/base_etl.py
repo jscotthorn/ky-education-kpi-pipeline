@@ -465,7 +465,7 @@ class BaseETL(ABC):
         
         return kpi_df
     
-    def transform(self, raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
+    def process(self, raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
         """
         Main transformation method - template method pattern.
         

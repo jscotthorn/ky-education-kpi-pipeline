@@ -23,7 +23,10 @@ from pathlib import Path
 import pandas as pd
 from typing import Dict, Any, Optional, Union
 import logging
-from .constants import KPI_COLUMNS
+try:
+    from .constants import KPI_COLUMNS
+except ImportError:
+    from constants import KPI_COLUMNS
 try:
     from .base_etl import Config
 except ImportError:

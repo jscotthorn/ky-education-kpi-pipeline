@@ -169,7 +169,7 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Read graduation rates files, normalize, and convert to KPI format with demographic standardization using BaseETL."""
     # Use BaseETL for consistent processing
     etl = GraduationRatesETL('graduation_rates')
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 if __name__ == "__main__":
