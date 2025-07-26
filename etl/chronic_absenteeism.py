@@ -145,7 +145,7 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Read chronic absenteeism files, normalize, and convert to KPI format with demographic standardization using BaseETL."""
     # Use BaseETL for consistent processing
     etl = ChronicAbsenteeismETL('chronic_absenteeism')
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 

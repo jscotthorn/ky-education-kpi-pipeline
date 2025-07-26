@@ -21,6 +21,7 @@ KPI format for multi-year educational performance reporting.
 """
 import sys
 import argparse
+from etl.constants import KPI_COLUMNS
 from pathlib import Path
 from typing import Optional
 from ruamel.yaml import YAML
@@ -40,18 +41,7 @@ def load_config(config_path: Path) -> dict:
 
 def validate_kpi_format(df: pd.DataFrame, source_name: str) -> bool:
     """Validate that dataframe is in correct KPI format."""
-    required_columns = [
-        "district",
-        "school_id",
-        "school_name",
-        "year",
-        "student_group",
-        "metric",
-        "value",
-        "suppressed",
-        "source_file",
-        "last_updated",
-    ]
+    required_columns = KPI_COLUMNS
 
     missing_columns = [col for col in required_columns if col not in df.columns]
 
@@ -103,6 +93,15 @@ def combine_kpi_files(
                 "school_name": str,
                 "year": str,
                 "student_group": str,
+                "county_number": str,
+                "county_name": str,
+                "district_number": str,
+                "school_code": str,
+                "state_school_id": str,
+                "nces_id": str,
+                "co_op": str,
+                "co_op_code": str,
+                "school_type": str,
                 "metric": str,
                 "value": "float64",
                 "suppressed": str,
@@ -134,20 +133,7 @@ def combine_kpi_files(
     if not kpi_dfs:
         print("  Warning: No valid KPI files found; creating empty master file.")
         # Create empty file with correct KPI schema
-        empty_df = pd.DataFrame(
-            columns=[
-                "district",
-                "school_id",
-                "school_name",
-                "year",
-                "student_group",
-                "metric",
-                "value",
-                "suppressed",
-                "source_file",
-                "last_updated",
-            ]
-        )
+        empty_df = pd.DataFrame(columns=KPI_COLUMNS)
         empty_df.to_csv(output_csv_path, index=False)
         try:
             parquet_path = (
@@ -164,18 +150,7 @@ def combine_kpi_files(
     master_df = pd.concat(kpi_dfs, ignore_index=True, sort=False)
 
     # Ensure consistent column order
-    kpi_columns = [
-        "district",
-        "school_id",
-        "school_name",
-        "year",
-        "student_group",
-        "metric",
-        "value",
-        "suppressed",
-        "source_file",
-        "last_updated",
-    ]
+    kpi_columns = KPI_COLUMNS
 
     # Only include columns that exist
     available_columns = [col for col in kpi_columns if col in master_df.columns]
@@ -187,8 +162,26 @@ def combine_kpi_files(
     if existing_sort_columns:
         master_df = master_df.sort_values(existing_sort_columns).reset_index(drop=True)
 
+    # Cast identifier columns to integers when possible for consistent output
+    id_columns = [
+        "school_id",
+        "district_number",
+        "county_number",
+        "state_school_id",
+        "nces_id",
+        "year",
+    ]
+    for col in id_columns:
+        if col in master_df.columns:
+            try:
+                master_df[col] = pd.to_numeric(master_df[col], errors="coerce")
+            except Exception as e:
+                logger.warning(f"Could not convert {col} to numeric: {e}")
+                # Keep original values if conversion fails
+
     # Write master KPI file
-    master_df.to_csv(output_csv_path, index=False)
+    import csv
+    master_df.to_csv(output_csv_path, index=False, quoting=csv.QUOTE_NONNUMERIC)
     
     # Try to write parquet if pyarrow is available
     try:

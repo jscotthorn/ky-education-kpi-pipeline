@@ -176,7 +176,7 @@ data/processed/
 ## Success Metrics Achieved
 
 ### **Technical:**
-- ✅ **Full KPI compliance**: 10-column format with proper metric naming
+- ✅ **Full KPI compliance**: 19-column format (expanded from 10) with proper metric naming
 - ✅ **Zero data loss**: All source records processed (suppressed + valid)
 - ✅ **Comprehensive testing**: 16 tests covering unit and end-to-end scenarios
 - ✅ **Dashboard integration**: Immediate visualization availability

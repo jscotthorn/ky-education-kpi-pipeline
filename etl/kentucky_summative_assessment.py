@@ -227,7 +227,7 @@ class KentuckySummativeAssessmentETL(BaseETL):
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Entry point for pipeline."""
     etl = KentuckySummativeAssessmentETL('kentucky_summative_assessment')
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 if __name__ == '__main__':

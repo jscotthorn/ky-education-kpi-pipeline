@@ -13,13 +13,13 @@ from pathlib import Path
 import pandas as pd
 from typing import Dict, Any, Union
 import logging
-
 import sys
-from pathlib import Path
 
 # Add etl directory to path for imports
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
+
+from constants import KPI_COLUMNS
 
 from base_etl import BaseETL, Config
 
@@ -132,11 +132,9 @@ class PostsecondaryReadinessETL(BaseETL):
         
         # Create KPI DataFrame with consistent column order
         kpi_df = pd.DataFrame(kpi_rows)
-        kpi_columns = ['district', 'school_id', 'school_name', 'year', 'student_group', 
-                       'metric', 'value', 'suppressed', 'source_file', 'last_updated']
-        
+
         # Only include columns that exist
-        available_columns = [col for col in kpi_columns if col in kpi_df.columns]
+        available_columns = [col for col in KPI_COLUMNS if col in kpi_df.columns]
         kpi_df = kpi_df[available_columns]
         
         return kpi_df
@@ -156,7 +154,7 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Read newest postsecondary readiness files, normalize, and convert to KPI format with demographic standardization using BaseETL."""
     # Use BaseETL for consistent processing
     etl = PostsecondaryReadinessETL('postsecondary_readiness')
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 if __name__ == "__main__":

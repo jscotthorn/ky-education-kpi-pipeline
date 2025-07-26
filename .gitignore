@@ -8,8 +8,9 @@ __pycache__/
 *.csv
 html/data/
 
-# CSV files (data should be hosted externally)
+# Processed an csv files (data should be hosted externally)
 *.csv
+data/processed/*.md
 
 # Local AI assistant files
 CLAUDE.local.md
