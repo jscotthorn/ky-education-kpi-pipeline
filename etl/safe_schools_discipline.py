@@ -75,43 +75,78 @@ class SafeSchoolsDisciplineETL(BaseETL):
         }
         
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
-        """Extract metric values from a data row."""
-        metrics = {}
-        
-        # Get total for rate calculations
-        total = pd.to_numeric(row.get('total', 0), errors='coerce')
-        if pd.isna(total) or total == 0:
-            total = pd.to_numeric(row.get('total_discipline_resolutions', 0), errors='coerce')
-            
-        if total == 0:
-            return metrics
-            
-        # Define metric mappings for rates
+        """Extract metric and enrollment values from a data row."""
+        metrics: Dict[str, Any] = {}
+
+        total = pd.to_numeric(row.get("total"), errors="coerce")
+        discipline_total = pd.to_numeric(row.get("total_discipline_resolutions"), errors="coerce")
+
+        rate_denominator = total
+        if pd.isna(rate_denominator) or rate_denominator == 0:
+            rate_denominator = discipline_total
+
+        discipline_cols = [
+            "corporal_punishment_count",
+            "restraint_count",
+            "seclusion_count",
+            "expelled_not_receiving_services_count",
+            "expelled_receiving_services_count",
+            "in_school_removal_count",
+            "out_of_school_suspension_count",
+            "removal_by_hearing_officer_count",
+            "unilateral_removal_count",
+        ]
+
+        legal_cols = [
+            "arrest_count",
+            "charges_count",
+            "civil_proceedings_count",
+            "court_designated_worker_count",
+            "school_resource_officer_count",
+        ]
+
+        for col in discipline_cols + legal_cols:
+            if col in row and pd.notna(row[col]):
+                metrics[col] = pd.to_numeric(row[col], errors="coerce")
+
+        if any(c in row for c in discipline_cols) or "total_discipline_resolutions" in row:
+            if pd.notna(discipline_total):
+                metrics["discipline_resolutions_total_count"] = discipline_total
+            elif pd.notna(total):
+                metrics["discipline_resolutions_total_count"] = total
+
+        if any(c in row for c in legal_cols):
+            if pd.notna(total):
+                metrics["legal_sanctions_total_count"] = total
+
         discipline_metrics = {
-            'corporal_punishment_rate': 'corporal_punishment_count',
-            'restraint_rate': 'restraint_count',
-            'seclusion_rate': 'seclusion_count', 
-            'expelled_not_receiving_services_rate': 'expelled_not_receiving_services_count',
-            'expelled_receiving_services_rate': 'expelled_receiving_services_count',
-            'in_school_removal_rate': 'in_school_removal_count',
-            'out_of_school_suspension_rate': 'out_of_school_suspension_count',
-            'removal_by_hearing_officer_rate': 'removal_by_hearing_officer_count',
-            'unilateral_removal_rate': 'unilateral_removal_count',
-            'arrest_rate': 'arrest_count',
-            'charges_rate': 'charges_count',
-            'civil_proceedings_rate': 'civil_proceedings_count',
-            'court_designated_worker_rate': 'court_designated_worker_count',
-            'school_resource_officer_rate': 'school_resource_officer_count'
+            "corporal_punishment_rate": "corporal_punishment_count",
+            "restraint_rate": "restraint_count",
+            "seclusion_rate": "seclusion_count",
+            "expelled_not_receiving_services_rate": "expelled_not_receiving_services_count",
+            "expelled_receiving_services_rate": "expelled_receiving_services_count",
+            "in_school_removal_rate": "in_school_removal_count",
+            "out_of_school_suspension_rate": "out_of_school_suspension_count",
+            "removal_by_hearing_officer_rate": "removal_by_hearing_officer_count",
+            "unilateral_removal_rate": "unilateral_removal_count",
+            "arrest_rate": "arrest_count",
+            "charges_rate": "charges_count",
+            "civil_proceedings_rate": "civil_proceedings_count",
+            "court_designated_worker_rate": "court_designated_worker_count",
+            "school_resource_officer_rate": "school_resource_officer_count",
         }
-        
+
         for rate_name, count_column in discipline_metrics.items():
             if count_column in row and pd.notna(row[count_column]):
-                count = pd.to_numeric(row[count_column], errors='coerce')
-                if pd.notna(count) and pd.notna(total) and total > 0:
-                    rate = (count / total * 100)
-                    if rate > 0:  # Only include non-zero rates
-                        metrics[rate_name] = round(rate, 2)
-                    
+                count = pd.to_numeric(row[count_column], errors="coerce")
+                if (
+                    pd.notna(count)
+                    and pd.notna(rate_denominator)
+                    and rate_denominator > 0
+                    and count > 0
+                ):
+                    metrics[rate_name] = round((count / rate_denominator) * 100, 2)
+
         return metrics
         
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
@@ -130,7 +165,23 @@ class SafeSchoolsDisciplineETL(BaseETL):
             'charges_rate': pd.NA,
             'civil_proceedings_rate': pd.NA,
             'court_designated_worker_rate': pd.NA,
-            'school_resource_officer_rate': pd.NA
+            'school_resource_officer_rate': pd.NA,
+            'corporal_punishment_count': pd.NA,
+            'restraint_count': pd.NA,
+            'seclusion_count': pd.NA,
+            'expelled_not_receiving_services_count': pd.NA,
+            'expelled_receiving_services_count': pd.NA,
+            'in_school_removal_count': pd.NA,
+            'out_of_school_suspension_count': pd.NA,
+            'removal_by_hearing_officer_count': pd.NA,
+            'unilateral_removal_count': pd.NA,
+            'arrest_count': pd.NA,
+            'charges_count': pd.NA,
+            'civil_proceedings_count': pd.NA,
+            'court_designated_worker_count': pd.NA,
+            'school_resource_officer_count': pd.NA,
+            'discipline_resolutions_total_count': pd.NA,
+            'legal_sanctions_total_count': pd.NA
         }
 
 
