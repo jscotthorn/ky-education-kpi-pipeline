@@ -80,10 +80,15 @@ class PostsecondaryReadinessETL(BaseETL):
     
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         """Get default metrics for suppressed postsecondary readiness records."""
-        return {
-            'postsecondary_readiness_rate': pd.NA,
-            'postsecondary_readiness_rate_with_bonus': pd.NA
-        }
+        defaults = {}
+        
+        # Only create defaults for metrics that exist in the source data
+        if 'postsecondary_rate' in row.index:
+            defaults['postsecondary_readiness_rate'] = pd.NA
+        if 'postsecondary_rate_with_bonus' in row.index:
+            defaults['postsecondary_readiness_rate_with_bonus'] = pd.NA
+            
+        return defaults
     
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
         """

@@ -90,15 +90,25 @@ class PostsecondaryEnrollmentETL(BaseETL):
         return metrics
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
-        return {
-            "postsecondary_enrollment_total_in_cohort": pd.NA,
-            "postsecondary_enrollment_public_ky_college_count": pd.NA,
-            "postsecondary_enrollment_private_ky_college_count": pd.NA,
-            "postsecondary_enrollment_total_ky_college_count": pd.NA,
-            "postsecondary_enrollment_public_ky_college_rate": pd.NA,
-            "postsecondary_enrollment_private_ky_college_rate": pd.NA,
-            "postsecondary_enrollment_total_ky_college_rate": pd.NA,
-        }
+        defaults = {}
+        
+        # Only create defaults for metrics that exist in the source data
+        if "total_in_group" in row.index:
+            defaults["postsecondary_enrollment_total_in_cohort"] = pd.NA
+        if "public_college_enrolled" in row.index:
+            defaults["postsecondary_enrollment_public_ky_college_count"] = pd.NA
+        if "private_college_enrolled" in row.index:
+            defaults["postsecondary_enrollment_private_ky_college_count"] = pd.NA
+        if "college_enrolled_total" in row.index:
+            defaults["postsecondary_enrollment_total_ky_college_count"] = pd.NA
+        if "public_college_rate" in row.index:
+            defaults["postsecondary_enrollment_public_ky_college_rate"] = pd.NA
+        if "private_college_rate" in row.index:
+            defaults["postsecondary_enrollment_private_ky_college_rate"] = pd.NA
+        if "college_enrollment_rate" in row.index:
+            defaults["postsecondary_enrollment_total_ky_college_rate"] = pd.NA
+            
+        return defaults
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         df = super().standardize_missing_values(df)

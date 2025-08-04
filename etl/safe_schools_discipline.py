@@ -78,60 +78,62 @@ class SafeSchoolsDisciplineETL(BaseETL):
         """Extract metric values from a data row."""
         metrics = {}
         
-        # Get total for rate calculations
-        total = pd.to_numeric(row.get('total', 0), errors='coerce')
-        if pd.isna(total) or total == 0:
-            total = pd.to_numeric(row.get('total_discipline_resolutions', 0), errors='coerce')
-            
-        if total == 0:
-            return metrics
-            
-        # Define metric mappings for rates
-        discipline_metrics = {
-            'corporal_punishment_rate': 'corporal_punishment_count',
-            'restraint_rate': 'restraint_count',
-            'seclusion_rate': 'seclusion_count', 
-            'expelled_not_receiving_services_rate': 'expelled_not_receiving_services_count',
-            'expelled_receiving_services_rate': 'expelled_receiving_services_count',
-            'in_school_removal_rate': 'in_school_removal_count',
-            'out_of_school_suspension_rate': 'out_of_school_suspension_count',
-            'removal_by_hearing_officer_rate': 'removal_by_hearing_officer_count',
-            'unilateral_removal_rate': 'unilateral_removal_count',
-            'arrest_rate': 'arrest_count',
-            'charges_rate': 'charges_count',
-            'civil_proceedings_rate': 'civil_proceedings_count',
-            'court_designated_worker_rate': 'court_designated_worker_count',
-            'school_resource_officer_rate': 'school_resource_officer_count'
-        }
+        # Define metric mappings for counts
+        discipline_count_columns = [
+            'corporal_punishment_count',
+            'restraint_count',
+            'seclusion_count', 
+            'expelled_not_receiving_services_count',
+            'expelled_receiving_services_count',
+            'in_school_removal_count',
+            'out_of_school_suspension_count',
+            'removal_by_hearing_officer_count',
+            'unilateral_removal_count',
+            'arrest_count',
+            'charges_count',
+            'civil_proceedings_count',
+            'court_designated_worker_count',
+            'school_resource_officer_count'
+        ]
         
-        for rate_name, count_column in discipline_metrics.items():
+        for count_column in discipline_count_columns:
             if count_column in row and pd.notna(row[count_column]):
-                count = pd.to_numeric(row[count_column], errors='coerce')
-                if pd.notna(count) and pd.notna(total) and total > 0:
-                    rate = (count / total * 100)
-                    if rate > 0:  # Only include non-zero rates
-                        metrics[rate_name] = round(rate, 2)
+                # Remove commas from numeric values before parsing
+                value = str(row[count_column]).replace(',', '')
+                count = pd.to_numeric(value, errors='coerce')
+                if pd.notna(count) and count > 0:  # Only include non-zero counts
+                    metrics[count_column] = int(count)
                     
         return metrics
         
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         """Get defaults for suppressed metrics for a row."""
-        return {
-            'corporal_punishment_rate': pd.NA,
-            'restraint_rate': pd.NA,
-            'seclusion_rate': pd.NA,
-            'expelled_not_receiving_services_rate': pd.NA,
-            'expelled_receiving_services_rate': pd.NA,
-            'in_school_removal_rate': pd.NA,
-            'out_of_school_suspension_rate': pd.NA,
-            'removal_by_hearing_officer_rate': pd.NA,
-            'unilateral_removal_rate': pd.NA,
-            'arrest_rate': pd.NA,
-            'charges_rate': pd.NA,
-            'civil_proceedings_rate': pd.NA,
-            'court_designated_worker_rate': pd.NA,
-            'school_resource_officer_rate': pd.NA
-        }
+        defaults = {}
+        
+        # Define count columns that should have defaults when suppressed
+        discipline_count_columns = [
+            'corporal_punishment_count',
+            'restraint_count',
+            'seclusion_count',
+            'expelled_not_receiving_services_count',
+            'expelled_receiving_services_count',
+            'in_school_removal_count',
+            'out_of_school_suspension_count',
+            'removal_by_hearing_officer_count',
+            'unilateral_removal_count',
+            'arrest_count',
+            'charges_count',
+            'civil_proceedings_count',
+            'court_designated_worker_count',
+            'school_resource_officer_count'
+        ]
+        
+        # Only create defaults for metrics that exist in the source data
+        for count_column in discipline_count_columns:
+            if count_column in row.index:
+                defaults[count_column] = pd.NA
+            
+        return defaults
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

@@ -62,9 +62,9 @@ def validate_kpi_format(df: pd.DataFrame, source_name: str) -> bool:
 def combine_kpi_files(
     proc_dir: Path,
     output_csv_path: Path,
-    output_parquet_path: Optional[Path] = None,
+    chunk_size: int = 10000,
 ) -> None:
-    """Combine all processed KPI CSV files into a master dataset.
+    """Combine all processed KPI CSV files into a master dataset using chunked processing.
 
     Parameters
     ----------
@@ -72,132 +72,85 @@ def combine_kpi_files(
         Directory containing per-source processed KPI CSV files.
     output_csv_path : Path
         Path for the combined CSV output.
-    output_parquet_path : Optional[Path], optional
-        If provided, the combined dataframe is also written to this path as a
-        parquet file. When omitted, a `.parquet` file will be created next to
-        ``output_csv_path``.
+    chunk_size : int, optional
+        Number of rows to process in each chunk (default: 10000).
     """
-    kpi_dfs = []
-
-    # Only process main KPI files, skip audit files
-    for csv_file in proc_dir.glob("*.csv"):
-        if "audit" in csv_file.name:
-            continue
-
-        print(f"  Processing {csv_file.name}")
-
-        try:
-            kpi_dtype = {
-                "district": str,
-                "school_id": str,
-                "school_name": str,
-                "year": str,
-                "student_group": str,
-                "county_number": str,
-                "county_name": str,
-                "district_number": str,
-                "school_code": str,
-                "state_school_id": str,
-                "nces_id": str,
-                "co_op": str,
-                "co_op_code": str,
-                "school_type": str,
-                "metric": str,
-                "value": "float64",
-                "suppressed": str,
-                "source_file": str,
-                "last_updated": str,
-            }
-            df = pd.read_csv(csv_file, dtype=kpi_dtype)
-
-            if df.empty:
-                print(f"  Warning: Empty file: {csv_file.name}")
-                continue
-
-            # Validate KPI format
-            if not validate_kpi_format(df, csv_file.name):
-                print(f"  Skipping {csv_file.name} - invalid KPI format")
-                continue
-
-            # Ensure source_file is populated
-            if "source_file" not in df.columns or df["source_file"].isna().all():
-                df["source_file"] = csv_file.name
-
-            kpi_dfs.append(df)
-            print(f"  Added {len(df):,} KPI rows from {csv_file.name}")
-
-        except Exception as e:
-            print(f"  Error processing {csv_file.name}: {e}")
-            continue
-
-    if not kpi_dfs:
+    import csv
+    
+    # Get list of CSV files to process (skip audit files)
+    csv_files = [f for f in proc_dir.glob("*.csv") if "audit" not in f.name]
+    
+    if not csv_files:
         print("  Warning: No valid KPI files found; creating empty master file.")
         # Create empty file with correct KPI schema
         empty_df = pd.DataFrame(columns=KPI_COLUMNS)
         empty_df.to_csv(output_csv_path, index=False)
-        try:
-            parquet_path = (
-                output_parquet_path
-                if output_parquet_path
-                else output_csv_path.with_suffix(".parquet")
-            )
-            empty_df.to_parquet(parquet_path, index=False)
-        except ImportError:
-            print("  Warning: pyarrow not available, skipping parquet output")
         return
 
-    # Combine all KPI dataframes
-    master_df = pd.concat(kpi_dfs, ignore_index=True, sort=False)
+    total_rows = 0
+    files_processed = 0
 
-    # Ensure consistent column order
-    kpi_columns = KPI_COLUMNS
-
-    # Only include columns that exist
-    available_columns = [col for col in kpi_columns if col in master_df.columns]
-    master_df = master_df[available_columns]
-
-    # Sort by key fields for consistent output
-    sort_columns = ["district", "school_name", "year", "student_group", "metric"]
-    existing_sort_columns = [col for col in sort_columns if col in master_df.columns]
-    if existing_sort_columns:
-        master_df = master_df.sort_values(existing_sort_columns).reset_index(drop=True)
-
-    # Cast identifier columns to integers when possible for consistent output
-    id_columns = [
-        "school_id",
-        "district_number",
-        "county_number",
-        "state_school_id",
-        "nces_id",
-        "year",
-    ]
-    for col in id_columns:
-        if col in master_df.columns:
+    # Write header to output file first
+    with open(output_csv_path, 'w', newline='', encoding='utf-8') as outfile:
+        writer = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
+        writer.writerow(KPI_COLUMNS)
+        
+        # Process each CSV file
+        for csv_file in csv_files:
+            print(f"  Processing {csv_file.name}")
+            
             try:
-                master_df[col] = pd.to_numeric(master_df[col], errors="coerce")
+                with open(csv_file, 'r', newline='', encoding='utf-8') as infile:
+                    reader = csv.reader(infile)
+                    
+                    # Read and validate header
+                    try:
+                        header = next(reader)
+                    except StopIteration:
+                        print(f"  Warning: Empty file: {csv_file.name}")
+                        continue
+                    
+                    # Basic header validation
+                    if not header or len(header) < len(KPI_COLUMNS):
+                        print(f"  Skipping {csv_file.name} - invalid header")
+                        continue
+                    
+                    # Process data rows in chunks
+                    file_rows = 0
+                    chunk = []
+                    chunks_written = 0
+                    
+                    for row in reader:
+                        if row:  # Skip empty rows
+                            chunk.append(row)
+                            
+                            # Write chunk when it reaches chunk_size
+                            if len(chunk) >= chunk_size:
+                                writer.writerows(chunk)
+                                file_rows += len(chunk)
+                                chunks_written += 1
+                                chunk = []
+                                
+                                # Log progress every 10 chunks (100k rows)
+                                if chunks_written % 10 == 0:
+                                    print(f"    Processed {file_rows:,} rows ({chunks_written} chunks)")
+                    
+                    # Write remaining rows in final chunk
+                    if chunk:
+                        writer.writerows(chunk)
+                        file_rows += len(chunk)
+                        chunks_written += 1
+                    
+                    total_rows += file_rows
+                    files_processed += 1
+                    print(f"  Added {file_rows:,} KPI rows from {csv_file.name}")
+                    
             except Exception as e:
-                logger.warning(f"Could not convert {col} to numeric: {e}")
-                # Keep original values if conversion fails
+                print(f"  Error processing {csv_file.name}: {e}")
+                continue
 
-    # Write master KPI file
-    import csv
-    master_df.to_csv(output_csv_path, index=False, quoting=csv.QUOTE_NONNUMERIC)
-    
-    # Try to write parquet if pyarrow is available
-    try:
-        parquet_path = (
-            output_parquet_path
-            if output_parquet_path
-            else output_csv_path.with_suffix(".parquet")
-        )
-        master_df.to_parquet(parquet_path, index=False)
-    except ImportError:
-        print("  Warning: pyarrow not available, skipping parquet output")
-
-    print(f"  Combined {len(kpi_dfs)} KPI sources into {output_csv_path}")
-    print(
-        f"  Master KPI file: {len(master_df):,} rows, {len(master_df.columns)} columns"
-    )
+    print(f"  Combined {files_processed} KPI sources into {output_csv_path}")
+    print(f"  Master KPI file: {total_rows:,} rows")
 
 
 def run_etl_module(module_name: str, raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
@@ -208,14 +161,24 @@ def run_etl_module(module_name: str, raw_dir: Path, proc_dir: Path, cfg: dict) -
         print(f"Warning: ETL module {module_name} not found at {module_path}")
         return
 
-    # Dynamic import
-    spec = importlib.util.spec_from_file_location(module_name, module_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    print(f"\n🔄 Running {module_name} ETL pipeline...")
+    print(f"   Source: {raw_dir / module_name}")
+    print(f"   Output: {proc_dir}")
+    
+    try:
+        # Dynamic import
+        spec = importlib.util.spec_from_file_location(module_name, module_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
 
-    # Run transform function
-    print(f"Running {module_name} transform...")
-    module.transform(raw_dir, proc_dir, cfg)
+        # Run transform function
+        module.transform(raw_dir, proc_dir, cfg)
+        print(f"✅ Completed {module_name} pipeline")
+        
+    except Exception as e:
+        print(f"❌ Error in {module_name} pipeline: {e}")
+        logger.error(f"Pipeline {module_name} failed", exc_info=True)
+        # Continue with other pipelines rather than failing completely
 
 
 def main():
@@ -233,8 +196,26 @@ def main():
         action="store_true",
         help="Draft mode - generate initial ETL logic from raw data",
     )
+    parser.add_argument(
+        "--skip-etl",
+        action="store_true",
+        help="Skip all ETL pipelines and only run the combine function",
+    )
+    parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Enable verbose logging from ETL pipelines",
+    )
 
     args = parser.parse_args()
+
+    # Configure logging to show ETL pipeline output
+    log_level = logging.INFO if args.verbose else logging.WARNING
+    logging.basicConfig(
+        level=log_level,
+        format='%(levelname)s: %(message)s',
+        handlers=[logging.StreamHandler()]
+    )
 
     # Setup paths
     base_dir = Path(__file__).parent
@@ -260,19 +241,28 @@ def main():
         print("Draft mode not yet implemented")
         return
 
-    # Run ETL modules
-    for source_name, source_config in config.get("sources", {}).items():
-        run_etl_module(source_name, raw_dir, proc_dir, source_config)
+    # Run ETL modules unless skip-etl flag is set
+    if not args.skip_etl:
+        sources = config.get("sources", {})
+        total_sources = len(sources)
+        print(f"\n🚀 Starting ETL pipeline processing ({total_sources} sources)")
+        
+        for i, (source_name, source_config) in enumerate(sources.items(), 1):
+            print(f"\n📊 Pipeline {i}/{total_sources}: {source_name}")
+            run_etl_module(source_name, raw_dir, proc_dir, source_config)
+            
+        print(f"\n🎉 Completed all {total_sources} ETL pipelines")
+    else:
+        print("Skipping ETL pipelines due to --skip-etl flag")
 
     # Combine all processed files
-    print("Combining processed files into master KPI file...")
+    print("\n📁 Combining processed files into master KPI file...")
     combine_kpi_files(
         proc_dir,
         kpi_dir / "kpi_master.csv",
-        kpi_dir / "kpi_master.parquet",
     )
 
-    print("ETL pipeline completed successfully!")
+    print("\n🎯 ETL pipeline completed successfully!")
 
 
 if __name__ == "__main__":

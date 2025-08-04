@@ -195,11 +195,12 @@ class KindergartenReadinessETL(BaseETL):
             pd.notna(prior_setting)
             and str(row.get("demographic", "")).strip().lower() == "all students"
             and str(prior_setting).strip().lower() != "all students"
+            and ("total_percent_ready" in row.index or "number_tested" in row.index)
         ):
             slug = _slugify(prior_setting)
             metrics[f"kindergarten_{slug}_count"] = pd.NA
             metrics[f"kindergarten_{slug}_rate"] = pd.NA
-
+            
         return metrics
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -210,6 +211,30 @@ class KindergartenReadinessETL(BaseETL):
         else:
             df["suppressed"] = "N"
         return df
+
+    def create_kpi_template(self, row: pd.Series, source_file: str) -> Dict[str, Any]:
+        """
+        Override to handle kindergarten-specific suppression logic.
+        
+        For kindergarten readiness, KDE marks records as suppressed even when
+        values exist. We override the suppression flag when actual data is present.
+        """
+        template = super().create_kpi_template(row, source_file)
+        
+        # Override suppression if we have actual readiness data
+        # Check if total_percent_ready or component readiness values exist
+        has_readiness_data = (
+            pd.notna(row.get("total_percent_ready")) or
+            pd.notna(row.get("total_ready_count")) or
+            (pd.notna(row.get("ready_with_interventions_count")) and
+             pd.notna(row.get("ready_count")) and 
+             pd.notna(row.get("ready_with_enrichments_count")))
+        )
+        
+        if has_readiness_data and template['suppressed'] == 'Y':
+            template['suppressed'] = 'N'
+            
+        return template
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

@@ -152,13 +152,19 @@ class KentuckySummativeAssessmentETL(BaseETL):
 
         def add(name: str, value: Any) -> None:
             if pd.notna(value):
-                for period in {grade_period, level_period}:
-                    if period == 'all' or period == 'all_grades':
-                        continue
+                # Always include grade-level metrics if we have grade data
+                if grade_period != 'all_grades':
                     try:
-                        metrics[f'{subject}_{name}_{period}'] = float(value)
+                        metrics[f'kentucky_summative_assessment_{subject}_{name}_{grade_period}'] = float(value)
                     except (ValueError, TypeError):
-                        metrics[f'{subject}_{name}_{period}'] = pd.NA
+                        metrics[f'kentucky_summative_assessment_{subject}_{name}_{grade_period}'] = pd.NA
+                
+                # Include level-based metrics for backwards compatibility and aggregation
+                if level_period != 'all':
+                    try:
+                        metrics[f'kentucky_summative_assessment_{subject}_{name}_{level_period}'] = float(value)
+                    except (ValueError, TypeError):
+                        metrics[f'kentucky_summative_assessment_{subject}_{name}_{level_period}'] = pd.NA
 
         add('novice_rate', row.get('novice'))
         add('apprentice_rate', row.get('apprentice'))
@@ -179,16 +185,25 @@ class KentuckySummativeAssessmentETL(BaseETL):
 
         metrics: Dict[str, Any] = {}
 
-        for period in {grade_period, level_period}:
-            if period == 'all' or period == 'all_grades':
-                continue
-            metrics[f'{subject}_novice_rate_{period}'] = pd.NA
-            metrics[f'{subject}_apprentice_rate_{period}'] = pd.NA
-            metrics[f'{subject}_proficient_rate_{period}'] = pd.NA
-            metrics[f'{subject}_distinguished_rate_{period}'] = pd.NA
-            metrics[f'{subject}_proficient_distinguished_rate_{period}'] = pd.NA
+        # Always include grade-level metrics if we have grade data
+        if grade_period != 'all_grades':
+            metrics[f'kentucky_summative_assessment_{subject}_novice_rate_{grade_period}'] = pd.NA
+            metrics[f'kentucky_summative_assessment_{subject}_apprentice_rate_{grade_period}'] = pd.NA
+            metrics[f'kentucky_summative_assessment_{subject}_proficient_rate_{grade_period}'] = pd.NA
+            metrics[f'kentucky_summative_assessment_{subject}_distinguished_rate_{grade_period}'] = pd.NA
+            metrics[f'kentucky_summative_assessment_{subject}_proficient_distinguished_rate_{grade_period}'] = pd.NA
             if 'content_index' in row:
-                metrics[f'{subject}_content_index_score_{period}'] = pd.NA
+                metrics[f'kentucky_summative_assessment_{subject}_content_index_score_{grade_period}'] = pd.NA
+
+        # Include level-based metrics for backwards compatibility and aggregation
+        if level_period != 'all':
+            metrics[f'kentucky_summative_assessment_{subject}_novice_rate_{level_period}'] = pd.NA
+            metrics[f'kentucky_summative_assessment_{subject}_apprentice_rate_{level_period}'] = pd.NA
+            metrics[f'kentucky_summative_assessment_{subject}_proficient_rate_{level_period}'] = pd.NA
+            metrics[f'kentucky_summative_assessment_{subject}_distinguished_rate_{level_period}'] = pd.NA
+            metrics[f'kentucky_summative_assessment_{subject}_proficient_distinguished_rate_{level_period}'] = pd.NA
+            if 'content_index' in row:
+                metrics[f'kentucky_summative_assessment_{subject}_content_index_score_{level_period}'] = pd.NA
 
         return metrics
 

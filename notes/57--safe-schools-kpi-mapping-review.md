@@ -20,7 +20,7 @@ Review the three Safe Schools ETL pipelines (events, discipline, climate) to und
 - **Sources**: `KYRC24_SAFE_Discipline_Resolutions.csv`, `KYRC24_SAFE_Legal_Sanctions.csv`, and historical discipline files.
 - **Metrics Generated**: Rate-based indicators only. Example mappings:
   - `restraint_count` → `restraint_rate`
-  - `out_of_school_suspension_count` → `out_of_school_suspension_rate`
+  - `out_of_school_suspension_count` → `out_of_school_suspension_count`
   - `arrest_count` → `arrest_rate`
 - **Mapping Logic**: `extract_metrics()` computes each rate as `count / total * 100` and drops zero-value metrics. No counts are currently output.
 

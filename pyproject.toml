@@ -10,11 +10,10 @@ dependencies = [
     "pydantic",
     "ruamel-yaml",
     "pytest",
-    "tabulate"
+    "tabulate",
+    "requests"
 ]
 
-[project.optional-dependencies]
-parquet = ["pyarrow"]
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -34,11 +34,11 @@ Develop a new ETL pipeline for safe schools discipline data that combines multip
 4. **Year Extraction**: BaseETL automatically extracts correct year from school_year field
 
 ### Generated Metrics
-- **Discipline Rates**: corporal_punishment_rate, restraint_rate, seclusion_rate, expelled_not_receiving_services_rate, expelled_receiving_services_rate, in_school_removal_rate, out_of_school_suspension_rate, removal_by_hearing_officer_rate, unilateral_removal_rate
+- **Discipline Rates**: corporal_punishment_rate, restraint_rate, seclusion_rate, expelled_not_receiving_services_rate, expelled_receiving_services_rate, in_school_removal_rate, out_of_school_suspension_count, removal_by_hearing_officer_rate, unilateral_removal_rate
 - **Legal Sanction Rates**: arrest_rate, charges_rate, civil_proceedings_rate, court_designated_worker_rate, school_resource_officer_rate
 
 ### Data Quality Results
-- **Top Metrics by Volume**: out_of_school_suspension_rate (40,302 records), in_school_removal_rate (38,707 records), restraint_rate (10,114 records)
+- **Top Metrics by Volume**: out_of_school_suspension_count (40,302 records), in_school_removal_rate (38,707 records), restraint_rate (10,114 records)
 - **Year Coverage**: 2020-2024 with proper longitudinal consistency
 - **Demographic Coverage**: 95,935 total records across all student groups
 - **Data Validation**: All rates between 0-100%, proper school ID extraction

@@ -12,23 +12,15 @@ python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e .
 
-# Optional: Install parquet support
-# Option 1: Try direct install (may require system libraries)
-pip install -e .[parquet]
-
-# Option 2: Install Apache Arrow first (macOS)
-brew install apache-arrow
-pip install -e .[parquet]
-
-# Option 3: Use conda for better pre-built support
-conda install -c conda-forge pyarrow
 
 # Run ETL pipeline
-python3 etl_runner.py
+python3 etl_runner.py           # Standard run (warnings/errors only)
+python3 etl_runner.py --verbose # Show detailed progress logs
+python3 etl_runner.py --skip-etl # Only combine existing processed files
 
 # View results
 open data/processed/  # Individual source files
-open data/kpi/        # Combined master dataset (CSV & Parquet)
+open data/kpi/        # Combined master dataset (CSV)
 ```
 
 ## 📋 Developer Workflow
@@ -52,7 +44,12 @@ open data/kpi/        # Combined master dataset (CSV & Parquet)
 2. **Draft run** → `python3 etl_runner.py --draft` to generate initial ETL logic
 3. **Refine** → Edit generated ETL modules in `etl/` directory
 4. **Test** → `python3 -m pytest tests/` to validate processing logic
-5. **Production run** → `python3 etl_runner.py` to process all sources
+5. **Production run** → Process all sources:
+   ```bash
+   python3 etl_runner.py           # Standard (quiet mode)
+   python3 etl_runner.py --verbose # With detailed pipeline logs
+   python3 etl_runner.py --skip-etl # Only combine existing files
+   ```
 6. **Review** → Check outputs in `data/processed/`
 
 ### 2. Dashboard Monitoring
@@ -64,6 +61,48 @@ python3 html/generate_dashboard_data.py
 python3 html/serve_dashboard.py
 # Opens http://localhost:8000/equity_dashboard.html
 ```
+
+## 🔍 Enhanced Pipeline Monitoring
+
+The ETL runner now provides detailed progress tracking and logging:
+
+### Command Options
+```bash
+python3 etl_runner.py              # Standard: warnings/errors only
+python3 etl_runner.py --verbose    # Detailed: show all processing logs
+python3 etl_runner.py --skip-etl   # Skip ETL, only combine files
+python3 etl_runner.py -v --skip-etl # Verbose combine operation
+```
+
+### Progress Display
+```
+🚀 Starting ETL pipeline processing (8 sources)
+
+📊 Pipeline 1/8: graduation_rates
+🔄 Running graduation_rates ETL pipeline...
+   Source: data/raw/graduation_rates  
+   Output: data/processed
+INFO: Found 3 files to process for graduation_rates
+INFO: Streaming graduation_rates_2022.csv (1/3)
+INFO:   → Processing row 50,000 from graduation_rates_2022.csv
+✅ Completed graduation_rates pipeline
+
+🎉 Completed all 8 ETL pipelines
+
+📁 Combining processed files into master KPI file...
+  Processing graduation_rates.csv
+    Processed 100,000 rows (10 chunks)  
+  Added 156,789 KPI rows from graduation_rates.csv
+  Master KPI file: 2,156,789 rows
+
+🎯 ETL pipeline completed successfully!
+```
+
+### Benefits
+- **Real-time Progress**: See which pipeline is running and row counts
+- **Error Isolation**: Individual pipeline failures don't stop the entire process  
+- **Performance Monitoring**: Track processing speed and identify bottlenecks
+- **Chunked Processing**: Memory-efficient file combination with progress indicators
 
 ## 📁 Project Structure
 
@@ -143,7 +182,9 @@ python3 data/prepare_kde_data.py --list       # List available datasets
 python3 data/prepare_kde_data.py chronic_absenteeism  # Prepare specific dataset
 
 # ETL operations
-python3 etl_runner.py               # Full pipeline
+python3 etl_runner.py               # Full pipeline (quiet mode)
+python3 etl_runner.py --verbose     # Full pipeline with detailed logging
+python3 etl_runner.py --skip-etl    # Skip ETL, only combine existing files
 python3 etl_runner.py --draft       # Analysis mode only
 python3 etl/graduation_rates.py     # Test single module
 
@@ -164,7 +205,7 @@ python3 html/serve_dashboard.py                      # Start web server
 Browse and download data files at: **https://education.kyopengov.org/data/**
 
 - The data directory contains:
-- **📊 KPI Master Dataset** (`/kpi/`) - Combined dataset with all metrics in standardized format (CSV and Parquet, 175MB)
+- **📊 KPI Master Dataset** (`/kpi/`) - Combined dataset with all metrics in standardized format (CSV, 175MB)
 - **⚙️ Processed Files** (`/processed/`) - Individual metric files ready for analysis with audit logs
 - **📁 Raw Data** (`/raw/`) - Original unmodified files from Kentucky Department of Education
 
@@ -185,6 +226,7 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
 - **CTE Participation** - Career and technical education participation rates
 - **Safe Schools Climate** - School climate survey results and index scores  
 - **Safe Schools Discipline** - Detailed discipline resolution tracking
+- **Student Enrollment** ⭐ **NEW** - Student enrollment counts by grade level (PreK-12) with primary, middle, and secondary aggregations
 - **Benchmark Assessment** - Interim assessment performance data
 - **ACT Scores** - College admission test performance
 - **Students Taught by Inexperienced Teachers** - Teacher quality metrics

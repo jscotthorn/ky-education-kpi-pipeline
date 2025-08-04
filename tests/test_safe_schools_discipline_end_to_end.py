@@ -116,7 +116,7 @@ class TestSafeSchoolsDisciplineEndToEnd:
         expected_metrics = [
             'restraint_rate', 'seclusion_rate', 'expelled_not_receiving_services_rate',
             'expelled_receiving_services_rate', 'in_school_removal_rate',
-            'out_of_school_suspension_rate', 'unilateral_removal_rate'
+            'out_of_school_suspension_count', 'unilateral_removal_rate'
         ]
         for metric in expected_metrics:
             assert metric in metrics
@@ -222,7 +222,7 @@ class TestSafeSchoolsDisciplineEndToEnd:
 
         # Check we have both discipline and legal metrics
         metrics = df_result['metric'].unique()
-        discipline_metrics = ['restraint_rate', 'out_of_school_suspension_rate', 'in_school_removal_rate']
+        discipline_metrics = ['restraint_rate', 'out_of_school_suspension_count', 'in_school_removal_rate']
         legal_metrics = ['arrest_rate', 'charges_rate', 'school_resource_officer_rate']
         
         for metric in discipline_metrics:

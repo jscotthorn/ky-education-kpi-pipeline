@@ -141,8 +141,8 @@ class TestSafeSchoolsDisciplineETL:
         
         assert 'restraint_rate' in metrics
         assert metrics['restraint_rate'] == 2.0
-        assert 'out_of_school_suspension_rate' in metrics
-        assert metrics['out_of_school_suspension_rate'] == 30.0
+        assert 'out_of_school_suspension_count' in metrics
+        assert metrics['out_of_school_suspension_count'] == 30.0
         assert 'in_school_removal_rate' in metrics
         assert metrics['in_school_removal_rate'] == 45.0
         assert 'expelled_receiving_services_rate' in metrics
@@ -192,8 +192,8 @@ class TestSafeSchoolsDisciplineETL:
         
         assert 'expelled_receiving_services_rate' in metrics
         assert metrics['expelled_receiving_services_rate'] == round(1/85*100, 2)
-        assert 'out_of_school_suspension_rate' in metrics
-        assert metrics['out_of_school_suspension_rate'] == round(25/85*100, 2)
+        assert 'out_of_school_suspension_count' in metrics
+        assert metrics['out_of_school_suspension_count'] == round(25/85*100, 2)
         assert 'in_school_removal_rate' in metrics
         assert metrics['in_school_removal_rate'] == round(40/85*100, 2)
         assert 'restraint_rate' in metrics
@@ -232,8 +232,8 @@ class TestSafeSchoolsDisciplineETL:
         # Only non-zero rates should be included
         assert 'restraint_rate' not in metrics
         assert 'in_school_removal_rate' not in metrics
-        assert 'out_of_school_suspension_rate' in metrics
-        assert metrics['out_of_school_suspension_rate'] == 10.0
+        assert 'out_of_school_suspension_count' in metrics
+        assert metrics['out_of_school_suspension_count'] == 10.0
     
     def test_get_suppressed_metric_defaults(self):
         """Test suppressed metric defaults."""
@@ -245,7 +245,7 @@ class TestSafeSchoolsDisciplineETL:
         expected_metrics = [
             'corporal_punishment_rate', 'restraint_rate', 'seclusion_rate',
             'expelled_not_receiving_services_rate', 'expelled_receiving_services_rate',
-            'in_school_removal_rate', 'out_of_school_suspension_rate',
+            'in_school_removal_rate', 'out_of_school_suspension_count',
             'removal_by_hearing_officer_rate', 'unilateral_removal_rate',
             'arrest_rate', 'charges_rate', 'civil_proceedings_rate',
             'court_designated_worker_rate', 'school_resource_officer_rate'
@@ -298,7 +298,7 @@ class TestSafeSchoolsDisciplineETL:
         # Check metric types
         metrics = result_df['metric'].unique()
         assert 'restraint_rate' in metrics
-        assert 'out_of_school_suspension_rate' in metrics
+        assert 'out_of_school_suspension_count' in metrics
         assert 'arrest_rate' in metrics
         assert 'school_resource_officer_rate' in metrics
         

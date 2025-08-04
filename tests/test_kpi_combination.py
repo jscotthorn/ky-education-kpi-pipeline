@@ -12,13 +12,6 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from etl_runner import combine_kpi_files
 
-# Check if pyarrow is available
-try:
-    import pyarrow
-    PYARROW_AVAILABLE = True
-except ImportError:
-    PYARROW_AVAILABLE = False
-
 
 class TestKpiCombination:
     def setup_method(self):
@@ -81,53 +74,40 @@ class TestKpiCombination:
         df1.to_csv(self.proc_dir / "file1.csv", index=False)
         df2.to_csv(self.proc_dir / "file2.csv", index=False)
 
-    @pytest.mark.skipif(not PYARROW_AVAILABLE, reason="pyarrow not available")
-    def test_combination_outputs_csv_and_parquet(self):
+    def test_combination_outputs_csv(self):
         self.create_sample_files()
 
         csv_path = self.kpi_dir / "kpi_master.csv"
-        parquet_path = self.kpi_dir / "kpi_master.parquet"
 
-        combine_kpi_files(self.proc_dir, csv_path, parquet_path)
+        combine_kpi_files(self.proc_dir, csv_path)
 
         assert csv_path.exists()
-        assert parquet_path.exists()
 
         csv_df = pd.read_csv(csv_path)
-        parquet_df = pd.read_parquet(parquet_path)
 
         assert len(csv_df) == 3
-        assert len(parquet_df) == 3
         assert list(csv_df.columns) == KPI_COLUMNS
-        pd.testing.assert_frame_equal(csv_df, parquet_df[csv_df.columns])
 
-    @pytest.mark.skipif(not PYARROW_AVAILABLE, reason="pyarrow not available")
     def test_row_counts_match(self):
         """Combined files should match the total rows from processed CSVs."""
         self.create_sample_files()
 
         csv_path = self.kpi_dir / "kpi_master.csv"
 
-        # Only pass csv path to test default parquet path generation
         combine_kpi_files(self.proc_dir, csv_path)
 
-        parquet_path = csv_path.with_suffix(".parquet")
-
         assert csv_path.exists()
-        assert parquet_path.exists()
 
         total_rows = 0
         for csv_file in self.proc_dir.glob("*.csv"):
             total_rows += len(pd.read_csv(csv_file))
 
         csv_df = pd.read_csv(csv_path)
-        parquet_df = pd.read_parquet(parquet_path)
 
         assert len(csv_df) == total_rows
-        assert len(parquet_df) == total_rows
     
     def test_csv_output_only(self):
-        """Test that CSV output works even without pyarrow."""
+        """Test that CSV output works with default chunk size."""
         self.create_sample_files()
 
         csv_path = self.kpi_dir / "kpi_master.csv"
@@ -141,3 +121,21 @@ class TestKpiCombination:
 
         csv_df = pd.read_csv(csv_path)
         assert len(csv_df) == total_rows
+
+    def test_chunked_processing(self):
+        """Test that chunked processing works with small chunk size."""
+        self.create_sample_files()
+
+        csv_path = self.kpi_dir / "kpi_master.csv"
+        # Use small chunk size to test chunking logic
+        combine_kpi_files(self.proc_dir, csv_path, chunk_size=1)
+
+        assert csv_path.exists()
+        
+        total_rows = 0
+        for csv_file in self.proc_dir.glob("*.csv"):
+            total_rows += len(pd.read_csv(csv_file))
+
+        csv_df = pd.read_csv(csv_path)
+        assert len(csv_df) == total_rows
+        assert list(csv_df.columns) == KPI_COLUMNS

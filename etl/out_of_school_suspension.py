@@ -114,10 +114,6 @@ class OutOfSchoolSuspensionETL(BaseETL):
                 'out_of_school_suspension_multiple_total_count': multiple_total,
                 'out_of_school_suspension_total_count': single_total + multiple_total,
             })
-        elif 'out_of_school_suspension' in row.index:
-            metrics = {
-                'out_of_school_suspension_count': row.get('out_of_school_suspension')
-            }
 
         # Additional counts available in both formats
         in_swd = row.get('in_school_with_disabilities') if 'in_school_with_disabilities' in row.index else None

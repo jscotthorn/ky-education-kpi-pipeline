@@ -98,10 +98,15 @@ class ChronicAbsenteeismETL(BaseETL):
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics = {}
         
-        # Get grade for metric naming
+        # Get grade for metric naming - normalize grade names
         grade = row.get('grade', 'all_grades')
         if pd.isna(grade) or grade == '':
             grade = 'all_grades'
+        elif str(grade).lower() == 'all grades':
+            grade = 'all_grades'
+        else:
+            # Convert "Grade X" to "grade_X" format
+            grade = str(grade).lower().replace(' ', '_')
         
         # Extract chronic absenteeism rate
         if 'chronic_absenteeism_rate' in row and pd.notna(row['chronic_absenteeism_rate']):

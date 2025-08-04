@@ -85,12 +85,19 @@ class EnglishLearnerProgressETL(BaseETL):
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         level = self._normalize_level(row.get("level"))
-        return {
-            f"english_learner_score_0_{level}": pd.NA,
-            f"english_learner_score_60_80_{level}": pd.NA,
-            f"english_learner_score_100_{level}": pd.NA,
-            f"english_learner_score_140_{level}": pd.NA,
-        }
+        defaults = {}
+        
+        # Only create defaults for metrics that exist in the source data
+        if "percentage_score_0" in row.index:
+            defaults[f"english_learner_score_0_{level}"] = pd.NA
+        if "percentage_score_60_80" in row.index:
+            defaults[f"english_learner_score_60_80_{level}"] = pd.NA
+        if "percentage_score_100" in row.index:
+            defaults[f"english_learner_score_100_{level}"] = pd.NA
+        if "percentage_score_140" in row.index:
+            defaults[f"english_learner_score_140_{level}"] = pd.NA
+            
+        return defaults
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         df = super().standardize_missing_values(df)

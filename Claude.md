@@ -1,4 +1,9 @@
-You can use the etl_runner.py file in the project root to run all pipelines and python3 -m pytest tests/ to run all tests
+### ETL Pipeline Execution
+Use the etl_runner.py file in the project root to run all pipelines:
+- **Standard run**: `python3 etl_runner.py` (warnings/errors only)
+- **Verbose logging**: `python3 etl_runner.py --verbose` (detailed progress)
+- **Skip ETL**: `python3 etl_runner.py --skip-etl` (only combine files)
+- **Testing**: `python3 -m pytest tests/` (run all tests)
 
 ### Metric Naming Convention - CRITICAL
 - **Rates**: `{indicator}_rate_{period}` (e.g., `graduation_rate_4_year`)

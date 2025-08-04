@@ -41,6 +41,35 @@ sources:
   safe_schools_discipline: {}
   kentucky_summative_assessment: {}
   cte_participation: {}
+
+  student_enrollment:
+    rename: {}
+      # Normalization handled automatically in ETL module
+    dtype:
+      county_number: "str"
+      district_number: "str"
+      school_number: "str"
+      school_year: "str"
+      all_grades: "Int64"
+      total_student_count: "Int64"
+      preschool: "Int64"
+      k: "Int64"
+      grade_1: "Int64"
+      grade_2: "Int64"
+      grade_3: "Int64"
+      grade_4: "Int64"
+      grade_5: "Int64"
+      grade_6: "Int64"
+      grade_7: "Int64"
+      grade_8: "Int64"
+      grade_9: "Int64"
+      grade_10: "Int64"
+      grade_11: "Int64"
+      grade_12: "Int64"
+      grade_14: "Int64"
+    derive:
+      processing_date: "2025-07-25"
+      data_quality_flag: "reviewed"
       
 # Example configuration for field mappings and transformations
 # Add new sources here as they are onboarded
