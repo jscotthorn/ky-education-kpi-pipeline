@@ -4,7 +4,6 @@ Refactored to derive from BaseETL for standardized processing.
 """
 from pathlib import Path
 import pandas as pd
-from pydantic import BaseModel
 from typing import Dict, Any, Union
 import logging
 import sys
@@ -12,15 +11,9 @@ import sys
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
-from base_etl import BaseETL
+from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
-
-
-class Config(BaseModel):
-    rename: Dict[str, str] = {}
-    dtype: Dict[str, str] = {}
-    derive: Dict[str, Union[str, int, float]] = {}
 
 
 def clean_percentage_scores(df: pd.DataFrame) -> pd.DataFrame:
@@ -92,12 +85,19 @@ class EnglishLearnerProgressETL(BaseETL):
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         level = self._normalize_level(row.get("level"))
-        return {
-            f"english_learner_score_0_{level}": pd.NA,
-            f"english_learner_score_60_80_{level}": pd.NA,
-            f"english_learner_score_100_{level}": pd.NA,
-            f"english_learner_score_140_{level}": pd.NA,
-        }
+        defaults = {}
+        
+        # Only create defaults for metrics that exist in the source data
+        if "percentage_score_0" in row.index:
+            defaults[f"english_learner_score_0_{level}"] = pd.NA
+        if "percentage_score_60_80" in row.index:
+            defaults[f"english_learner_score_60_80_{level}"] = pd.NA
+        if "percentage_score_100" in row.index:
+            defaults[f"english_learner_score_100_{level}"] = pd.NA
+        if "percentage_score_140" in row.index:
+            defaults[f"english_learner_score_140_{level}"] = pd.NA
+            
+        return defaults
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         df = super().standardize_missing_values(df)
@@ -108,7 +108,7 @@ class EnglishLearnerProgressETL(BaseETL):
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Entry point used by etl_runner and tests."""
     etl = EnglishLearnerProgressETL("english_learner_progress")
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 if __name__ == "__main__":
@@ -117,7 +117,9 @@ if __name__ == "__main__":
     proc_dir = Path(__file__).parent.parent / "data" / "processed"
     proc_dir.mkdir(exist_ok=True)
 
-    test_config = {"derive": {"processing_date": "2025-07-19", "data_quality_flag": "reviewed"}}
+    test_config = Config(
+        derive={"processing_date": "2025-07-19", "data_quality_flag": "reviewed"}
+    ).dict()
 
     transform(raw_dir, proc_dir, test_config)
 

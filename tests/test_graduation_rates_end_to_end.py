@@ -5,6 +5,7 @@ Tests that sample rows from each source file are correctly transformed to KPI fo
 import pytest
 import pandas as pd
 import numpy as np
+from etl.constants import KPI_COLUMNS
 from pathlib import Path
 from etl.graduation_rates import transform, GraduationRatesETL
 
@@ -15,8 +16,8 @@ class TestGraduationRatesEndToEnd:
     def test_source_to_kpi_transformation(self):
         """Test that 10 random rows from each source file are correctly represented in processed file."""
         # Paths to actual data files
-        raw_data_dir = Path("/Users/scott/Projects/equity-etl/data/raw/graduation_rates")
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+        raw_data_dir = Path("data/raw/graduation_rates")
+        processed_file = Path("data/processed/graduation_rates.csv")
         
         # Ensure processed file exists
         if not processed_file.exists():
@@ -164,7 +165,7 @@ class TestGraduationRatesDataQuality:
     
     def test_kpi_format_compliance(self):
         """Test that processed file follows KPI format requirements."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+        processed_file = Path("data/processed/graduation_rates.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed graduation_rates.csv not found. Run ETL pipeline first.")
@@ -172,8 +173,7 @@ class TestGraduationRatesDataQuality:
         kpi_df = pd.read_csv(processed_file)
         
         # Test required columns exist
-        required_columns = ['district', 'school_id', 'school_name', 'year', 
-                           'student_group', 'metric', 'value', 'suppressed', 'source_file', 'last_updated']
+        required_columns = KPI_COLUMNS
         
         for col in required_columns:
             assert col in kpi_df.columns, f"Required column '{col}' missing from KPI file"
@@ -206,7 +206,7 @@ class TestGraduationRatesDataQuality:
     
     def test_metric_coverage(self):
         """Test that expected metrics are present."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+        processed_file = Path("data/processed/graduation_rates.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed graduation_rates.csv not found. Run ETL pipeline first.")
@@ -271,7 +271,7 @@ class TestGraduationRatesDataQuality:
     
     def test_source_file_tracking(self):
         """Test that source file tracking is working correctly."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+        processed_file = Path("data/processed/graduation_rates.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed graduation_rates.csv not found. Run ETL pipeline first.")
@@ -295,7 +295,7 @@ class TestGraduationRatesDataQuality:
     
     def test_student_group_consistency(self):
         """Test that student groups are consistently named."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+        processed_file = Path("data/processed/graduation_rates.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed graduation_rates.csv not found. Run ETL pipeline first.")
@@ -319,7 +319,7 @@ class TestGraduationRatesDataQuality:
     
     def test_expanded_kpi_format(self):
         """Test that expanded KPI format with counts and totals is working correctly."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/graduation_rates.csv")
+        processed_file = Path("data/processed/graduation_rates.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed graduation_rates.csv not found. Run ETL pipeline first.")

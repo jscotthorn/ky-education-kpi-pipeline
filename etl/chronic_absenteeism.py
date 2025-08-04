@@ -7,7 +7,6 @@ and demographic breakdowns following standardized KPI format.
 """
 from pathlib import Path
 import pandas as pd
-from pydantic import BaseModel
 from typing import Dict, Any, Union
 import logging
 import sys
@@ -17,15 +16,9 @@ from pathlib import Path
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
-from base_etl import BaseETL
+from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
-
-
-class Config(BaseModel):
-    rename: Dict[str, str] = {}
-    dtype: Dict[str, str] = {}
-    derive: Dict[str, Union[str, int, float]] = {}
 
 
 def clean_numeric_values(df: pd.DataFrame) -> pd.DataFrame:
@@ -105,10 +98,15 @@ class ChronicAbsenteeismETL(BaseETL):
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics = {}
         
-        # Get grade for metric naming
+        # Get grade for metric naming - normalize grade names
         grade = row.get('grade', 'all_grades')
         if pd.isna(grade) or grade == '':
             grade = 'all_grades'
+        elif str(grade).lower() == 'all grades':
+            grade = 'all_grades'
+        else:
+            # Convert "Grade X" to "grade_X" format
+            grade = str(grade).lower().replace(' ', '_')
         
         # Extract chronic absenteeism rate
         if 'chronic_absenteeism_rate' in row and pd.notna(row['chronic_absenteeism_rate']):
@@ -152,7 +150,7 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Read chronic absenteeism files, normalize, and convert to KPI format with demographic standardization using BaseETL."""
     # Use BaseETL for consistent processing
     etl = ChronicAbsenteeismETL('chronic_absenteeism')
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 
@@ -166,11 +164,8 @@ if __name__ == "__main__":
     proc_dir = Path(__file__).parent.parent / "data" / "processed"
     proc_dir.mkdir(exist_ok=True)
     
-    test_config = {
-        "derive": {
-            "processing_date": "2025-07-19",
-            "data_quality_flag": "reviewed"
-        }
-    }
-    
+    test_config = Config(
+        derive={"processing_date": "2025-07-19", "data_quality_flag": "reviewed"}
+    ).dict()
+
     transform(raw_dir, proc_dir, test_config)

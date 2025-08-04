@@ -122,7 +122,7 @@ def detect_data_format(df: pd.DataFrame, source_file: str) -> str:
 ## Integration with Existing Project
 
 ### Follows All Project Standards
-1. **KPI Output Format**: Exact 10-column specification
+1. **KPI Output Format**: 19-column specification (the project originally used 10 columns)
 2. **Demographic Mapping**: Uses centralized DemographicMapper
 3. **Audit Logging**: Comprehensive mapping audit trail
 4. **Error Handling**: Graceful degradation with logging

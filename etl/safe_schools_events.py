@@ -21,9 +21,22 @@ Covers event types, grade levels, locations, and contexts for school safety metr
 """
 from pathlib import Path
 import pandas as pd
-from pydantic import BaseModel
 from typing import Dict, Any, Optional, Union
 import logging
+try:
+    from .constants import KPI_COLUMNS
+except ImportError:
+    from constants import KPI_COLUMNS
+try:
+    from .base_etl import Config
+except ImportError:
+    try:
+        from base_etl import Config
+    except ImportError:
+        import sys
+        from pathlib import Path
+        sys.path.append(str(Path(__file__).parent))
+        from base_etl import Config
 try:
     from .demographic_mapper import DemographicMapper
 except ImportError:
@@ -38,10 +51,15 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class Config(BaseModel):
-    rename: Dict[str, str] = {}
-    dtype: Dict[str, str] = {}
-    derive: Dict[str, Union[str, int, float]] = {}
+def extract_year_from_school_year(year_value):
+    """Extract year using same logic as base_etl.py - take last 4 digits for ending year."""
+    year = str(year_value)
+    if len(year) == 8:  # Format: YYYYYYYY (e.g., "20232024")
+        return year[-4:]  # Take last 4 digits (ending year)
+    elif len(year) == 4:  # Already 4 digits
+        return year
+    else:
+        return '2024'  # Default
 
 
 def normalize_column_names(df: pd.DataFrame) -> pd.DataFrame:
@@ -321,6 +339,7 @@ def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[Demogra
         else:
             logger.warning("No derived rates were generated")
         
+        combined_df = combined_df.reindex(columns=KPI_COLUMNS)
         return combined_df
     else:
         logger.warning("No valid data found for KPI conversion")
@@ -398,7 +417,8 @@ def _process_rows_helper(
         logger.warning("No metric columns found for KPI conversion")
         return pd.DataFrame()
 
-    df["year"] = df["school_year"].astype(str).str.extract(r"(\d{4})").astype(int)
+    # Extract year using standardized helper function
+    df["year"] = df["school_year"].apply(extract_year_from_school_year).astype(int)
 
     id_columns = [
         "district_name",
@@ -455,17 +475,20 @@ def _process_rows_helper(
 
     final_df = pd.DataFrame(
         {
-            "district": kpi_df["district_name"]
-            if "district_name" in kpi_df.columns
-            else "Unknown",
-            "school_id": kpi_df["state_school_id"]
-            if "state_school_id" in kpi_df.columns
-            else kpi_df.get("nces_id", "Unknown"),
-            "school_name": kpi_df["school_name"]
-            if "school_name" in kpi_df.columns
-            else "Unknown",
+            "district": kpi_df.get("district_name", "Unknown"),
+            "school_id": kpi_df.get("state_school_id", kpi_df.get("nces_id", pd.NA)),
+            "school_name": kpi_df.get("school_name", "Unknown"),
             "year": kpi_df["year"],
             "student_group": kpi_df["student_group"],
+            "county_number": kpi_df.get("county_number", pd.NA),
+            "county_name": kpi_df.get("county_name", pd.NA),
+            "district_number": kpi_df.get("district_number", pd.NA),
+            "school_code": kpi_df.get("school_code", pd.NA),
+            "state_school_id": kpi_df.get("state_school_id", pd.NA),
+            "nces_id": kpi_df.get("nces_id", pd.NA),
+            "co_op": kpi_df.get("co_op", pd.NA),
+            "co_op_code": kpi_df.get("co_op_code", pd.NA),
+            "school_type": kpi_df.get("school_type", pd.NA),
             "metric": kpi_df["metric"],
             "value": kpi_df["value"],
             "suppressed": kpi_df["suppressed"],
@@ -473,6 +496,8 @@ def _process_rows_helper(
     )
 
     final_df = final_df[final_df["metric"].notna()]
+    # Ensure standard column ordering
+    final_df = final_df.reindex(columns=KPI_COLUMNS[:-2])
     return final_df
 
 
@@ -483,7 +508,8 @@ def _process_demographic_rows(
     from datetime import datetime
 
     data_source = df["data_source"].iloc[0] if "data_source" in df.columns else "unknown"
-    df["year"] = df["school_year"].astype(str).str.extract(r"(\d{4})").astype(int)
+    # Extract year using standardized helper function
+    df["year"] = df["school_year"].apply(extract_year_from_school_year).astype(int)
     source_file = f"safe_schools_events_{data_source}"
 
     student_groups = df.apply(
@@ -500,6 +526,7 @@ def _process_demographic_rows(
         return final_df
     final_df["source_file"] = source_file
     final_df["last_updated"] = datetime.now().isoformat()
+    final_df = final_df.reindex(columns=KPI_COLUMNS)
     return final_df
 
 
@@ -515,6 +542,7 @@ def _process_students_affected_rows(df: pd.DataFrame) -> pd.DataFrame:
         return final_df
     final_df["source_file"] = f"safe_schools_events_{data_source}_students_affected"
     final_df["last_updated"] = datetime.now().isoformat()
+    final_df = final_df.reindex(columns=KPI_COLUMNS)
     return final_df
 
 
@@ -530,90 +558,109 @@ def _process_total_events_rows(df: pd.DataFrame) -> pd.DataFrame:
         return final_df
     final_df["source_file"] = f"safe_schools_events_{data_source}_total_events"
     final_df["last_updated"] = datetime.now().isoformat()
+    final_df = final_df.reindex(columns=KPI_COLUMNS)
     return final_df
 
 
 def _calculate_derived_rates(kpi_df: pd.DataFrame) -> pd.DataFrame:
-    """Calculate Tier 4 derived rates (events per affected student)."""
+    """Calculate Tier 4 derived rates (events per affected student) - optimized version."""
     from datetime import datetime
     
     if kpi_df.empty:
         logger.warning("Empty KPI dataframe for derived rates calculation")
         return pd.DataFrame()
     
-    derived_rates = []
+    # Separate students affected and total events data using vectorized operations
+    students_affected_df = kpi_df[
+        (kpi_df['metric'].str.startswith('safe_students_affected_')) & 
+        (kpi_df['student_group'] == 'All Students')
+    ].copy()
     
-    # Debug: Check what metrics are available
-    available_students_affected = [m for m in kpi_df['metric'].unique() if m.startswith('safe_students_affected_')]
-    available_total_events = [m for m in kpi_df['metric'].unique() if m.startswith('safe_event_count_') and not '_by_demo' in m and not 'students_affected' in m]
-    logger.info(f"Available students affected metrics: {len(available_students_affected)}")
-    logger.info(f"Available total events metrics: {len(available_total_events)}")
+    total_events_df = kpi_df[
+        (kpi_df['metric'].str.startswith('safe_event_count_')) & 
+        (kpi_df['student_group'] == 'All Students - Total Events') &
+        (~kpi_df['metric'].str.contains('_by_demo')) &
+        (~kpi_df['metric'].str.contains('students_affected'))
+    ].copy()
     
-    # Group by school, year, and metric type to calculate rates
-    school_groups = list(kpi_df.groupby(['district', 'school_id', 'school_name', 'year']))
-    logger.info(f"Processing {len(school_groups)} school-year combinations for derived rates")
-    
-    for (district, school_id, school_name, year), group in school_groups:
-        
-        # Get available metric types (extract base metric names)
-        available_metrics = set()
-        for metric in group['metric'].unique():
-            if metric.startswith('safe_students_affected_'):
-                base_metric = metric.replace('safe_students_affected_', '')
-                available_metrics.add(base_metric)
-        
-        # Calculate rates for each available metric type
-        for base_metric in available_metrics:
-            students_affected_metric = f'safe_students_affected_{base_metric}'
-            total_events_metric = f'safe_event_count_{base_metric}'
-            
-            # Get students affected value (Tier 1)
-            students_affected_row = group[
-                (group['metric'] == students_affected_metric) & 
-                (group['student_group'] == 'All Students')
-            ]
-            
-            # Get total events value (Tier 3)
-            total_events_row = group[
-                (group['metric'] == total_events_metric) & 
-                (group['student_group'] == 'All Students - Total Events')
-            ]
-            
-            if len(students_affected_row) == 1 and len(total_events_row) == 1:
-                students_affected = students_affected_row['value'].iloc[0]
-                total_events = total_events_row['value'].iloc[0]
-                
-                # Only calculate rate if both values are valid and numeric
-                try:
-                    students_affected_num = float(students_affected) if pd.notna(students_affected) else 0
-                    total_events_num = float(total_events) if pd.notna(total_events) else 0
-                except (ValueError, TypeError):
-                    # Skip if values can't be converted (suppressed data, etc.)
-                    continue
-                
-                if students_affected_num > 0 and total_events_num >= 0:
-                    incident_rate = total_events_num / students_affected_num
-                    
-                    # Create derived rate record
-                    rate_record = {
-                        'district': district,
-                        'school_id': school_id,
-                        'school_name': school_name,
-                        'year': year,
-                        'student_group': 'All Students',  # Rates apply to all students collectively
-                        'metric': f'safe_incident_rate_{base_metric}',
-                        'value': round(incident_rate, 3),  # Round to 3 decimal places
-                        'suppressed': 'N',  # Derived rates are not suppressed if source data isn't
-                        'source_file': f'derived_rates_{base_metric}',
-                        'last_updated': datetime.now().isoformat()
-                    }
-                    
-                    derived_rates.append(rate_record)
-    
-    if derived_rates:
-        return pd.DataFrame(derived_rates)
-    else:
+    if students_affected_df.empty or total_events_df.empty:
+        logger.info("No matching students affected or total events data for rate calculation")
         return pd.DataFrame()
+    
+    # Extract base metric names
+    students_affected_df['base_metric'] = students_affected_df['metric'].str.replace('safe_students_affected_', '')
+    total_events_df['base_metric'] = total_events_df['metric'].str.replace('safe_event_count_', '')
+    
+    # Merge on key fields to calculate rates and retain location columns
+    merge_cols = ['district', 'school_id', 'school_name', 'year', 'base_metric']
+    location_cols = [
+        'county_number', 'county_name', 'district_number', 'school_code',
+        'state_school_id', 'nces_id', 'co_op', 'co_op_code', 'school_type'
+    ]
+
+    merged_df = pd.merge(
+        students_affected_df[merge_cols + location_cols + ['value']].rename(columns={'value': 'students_affected'}),
+        total_events_df[merge_cols + location_cols + ['value']].rename(columns={'value': 'total_events'}),
+        on=merge_cols,
+        how='inner',
+        suffixes=('_sa', '_te')
+    )
+
+    for col in location_cols:
+        merged_df[col] = merged_df[f"{col}_sa"].combine_first(merged_df[f"{col}_te"])
+        merged_df.drop(columns=[f"{col}_sa", f"{col}_te"], inplace=True)
+    
+    if merged_df.empty:
+        logger.info("No matching data for rate calculation after merge")
+        return pd.DataFrame()
+    
+    # Calculate rates vectorized
+    merged_df['students_affected'] = pd.to_numeric(merged_df['students_affected'], errors='coerce')
+    merged_df['total_events'] = pd.to_numeric(merged_df['total_events'], errors='coerce')
+    
+    # Only calculate rates where both values are valid and students_affected > 0
+    valid_mask = (
+        merged_df['students_affected'].notna() & 
+        merged_df['total_events'].notna() &
+        (merged_df['students_affected'] > 0) &
+        (merged_df['total_events'] >= 0)
+    )
+    
+    valid_df = merged_df[valid_mask].copy()
+    
+    if valid_df.empty:
+        logger.info("No valid data for rate calculation")
+        return pd.DataFrame()
+    
+    # Calculate incident rates
+    valid_df['incident_rate'] = (valid_df['total_events'] / valid_df['students_affected']).round(3)
+    
+    # Create final rate records
+    rate_records = pd.DataFrame({
+        'district': valid_df['district'],
+        'school_id': valid_df['school_id'],
+        'school_name': valid_df['school_name'],
+        'year': valid_df['year'],
+        'student_group': 'All Students',
+        'county_number': valid_df['county_number'],
+        'county_name': valid_df['county_name'],
+        'district_number': valid_df['district_number'],
+        'school_code': valid_df['school_code'],
+        'state_school_id': valid_df['state_school_id'],
+        'nces_id': valid_df['nces_id'],
+        'co_op': valid_df['co_op'],
+        'co_op_code': valid_df['co_op_code'],
+        'school_type': valid_df['school_type'],
+        'metric': 'safe_incident_rate_' + valid_df['base_metric'],
+        'value': valid_df['incident_rate'],
+        'suppressed': 'N',
+        'source_file': 'derived_rates_' + valid_df['base_metric'],
+        'last_updated': datetime.now().isoformat()
+    })
+    rate_records = rate_records.reindex(columns=KPI_COLUMNS)
+    
+    logger.info(f"Generated {len(rate_records)} derived rate records")
+    return rate_records
 
 
 def _process_aggregate_rows(df: pd.DataFrame) -> pd.DataFrame:
@@ -628,12 +675,13 @@ def _process_aggregate_rows(df: pd.DataFrame) -> pd.DataFrame:
         return final_df
     final_df["source_file"] = f"safe_schools_events_{data_source}_aggregate"
     final_df["last_updated"] = datetime.now().isoformat()
+    final_df = final_df.reindex(columns=KPI_COLUMNS)
     return final_df
 
 
 def transform(raw_dir: str, proc_dir: str, config: Dict[str, Any]) -> str:
     """Transform safe schools events data from raw to processed format."""
-    raw_path = Path(raw_dir)
+    raw_path = Path(raw_dir) / "safe_schools"
     proc_path = Path(proc_dir)
     
     # Create output directory
@@ -715,7 +763,10 @@ def transform(raw_dir: str, proc_dir: str, config: Dict[str, Any]) -> str:
     # Combine all data
     if all_data:
         combined_df = pd.concat(all_data, ignore_index=True)
-        
+
+        # Ensure standard column order
+        combined_df = combined_df.reindex(columns=KPI_COLUMNS)
+
         # FIX: Ensure value column is numeric for etl_runner validation
         # Convert value column to numeric, this will properly handle suppressed records as NaN
         combined_df['value'] = pd.to_numeric(combined_df['value'], errors='coerce')
@@ -724,12 +775,17 @@ def transform(raw_dir: str, proc_dir: str, config: Dict[str, Any]) -> str:
         output_file = proc_path / 'safe_schools_events.csv'
         combined_df.to_csv(output_file, index=False)
         
-        # Save demographic audit
-        audit_file = proc_path / 'safe_schools_events_demographic_audit.csv'
-        demographic_mapper.save_audit_log(audit_file)
+        # Save demographic report
+        audit_file = proc_path / 'safe_schools_events_demographic_report.md'
+        # Validate demographics for report
+        validation_results = []
+        for year in combined_df['year'].unique():
+            year_demographics = combined_df[combined_df['year'] == year]['student_group'].unique().tolist()
+            validation_results.append(demographic_mapper.validate_demographics(year_demographics, str(year)))
+        demographic_mapper.save_audit_report(audit_file, validation_results)
         
         logger.info(f"Saved {len(combined_df)} total KPI records to {output_file}")
-        logger.info(f"Saved demographic audit log to {audit_file}")
+        logger.info(f"Saved demographic report to {audit_file}")
         
         return str(output_file)
     else:
@@ -749,15 +805,11 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     
     # Test with sample configuration
-    config = {
-        "derive": {
-            "data_version": "2024"
-        }
-    }
-    
-    raw_dir = "data/raw/safe_schools"
+    config = Config(derive={"data_version": "2024"}).model_dump()
+
+    raw_dir = "data/raw"
     proc_dir = "data/processed"
-    
+
     result = transform(raw_dir, proc_dir, config)
     if result:
         print(f"Successfully processed safe schools events data: {result}")

@@ -12,23 +12,44 @@ python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e .
 
+
 # Run ETL pipeline
-python3 etl_runner.py
+python3 etl_runner.py           # Standard run (warnings/errors only)
+python3 etl_runner.py --verbose # Show detailed progress logs
+python3 etl_runner.py --skip-etl # Only combine existing processed files
 
 # View results
 open data/processed/  # Individual source files
+open data/kpi/        # Combined master dataset (CSV)
 ```
 
 ## 📋 Developer Workflow
 
 ### 1. Adding New Data Sources
-1. **Drop files** → Place new CSV exports in `data/raw/source_name/`
-   - Files can be in source folder directly or in date-stamped subfolders
-   - Original filenames are preserved for audit trails
+1. **Prepare files** → Use the data preparation tool to populate raw directories:
+   ```bash
+   # Prepare all configured datasets
+   python3 data/prepare_kde_data.py
+   
+   # Prepare specific datasets
+   python3 data/prepare_kde_data.py chronic_absenteeism graduation_rates
+   
+   # List available datasets
+   python3 data/prepare_kde_data.py --list
+   ```
+   - Files are automatically prepared in appropriate `data/raw/` directories
+   - Configuration managed in `config/kde_sources.yaml`
+   - Original filenames preserved for audit trails
+
 2. **Draft run** → `python3 etl_runner.py --draft` to generate initial ETL logic
 3. **Refine** → Edit generated ETL modules in `etl/` directory
 4. **Test** → `python3 -m pytest tests/` to validate processing logic
-5. **Production run** → `python3 etl_runner.py` to process all sources
+5. **Production run** → Process all sources:
+   ```bash
+   python3 etl_runner.py           # Standard (quiet mode)
+   python3 etl_runner.py --verbose # With detailed pipeline logs
+   python3 etl_runner.py --skip-etl # Only combine existing files
+   ```
 6. **Review** → Check outputs in `data/processed/`
 
 ### 2. Dashboard Monitoring
@@ -40,6 +61,48 @@ python3 html/generate_dashboard_data.py
 python3 html/serve_dashboard.py
 # Opens http://localhost:8000/equity_dashboard.html
 ```
+
+## 🔍 Enhanced Pipeline Monitoring
+
+The ETL runner now provides detailed progress tracking and logging:
+
+### Command Options
+```bash
+python3 etl_runner.py              # Standard: warnings/errors only
+python3 etl_runner.py --verbose    # Detailed: show all processing logs
+python3 etl_runner.py --skip-etl   # Skip ETL, only combine files
+python3 etl_runner.py -v --skip-etl # Verbose combine operation
+```
+
+### Progress Display
+```
+🚀 Starting ETL pipeline processing (8 sources)
+
+📊 Pipeline 1/8: graduation_rates
+🔄 Running graduation_rates ETL pipeline...
+   Source: data/raw/graduation_rates  
+   Output: data/processed
+INFO: Found 3 files to process for graduation_rates
+INFO: Streaming graduation_rates_2022.csv (1/3)
+INFO:   → Processing row 50,000 from graduation_rates_2022.csv
+✅ Completed graduation_rates pipeline
+
+🎉 Completed all 8 ETL pipelines
+
+📁 Combining processed files into master KPI file...
+  Processing graduation_rates.csv
+    Processed 100,000 rows (10 chunks)  
+  Added 156,789 KPI rows from graduation_rates.csv
+  Master KPI file: 2,156,789 rows
+
+🎯 ETL pipeline completed successfully!
+```
+
+### Benefits
+- **Real-time Progress**: See which pipeline is running and row counts
+- **Error Isolation**: Individual pipeline failures don't stop the entire process  
+- **Performance Monitoring**: Track processing speed and identify bottlenecks
+- **Chunked Processing**: Memory-efficient file combination with progress indicators
 
 ## 📁 Project Structure
 
@@ -62,7 +125,7 @@ ky-education-data-pipeline/
 │   ├── generate_dashboard_data.py
 │   └── data/                   # Generated JSON for dashboard
 ├── config/                     # Configuration files
-│   └── demographic_mappings.yaml
+│   └── demographic_mappings.yaml   # Single source of demographic mappings used by DemographicMapper
 ├── tests/                      # Test suite
 ├── notes/                      # Documentation and analysis
 └── etl_runner.py               # Main orchestration script
@@ -74,14 +137,23 @@ All ETL modules produce standardized **long format** KPI data:
 
 | Column | Description | Example |
 |--------|-------------|---------|
-| `district` | District name | `"Jefferson County"` |
-| `school_id` | Unique school identifier | `"210090000123"` |
-| `school_name` | School display name | `"Bryan Station High School"` |
 | `year` | Academic year (4-digit) | `2024` |
-| `student_group` | Standardized demographic | `"Hispanic or Latino"` |
 | `metric` | KPI identifier | `"graduation_rate_4_year"` |
+| `district` | District name | `"Jefferson County"` |
+| `school_name` | School display name | `"Bryan Station High School"` |
+| `student_group` | Standardized demographic | `"Hispanic or Latino"` |
 | `value` | Numeric value (NaN if suppressed) | `85.2` |
 | `suppressed` | Privacy suppression flag | `"Y"` or `"N"` |
+| `county_number` | KDE county number | `161` |
+| `county_name` | County name | `"Fayette"` |
+| `district_number` | KDE district number | `175` |
+| `school_id` | Unique school identifier | `"210090000123"` |
+| `school_code` | KDE school code | `020` |
+| `state_school_id` | State-assigned school ID | `"175020"` |
+| `nces_id` | NCES ID if available | `"210090000123"` |
+| `co_op` | Education cooperative | `pd.NA` |
+| `co_op_code` | Cooperative code | `pd.NA` |
+| `school_type` | School classification | `"High"` |
 | `source_file` | Data provenance | `"graduation_rates.csv"` |
 | `last_updated` | Processing timestamp | `"2025-07-19T10:30:00"` |
 
@@ -95,6 +167,8 @@ All ETL modules produce standardized **long format** KPI data:
 - `graduation_count_4_year` = 201 (students graduating)
 - `graduation_total_4_year` = 236 (students in cohort)
 
+📋 **For a complete list of all KPIs by data source, see [KPIS.md](./KPIS.md)**
+
 ## 🔧 Common Commands
 
 ```bash
@@ -102,8 +176,15 @@ All ETL modules produce standardized **long format** KPI data:
 python3 --version                    # Should be 3.8+
 source .venv/bin/activate           # Activate virtual environment
 
+# Data preparation
+python3 data/prepare_kde_data.py               # Prepare all configured datasets
+python3 data/prepare_kde_data.py --list       # List available datasets
+python3 data/prepare_kde_data.py chronic_absenteeism  # Prepare specific dataset
+
 # ETL operations
-python3 etl_runner.py               # Full pipeline
+python3 etl_runner.py               # Full pipeline (quiet mode)
+python3 etl_runner.py --verbose     # Full pipeline with detailed logging
+python3 etl_runner.py --skip-etl    # Skip ETL, only combine existing files
 python3 etl_runner.py --draft       # Analysis mode only
 python3 etl/graduation_rates.py     # Test single module
 
@@ -123,56 +204,37 @@ python3 html/serve_dashboard.py                      # Start web server
 ### Online Data Browser
 Browse and download data files at: **https://education.kyopengov.org/data/**
 
-The data directory contains:
-- **📊 KPI Master Dataset** (`/kpi/`) - Combined dataset with all metrics in standardized format (175MB)
+- The data directory contains:
+- **📊 KPI Master Dataset** (`/kpi/`) - Combined dataset with all metrics in standardized format (CSV, 175MB)
 - **⚙️ Processed Files** (`/processed/`) - Individual metric files ready for analysis with audit logs
 - **📁 Raw Data** (`/raw/`) - Original unmodified files from Kentucky Department of Education
 
-Each directory includes detailed descriptions, file metadata, and direct download links. All data follows the standardized 10-column KPI format with demographic breakdowns and suppression handling.
+Each directory includes detailed descriptions, file metadata, and direct download links. All datasets now follow a standardized **19-column** KPI format that captures detailed location context alongside demographic breakdowns and suppression handling.
 
 ## 📊 Available Data Sources
 
-### Working Pipelines
-- **Graduation Rates** (`graduation_rates.csv`)
-  - 4-year and 5-year graduation rates, counts, and totals
-  - Years: 2021-2024
-  - All districts with demographic breakdowns
-
-- **Safe Schools Events** (`safe_schools_events.csv`) ⭐ **NEW**
-  - Behavioral incident counts by type, grade, location, and context
-  - Years: 2020-2024 (5-year longitudinal coverage)
-  - Includes both demographic breakdowns and aggregate totals
-  - Supports school-to-prison pipeline analysis
-
-- **Kindergarten Readiness** (`kindergarten_readiness.csv`)
-  - Kindergarten readiness screening rates and counts
-  - Years: 2021-2024  
-  - All districts with demographic breakdowns
-
-- **Chronic Absenteeism** (`chronic_absenteeism.csv`)
-  - Chronic absenteeism rates, counts, and enrollment
-  - Years: 2023-2024
-  - All districts with demographic breakdowns
-
-- **English Learner Progress** (`english_learner_progress.csv`)
-  - Proficiency rates across elementary, middle, and high school
-  - Years: 2022-2024
-  - All districts with demographic breakdowns
-
-- **Postsecondary Readiness** (`postsecondary_readiness.csv`)
-  - College and career readiness rates
-  - Years: 2022-2024
-  - All districts with demographic breakdowns
-
-- **Postsecondary Enrollment** (`postsecondary_enrollment.csv`)
-  - Post-graduation enrollment in Kentucky institutions
-  - Years: 2020-2024
-  - All districts with demographic breakdowns
-
-- **Out-of-School Suspension** (`out_of_school_suspension.csv`)
-  - Discipline action counts by type
-  - Years: 2020-2023
-  - All districts with demographic breakdowns
+### Data Sources
+- **Graduation Rates** - 4-year and 5-year graduation rates, counts, and totals
+- **Safe Schools Events** ⭐ **NEW** - Behavioral incident counts by type, grade, location, and context
+- **Kindergarten Readiness** ⭐ **ENHANCED** - Overall readiness rates and component breakdowns
+- **Chronic Absenteeism** - Chronic absenteeism rates, counts, and enrollment
+- **English Learner Progress** - Proficiency rates across elementary, middle, and high school
+- **Postsecondary Readiness** - College and career readiness rates
+- **Postsecondary Enrollment** - Post-graduation enrollment in Kentucky institutions
+- **Kentucky Summative Assessment** - Performance levels and content index by subject
+- **Out-of-School Suspension** ⭐ **ENHANCED** - Discipline action counts by type and disability status
+- **CTE Participation** - Career and technical education participation rates
+- **Safe Schools Climate** - School climate survey results and index scores  
+- **Safe Schools Discipline** - Detailed discipline resolution tracking
+- **Student Enrollment** ⭐ **NEW** - Student enrollment counts by grade level (PreK-12) with primary, middle, and secondary aggregations
+- **Benchmark Assessment** - Interim assessment performance data
+- **ACT Scores** - College admission test performance
+- **Students Taught by Inexperienced Teachers** - Teacher quality metrics
+- **Student Retention** - Grade retention rates (grades 4-12)
+- **Dropout Rate** - Student dropout tracking
+- **Homeless Students** - Homeless student population metrics
+- **Migrant Students** - Migrant student population metrics  
+- **Students with Disabilities** - IEP student population metrics
 
 ### Dashboard Features
 - **Interactive heatmaps** showing schools vs demographics  
@@ -224,6 +286,7 @@ See [CLAUDE.md](./CLAUDE.md) for AI assistant usage patterns and workflows.
 - **Comprehensive Testing**: Full test coverage with validation checks
 - **Documentation**: Detailed journal entries tracking all changes
 - **S3-based data hosting** for public access
+- **Type Enforcement**: Uses `config/mappings.yaml` to enforce column dtypes
 
 ## 🎯 Future Roadmap
 

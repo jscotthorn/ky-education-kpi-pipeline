@@ -23,7 +23,11 @@ class TestOutOfSchoolSuspensionE2E:
                 'Single Out-of-School With Disabilities': [1],
                 'Single Out-of-School Without Disabilities': [2],
                 'Multiple Out-of-School With Disabilities': [0],
-                'Multiple Out-of-School Without Disabilities': [1]
+                'Multiple Out-of-School Without Disabilities': [1],
+                'In-School With Disabilities': [3],
+                'In-School Without Disabilities': [4],
+                'Expelled Receiving Services SSP1': [1],
+                'Total Discipline Resolutions': [10]
             })
             kyrc24.to_csv(ky_dir / 'kyrc24.csv', index=False)
 
@@ -33,7 +37,9 @@ class TestOutOfSchoolSuspensionE2E:
                 'SCHOOL CODE': ['200'],
                 'SCHOOL NAME': ['Test 2'],
                 'DEMOGRAPHIC': ['All Students'],
-                'OUT OF SCHOOL SUSPENSION SSP3': [3]
+                'OUT OF SCHOOL SUSPENSION SSP3': [3],
+                'EXPELLED RECEIVING SERVICES SSP1': [1],
+                'IN-SCHOOL REMOVAL INSR': [2]
             })
             safe.to_csv(ky_dir / 'safe.csv', index=False)
 
@@ -41,7 +47,7 @@ class TestOutOfSchoolSuspensionE2E:
 
             out_file = proc_dir / 'out_of_school_suspension.csv'
             df = pd.read_csv(out_file)
-            assert len(df) == 8  # 7 metrics + 1 metric
+            assert len(df) == 13
             assert set(df['metric'].unique()) >= {
                 'out_of_school_suspension_count',
                 'out_of_school_suspension_single_with_disabilities_count'

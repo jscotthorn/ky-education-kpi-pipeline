@@ -7,11 +7,13 @@ authors = [{name="Scott Horn", email="scott@kyopengov.org"}]
 
 dependencies = [
     "pandas",
-    "pyarrow",
     "pydantic",
     "ruamel-yaml",
-    "pytest"
+    "pytest",
+    "tabulate",
+    "requests"
 ]
+
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -5,6 +5,7 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+from etl.constants import KPI_COLUMNS
 import shutil
 from etl.chronic_absenteeism import (
     transform, clean_numeric_values, standardize_suppression_field,
@@ -208,11 +209,10 @@ class TestChronicAbsenteeismETL:
         kpi_df = self.etl.convert_to_kpi_format(df_normal, 'test_file.csv')
         
         assert not kpi_df.empty
-        assert len(kpi_df.columns) == 10  # Standard KPI format
+        assert len(kpi_df.columns) == 19  # Standard KPI format
         
         # Check required columns
-        required_columns = ['district', 'school_id', 'school_name', 'year', 'student_group', 
-                          'metric', 'value', 'suppressed', 'source_file', 'last_updated']
+        required_columns = KPI_COLUMNS
         for col in required_columns:
             assert col in kpi_df.columns
         
@@ -372,7 +372,7 @@ class TestChronicAbsenteeismETL:
         
         # Check output files exist
         output_file = self.proc_dir / "chronic_absenteeism.csv"
-        audit_file = self.proc_dir / "chronic_absenteeism_demographic_audit.csv"
+        audit_file = self.proc_dir / "chronic_absenteeism_demographic_report.md"
         
         assert output_file.exists()
         assert audit_file.exists()
@@ -380,11 +380,10 @@ class TestChronicAbsenteeismETL:
         # Check output format
         output_df = pd.read_csv(output_file)
         assert not output_df.empty
-        assert len(output_df.columns) == 10  # Standard KPI format
+        assert len(output_df.columns) == 19  # Standard KPI format
         
         # Verify required columns
-        required_columns = ['district', 'school_id', 'school_name', 'year', 'student_group', 
-                          'metric', 'value', 'suppressed', 'source_file', 'last_updated']
+        required_columns = KPI_COLUMNS
         for col in required_columns:
             assert col in output_df.columns
     

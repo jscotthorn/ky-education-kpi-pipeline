@@ -4,6 +4,7 @@ Tests for Safe Schools Events ETL module
 import pytest
 from pathlib import Path
 import pandas as pd
+from etl.constants import KPI_COLUMNS
 import tempfile
 import shutil
 from etl.safe_schools_events import transform, normalize_column_names, clean_event_data, convert_to_kpi_format, add_derived_fields
@@ -189,15 +190,14 @@ class TestSafeSchoolsEventsETL:
         kpi_df = convert_to_kpi_format(df)
         
         # Check structure
-        assert len(kpi_df.columns) == 10
-        required_columns = ['district', 'school_id', 'school_name', 'year', 'student_group', 
-                          'metric', 'value', 'suppressed', 'source_file', 'last_updated']
+        assert len(kpi_df.columns) == 19
+        required_columns = KPI_COLUMNS
         for col in required_columns:
             assert col in kpi_df.columns
         
         # Check data content
         assert len(kpi_df) > 0
-        assert kpi_df['year'].iloc[0] == 2023
+        assert kpi_df['year'].iloc[0] == 2024
         assert kpi_df['suppressed'].iloc[0] in ['Y', 'N']
         
         # Check three-tier structure
@@ -234,7 +234,7 @@ class TestSafeSchoolsEventsETL:
         kpi_df = convert_to_kpi_format(df)
         
         # Check structure
-        assert len(kpi_df.columns) == 10
+        assert len(kpi_df.columns) == 19
         assert len(kpi_df) > 0
         
         # Check grade-specific metrics across all three tiers
@@ -271,7 +271,7 @@ class TestSafeSchoolsEventsETL:
         
         # Test transform
         config = {'derive': {'test_field': 'test_value'}}
-        result_file = transform(str(self.sample_dir), str(self.proc_dir), config)
+        result_file = transform(str(self.raw_dir), str(self.proc_dir), config)
         
         # Check output
         assert result_file != ""
@@ -280,10 +280,10 @@ class TestSafeSchoolsEventsETL:
         # Check output content
         output_df = pd.read_csv(result_file)
         assert len(output_df) > 0
-        assert len(output_df.columns) == 10
+        assert len(output_df.columns) == 19
         
         # Check audit file exists
-        audit_file = self.proc_dir / 'safe_schools_events_demographic_audit.csv'
+        audit_file = self.proc_dir / 'safe_schools_events_demographic_report.md'
         assert audit_file.exists()
     
     def test_demographic_mapping(self):
@@ -397,19 +397,73 @@ class TestSafeSchoolsEventsETL:
         # Create sample KPI data with three tiers
         sample_kpi_data = pd.DataFrame([
             # Tier 1: Students affected
-            {'district': 'Test District', 'school_id': '123', 'school_name': 'Test School', 'year': 2023,
-             'student_group': 'All Students', 'metric': 'safe_students_affected_total', 'value': 10.0,
-             'suppressed': 'N', 'source_file': 'test', 'last_updated': '2023-01-01'},
+            {
+                'district': 'Test District',
+                'school_id': '123',
+                'school_name': 'Test School',
+                'year': 2023,
+                'student_group': 'All Students',
+                'county_number': '01',
+                'county_name': 'Fayette',
+                'district_number': '111',
+                'school_code': 'A1',
+                'state_school_id': '123',
+                'nces_id': '999999123',
+                'co_op': 'Central',
+                'co_op_code': 'C1',
+                'school_type': 'HS',
+                'metric': 'safe_students_affected_total',
+                'value': 10.0,
+                'suppressed': 'N',
+                'source_file': 'test',
+                'last_updated': '2023-01-01'
+            },
             
             # Tier 2: Events by demographics (we'll skip this for rate calculation)
-            {'district': 'Test District', 'school_id': '123', 'school_name': 'Test School', 'year': 2023,
-             'student_group': 'Female', 'metric': 'safe_event_count_total_by_demo', 'value': 15.0,
-             'suppressed': 'N', 'source_file': 'test', 'last_updated': '2023-01-01'},
+            {
+                'district': 'Test District',
+                'school_id': '123',
+                'school_name': 'Test School',
+                'year': 2023,
+                'student_group': 'Female',
+                'county_number': '01',
+                'county_name': 'Fayette',
+                'district_number': '111',
+                'school_code': 'A1',
+                'state_school_id': '123',
+                'nces_id': '999999123',
+                'co_op': 'Central',
+                'co_op_code': 'C1',
+                'school_type': 'HS',
+                'metric': 'safe_event_count_total_by_demo',
+                'value': 15.0,
+                'suppressed': 'N',
+                'source_file': 'test',
+                'last_updated': '2023-01-01'
+            },
             
             # Tier 3: Total events 
-            {'district': 'Test District', 'school_id': '123', 'school_name': 'Test School', 'year': 2023,
-             'student_group': 'All Students - Total Events', 'metric': 'safe_event_count_total', 'value': 25.0,
-             'suppressed': 'N', 'source_file': 'test', 'last_updated': '2023-01-01'},
+            {
+                'district': 'Test District',
+                'school_id': '123',
+                'school_name': 'Test School',
+                'year': 2023,
+                'student_group': 'All Students - Total Events',
+                'county_number': '01',
+                'county_name': 'Fayette',
+                'district_number': '111',
+                'school_code': 'A1',
+                'state_school_id': '123',
+                'nces_id': '999999123',
+                'co_op': 'Central',
+                'co_op_code': 'C1',
+                'school_type': 'HS',
+                'metric': 'safe_event_count_total',
+                'value': 25.0,
+                'suppressed': 'N',
+                'source_file': 'test',
+                'last_updated': '2023-01-01'
+            },
         ])
         
         # Calculate derived rates

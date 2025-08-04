@@ -41,12 +41,12 @@ class TestPostsecondaryEnrollmentE2E:
         df = pd.read_csv(out_file)
         assert len(df) == 7
         assert set(df["metric"].unique()) == {
-            "postsecondary_enrollment_total_cohort",
-            "postsecondary_enrollment_public_count",
-            "postsecondary_enrollment_private_count",
-            "postsecondary_enrollment_total_count",
-            "postsecondary_enrollment_public_rate",
-            "postsecondary_enrollment_private_rate",
-            "postsecondary_enrollment_total_rate",
+            "postsecondary_enrollment_total_in_cohort",
+            "postsecondary_enrollment_public_ky_college_count",
+            "postsecondary_enrollment_private_ky_college_count",
+            "postsecondary_enrollment_total_ky_college_count",
+            "postsecondary_enrollment_public_ky_college_rate",
+            "postsecondary_enrollment_private_ky_college_rate",
+            "postsecondary_enrollment_total_ky_college_rate",
         }
 

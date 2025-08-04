@@ -21,7 +21,6 @@ applies demographic label standardization for consistent longitudinal reporting.
 """
 from pathlib import Path
 import pandas as pd
-from pydantic import BaseModel
 from typing import Dict, Any, Optional, Union
 import logging
 import sys
@@ -31,16 +30,10 @@ from pathlib import Path
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
-from base_etl import BaseETL
+from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
 
-
-class Config(BaseModel):
-    rename: Dict[str, str] = {}
-    dtype: Dict[str, str] = {}
-    derive: Dict[str, Union[str, int, float]] = {}
-    
 
 
 
@@ -129,14 +122,23 @@ class GraduationRatesETL(BaseETL):
     
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         """Get default metrics for suppressed graduation records."""
-        return {
-            'graduation_rate_4_year': pd.NA,
-            'graduation_count_4_year': pd.NA,
-            'graduation_total_4_year': pd.NA,
-            'graduation_rate_5_year': pd.NA,
-            'graduation_count_5_year': pd.NA,
-            'graduation_total_5_year': pd.NA
-        }
+        defaults = {}
+        
+        # Only create defaults for metrics that exist in the source data
+        if 'graduation_rate_4_year' in row.index:
+            defaults['graduation_rate_4_year'] = pd.NA
+        if 'grads_4_year_cohort' in row.index:
+            defaults['graduation_count_4_year'] = pd.NA
+        if 'students_4_year_cohort' in row.index:
+            defaults['graduation_total_4_year'] = pd.NA
+        if 'graduation_rate_5_year' in row.index:
+            defaults['graduation_rate_5_year'] = pd.NA
+        if 'grads_5_year_cohort' in row.index:
+            defaults['graduation_count_5_year'] = pd.NA
+        if 'students_5_year_cohort' in row.index:
+            defaults['graduation_total_5_year'] = pd.NA
+            
+        return defaults
     
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         """Override to include graduation-specific missing value handling."""
@@ -176,7 +178,7 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Read graduation rates files, normalize, and convert to KPI format with demographic standardization using BaseETL."""
     # Use BaseETL for consistent processing
     etl = GraduationRatesETL('graduation_rates')
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 if __name__ == "__main__":
@@ -188,11 +190,8 @@ if __name__ == "__main__":
     proc_dir = Path(__file__).parent.parent / "data" / "processed"
     proc_dir.mkdir(exist_ok=True)
     
-    test_config = {
-        "derive": {
-            "processing_date": "2025-07-18",
-            "data_quality_flag": "reviewed"
-        }
-    }
-    
+    test_config = Config(
+        derive={"processing_date": "2025-07-18", "data_quality_flag": "reviewed"}
+    ).dict()
+
     transform(raw_dir, proc_dir, test_config)

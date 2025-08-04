@@ -11,26 +11,19 @@ Data includes two rate metrics:
 """
 from pathlib import Path
 import pandas as pd
-from pydantic import BaseModel
 from typing import Dict, Any, Union
 import logging
-
 import sys
-from pathlib import Path
 
 # Add etl directory to path for imports
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
-from base_etl import BaseETL
+from constants import KPI_COLUMNS
+
+from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
-
-
-class Config(BaseModel):
-    rename: Dict[str, str] = {}
-    dtype: Dict[str, str] = {}
-    derive: Dict[str, Union[str, int, float]] = {}
 
 
 
@@ -44,11 +37,19 @@ def clean_readiness_data(df: pd.DataFrame) -> pd.DataFrame:
             # Convert to numeric, errors='coerce' will make invalid values NaN
             df[col] = pd.to_numeric(df[col], errors='coerce')
             
-            # Validate rates are between 0 and 100
-            invalid_mask = (df[col] < 0) | (df[col] > 100)
-            if invalid_mask.any():
-                logger.warning(f"Found {invalid_mask.sum()} invalid readiness rates in {col}")
-                df.loc[invalid_mask, col] = pd.NA
+            # Different validation rules for different rate types
+            if 'with_bonus' in col.lower():
+                # Bonus rates can exceed 100% but should be reasonable (0-150%)
+                invalid_mask = (df[col] < 0) | (df[col] > 150)
+                if invalid_mask.any():
+                    logger.warning(f"Found {invalid_mask.sum()} invalid bonus readiness rates in {col} (outside 0-150%)")
+                    df.loc[invalid_mask, col] = pd.NA
+            else:
+                # Standard rates should be between 0 and 100%
+                invalid_mask = (df[col] < 0) | (df[col] > 100)
+                if invalid_mask.any():
+                    logger.warning(f"Found {invalid_mask.sum()} invalid readiness rates in {col} (outside 0-100%)")
+                    df.loc[invalid_mask, col] = pd.NA
     
     return df
 
@@ -70,21 +71,78 @@ class PostsecondaryReadinessETL(BaseETL):
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics = {}
         
-        # Extract postsecondary readiness rates
-        if 'postsecondary_rate' in row and pd.notna(row['postsecondary_rate']):
-            metrics['postsecondary_readiness_rate'] = row['postsecondary_rate']
-        
-        if 'postsecondary_rate_with_bonus' in row and pd.notna(row['postsecondary_rate_with_bonus']):
-            metrics['postsecondary_readiness_rate_with_bonus'] = row['postsecondary_rate_with_bonus']
+        # Always extract both postsecondary readiness rates for consistency
+        # Even if one or both are null/suppressed/invalid
+        metrics['postsecondary_readiness_rate'] = row.get('postsecondary_rate', pd.NA)
+        metrics['postsecondary_readiness_rate_with_bonus'] = row.get('postsecondary_rate_with_bonus', pd.NA)
         
         return metrics
     
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         """Get default metrics for suppressed postsecondary readiness records."""
-        return {
-            'postsecondary_readiness_rate': pd.NA,
-            'postsecondary_readiness_rate_with_bonus': pd.NA
-        }
+        defaults = {}
+        
+        # Only create defaults for metrics that exist in the source data
+        if 'postsecondary_rate' in row.index:
+            defaults['postsecondary_readiness_rate'] = pd.NA
+        if 'postsecondary_rate_with_bonus' in row.index:
+            defaults['postsecondary_readiness_rate_with_bonus'] = pd.NA
+            
+        return defaults
+    
+    def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """
+        Override to ensure both postsecondary metrics are always created together.
+        """
+        kpi_rows = []
+        
+        for _, row in df.iterrows():
+            if self.should_skip_row(row):
+                continue
+            
+            kpi_template = self.create_kpi_template(row, source_file)
+            metrics = self.extract_metrics(row)
+            
+            # Special handling for postsecondary readiness: always create both metrics
+            base_value = metrics.get('postsecondary_readiness_rate')
+            bonus_value = metrics.get('postsecondary_readiness_rate_with_bonus')
+            
+            # Create base rate record
+            base_record = kpi_template.copy()
+            base_record['metric'] = 'postsecondary_readiness_rate'
+            if kpi_template['suppressed'] == 'Y' or pd.isna(base_value):
+                base_record['value'] = pd.NA
+            else:
+                try:
+                    base_record['value'] = float(base_value)
+                except (ValueError, TypeError):
+                    base_record['value'] = pd.NA
+            kpi_rows.append(base_record)
+            
+            # Create bonus rate record  
+            bonus_record = kpi_template.copy()
+            bonus_record['metric'] = 'postsecondary_readiness_rate_with_bonus'
+            if kpi_template['suppressed'] == 'Y' or pd.isna(bonus_value):
+                bonus_record['value'] = pd.NA
+            else:
+                try:
+                    bonus_record['value'] = float(bonus_value)
+                except (ValueError, TypeError):
+                    bonus_record['value'] = pd.NA
+            kpi_rows.append(bonus_record)
+        
+        if not kpi_rows:
+            logger.warning("No valid KPI rows created")
+            return pd.DataFrame()
+        
+        # Create KPI DataFrame with consistent column order
+        kpi_df = pd.DataFrame(kpi_rows)
+
+        # Only include columns that exist
+        available_columns = [col for col in KPI_COLUMNS if col in kpi_df.columns]
+        kpi_df = kpi_df[available_columns]
+        
+        return kpi_df
     
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         """Override to include postsecondary readiness specific missing value handling."""
@@ -101,7 +159,7 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Read newest postsecondary readiness files, normalize, and convert to KPI format with demographic standardization using BaseETL."""
     # Use BaseETL for consistent processing
     etl = PostsecondaryReadinessETL('postsecondary_readiness')
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 if __name__ == "__main__":
@@ -113,11 +171,8 @@ if __name__ == "__main__":
     proc_dir = Path(__file__).parent.parent / "data" / "processed"
     proc_dir.mkdir(exist_ok=True)
     
-    test_config = {
-        "derive": {
-            "processing_date": "2025-07-19",
-            "data_quality_flag": "reviewed"
-        }
-    }
-    
+    test_config = Config(
+        derive={"processing_date": "2025-07-19", "data_quality_flag": "reviewed"}
+    ).dict()
+
     transform(raw_dir, proc_dir, test_config)

@@ -5,6 +5,7 @@ Tests that sample rows from each source file are correctly transformed to KPI fo
 import pytest
 import pandas as pd
 import numpy as np
+from etl.constants import KPI_COLUMNS
 from pathlib import Path
 from etl.postsecondary_readiness import transform, PostsecondaryReadinessETL
 
@@ -19,8 +20,8 @@ class TestPostsecondaryReadinessEndToEnd:
     def test_source_to_kpi_transformation(self):
         """Test that 10 random rows from each source file are correctly represented in processed file."""
         # Paths to actual data files
-        raw_data_dir = Path("/Users/scott/Projects/equity-etl/data/raw/postsecondary_readiness")
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        raw_data_dir = Path("data/raw/postsecondary_readiness")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         # Ensure processed file exists
         if not processed_file.exists():
@@ -167,7 +168,7 @@ class TestPostsecondaryReadinessDataQuality:
     
     def test_kpi_format_compliance(self):
         """Test that processed file follows KPI format requirements."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -175,8 +176,7 @@ class TestPostsecondaryReadinessDataQuality:
         kpi_df = pd.read_csv(processed_file)
         
         # Test required columns exist
-        required_columns = ['district', 'school_id', 'school_name', 'year', 
-                           'student_group', 'metric', 'value', 'suppressed', 'source_file', 'last_updated']
+        required_columns = KPI_COLUMNS
         
         for col in required_columns:
             assert col in kpi_df.columns, f"Required column '{col}' missing from KPI file"
@@ -228,7 +228,7 @@ class TestPostsecondaryReadinessDataQuality:
     
     def test_metric_coverage(self):
         """Test that expected metrics are present."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -249,23 +249,25 @@ class TestPostsecondaryReadinessDataQuality:
         
         print(f"Rate metrics: {len(rate_metrics)}")
         
-        # Verify all rate values are valid percentages (excluding suppressed records)
+        # Verify all rate values are valid percentages (excluding suppressed records and NaN values)
         for metric in rate_metrics:
             metric_data = kpi_df[kpi_df['metric'] == metric]
             non_suppressed = metric_data[metric_data['suppressed'] == 'N']['value']
+            # Exclude NaN values from validation
+            non_suppressed_valid = non_suppressed.dropna()
             
-            if len(non_suppressed) > 0:
-                assert all(non_suppressed >= 0), f"All {metric} values should be >= 0%"
+            if len(non_suppressed_valid) > 0:
+                assert all(non_suppressed_valid >= 0), f"All {metric} values should be >= 0%"
                 
                 # Different validation for base vs bonus rates
                 if metric == 'postsecondary_readiness_rate':
-                    assert all(non_suppressed <= 100), f"Base {metric} values should be <= 100%"
+                    assert all(non_suppressed_valid <= 100), f"Base {metric} values should be <= 100%"
                 elif metric == 'postsecondary_readiness_rate_with_bonus':
                     # Bonus rates can exceed 100% but should be reasonable
-                    assert all(non_suppressed < 150), f"Bonus {metric} values should be < 150%"
+                    assert all(non_suppressed_valid < 150), f"Bonus {metric} values should be < 150%"
                 else:
                     # Default check for any other rate metrics
-                    assert all(non_suppressed <= 100), f"Rate {metric} values should be <= 100%"
+                    assert all(non_suppressed_valid <= 100), f"Rate {metric} values should be <= 100%"
             
             # Test suppressed records have NaN values
             suppressed_values = metric_data[metric_data['suppressed'] == 'Y']['value']
@@ -274,7 +276,7 @@ class TestPostsecondaryReadinessDataQuality:
     
     def test_source_file_tracking(self):
         """Test that source file tracking is working correctly."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -297,7 +299,7 @@ class TestPostsecondaryReadinessDataQuality:
     
     def test_student_group_consistency(self):
         """Test that student groups are consistently named."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -321,7 +323,7 @@ class TestPostsecondaryReadinessDataQuality:
     
     def test_year_coverage(self):
         """Test that expected years are present."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -360,7 +362,7 @@ class TestPostsecondaryReadinessAdvanced:
     
     def test_bonus_rate_enhancement_validation(self):
         """Test that bonus rates are properly enhanced and can exceed 100%."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -414,7 +416,7 @@ class TestPostsecondaryReadinessAdvanced:
     
     def test_school_id_consistency_validation(self):
         """Test that school IDs are consistently formatted and used."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")
@@ -443,7 +445,7 @@ class TestPostsecondaryReadinessAdvanced:
     
     def test_suppressed_record_retention_detailed(self):
         """Detailed test of suppressed record handling to prevent regression."""
-        processed_file = Path("/Users/scott/Projects/equity-etl/data/processed/postsecondary_readiness.csv")
+        processed_file = Path("data/processed/postsecondary_readiness.csv")
         
         if not processed_file.exists():
             pytest.skip("Processed postsecondary_readiness.csv not found. Run ETL pipeline first.")

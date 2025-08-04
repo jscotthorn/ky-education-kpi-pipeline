@@ -1,0 +1,182 @@
+# Kentucky Department of Education (KDE) Data Source Configuration
+# Maps raw data directories to their corresponding KDE Historical Dataset files
+
+base_url: "https://www.education.ky.gov/Open-House/data/HistoricalDatasets/"
+
+headers:
+  Referer: "https://www.education.ky.gov/Open-House/data/Pages/Historical-SRC-Datasets.aspx"
+  Upgrade-Insecure-Requests: "1"
+  User-Agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+  sec-ch-ua: '"Chromium";v="136", "Google Chrome";v="136", "Not.A/Brand";v="99"'
+  sec-ch-ua-mobile: "?0"
+  sec-ch-ua-platform: '"macOS"'
+
+raw_directories:
+  chronic_absenteeism:
+    - "KYRC24_OVW_Chronic_Absenteeism.csv"
+    - "chronic_absenteeism_2023.csv"
+
+  cte_participation:
+    - "KYRC24_CTE_Participation.csv"
+    - "cte_by_student_group_2023.csv"
+    - "cte_by_student_group_2022.csv"
+
+  english_learner_progress:
+    - "KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv"
+    - "english_language_proficiency_2023.csv"
+    - "english_language_proficiency_2022.csv"
+    - "english_learner_proficiency_2021.csv"
+    - "english_learner_proficiency_2020.csv"
+
+  graduation_rates:
+    - "KYRC24_ACCT_4_Year_High_School_Graduation.csv"
+    - "KYRC24_ACCT_5_Year_High_School_Graduation.csv"
+    - "graduation_rate_2023.csv"
+    - "graduation_rate_2022.csv"
+    - "graduation_rate_2021.csv"
+    - "graduation_rate_2020.csv"
+
+  kentucky_summative_assessment:
+    - "KYRC24_ACCT_Kentucky_Summative_Assessment.csv"
+    - "KYRC24_ASMT_Kentucky_Summative_Assessment.csv"
+    - "accountable_assessment_performance_2023.csv"
+    - "accountable_assessment_performance_2022.csv"
+    - "asmt_performance_by_level_2021.csv"
+    - "asmt_performance_by_grade_2023.csv"
+    - "asmt_performance_by_grade_2022.csv"
+    - "asmt_performance_by_grade_2021.csv"
+
+  kindergarten_readiness:
+    - "KYRC24_ASMT_Kindergarten_Screen_Composite.csv"
+    - "kindergarten_screen_2023.csv"
+    - "kindergarten_screen_2022.csv"
+    - "kindergarten_screen_2021.csv"
+    - "kindergarten_screen_2020.csv"
+
+  out_of_school_suspension:
+    - "KYRC24_OVW_Student_Suspensions.csv"
+    - "safe_schools_discipline_2023.csv"
+    - "safe_schools_discipline_2022.csv"
+    - "safe_schools_discipline_2021.csv"
+    - "safe_schools_discipline_2020.csv"
+
+  postsecondary_enrollment:
+    - "KYRC24_ADLF_Transition_to_In_State_Postsecondary_Education.csv"
+    - "transition_in_state_postsecondary_education_2023.csv"
+    - "transition_in_state_postsecondary_education_2022.csv"
+    - "transition_in_state_postsecondary_education_2021.csv"
+
+  postsecondary_readiness:
+    - "KYRC24_ACCT_Postsecondary_Readiness.csv"
+    - "postsecondary_readiness_2023.csv"
+    - "postsecondary_readiness_2022.csv"
+
+  safe_schools:
+    - "KYRC24_SAFE_Behavior_Events_by_Context.csv"
+    - "KYRC24_SAFE_Behavior_Events_by_Grade_Level.csv"
+    - "KYRC24_SAFE_Behavior_Events_by_Location.csv"
+    - "KYRC24_SAFE_Behavior_Events_by_Type.csv"
+    - "KYRC24_SAFE_Discipline_Resolutions.csv"
+    - "KYRC24_SAFE_Legal_Sanctions.csv"
+    - "KYRC24_SAFE_Precautionary_Measures.csv"
+    - "safe_schools_discipline_2023.csv"
+    - "safe_schools_discipline_2022.csv"
+    - "safe_schools_discipline_2021.csv"
+    - "safe_schools_discipline_2020.csv"
+    - "safe_schools_event_details_2023.csv"
+    - "safe_schools_event_details_2022.csv"
+    - "safe_schools_event_details_2021.csv"
+    - "safe_schools_event_details_2020.csv"
+    - "safe_schools_events_by_grade_2023.csv"
+    - "safe_schools_events_by_grade_2022.csv"
+    - "safe_schools_events_by_grade_2021.csv"
+    - "safe_schools_events_by_grade_2020.csv"
+
+  safe_schools_climate:
+    - "KYRC24_ACCT_Index_Scores.csv"
+    - "KYRC24_SAFE_Precautionary_Measures.csv"
+    - "accountability_profile_2023.csv"
+    - "accountability_profile_2022.csv"
+    - "accountability_profile_2021.csv"
+    - "accountability_profile_2020.csv"
+    - "precautionary_measures_2023.csv"
+    - "precautionary_measures_2022.csv"
+    - "precautionary_measures_2021.csv"
+    - "precautionary_measures_2020.csv"
+
+  safe_schools_discipline:
+    - "KYRC24_SAFE_Discipline_Resolutions.csv"
+    - "KYRC24_SAFE_Legal_Sanctions.csv"
+    - "safe_schools_discipline_2023.csv"
+    - "safe_schools_discipline_2022.csv"
+    - "safe_schools_discipline_2021.csv"
+    - "safe_schools_discipline_2020.csv"
+
+  benchmark_assessment:
+    - "KYRC24_ASMT_Benchmark.csv"
+
+  act_scores:
+    - "KYRC24_ASMT_The_ACT.csv"
+    - "College_Admissions_Exam_2023.csv"
+    - "College_Admissions_Exam_2022.csv"
+    - "College_Admissions_Exam_2021.csv"
+
+  students_taught_by_inexperienced_teachers:
+    - "KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
+    - "students_taught_by_inexperienced_teachers_2023.csv"
+    - "students_taught_by_inexperienced_teachers_2022.csv"
+    - "students_taught_by_inexperienced_teachers_2021.csv"
+    - "students_taught_by_inexperienced_teachers_2020.csv"
+
+  student_retention:
+    - "KYRC24_OVW_Student_Retention_Grades_4_12.csv"
+    - "retention_2023.csv"
+    - "retention_2022.csv"
+    - "retention_2021.csv"
+    - "retention_2020.csv"
+
+  dropout_rate:
+    - "KYRC24_OVW_Dropout_Rate.csv"
+    - "dropout_2023.csv"
+    - "dropout_2022.csv"
+    - "dropout_2021.csv"
+    - "dropout_2020.csv"
+
+  homeless_students:
+    - "KYRC24_OVW_Homeless.csv"
+    - "homeless_2023.csv"
+    - "homeless_2022.csv"
+    - "homeless_2021.csv"
+    - "homeless_2020.csv"
+
+  migrant_students:
+    - "KYRC24_OVW_Migrant.csv"
+    - "migrant_2023.csv"
+    - "migrant_2022.csv"
+    - "migrant_2021.csv"
+    - "migrant_2020.csv"
+
+  students_with_disabilities:
+    - "KYRC24_OVW_Students_with_Disabilities_IEP.csv"
+    - "students_with_disabilities_2023.csv"
+    - "students_with_disabilities_2022.csv"
+    - "students_with_disabilities_2021.csv"
+    - "students_with_disabilities_2020.csv"
+
+  district_school_list:
+    - "KYRC24_OVW_District_School_List.csv"
+    - "district_school_list_2023.csv"
+    - "district_school_list_2022.csv"
+    - "district_school_list_2021.csv"
+    - "district_school_list_2020.csv"
+
+  student_enrollment:
+    - "KYRC24_OVW_Student_Enrollment.csv"
+    - "primary_enrollment_2023.csv"
+    - "secondary_enrollment_2023.csv"
+    - "primary_enrollment_2022.csv"
+    - "secondary_enrollment_2022.csv"
+    - "primary_enrollment_2021.csv"
+    - "secondary_enrollment_2021.csv"
+    - "primary_enrollment_2020.csv"
+    - "secondary_enrollment_2020.csv"

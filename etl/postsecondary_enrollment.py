@@ -70,35 +70,45 @@ class PostsecondaryEnrollmentETL(BaseETL):
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics = {}
-        metrics["postsecondary_enrollment_total_cohort"] = row.get("total_in_group")
-        metrics["postsecondary_enrollment_public_count"] = row.get(
+        metrics["postsecondary_enrollment_total_in_cohort"] = row.get("total_in_group")
+        metrics["postsecondary_enrollment_public_ky_college_count"] = row.get(
             "public_college_enrolled"
         )
-        metrics["postsecondary_enrollment_private_count"] = row.get(
+        metrics["postsecondary_enrollment_private_ky_college_count"] = row.get(
             "private_college_enrolled"
         )
-        metrics["postsecondary_enrollment_total_count"] = row.get(
+        metrics["postsecondary_enrollment_total_ky_college_count"] = row.get(
             "college_enrolled_total"
         )
-        metrics["postsecondary_enrollment_public_rate"] = row.get("public_college_rate")
-        metrics["postsecondary_enrollment_private_rate"] = row.get(
+        metrics["postsecondary_enrollment_public_ky_college_rate"] = row.get("public_college_rate")
+        metrics["postsecondary_enrollment_private_ky_college_rate"] = row.get(
             "private_college_rate"
         )
-        metrics["postsecondary_enrollment_total_rate"] = row.get(
+        metrics["postsecondary_enrollment_total_ky_college_rate"] = row.get(
             "college_enrollment_rate"
         )
         return metrics
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
-        return {
-            "postsecondary_enrollment_total_cohort": pd.NA,
-            "postsecondary_enrollment_public_count": pd.NA,
-            "postsecondary_enrollment_private_count": pd.NA,
-            "postsecondary_enrollment_total_count": pd.NA,
-            "postsecondary_enrollment_public_rate": pd.NA,
-            "postsecondary_enrollment_private_rate": pd.NA,
-            "postsecondary_enrollment_total_rate": pd.NA,
-        }
+        defaults = {}
+        
+        # Only create defaults for metrics that exist in the source data
+        if "total_in_group" in row.index:
+            defaults["postsecondary_enrollment_total_in_cohort"] = pd.NA
+        if "public_college_enrolled" in row.index:
+            defaults["postsecondary_enrollment_public_ky_college_count"] = pd.NA
+        if "private_college_enrolled" in row.index:
+            defaults["postsecondary_enrollment_private_ky_college_count"] = pd.NA
+        if "college_enrolled_total" in row.index:
+            defaults["postsecondary_enrollment_total_ky_college_count"] = pd.NA
+        if "public_college_rate" in row.index:
+            defaults["postsecondary_enrollment_public_ky_college_rate"] = pd.NA
+        if "private_college_rate" in row.index:
+            defaults["postsecondary_enrollment_private_ky_college_rate"] = pd.NA
+        if "college_enrollment_rate" in row.index:
+            defaults["postsecondary_enrollment_total_ky_college_rate"] = pd.NA
+            
+        return defaults
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         df = super().standardize_missing_values(df)
@@ -110,7 +120,7 @@ class PostsecondaryEnrollmentETL(BaseETL):
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """Entry point for running the ETL."""
     etl = PostsecondaryEnrollmentETL("postsecondary_enrollment")
-    etl.transform(raw_dir, proc_dir, cfg)
+    etl.process(raw_dir, proc_dir, cfg)
 
 
 if __name__ == "__main__":
