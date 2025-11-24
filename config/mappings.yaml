@@ -124,6 +124,23 @@ sources:
     derive:
       processing_date: "2025-11-24"
       data_quality_flag: "reviewed"
-      
+
+  spending_per_student: {}
+
+  teacher_turnover:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  teacher_certification:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  students_taught_by_ineffective_teachers:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
 # Example configuration for field mappings and transformations
 # Add new sources here as they are onboarded

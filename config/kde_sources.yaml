@@ -247,3 +247,52 @@ raw_directories:
     - "spending_per_student_2022.csv"
     - "spending_per_student_2021.csv"
     - "spending_per_student_2020.csv"
+
+  # Teacher Quality Indicators
+  teacher_turnover:
+    - "KYRC24_OVW_Teacher_Turnover.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Teacher_Turnover.csv"
+    - "teacher_turnover_2023.csv"
+    - "teacher_turnover_2022.csv"
+    - "teacher_turnover_2021.csv"
+
+  teacher_certification:
+    - "KYRC24_OVW_Teacher_Certification_Data.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Teacher_Certification_Data.csv"
+    - "teacher_certifications_2023.csv"
+    - "teacher_certifications_2022.csv"
+    - "teacher_certifications_2021.csv"
+
+  educator_qualifications:
+    - "KYRC24_OVW_Educator_Qualifications.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Educator_Qualifications.csv"
+    - "educator_qualifications_2023.csv"
+    - "educator_qualifications_2022.csv"
+    - "educator_qualifications_2021.csv"
+
+  students_taught_by_ineffective_teachers:
+    - "KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv"
+    - "students_taught_by_ineffective_teachers_2023.csv"
+    - "students_taught_by_ineffective_teachers_2022.csv"
+    - "students_taught_by_ineffective_teachers_2021.csv"
+
+  students_taught_by_out_of_field_teachers:
+    - "KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"
+    - "students_taught_by_out_of_field_teachers_2023.csv"
+    - "students_taught_by_out_of_field_teachers_2022.csv"
+    - "students_taught_by_out_of_field_teachers_2021.csv"
+
+  teacher_working_conditions:
+    - "KYRC24_OVW_Teacher_Working_Conditions.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Teacher_Working_Conditions.csv"
+    - "teacher_working_conditions_2023.csv"
+    - "teacher_working_conditions_2022.csv"
+    - "teacher_working_conditions_2021.csv"

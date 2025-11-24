@@ -187,27 +187,28 @@ def generate_dashboard_json(processed_dir: Path, output_dir: Path, fayette_only:
         if fayette_only:
             df = df[df['district'].str.contains('Fayette', case=False, na=False)]
         
-        # Generate heatmap data for each rate metric
+        # Generate heatmap data for each rate metric and each year
         for metric in file_info['rate_metrics']:
             print(f"  Generating heatmap for {metric}...")
-            
-            # Generate for latest year
-            heatmap_data = generate_heatmap_data(df, metric)
-            
-            # Save individual metric JSON file
-            metric_filename = f"{source_name}_{metric}.json"
-            metric_path = output_dir / metric_filename
-            
-            with open(metric_path, 'w') as f:
-                json.dump(heatmap_data, f, indent=2)
-            
-            # Handle both successful and error responses
-            if 'error' in heatmap_data:
-                print(f"    Saved {metric_filename}: No data ({heatmap_data['error']})")
-            elif 'stats' in heatmap_data:
-                print(f"    Saved {metric_filename}: {heatmap_data['stats']['data_points']} data points")
-            else:
-                print(f"    Saved {metric_filename}: Unknown status")
+
+            # Generate for each available year
+            for year in file_info['years']:
+                heatmap_data = generate_heatmap_data(df, metric, year)
+
+                # Save individual metric JSON file with year suffix
+                metric_filename = f"{source_name}_{metric}_{year}.json"
+                metric_path = output_dir / metric_filename
+
+                with open(metric_path, 'w') as f:
+                    json.dump(heatmap_data, f, indent=2)
+
+                # Handle both successful and error responses
+                if 'error' in heatmap_data:
+                    print(f"    Saved {metric_filename}: No data ({heatmap_data['error']})")
+                elif 'stats' in heatmap_data:
+                    print(f"    Saved {metric_filename}: {heatmap_data['stats']['data_points']} data points")
+                else:
+                    print(f"    Saved {metric_filename}: Unknown status")
     
     # Save dashboard configuration
     config_path = output_dir / "dashboard_config.json"

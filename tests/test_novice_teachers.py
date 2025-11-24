@@ -120,14 +120,14 @@ class TestNoviceTeachersETL:
         row = sample_data.iloc[0]
         metrics = self.etl.extract_metrics(row)
         
-        assert 'students_taught_by_inexperienced_teachers_rate_title_1_all_students' in metrics
-        assert metrics['students_taught_by_inexperienced_teachers_rate_title_1_all_students'] == 66.0
+        assert 'students_taught_by_inexperienced_teachers_rate_title_1__all_students' in metrics
+        assert metrics['students_taught_by_inexperienced_teachers_rate_title_1__all_students'] == 66.0
         
         # Test Title 1 row with non-white data
         row = sample_data.iloc[1]
         metrics = self.etl.extract_metrics(row)
-        assert 'students_taught_by_inexperienced_teachers_rate_title_1_non_white' in metrics
-        assert metrics['students_taught_by_inexperienced_teachers_rate_title_1_non_white'] == 70.2
+        assert 'students_taught_by_inexperienced_teachers_rate_title_1__non_white' in metrics
+        assert metrics['students_taught_by_inexperienced_teachers_rate_title_1__non_white'] == 70.2
 
     def test_extract_metrics_equity_not_title_1(self):
         """Test metric extraction from equity file for non-Title I schools."""
@@ -137,8 +137,8 @@ class TestNoviceTeachersETL:
         row = sample_data.iloc[3]  # Not Title 1, All Students
         metrics = self.etl.extract_metrics(row)
         
-        assert 'students_taught_by_inexperienced_teachers_rate_not_title_1_all_students' in metrics
-        assert metrics['students_taught_by_inexperienced_teachers_rate_not_title_1_all_students'] == 35.4
+        assert 'students_taught_by_inexperienced_teachers_rate_not_title_1__all_students' in metrics
+        assert metrics['students_taught_by_inexperienced_teachers_rate_not_title_1__all_students'] == 35.4
 
     def test_extract_metrics_equity_gap(self):
         """Test metric extraction for equity gap calculations."""
@@ -148,8 +148,8 @@ class TestNoviceTeachersETL:
         row = sample_data.iloc[6]  # Equity Gap, All Students
         metrics = self.etl.extract_metrics(row)
         
-        assert 'students_taught_by_inexperienced_teachers_rate_equity_gap_all_students' in metrics
-        assert metrics['students_taught_by_inexperienced_teachers_rate_equity_gap_all_students'] == 30.6
+        assert 'students_taught_by_inexperienced_teachers_rate_equity_gap__all_students' in metrics
+        assert metrics['students_taught_by_inexperienced_teachers_rate_equity_gap__all_students'] == 30.6
 
     def test_convert_to_kpi_format_institutional(self):
         """Test conversion of institutional file to KPI format."""
@@ -179,11 +179,17 @@ class TestNoviceTeachersETL:
         # Should have metrics for each Title I status × demographic combo with data
         assert len(kpi_df) > 0
         
-        # Check for Title I specific metrics
+        # Check for Title I specific metrics (base names only)
         metrics = kpi_df['metric'].unique()
-        assert any('title_1' in m for m in metrics)
-        assert any('not_title_1' in m for m in metrics)
-        assert any('equity_gap' in m for m in metrics)
+        assert 'students_taught_by_inexperienced_teachers_rate_title_1' in metrics
+        assert 'students_taught_by_inexperienced_teachers_rate_not_title_1' in metrics
+        assert 'students_taught_by_inexperienced_teachers_rate_equity_gap' in metrics
+        
+        # Check that student_group is populated correctly
+        student_groups = kpi_df['student_group'].unique()
+        assert 'All Students' in student_groups
+        assert 'Non-White' in student_groups
+        assert 'White (non-Hispanic)' in student_groups
 
     def test_suppressed_metric_defaults_institutional(self):
         """Test suppressed metric defaults for institutional file."""
@@ -207,8 +213,8 @@ class TestNoviceTeachersETL:
         })
         defaults = self.etl.get_suppressed_metric_defaults(sample_row)
         
-        # Should have defaults for Title 1 metrics
-        assert any('title_1' in k for k in defaults.keys())
+        # Should have defaults for Title 1 metrics with double underscore
+        assert any('title_1' in k and '__' in k for k in defaults.keys())
 
     def test_should_skip_row(self):
         """Test row skipping logic."""
@@ -270,6 +276,11 @@ class TestNoviceTeachersETL:
         assert any('novice_teacher_rate' in m for m in metrics)  # Institutional
         assert any('students_taught_by_inexperienced' in m for m in metrics)  # Equity
         assert any('title_1' in m for m in metrics)  # Title I breakdowns
+        
+        # Check student groups
+        student_groups = result_df['student_group'].unique()
+        assert 'All Students' in student_groups
+        assert 'Non-White' in student_groups
 
     def test_multiple_demographics_processed(self):
         """Test that multiple demographic columns are processed correctly."""
@@ -278,25 +289,18 @@ class TestNoviceTeachersETL:
         
         # Count unique metric names that should be generated
         kpi_df = self.etl.convert_to_kpi_format(equity_data, "equity.csv")
+        
+        # Check student groups instead of metric names
+        student_groups = kpi_df['student_group'].unique()
+        assert 'All Students' in student_groups
+        assert 'Non-White' in student_groups
+        assert 'White (non-Hispanic)' in student_groups
+        
+        # Check metrics
         metrics = kpi_df['metric'].unique()
-        
-        # Should have metrics for all_students, non_white, and white
-        all_students_metrics = [m for m in metrics if 'all_students' in m]
-        non_white_metrics = [m for m in metrics if 'non_white' in m]
-        white_metrics = [m for m in metrics if 'white' in m]
-        
-        assert len(all_students_metrics) > 0
-        assert len(non_white_metrics) > 0
-        assert len(white_metrics) > 0
-        
-        # Should have Title 1, Not Title 1, and Equity Gap variants
-        title_1_metrics = [m for m in metrics if 'title_1' in m and 'not_title_1' not in m]
-        not_title_1_metrics = [m for m in metrics if 'not_title_1' in m]
-        equity_gap_metrics = [m for m in metrics if 'equity_gap' in m]
-        
-        assert len(title_1_metrics) > 0
-        assert len(not_title_1_metrics) > 0
-        assert len(equity_gap_metrics) > 0
+        assert 'students_taught_by_inexperienced_teachers_rate_title_1' in metrics
+        assert 'students_taught_by_inexperienced_teachers_rate_not_title_1' in metrics
+        assert 'students_taught_by_inexperienced_teachers_rate_equity_gap' in metrics
     
     def test_negative_values_excluded(self):
         """Test that negative percentage values are excluded."""

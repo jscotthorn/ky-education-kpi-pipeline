@@ -75,6 +75,19 @@ class NoviceTeachersETL(BaseETL):
             '% NON-ENGLISH LEARNER STUDENTS TAUGHT BY INEXPERIENCED TCHRS': 'non_english_learner',
         }
     
+    # Mapping from internal demographic keys to standard display names
+    DEMOGRAPHIC_DISPLAY_MAP = {
+        'all_students': 'All Students',
+        'white': 'White (non-Hispanic)',
+        'non_white': 'Non-White',
+        'economically_disadvantaged': 'Economically Disadvantaged',
+        'non_economically_disadvantaged': 'Non-Economically Disadvantaged',
+        'students_with_disabilities': 'Students with Disabilities (IEP)',
+        'student_without_disabilities': 'Student without Disabilities (IEP)',
+        'english_learner': 'English Learner',
+        'non_english_learner': 'Non-English Learner',
+    }
+
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics = {}
         
@@ -122,10 +135,11 @@ class NoviceTeachersETL(BaseETL):
                 'non_english_learner': 'non_english_learner',
             }
             
-            for col_name, demo_name in demographic_columns.items():
+            for col_name, demo_key in demographic_columns.items():
                 value = safe_numeric(row.get(col_name, pd.NA))
                 if pd.notna(value) and value >= 0:
-                    metric_name = f'students_taught_by_inexperienced_teachers_rate_{title_i_suffix}_{demo_name}'
+                    # Use double underscore separator to identify equity metrics and separate demographic key
+                    metric_name = f'students_taught_by_inexperienced_teachers_rate_{title_i_suffix}__{demo_key}'
                     metrics[metric_name] = value
         
         return metrics
@@ -152,12 +166,70 @@ class NoviceTeachersETL(BaseETL):
                 'english_learner', 'non_english_learner',
             ]
             
-            for demo_name in demographic_columns:
-                if demo_name in row.index:
-                    metric_name = f'students_taught_by_inexperienced_teachers_rate_{title_i_suffix}_{demo_name}'
+            for demo_key in demographic_columns:
+                if demo_key in row.index:
+                    # Use double underscore separator
+                    metric_name = f'students_taught_by_inexperienced_teachers_rate_{title_i_suffix}__{demo_key}'
                     defaults[metric_name] = pd.NA
             
         return defaults
+
+    def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """
+        Override base method to handle dynamic student_group assignment for equity metrics.
+        """
+        kpi_rows = []
+        
+        for _, row in df.iterrows():
+            # Skip rows that shouldn't be processed
+            if self.should_skip_row(row):
+                continue
+            
+            # Create base KPI template
+            kpi_template = self.create_kpi_template(row, source_file)
+            
+            # Extract metrics using module-specific logic
+            metrics = self.extract_metrics(row)
+            
+            # Special handling for suppressed records
+            if not metrics and kpi_template['suppressed'] == 'Y':
+                metrics = self.get_suppressed_metric_defaults(row)
+            
+            # Create KPI rows for each metric
+            for metric_key, value in metrics.items():
+                kpi_record = kpi_template.copy()
+                
+                # Check if this is an equity metric (has double underscore separator)
+                if '__' in metric_key:
+                    base_metric, demo_key = metric_key.split('__')
+                    # Update metric name and student_group
+                    kpi_record['metric'] = base_metric
+                    kpi_record['student_group'] = self.DEMOGRAPHIC_DISPLAY_MAP.get(demo_key, 'All Students')
+                else:
+                    # Standard metric
+                    kpi_record['metric'] = metric_key
+                    # student_group remains as set in template (usually 'All Students' for institutional data)
+                
+                # Handle suppression and value assignment
+                if kpi_template['suppressed'] == 'Y':
+                    kpi_record['value'] = pd.NA
+                    kpi_rows.append(kpi_record)
+                else:
+                    try:
+                        if pd.notna(value) and value != '':
+                            kpi_record['value'] = float(value)
+                            kpi_rows.append(kpi_record)
+                    except (ValueError, TypeError):
+                        continue
+        
+        if not kpi_rows:
+            logger.warning("No valid KPI rows created")
+            return pd.DataFrame()
+        
+        # Create KPI DataFrame with consistent column order
+        kpi_df = pd.DataFrame(kpi_rows)
+        available_columns = [col for col in KPI_COLUMNS if col in kpi_df.columns]
+        return kpi_df[available_columns]
     
     def should_skip_row(self, row: pd.Series) -> bool:
         """Skip rows that don't have novice teacher data."""

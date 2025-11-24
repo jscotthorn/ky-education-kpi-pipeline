@@ -296,19 +296,71 @@ All above metrics are also available with `_by_demo` suffix for demographic grou
 - `novice_teacher_rate_1_to_3_years` - Percentage of teachers with 1-3 years of experience
 
 ### Equity Metrics (Students Taught by Inexperienced Teachers)
-- `students_taught_by_inexperienced_teachers_rate_{title_i_status}_{demographic}` - Percentage of students in a specific demographic group taught by inexperienced teachers, broken down by Title I status.
+- `students_taught_by_inexperienced_teachers_rate_title_1` - Percentage of students taught by inexperienced teachers in Title I schools
+- `students_taught_by_inexperienced_teachers_rate_not_title_1` - Percentage of students taught by inexperienced teachers in non-Title I schools
+- `students_taught_by_inexperienced_teachers_rate_equity_gap` - Difference in rate between Title I and non-Title I schools
 
-**Title I Statuses:**
-- `title_1` - Title I eligible schools
-- `not_title_1` - Non-Title I schools
-- `equity_gap` - Difference between groups
+**Demographics (via `student_group` column):**
+- All Students
+- White (non-Hispanic) / Non-White
+- Economically Disadvantaged / Non-Economically Disadvantaged
+- Students with Disabilities (IEP) / Student without Disabilities (IEP)
+- English Learner / Non-English Learner
 
-**Demographics:**
-- `all_students`
-- `white` / `non_white`
-- `economically_disadvantaged` / `non_economically_disadvantaged`
-- `students_with_disabilities` / `student_without_disabilities`
-- `english_learner` / `non_english_learner`
+---
+
+## Teacher Turnover
+**Source**: `etl/teacher_turnover.py`
+
+School-level teacher turnover metrics showing the percentage and count of teachers who left each year.
+
+- `teacher_turnover_rate` - Percentage of teachers who left (Turnover Percent)
+- `teacher_turnover_count` - Number of teachers who left
+- `teacher_count` - Total teacher count (denominator for rate calculation)
+
+**Data Sources**: KYRC25_OVW_Teacher_Turnover.csv, KYRC24_OVW_Teacher_Turnover.csv, teacher_turnover_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Rate (0-100%), Count (non-negative integers)
+**Demographics**: School-level only (All Students)
+
+---
+
+## Teacher Certification
+**Source**: `etl/teacher_certification.py`
+
+Teacher certification status metrics showing emergency/provisional certification and National Board certification rates.
+
+- `emergency_provisional_teacher_rate` - Percentage of teachers on emergency/provisional certification
+- `emergency_provisional_teacher_count` - Number of teachers on emergency/provisional certification
+- `national_board_certified_rate` - Percentage of teachers with National Board certification
+- `national_board_certified_count` - Number of teachers with National Board certification
+
+**Data Sources**: KYRC25_OVW_Teacher_Certification_Data.csv, KYRC24_OVW_Teacher_Certification_Data.csv, teacher_certifications_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Rate (0-100%), Count (non-negative integers)
+**Demographics**: School-level only (All Students)
+
+---
+
+## Students Taught by Ineffective Teachers
+**Source**: `etl/students_taught_by_ineffective_teachers.py`
+
+Equity metrics showing the percentage of students taught by ineffective teachers, broken down by Title I status and demographics.
+
+- `students_taught_by_ineffective_teachers_rate_title_1` - Percentage of students taught by ineffective teachers in Title I schools
+- `students_taught_by_ineffective_teachers_rate_not_title_1` - Percentage of students taught by ineffective teachers in non-Title I schools
+- `students_taught_by_ineffective_teachers_rate_equity_gap` - Difference in rate between Title I and non-Title I schools
+
+**Demographics (via `student_group` column):**
+- All Students
+- White (non-Hispanic) / Non-White
+- Economically Disadvantaged / Non-Economically Disadvantaged
+- Students with Disabilities (IEP) / Student without Disabilities (IEP)
+- English Learner / Non-English Learner
+
+**Data Sources**: KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv, KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv, students_taught_by_ineffective_teachers_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Percentage (0-100%)
 
 ---
 
@@ -335,6 +387,47 @@ Per-pupil spending metrics broken down by funding source. All spending values ar
 **Data Sources**: KYRC25_FT_Spending_per_Student.csv, KYRC24_FT_Spending_per_Student.csv, spending_per_student_{year}.csv
 **Years Available**: 2020-2024
 **Unit**: US dollars per student (non-negative, typically $0-$200,000)
+**Demographics**: School-level only (All Students)
+
+---
+
+## Students Taught by Out-of-Field Teachers
+**Source**: `etl/students_taught_by_out_of_field_teachers.py`
+
+Equity metrics showing the percentage of students taught by out-of-field teachers (teaching outside their certification area), broken down by Title I status and demographics.
+
+- `students_taught_by_out_of_field_teachers_rate_title_1` - Percentage of students taught by out-of-field teachers in Title I schools
+- `students_taught_by_out_of_field_teachers_rate_not_title_1` - Percentage of students taught by out-of-field teachers in non-Title I schools
+- `students_taught_by_out_of_field_teachers_rate_equity_gap` - Difference in rate between Title I and non-Title I schools
+
+**Demographics (via `student_group` column):**
+- All Students
+- White (non-Hispanic) / Non-White
+- Economically Disadvantaged / Non-Economically Disadvantaged
+- Students with Disabilities (IEP) / Student without Disabilities (IEP)
+- English Learner / Non-English Learner
+
+**Data Sources**: KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv, KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv, students_taught_by_out_of_field_teachers_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Percentage (can be negative for equity gap)
+
+---
+
+## Teacher Working Conditions
+**Source**: `etl/teacher_working_conditions.py`
+
+Survey-based index scores measuring teacher perceptions of working conditions. Each school has scores for different impact measures.
+
+- `teacher_working_conditions_managing_student_behavior` - Index score for managing student behavior (0-100)
+- `teacher_working_conditions_school_climate` - Index score for school climate (0-100)
+- `teacher_working_conditions_school_leadership` - Index score for school leadership (0-100)
+- `teacher_working_conditions_teaching_environment` - Index score for teaching environment (0-100, historical data only)
+
+**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+
+**Data Sources**: KYRC25_OVW_Teacher_Working_Conditions.csv, KYRC24_OVW_Teacher_Working_Conditions.csv, teacher_working_conditions_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Index score (0-100)
 **Demographics**: School-level only (All Students)
 
 ---
