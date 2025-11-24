@@ -207,16 +207,43 @@ raw_directories:
     - "KYRC24_OVW_Average_Years_School_Experience.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Average_Years_School_Experience.csv"
+    - "average_years_school_experience_2023.csv"
+    - "average_years_school_experience_2022.csv"
+    - "average_years_school_experience_2021.csv"
+    - "average_years_school_experience_2020.csv"
 
   student_teacher_ratio:
     - "KYRC24_OVW_Student_to_Teacher_Ratio.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Student_to_Teacher_Ratio.csv"
+    - "student_teacher_ratio_2023.csv"
+    - "student_teacher_ratio_2022.csv"
+    - "student_teacher_ratio_2021.csv"
+    - "student_teacher_ratio_2020.csv"
 
   novice_teachers:
+    # Institutional novice teacher percentages
     - "KYRC24_OVW_Inexperienced_Teachers.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Inexperienced_Teachers.csv"
+    - "inexperienced_teachers_2023.csv"
+    - "inexperienced_teachers_2022.csv"
+    - "inexperienced_teachers_2021.csv"
+    - "inexperienced_teachers_2020.csv"
+    # Equity: students taught by inexperienced teachers
     - "KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
+    - "students_taught_by_inexperienced_teachers_2023.csv"
+    - "students_taught_by_inexperienced_teachers_2022.csv"
+    - "students_taught_by_inexperienced_teachers_2021.csv"
+    - "students_taught_by_inexperienced_teachers_2020.csv"
+
+  spending_per_student:
+    - "KYRC24_FT_Spending_per_Student.csv"
+    - url: "kyrc25"
+      file: "KYRC25_FT_Spending_per_Student.csv"
+    - "spending_per_student_2023.csv"
+    - "spending_per_student_2022.csv"
+    - "spending_per_student_2021.csv"
+    - "spending_per_student_2020.csv"

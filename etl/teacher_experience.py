@@ -33,7 +33,9 @@ class TeacherExperienceETL(BaseETL):
     def module_column_mappings(self) -> Dict[str, str]:
         return {
             'Educator Count': 'educator_count',
+            'EDUCATOR COUNT': 'educator_count',
             'Average Years of Experience': 'average_years_experience',
+            'AVERAGE YEARS OF EXPERIENCE': 'average_years_experience',
         }
     
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
@@ -77,7 +79,7 @@ class TeacherExperienceETL(BaseETL):
         if pd.isna(avg_years):
             return True
             
-        return super().should_skip_row(row)
+        return False  # Don't call super() - institutional data has no demographics
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

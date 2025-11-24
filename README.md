@@ -224,16 +224,17 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
 - **Kentucky Summative Assessment** - Performance levels and content index by subject
 - **Out-of-School Suspension** ⭐ **ENHANCED** - Discipline action counts by type and disability status
 - **CTE Participation** - Career and technical education participation rates
-- **Safe Schools Climate** - School climate survey results and index scores  
+- **Safe Schools Climate** - School climate survey results and index scores
 - **Safe Schools Discipline** - Detailed discipline resolution tracking
-- **Student Enrollment** ⭐ **NEW** - Student enrollment counts by grade level (PreK-12) with primary, middle, and secondary aggregations
+- **Student Enrollment** - Student enrollment counts by grade level (PreK-12) with primary, middle, and secondary aggregations
+- **Spending Per Student** - Per-pupil spending by funding source (federal, state/local, combined)
 - **Benchmark Assessment** - Interim assessment performance data
 - **ACT Scores** - College admission test performance
 - **Students Taught by Inexperienced Teachers** - Teacher quality metrics
 - **Student Retention** - Grade retention rates (grades 4-12)
 - **Dropout Rate** - Student dropout tracking
 - **Homeless Students** - Homeless student population metrics
-- **Migrant Students** - Migrant student population metrics  
+- **Migrant Students** - Migrant student population metrics
 - **Students with Disabilities** - IEP student population metrics
 
 ### Dashboard Features

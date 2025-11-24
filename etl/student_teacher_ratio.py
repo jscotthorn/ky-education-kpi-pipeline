@@ -66,6 +66,10 @@ class StudentTeacherRatioETL(BaseETL):
     def module_column_mappings(self) -> Dict[str, str]:
         return {
             'Student Teacher Ratio': 'ratio',
+            'STUDENT TEACHER RATIO': 'ratio',
+            'Student-Teacher Ratio': 'ratio',
+            'Ratio': 'ratio',
+            'STUDENT TO TEACHER RATIOSTUDENT TO TEACHER RATIO': 'ratio', # Historical file anomaly
         }
     
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
@@ -97,7 +101,7 @@ class StudentTeacherRatioETL(BaseETL):
         if pd.isna(ratio):
             return True
             
-        return super().should_skip_row(row)
+        return False  # Don't call super() - institutional data has no demographics
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

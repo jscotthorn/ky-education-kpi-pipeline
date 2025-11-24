@@ -38,13 +38,21 @@ class NoviceTeachersETL(BaseETL):
         return {
             # Institutional file columns
             'Teacher Count': 'teacher_count',
+            'TEACHER COUNT': 'teacher_count',
             'Total New Teachers With 1 3 Years Experience': 'new_teachers_1_to_3_years',
+            'TOTAL NEW TEACHERS WITH 1-3 YEARS EXPERIENCE': 'new_teachers_1_to_3_years',
             'Total New Teachers With Less Than 1 Year Experience': 'new_teachers_less_than_1_year',
+            'TOTAL NEW TEACHERS WITH LESS THAN 1 YEAR EXPERIENCE': 'new_teachers_less_than_1_year',
             'Percent Of Teachers With 1 3 Years Experience': 'percent_new_teachers_1_to_3_years',
+            'PERCENT OF TEACHERS WITH 1-3 YEARS EXPERIENCE': 'percent_new_teachers_1_to_3_years',
             'Percent Of Teachers With Less Than 1 Year Experience': 'percent_new_teachers_less_than_1_year',
+            'PERCENT OF TEACHERS WITH LESS THAN 1 YEAR EXPERIENCE': 'percent_new_teachers_less_than_1_year',
             
             # Equity file columns (Title I status is a separate field)
             'Title_I_Status': 'title_i_status',
+            'TITLE I STATUS': 'title_i_status',
+            
+            # Demographics - Standard (KYRC24/25)
             'All Students': 'all_students',
             'Non-White': 'non_white',
             'White': 'white',
@@ -54,6 +62,17 @@ class NoviceTeachersETL(BaseETL):
             'Student without Disabilities (IEP)': 'student_without_disabilities',
             'English Learner': 'english_learner',
             'Non-English Learner': 'non_english_learner',
+            
+            # Demographics - Historical (2020-2023)
+            '% STUDENTS TAUGHT BY INEXPERIENCED TCHERS': 'all_students',
+            '% NON-WHITE STUDENTS TAUGHT BY INEXPERIENCED TCHERS': 'non_white',
+            '% WHITE STUDENTS TAUGHT BY INEXPERIENCED TCHRS': 'white',
+            '% ECONOMICALLY DISADVANTAGED TAUGHT BY INEXPERIENCED TCHRS': 'economically_disadvantaged',
+            '% NON-ECONOMICALLY DISADVANTAGED TAUGHT BY INEXPERIENCED TCHRS': 'non_economically_disadvantaged',
+            '% STUDENTS WITH DISABILITIES TAUGHT BY INEXPERIENCED TCHRS': 'students_with_disabilities',
+            '% NON-STUDENTS WITH DISABILITIES TAUGHT BY INEXPERIENCED TCHRS': 'student_without_disabilities',
+            '% ENGLISH LEARNER STUDENTS TAUGHT BY INEXPERIENCED TCHRS': 'english_learner',
+            '% NON-ENGLISH LEARNER STUDENTS TAUGHT BY INEXPERIENCED TCHRS': 'non_english_learner',
         }
     
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
@@ -152,7 +171,7 @@ class NoviceTeachersETL(BaseETL):
         if not has_institutional and not has_equity:
             return True
             
-        return super().should_skip_row(row)
+        return False  # Don't call super() - may not have demographics in institutional file
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

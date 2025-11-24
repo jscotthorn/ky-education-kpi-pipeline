@@ -280,6 +280,64 @@ All above metrics are also available with `_by_demo` suffix for demographic grou
 **Unit**: Student count (non-negative integers)
 
 ---
+## Teacher Experience
+**Source**: `etl/teacher_experience.py`
+- `teacher_average_years_experience` - Average years of professional experience for teachers at the school
+
+## Student-Teacher Ratio
+**Source**: `etl/student_teacher_ratio.py`
+- `student_teacher_ratio` - Number of students per teacher (e.g., 15.0 means 15:1 ratio)
+
+## Novice Teachers
+**Source**: `etl/novice_teachers.py`
+
+### Institutional Metrics
+- `novice_teacher_rate_less_than_1_year` - Percentage of teachers with less than 1 year of experience
+- `novice_teacher_rate_1_to_3_years` - Percentage of teachers with 1-3 years of experience
+
+### Equity Metrics (Students Taught by Inexperienced Teachers)
+- `students_taught_by_inexperienced_teachers_rate_{title_i_status}_{demographic}` - Percentage of students in a specific demographic group taught by inexperienced teachers, broken down by Title I status.
+
+**Title I Statuses:**
+- `title_1` - Title I eligible schools
+- `not_title_1` - Non-Title I schools
+- `equity_gap` - Difference between groups
+
+**Demographics:**
+- `all_students`
+- `white` / `non_white`
+- `economically_disadvantaged` / `non_economically_disadvantaged`
+- `students_with_disabilities` / `student_without_disabilities`
+- `english_learner` / `non_english_learner`
+
+---
+
+## Spending Per Student
+**Source**: `etl/spending_per_student.py`
+
+Per-pupil spending metrics broken down by funding source. All spending values are in US dollars per student.
+
+**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+
+### Federal Funding Metrics
+- `personnel_spending_per_student_federal` - Federal spending on personnel (teachers, staff, etc.) per student
+- `non_personnel_spending_per_student_federal` - Federal spending on non-personnel (materials, services, etc.) per student
+- `total_spending_per_student_federal` - Total federal spending per student
+
+### State/Local Funding Metrics
+- `personnel_spending_per_student_state_local` - State and local spending on personnel per student
+- `non_personnel_spending_per_student_state_local` - State and local spending on non-personnel per student
+- `total_spending_per_student_state_local` - Total state and local spending per student
+
+### Combined Funding Metrics
+- `total_spending_per_student_all_funds` - Total spending per student from all funding sources (federal + state/local)
+
+**Data Sources**: KYRC25_FT_Spending_per_Student.csv, KYRC24_FT_Spending_per_Student.csv, spending_per_student_{year}.csv
+**Years Available**: 2020-2024
+**Unit**: US dollars per student (non-negative, typically $0-$200,000)
+**Demographics**: School-level only (All Students)
+
+---
 
 ## Naming Conventions
 
