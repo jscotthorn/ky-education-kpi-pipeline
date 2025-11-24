@@ -76,6 +76,7 @@ class KentuckySummativeAssessmentETL(BaseETL):
             'Distinguished': 'distinguished',
             'DISTINGUISHED': 'distinguished',
             'Proficient / Distinguished': 'proficient_distinguished',
+            'Proficient/Distinguished': 'proficient_distinguished',  # 2025 format (no spaces)
             'PROFICIENT/DISTINGUISHED': 'proficient_distinguished',
             'Content Index': 'content_index',
             'CONTENT INDEX': 'content_index',

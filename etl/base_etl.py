@@ -275,52 +275,65 @@ class BaseETL(ABC):
         
         return cleaned_id
     
-    def extract_year(self, row: pd.Series) -> str:
+    def extract_year(self, row: pd.Series, source_file: str = '') -> str:
         """
-        Extract year from school_year field.
-        
+        Extract year from school_year field or filename.
+
         Args:
             row: Data row
-            
+            source_file: Source filename (for fallback extraction)
+
         Returns:
             4-digit year string
         """
         year = row.get('school_year', '')
-        
+
         if len(str(year)) == 8:  # Format: YYYYYYYY (e.g., "20232024")
             year = str(year)[-4:]  # Take last 4 digits (ending year)
         elif len(str(year)) == 4:  # Already 4 digits
             year = str(year)
         else:
-            year = '2024'  # Default
-        
+            # Fallback: Extract year from filename (e.g., "file_2025.CSV" → "2025")
+            import re
+            filename_match = re.search(r'_(\d{4})\.', source_file)
+            if filename_match:
+                year = filename_match.group(1)
+            else:
+                year = '2024'  # Default
+
         return year
     
     def standardize_school_name(self, school_name: str) -> str:
         """
         Standardize school names to ensure consistent district naming across years.
-        
+
         KDE has changed their district naming convention over time:
         - 2023 and earlier: "---District Total---"
         - 2024 and later: "All Schools"
-        
-        This method normalizes both to "---District Total---" for consistency.
-        
+        - 2025: Blank/empty for district totals
+
+        This method normalizes all to "---District Total---" for consistency.
+
         Args:
             school_name: Original school name from source data
-            
+
         Returns:
             Standardized school name
         """
         if pd.isna(school_name):
-            return 'Unknown School'
-        
+            # 2025 files use blank School Name for district totals
+            return '---District Total---'
+
         school_name = str(school_name).strip()
-        
+
+        # Empty string also indicates district total (2025 format)
+        if school_name == '':
+            return '---District Total---'
+
         # Standardize district total naming variations
         if school_name == 'All Schools':
             return '---District Total---'
-        
+
         return school_name
     
     def normalize_grade_field(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -398,7 +411,7 @@ class BaseETL(ABC):
         """
         # Extract school identification
         school_id = self.extract_school_id(row)
-        year = self.extract_year(row)
+        year = self.extract_year(row, source_file)
         
         # Map demographic using DemographicMapper
         original_demographic = row.get('demographic', 'All Students')
@@ -509,12 +522,12 @@ class BaseETL(ABC):
             logger.info(f"No raw data directory for {self.source_name}; skipping.")
             return
         
-        # Find all CSV files
-        csv_files = list(source_dir.glob("*.csv"))
+        # Find all CSV files (case-insensitive for .csv and .CSV extensions)
+        csv_files = list(source_dir.glob("*.csv")) + list(source_dir.glob("*.CSV"))
         if not csv_files:
             logger.info(f"No CSV files found in {source_dir}; skipping.")
             return
-        
+
         logger.info(f"Found {len(csv_files)} files to process for {self.source_name} (streaming mode)")
         
         # Set up streaming output
@@ -740,12 +753,12 @@ class BaseETL(ABC):
             logger.info(f"No raw data directory for {self.source_name}; skipping.")
             return
         
-        # Find all CSV files
-        csv_files = list(source_dir.glob("*.csv"))
+        # Find all CSV files (case-insensitive for .csv and .CSV extensions)
+        csv_files = list(source_dir.glob("*.csv")) + list(source_dir.glob("*.CSV"))
         if not csv_files:
             logger.info(f"No CSV files found in {source_dir}; skipping.")
             return
-        
+
         logger.info(f"Found {len(csv_files)} files to process for {self.source_name}")
         
         # Set up streaming output

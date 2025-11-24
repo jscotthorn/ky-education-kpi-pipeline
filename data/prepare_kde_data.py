@@ -78,29 +78,47 @@ class KDEDownloader:
         """Download all files for a specific raw data directory"""
         if directory not in self.config["raw_directories"]:
             raise ValueError(f"Directory '{directory}' not found in configuration")
-        
+
         files = self.config["raw_directories"][directory]
         target_dir = self.raw_data_path / directory
         results = {}
-        
+
         logger.info(f"Downloading {len(files)} files for {directory}")
-        
-        for filename in files:
-            url = f"{self.config['base_url']}{filename}"
+
+        for file_entry in files:
+            # Handle both string filenames and dict entries with URL specification
+            if isinstance(file_entry, dict):
+                # Dict format: {url: "2025"|"kyrc25", file: "filename.csv"}
+                url_type = file_entry.get('url', 'default')
+                filename = file_entry['file']
+
+                if url_type == '2025':
+                    base_url = self.config.get('base_url_2025', self.config['base_url'])
+                elif url_type == 'kyrc25':
+                    base_url = self.config.get('base_url_kyrc25', self.config['base_url'])
+                else:
+                    base_url = self.config['base_url']
+
+                url = f"{base_url}{filename}"
+            else:
+                # String format: just the filename
+                filename = file_entry
+                url = f"{self.config['base_url']}{filename}"
+
             file_path = target_dir / filename
-            
+
             # Skip if file already exists
             if file_path.exists():
                 logger.info(f"Skipping {filename} (already exists)")
                 results[filename] = True
                 continue
-            
+
             success = self.download_file(url, file_path)
             results[filename] = success
-            
+
             # Rate limiting - small delay between requests
             time.sleep(0.5)
-        
+
         return results
     
     def download_all(self) -> Dict[str, Dict[str, bool]]:

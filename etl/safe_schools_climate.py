@@ -169,18 +169,22 @@ def clean_index_scores(df: pd.DataFrame) -> pd.DataFrame:
 
 class SafeSchoolsClimateETL(BaseETL):
     """ETL module for processing safe schools climate and safety data."""
-    
+
+    def __init__(self, source_name: str):
+        super().__init__(source_name)
+        self._question_metadata = None
+
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {
             # Standard KPI fields from survey files
             'District Name': 'district',
-            'DISTRICT NAME': 'district', 
+            'DISTRICT NAME': 'district',
             'School Name': 'school_name',
             'SCHOOL NAME': 'school_name',
             'County Number': 'county_number',
             'COUNTY NUMBER': 'county_number',
-            'County Name': 'county_name', 
+            'County Name': 'county_name',
             'COUNTY NAME': 'county_name',
             'District Number': 'district_number',
             'DISTRICT NUMBER': 'district_number',
@@ -202,6 +206,25 @@ class SafeSchoolsClimateETL(BaseETL):
             'DEMOGRAPHIC': 'demographic',
             'School Year': 'school_year',
             'SCHOOL YEAR': 'school_year',
+            # 2025 files use quoted column names
+            '"School Year"': 'school_year',
+            '"School Code"': 'school_code',
+            '"District Name"': 'district',
+            '"School Name"': 'school_name',
+            '"Level"': 'level',
+            '"Demographic"': 'demographic',
+            '"Climate Index"': 'climate_index',
+            '"Safety Index"': 'safety_index',
+            '"Question Number"': 'question_number',
+            '"Suppressed"': 'suppressed',
+            '"Strongly Disagree"': 'strongly_disagree',
+            '"Disagree"': 'disagree',
+            '"Agree"': 'agree',
+            '"Strongly Agree"': 'strongly_agree',
+            '"Agree and Strongly Agree"': 'agree_strongly_agree_pct',
+            '"Question Index"': 'question_index',
+            '"Question Type"': 'question_type',
+            '"Question"': 'question_text',
             # Precautionary measures columns
             'Are visitors to the building required to sign-in?': 'visitors_sign_in',
             'Visitors required to sign-in': 'visitors_sign_in',
@@ -348,10 +371,54 @@ class SafeSchoolsClimateETL(BaseETL):
         
         return kpi_df[kpi_columns + ['processing_date']]
     
+    def load_question_metadata(self, raw_dir: Path) -> pd.DataFrame:
+        """Load question metadata from the 2025 questions file."""
+        if self._question_metadata is not None:
+            return self._question_metadata
+
+        module_dir = raw_dir / self.source_name
+        questions_file = module_dir / 'Quality_of_School_Climate_and_Safety_Survey_Questions_2025.CSV'
+
+        if not questions_file.exists():
+            logger.info("No 2025 questions metadata file found")
+            return pd.DataFrame()
+
+        try:
+            # Try latin1 encoding first (2025 files have special characters)
+            try:
+                df = pd.read_csv(questions_file, encoding='latin1', dtype=str)
+            except Exception:
+                df = pd.read_csv(questions_file, encoding='utf-8-sig', dtype=str)
+
+            df = self.normalize_column_names(df)
+            logger.info(f"Successfully loaded questions metadata file with {len(df)} rows")
+            logger.info(f"Metadata columns: {list(df.columns)}")
+
+            # Create a mapping from (level, question_number) -> (question_type, question_text)
+            if 'level' in df.columns and 'question_number' in df.columns:
+                # Normalize level codes: ES, MS, HS
+                if 'level' in df.columns:
+                    df['level'] = df['level'].str.upper().str.strip()
+
+                self._question_metadata = df[['level', 'question_number', 'question_type', 'question_text']].copy()
+                logger.info(f"Loaded {len(self._question_metadata)} question metadata records")
+                logger.info(f"Question types found: {self._question_metadata['question_type'].value_counts().to_dict()}")
+            else:
+                logger.warning(f"Question metadata file missing required columns. Has: {list(df.columns)}")
+                self._question_metadata = pd.DataFrame()
+
+        except Exception as e:
+            logger.error(f"Error loading question metadata: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            self._question_metadata = pd.DataFrame()
+
+        return self._question_metadata
+
     def identify_file_type(self, file_path: Path) -> str:
         """Identify the type of file based on name and content."""
         filename = file_path.name.lower()
-        
+
         if 'index_scores' in filename:
             return 'index_scores'
         elif 'survey_results' in filename:
@@ -363,16 +430,25 @@ class SafeSchoolsClimateETL(BaseETL):
         elif 'quality_of_school_climate' in filename:
             if 'index' in filename:
                 return 'survey_index_scores'
+            elif 'questions' in filename:
+                return 'survey_questions_metadata'
+            elif 'elementary' in filename or 'middle' in filename or 'high' in filename:
+                return 'survey_responses'
             else:
                 return 'survey_responses'
         else:
             return 'unknown'
     
-    def process_file(self, file_path: Path) -> pd.DataFrame:
+    def process_file(self, file_path: Path, raw_dir: Path = None) -> pd.DataFrame:
         """Process a single file based on its type."""
         file_type = self.identify_file_type(file_path)
         logger.info(f"Processing {file_type} file: {file_path.name}")
-        
+
+        # Skip metadata files - they're only used for reference
+        if file_type == 'survey_questions_metadata':
+            logger.info(f"Skipping metadata file: {file_path.name}")
+            return pd.DataFrame()
+
         # Check for empty file
         if file_path.stat().st_size == 0:
             logger.warning(f"Empty file (0 bytes): {file_path.name}")
@@ -411,7 +487,11 @@ class SafeSchoolsClimateETL(BaseETL):
         
         # Apply column mappings
         df = self.normalize_column_names(df)
-        
+
+        # Standardize school names (empty/null → "---District Total---", "All Schools" → "---District Total---")
+        if 'school_name' in df.columns:
+            df['school_name'] = df['school_name'].apply(lambda x: self.standardize_school_name(x))
+
         # Extract year based on file type
         if 'school_year' in df.columns:
             df['year'] = df['school_year'].astype(str).str[-4:]
@@ -430,37 +510,73 @@ class SafeSchoolsClimateETL(BaseETL):
         # Apply demographic mapping
         if 'demographic' in df.columns and 'year' in df.columns:
             df['student_group'] = standardize_demographics(
-                df['demographic'], 
+                df['demographic'],
                 df['year'].iloc[0] if len(df) > 0 else '2024',
                 self.source_name
             )
         else:
             df['student_group'] = 'All Students'
-        
+
+        # For 2025 survey files without question_type, merge from metadata
+        if file_type == 'survey_responses' and 'question_type' not in df.columns and raw_dir:
+            logger.info(f"Survey file needs question_type - attempting metadata merge for {file_path.name}")
+            metadata = self.load_question_metadata(raw_dir)
+            logger.info(f"Metadata loaded: {len(metadata)} records, empty={metadata.empty}")
+
+            if not metadata.empty and 'level' in df.columns and 'question_number' in df.columns:
+                # Normalize level codes to match metadata (ES, MS, HS)
+                df['level'] = df['level'].str.upper().str.strip()
+                # Normalize question_number to ensure consistent format
+                df['question_number'] = df['question_number'].astype(str).str.zfill(2)
+                metadata['question_number'] = metadata['question_number'].astype(str).str.zfill(2)
+
+                logger.info(f"Before merge - Survey rows: {len(df)}, unique levels: {df['level'].unique()}, question_numbers: {df['question_number'].nunique()}")
+                logger.info(f"Metadata has levels: {metadata['level'].unique()}, question_numbers: {metadata['question_number'].nunique()}")
+
+                # Merge question_type and question_text from metadata
+                df_before = len(df)
+                df = df.merge(
+                    metadata[['level', 'question_number', 'question_type', 'question_text']],
+                    on=['level', 'question_number'],
+                    how='left'
+                )
+                logger.info(f"After merge - Survey rows: {len(df)} (before: {df_before})")
+                logger.info(f"question_type column added: {'question_type' in df.columns}")
+                if 'question_type' in df.columns:
+                    qt_values = df['question_type'].value_counts().to_dict()
+                    qt_nulls = df['question_type'].isna().sum()
+                    logger.info(f"question_type values: {qt_values}, nulls: {qt_nulls}")
+            else:
+                logger.warning(f"Cannot merge metadata - metadata empty: {metadata.empty}, has level: {'level' in df.columns}, has question_number: {'question_number' in df.columns}")
+
         # Process missing values
         df = self.standardize_missing_values(df)
-        
+
         # Add source file info
         df['source_file'] = file_path.name
-        
+
         return df
     
-    def process_files(self, files: List[Path]) -> pd.DataFrame:
+    def process_files(self, files: List[Path], raw_dir: Path = None) -> pd.DataFrame:
         """Override to handle different file types appropriately."""
         all_data = []
-        
+
+        # Load question metadata first if we have 2025 files
+        if raw_dir:
+            self.load_question_metadata(raw_dir)
+
         for file in files:
             logger.info(f"Processing file: {file}")
-            
+
             try:
                 # Use the unified process_file method
-                df = self.process_file(file)
-                
+                df = self.process_file(file, raw_dir=raw_dir)
+
                 # Convert to KPI format
                 kpi_df = self.convert_to_kpi_format(df, file.name)
                 if not kpi_df.empty:
                     all_data.append(kpi_df)
-                    
+
             except Exception as e:
                 logger.error(f"Error processing {file}: {e}")
                 continue
@@ -479,7 +595,7 @@ class SafeSchoolsClimateETL(BaseETL):
         raw_survey_data = []
         for file in files:
             try:
-                df = self.process_file(file)
+                df = self.process_file(file, raw_dir=raw_dir)
                 if not df.empty and 'question_type' in df.columns and 'question_index' in df.columns:
                     raw_survey_data.append(df)
             except Exception as e:
@@ -489,49 +605,128 @@ class SafeSchoolsClimateETL(BaseETL):
         if raw_survey_data:
             # Combine all raw survey data
             all_survey_df = pd.concat(raw_survey_data, ignore_index=True)
-            
+
+            # DEBUG: Check district values in survey data
+            if 'district' in all_survey_df.columns:
+                logger.info(f"Survey data has district column. Sample values: {all_survey_df['district'].value_counts().head(10).to_dict()}")
+                logger.info(f"Survey data district null count: {all_survey_df['district'].isna().sum()} out of {len(all_survey_df)}")
+            else:
+                logger.warning("Survey data MISSING district column!")
+
+            # CRITICAL FIX: Normalize year column for 2025 survey files
+            # The 2025 files have school_year="20242025" but we need year="2025"
+            if 'year' in all_survey_df.columns:
+                # Extract last 4 digits from year column (handles both "2025" and "20242025")
+                all_survey_df['year'] = all_survey_df['year'].astype(str).str[-4:]
+                logger.info(f"Normalized year values in survey data: {all_survey_df['year'].value_counts().to_dict()}")
+
             # Calculate aggregated scores
             calculated_scores_df = calculate_aggregate_index_scores(all_survey_df)
-            
+
             if not calculated_scores_df.empty:
+                # DEBUG: Check district values in calculated scores
+                if 'district' in calculated_scores_df.columns:
+                    logger.info(f"Calculated scores have district column. Sample values: {calculated_scores_df['district'].value_counts().head(10).to_dict()}")
+                    logger.info(f"Calculated scores district null count: {calculated_scores_df['district'].isna().sum()} out of {len(calculated_scores_df)}")
+                    # Check for 2025 data specifically
+                    if 'year' in calculated_scores_df.columns:
+                        logger.info(f"Calculated scores year values: {calculated_scores_df['year'].value_counts().to_dict()}")
+                        year_2025_df = calculated_scores_df[calculated_scores_df['year'] == '2025']
+                        if not year_2025_df.empty:
+                            logger.info(f"Year 2025 calculated scores: {len(year_2025_df)} records")
+                            logger.info(f"Year 2025 Fayette County calculated scores: {len(year_2025_df[year_2025_df['district'] == 'Fayette County'])} records")
+                        else:
+                            logger.warning("No year 2025 calculated scores found!")
+                    else:
+                        logger.warning("Calculated scores MISSING year column!")
+                else:
+                    logger.warning("Calculated scores MISSING district column!")
+
                 # Format calculated scores as KPI data
                 calculated_kpi_df = self.format_calculated_scores_as_kpi(calculated_scores_df)
                 if not calculated_kpi_df.empty:
                     logger.info(f"Adding {len(calculated_kpi_df)} calculated index score records")
+
+                    # DEBUG: Check district values in formatted KPI data
+                    if 'district' in calculated_kpi_df.columns:
+                        logger.info(f"Formatted KPI data district sample: {calculated_kpi_df['district'].value_counts().head(5).to_dict()}")
+                        if 'year' in calculated_kpi_df.columns:
+                            year_2025_kpi = calculated_kpi_df[calculated_kpi_df['year'] == '2025']
+                            if not year_2025_kpi.empty:
+                                logger.info(f"Year 2025 formatted KPI records: {len(year_2025_kpi)}")
+                                logger.info(f"Year 2025 Fayette County formatted KPI records: {len(year_2025_kpi[year_2025_kpi['district'] == 'Fayette County'])}")
+
                     combined_df = pd.concat([combined_df, calculated_kpi_df], ignore_index=True)
-        
+
+        # DEBUG: Check combined_df before deduplication
+        logger.info(f"Combined dataframe before deduplication: {len(combined_df)} records")
+        if 'year' in combined_df.columns:
+            year_2025_before = combined_df[combined_df['year'] == '2025']
+            logger.info(f"Year 2025 records before deduplication: {len(year_2025_before)}")
+            if 'district' in combined_df.columns:
+                logger.info(f"Year 2025 Fayette County records before dedup: {len(year_2025_before[year_2025_before['district'] == 'Fayette County'])}")
+                logger.info(f"Year 2025 'Unknown District' records before dedup: {len(year_2025_before[year_2025_before['district'] == 'Unknown District'])}")
+                # Show source file breakdown for 2025
+                if 'source_file' in combined_df.columns:
+                    logger.info(f"Year 2025 records by source file before dedup:\n{year_2025_before.groupby('source_file').size().to_dict()}")
+
         # Remove duplicates keeping the most recent
         combined_df = combined_df.sort_values(['year', 'source_file'], ascending=[False, True])
         combined_df = combined_df.drop_duplicates(
             subset=['district', 'school_id', 'school_name', 'year', 'student_group', 'metric'],
             keep='first'
         )
-        
+
+        # DEBUG: Check combined_df after deduplication
+        logger.info(f"Combined dataframe after deduplication: {len(combined_df)} records")
+        if 'year' in combined_df.columns:
+            year_2025_after = combined_df[combined_df['year'] == '2025']
+            logger.info(f"Year 2025 records after deduplication: {len(year_2025_after)}")
+            if 'district' in combined_df.columns:
+                logger.info(f"Year 2025 Fayette County records after dedup: {len(year_2025_after[year_2025_after['district'] == 'Fayette County'])}")
+                logger.info(f"Year 2025 'Unknown District' records after dedup: {len(year_2025_after[year_2025_after['district'] == 'Unknown District'])}")
+                # Show source file breakdown for 2025
+                if 'source_file' in combined_df.columns:
+                    logger.info(f"Year 2025 records by source file after dedup:\n{year_2025_after.groupby('source_file').size().to_dict()}")
+
         return combined_df
     
     def get_files_to_process(self, raw_dir: Path) -> List[Path]:
         """Get all files to process based on file patterns."""
         module_dir = raw_dir / self.source_name
         files_to_process = []
-        
+
         # Define file patterns to process
         patterns = [
             'KYRC24_ACCT_Index_Scores.csv',
             'KYRC24_ACCT_Survey_Results.csv',  # 2024 survey questions - now with chunked processing
             'KYRC24_SAFE_Precautionary_Measures.csv',
             'accountability_profile_2022.csv',  # Climate data only available 2022+
-            'accountability_profile_2023.csv', 
+            'accountability_profile_2023.csv',
             'precautionary_measures_*.csv',
-            'quality_of_school_climate_and_safety_survey_*.csv'  # Historical survey data
+            'quality_of_school_climate_and_safety_survey_*.csv',  # Historical survey data (lowercase)
+            'quality_of_school_climate_and_safety_survey_*.CSV',  # Historical survey data (uppercase)
+            # 2025 files (explicit patterns to ensure they're matched)
+            'Quality_of_School_Climate_and_Safety_Survey_Index_Scores_2025.CSV',
+            'Quality_of_School_Climate_and_Safety_Survey_Elementary_School_2025.CSV',
+            'Quality_of_School_Climate_and_Safety_Survey_Middle_School_2025.CSV',
+            'Quality_of_School_Climate_and_Safety_Survey_High_School_2025.CSV',
+            'Quality_of_School_Climate_and_Safety_Survey_Questions_2025.CSV',  # Metadata file
         ]
-        
+
         # Find all matching files
         for pattern in patterns:
-            for file_path in module_dir.glob(pattern):
-                if file_path.is_file():
-                    files_to_process.append(file_path)
-        
+            matched_files = list(module_dir.glob(pattern))
+            if matched_files:
+                logger.info(f"Pattern '{pattern}' matched {len(matched_files)} files: {[f.name for f in matched_files]}")
+                for file_path in matched_files:
+                    if file_path.is_file():
+                        files_to_process.append(file_path)
+            else:
+                logger.debug(f"Pattern '{pattern}' matched no files")
+
         logger.info(f"Found {len(files_to_process)} files to process for safe schools climate")
+        logger.info(f"Files to process: {[f.name for f in sorted(files_to_process)]}")
         return sorted(files_to_process)
 
 
@@ -552,7 +747,7 @@ def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
         return
     
     # Process files using the SafeSchoolsClimateETL logic
-    result_df = etl.process_files(csv_files)
+    result_df = etl.process_files(csv_files, raw_dir=raw_dir)
     
     if not result_df.empty:
         # Save results

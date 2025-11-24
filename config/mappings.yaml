@@ -70,6 +70,60 @@ sources:
     derive:
       processing_date: "2025-07-25"
       data_quality_flag: "reviewed"
+
+  teacher_experience:
+    rename: {}
+      # Normalization handled automatically in ETL module
+    dtype:
+      county_number: "str"
+      district_number: "str"
+      school_number: "str"
+      school_year: "str"
+      educator_count: "Int64"
+      average_years_of_experience: "float64"
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  student_teacher_ratio:
+    rename: {}
+      # Normalization handled automatically in ETL module
+    dtype:
+      county_number: "str"
+      district_number: "str"
+      school_number: "str"
+      school_year: "str"
+      ratio: "str"  # String because it's in "15:01" format, parsed by ETL
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  novice_teachers:
+    rename: {}
+      # Normalization handled automatically in ETL module
+    dtype:
+      county_number: "str"
+      district_number: "str"
+      school_number: "str"
+      school_year: "str"
+      teacher_count: "Int64"
+      total_new_teachers_with_1_3_years_experience: "Int64"
+      total_new_teachers_with_less_than_1_year_experience: "Int64"
+      percent_new_teachers_with_1_3_years_experience: "float64"
+      percent_new_teachers_with_less_than_1_year_experience: "float64"
+      title_i_status: "str"
+      all_students: "float64"
+      non_white: "float64"
+      white: "float64"
+      economically_disadvantaged: "float64"
+      non_economically_disadvantaged: "float64"
+      students_with_disabilities_iep: "float64"
+      student_without_disabilities_iep: "float64"
+      english_learner: "float64"
+      non_english_learner: "float64"
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
       
 # Example configuration for field mappings and transformations
 # Add new sources here as they are onboarded

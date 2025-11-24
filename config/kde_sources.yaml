@@ -2,6 +2,10 @@
 # Maps raw data directories to their corresponding KDE Historical Dataset files
 
 base_url: "https://www.education.ky.gov/Open-House/data/HistoricalDatasets/"
+# 2024-2025 school year files are in a different location
+base_url_2025: "https://www.education.ky.gov/Open-House/data/OAA%20Temporary%20Datasets/"
+# Complete KYRC25 dataset from Azure Blob Storage (comprehensive source)
+base_url_kyrc25: "https://kdeschoolreportcard.blob.core.windows.net/datasetsdev/"
 
 headers:
   Referer: "https://www.education.ky.gov/Open-House/data/Pages/Historical-SRC-Datasets.aspx"
@@ -14,6 +18,8 @@ headers:
 raw_directories:
   chronic_absenteeism:
     - "KYRC24_OVW_Chronic_Absenteeism.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Chronic_Absenteeism.csv"
     - "chronic_absenteeism_2023.csv"
 
   cte_participation:
@@ -23,6 +29,8 @@ raw_directories:
 
   english_learner_progress:
     - "KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv"
+    - url: "2025"
+      file: "English_Language_Proficiency_2025.CSV"
     - "english_language_proficiency_2023.csv"
     - "english_language_proficiency_2022.csv"
     - "english_learner_proficiency_2021.csv"
@@ -31,6 +39,8 @@ raw_directories:
   graduation_rates:
     - "KYRC24_ACCT_4_Year_High_School_Graduation.csv"
     - "KYRC24_ACCT_5_Year_High_School_Graduation.csv"
+    - url: "2025"
+      file: "Graduation_Rate_2025.CSV"
     - "graduation_rate_2023.csv"
     - "graduation_rate_2022.csv"
     - "graduation_rate_2021.csv"
@@ -39,6 +49,8 @@ raw_directories:
   kentucky_summative_assessment:
     - "KYRC24_ACCT_Kentucky_Summative_Assessment.csv"
     - "KYRC24_ASMT_Kentucky_Summative_Assessment.csv"
+    - url: "2025"
+      file: "Assessment_Performance_by_Grade_2025.CSV"
     - "accountable_assessment_performance_2023.csv"
     - "accountable_assessment_performance_2022.csv"
     - "asmt_performance_by_level_2021.csv"
@@ -48,6 +60,8 @@ raw_directories:
 
   kindergarten_readiness:
     - "KYRC24_ASMT_Kindergarten_Screen_Composite.csv"
+    - url: "2025"
+      file: "Kindergarten_Screen_2025.CSV"
     - "kindergarten_screen_2023.csv"
     - "kindergarten_screen_2022.csv"
     - "kindergarten_screen_2021.csv"
@@ -62,12 +76,16 @@ raw_directories:
 
   postsecondary_enrollment:
     - "KYRC24_ADLF_Transition_to_In_State_Postsecondary_Education.csv"
+    - url: "kyrc25"
+      file: "KYRC25_ADLF_Transition_to_In_State_Postsecondary_Education.csv"
     - "transition_in_state_postsecondary_education_2023.csv"
     - "transition_in_state_postsecondary_education_2022.csv"
     - "transition_in_state_postsecondary_education_2021.csv"
 
   postsecondary_readiness:
     - "KYRC24_ACCT_Postsecondary_Readiness.csv"
+    - url: "2025"
+      file: "Postsecondary_Readiness_2025.CSV"
     - "postsecondary_readiness_2023.csv"
     - "postsecondary_readiness_2022.csv"
 
@@ -172,6 +190,10 @@ raw_directories:
 
   student_enrollment:
     - "KYRC24_OVW_Student_Enrollment.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Student_Enrollment.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Secondary_Enrollment.csv"
     - "primary_enrollment_2023.csv"
     - "secondary_enrollment_2023.csv"
     - "primary_enrollment_2022.csv"
@@ -180,3 +202,21 @@ raw_directories:
     - "secondary_enrollment_2021.csv"
     - "primary_enrollment_2020.csv"
     - "secondary_enrollment_2020.csv"
+
+  teacher_experience:
+    - "KYRC24_OVW_Average_Years_School_Experience.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Average_Years_School_Experience.csv"
+
+  student_teacher_ratio:
+    - "KYRC24_OVW_Student_to_Teacher_Ratio.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Student_to_Teacher_Ratio.csv"
+
+  novice_teachers:
+    - "KYRC24_OVW_Inexperienced_Teachers.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Inexperienced_Teachers.csv"
+    - "KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Students_Taught_by_Inexperienced_Teachers.csv"

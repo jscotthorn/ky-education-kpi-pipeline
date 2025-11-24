@@ -71,18 +71,33 @@ class KindergartenReadinessETL(BaseETL):
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {
+            # Readiness metrics (percentage format)
             "TOTAL PERCENT READY": "total_percent_ready",
             "Total Percent Ready": "total_percent_ready",
+
+            # Readiness metrics (count format - older files)
             "Ready With Interventions": "ready_with_interventions_count",
             "Ready": "ready_count",
             "Ready With Enrichments": "ready_with_enrichments_count",
             "Total Ready": "total_ready_count",
+
+            # 2025 file uses "Percent" prefix for these
+            "Percent Ready with Interventions": "ready_with_interventions_percent",
+            "Percent Ready": "ready_percent",
+            "Percent Ready With Enrichments": "ready_with_enrichments_percent",
+
+            # Test counts
             "NUMBER TESTED": "number_tested",
             "Number Tested": "number_tested",
+
+            # Suppression
             "Suppressed": "suppressed",
             "SUPPRESSED": "suppressed",
+
+            # Prior setting (structure changed in 2025)
             "Prior Setting": "prior_setting",
             "PRIOR SETTING": "prior_setting",
+            "PRIOR_SETTING": "prior_setting",  # 2025 uses uppercase with underscore
         }
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
@@ -146,10 +161,16 @@ class KindergartenReadinessETL(BaseETL):
                     ) * 100
             return metrics
 
-        # Percentage formats
+        # Percentage formats (check 2025 format first, then fallback to older formats)
         rate = row.get("total_percent_ready")
         if pd.isna(rate):
             rate = row.get("total_ready_count")  # some 2024 files label rate this way
+
+        # 2025 file has additional percentage columns we can extract
+        rwi_percent = row.get("ready_with_interventions_percent")
+        r_percent = row.get("ready_percent")
+        rwe_percent = row.get("ready_with_enrichments_percent")
+
         total = row.get("number_tested")
         if pd.notna(total):
             total = float(total)
@@ -174,6 +195,14 @@ class KindergartenReadinessETL(BaseETL):
             metrics[f"kindergarten_{prior_slug}_count"] = round(
                 (float(rate) / 100) * total
             )
+
+        # 2025 file breakdown percentages (optional - extract if available)
+        if is_prior_all and pd.notna(rwi_percent):
+            metrics["kindergarten_ready_with_interventions_rate"] = float(rwi_percent)
+        if is_prior_all and pd.notna(r_percent):
+            metrics["kindergarten_ready_rate"] = float(r_percent)
+        if is_prior_all and pd.notna(rwe_percent):
+            metrics["kindergarten_ready_with_enrichments_rate"] = float(rwe_percent)
 
         return metrics
 
