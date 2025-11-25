@@ -296,3 +296,70 @@ raw_directories:
     - "teacher_working_conditions_2023.csv"
     - "teacher_working_conditions_2022.csv"
     - "teacher_working_conditions_2021.csv"
+
+  # School Programs and Offerings
+  advanced_coursework:
+    - "KYRC24_EDOP_Advanced_Courses_Offered.csv"
+    - "KYRC24_EDOP_Advanced_Courses_Participation_and_Performance.csv"
+    - "KYRC24_OVW_Advanced_Coursework.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_Advanced_Courses_Offered.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_Advanced_Courses_Participation_and_Performance.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Advanced_Coursework.csv"
+    - "advanced_courses_offered_2023.csv"
+    - "advanced_courses_participation_and_performance_2023.csv"
+    - "advanced_courses_offered_2022.csv"
+    - "advanced_courses_participation_and_performance_2022.csv"
+    - "advanced_courses_offered_2021.csv"
+    - "advanced_courses_participation_and_performance_2021.csv"
+
+  dual_credit:
+    # Dual credit is only available in KYRC24/KYRC25 formats
+    - "KYRC24_EDOP_Dual_Credit_Courses_Offered.csv"
+    - "KYRC24_EDOP_Dual_Credit_Participation_and_Performance.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_Dual_Credit_Courses_Offered.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_Dual_Credit_Participation_and_Performance.csv"
+
+  cte_pathways:
+    - "KYRC24_CTE_Career_Pathways.csv"
+    - url: "kyrc25"
+      file: "KYRC25_CTE_Career_Pathways.csv"
+    - "career_pathways_2023.csv"
+    - "career_pathways_2021.csv"
+
+  career_readiness_indicators:
+    - "KYRC24_CTE_Career_Readiness_Indicators.csv"
+    - url: "kyrc25"
+      file: "KYRC25_CTE_Career_Readiness_Indicators.csv"
+    - "career_readiness_indicators_2023.csv"
+
+  school_courses:
+    - "KYRC24_EDOP_School_Courses_Summary.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_School_Courses_Summary.csv"
+    - "school_courses_summary_2023.csv"
+    - "school_courses_summary_2021.csv"
+
+  gifted_talented:
+    - "KYRC24_EDOP_Gifted_Participation_by_Category.csv"
+    - "KYRC24_EDOP_Gifted_Participation_by_Grade_Level.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_Gifted_Participation_by_Grade_Level.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_Gifted_Participation_by_Category.csv"
+    - "gifted_and_talented_2023.csv"
+    - "gifted_and_talented_2022.csv"
+    - "gifted_and_talented_2021.csv"
+
+  # Financial Summary - District-level financial and staffing metrics
+  # KPIs: student membership, fund balance, fund balance %, staff FTE counts
+  financial_summary:
+    - "KYRC24_FT_Financial_Summary.csv"
+    - "financial_summary_2023.csv"
+    - "financial_summary_2022.csv"
+    - "financial_summary_2021.csv"
+    - "financial_summary_2020.csv"

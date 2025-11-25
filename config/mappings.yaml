@@ -142,5 +142,41 @@ sources:
       processing_date: "2025-11-24"
       data_quality_flag: "reviewed"
 
+  financial_summary:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  # School Programs and Offerings (Added 2025-11-24)
+  cte_pathways:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  gifted_talented:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  dual_credit:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  advanced_coursework:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  school_courses:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  career_readiness_indicators:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
 # Example configuration for field mappings and transformations
 # Add new sources here as they are onboarded

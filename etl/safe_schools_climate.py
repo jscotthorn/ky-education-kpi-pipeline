@@ -354,22 +354,24 @@ class SafeSchoolsClimateETL(BaseETL):
         if 'school_id' not in kpi_df.columns and 'school_code' in kpi_df.columns:
             kpi_df['school_id'] = kpi_df['school_code']
         
-        # Ensure required KPI columns exist
+        # Ensure required KPI columns exist (all 19 standard columns)
         kpi_columns = [
             'year', 'metric', 'district', 'school_name', 'student_group', 'value', 'suppressed',
             'county_number', 'county_name', 'district_number', 'school_id', 'school_code',
-            'state_school_id', 'nces_id', 'co_op', 'co_op_code', 'school_type', 'source_file'
+            'state_school_id', 'nces_id', 'co_op', 'co_op_code', 'school_type', 'source_file',
+            'last_updated'
         ]
         
         for col in kpi_columns:
             if col not in kpi_df.columns:
-                kpi_df[col] = pd.NA
+                if col == 'last_updated':
+                    # Add timestamp for last_updated column
+                    from datetime import datetime
+                    kpi_df[col] = datetime.now().isoformat()
+                else:
+                    kpi_df[col] = pd.NA
         
-        # Add processing timestamp
-        from datetime import datetime
-        kpi_df['processing_date'] = datetime.now().isoformat()
-        
-        return kpi_df[kpi_columns + ['processing_date']]
+        return kpi_df[kpi_columns]
     
     def load_question_metadata(self, raw_dir: Path) -> pd.DataFrame:
         """Load question metadata from the 2025 questions file."""
