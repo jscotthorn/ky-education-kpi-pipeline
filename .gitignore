@@ -19,6 +19,10 @@ settings.local.json
 # Package metadata (auto-generated)
 *.egg-info/
 
+# Analysis outputs
+analysis/bayesian_eda_outputs/**
+analysis/outputs/**
+
 # Misc
 .DS_Store
 .ipynb_checkpoints
