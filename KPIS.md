@@ -432,6 +432,181 @@ Survey-based index scores measuring teacher perceptions of working conditions. E
 
 ---
 
+## Financial Summary
+**Source**: `etl/financial_summary.py`
+
+District-level financial and staffing metrics from KDE Financial Summary reports. Provides end-of-year student membership, fund balance data, and staff FTE counts.
+
+**Note**: This dataset contains district-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns or school-level data.
+
+### Student Membership
+- `eoy_student_membership` - End-of-year student membership count for the district
+
+### Fund Balance
+- `fund_balance` - District fund balance in dollars
+- `fund_balance_pct` - Fund balance as percentage of expenditures
+
+### Staff FTE Counts
+- `certified_staff_fte` - Total certified staff FTE (teachers + other certified personnel)
+- `certified_staff_teachers_fte` - Certified staff FTE for teachers only
+- `certified_staff_non_teachers_fte` - Certified staff FTE for non-teachers (administrators, counselors, etc.) - *derived metric*
+- `classified_staff_fte` - Classified (non-certified) staff FTE
+- `total_staff_fte` - Total staff FTE (certified + classified) - *derived metric*
+
+**Data Sources**: KYRC24_FT_Financial_Summary.csv, financial_summary_{year}.csv
+**Years Available**: 2020-2024
+**Unit**: Counts (FTE or student headcount), dollars (fund balance), percentage (fund balance %)
+**Demographics**: District-level only (All Students)
+
+---
+
+## Advanced Coursework
+**Source**: `etl/advanced_coursework.py`
+
+Participation and performance metrics for advanced courses including AP, IB, and Cambridge programs. Note: Dual credit data is handled in a separate pipeline.
+
+### By Course Type (AP, IB, Cambridge)
+- `{prefix}_course_enrollment` - Number of students enrolled in courses
+- `{prefix}_completion_count` - Number of students completing courses
+- `{prefix}_tested_count` - Number of students tested
+- `{prefix}_qualifying_score_count` - Number of students earning qualifying scores
+- `{prefix}_qualifying_score_rate` - Percentage of tested students with qualifying scores
+- `{prefix}_participation_rate` - Overall participation rate (from overview files)
+- `{prefix}_participation_rate_female` - Participation rate for female students
+- `{prefix}_participation_rate_male` - Participation rate for male students
+- `num_{prefix}_courses_offered` - Count of courses offered (from offered files)
+
+**Prefixes**: `ap`, `ib`, `cambridge`, `advanced` (for unspecified course types)
+
+**Demographics (via `student_group` column):**
+- All Students
+- Female / Male
+- Race/ethnicity groups (African American, Hispanic or Latino, etc.)
+- Economically Disadvantaged
+- Students with Disabilities (IEP)
+- English Learner
+
+**Data Sources**: KYRC25_EDOP_Advanced_Courses_Participation_and_Performance.csv, KYRC24_EDOP_Advanced_Courses_Participation_and_Performance.csv, KYRC25_OVW_Advanced_Coursework.csv, advanced_courses_participation_and_performance_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Count (non-negative integers), Rate (0-100%)
+
+---
+
+## Dual Credit
+**Source**: `etl/dual_credit.py`
+
+Participation and performance metrics specifically for dual credit courses.
+
+- `dual_credit_enrollment` - Number of students enrolled in dual credit courses
+- `dual_credit_completion_count` - Number of students completing dual credit courses
+- `dual_credit_qualifying_score_count` - Number of students earning qualifying scores
+- `dual_credit_completion_rate` - Percentage of enrolled students completing courses
+- `dual_credit_qualifying_score_rate` - Percentage of completers with qualifying scores
+- `has_dual_credit_program` - Boolean indicator (1=yes, 0=no) if school has dual credit program
+
+**Demographics (via `student_group` column):**
+- All Students
+- Female / Male
+- Race/ethnicity groups (African American, Hispanic or Latino, etc.)
+- Economically Disadvantaged
+- Students with Disabilities (IEP)
+- English Learner
+
+**Data Sources**: KYRC25_EDOP_Dual_Credit_Participation_and_Performance.csv, KYRC24_EDOP_Dual_Credit_Participation_and_Performance.csv, KYRC25_EDOP_Dual_Credit_Courses_Offered.csv, KYRC24_EDOP_Dual_Credit_Courses_Offered.csv
+**Years Available**: 2024-2025
+**Unit**: Count (non-negative integers), Rate (0-100%), Boolean (0/1)
+
+---
+
+## Gifted and Talented
+**Source**: `etl/gifted_talented.py`
+
+Participation counts for gifted and talented programs by grade level.
+
+### Grade Level Participation
+- `gifted_participation_count_all_grades` - Total students in gifted programs
+- `gifted_participation_count_preschool` - Students in preschool
+- `gifted_participation_count_kindergarten` - Students in kindergarten
+- `gifted_participation_count_grade_1` through `gifted_participation_count_grade_12` - Students by grade level
+- `gifted_participation_count_grade_14` - Students in post-secondary transition
+
+**Demographics (via `student_group` column):**
+- All Students
+- Female / Male
+- Race/ethnicity groups (African American, Hispanic or Latino, etc.)
+- Economically Disadvantaged
+- Students with Disabilities (IEP)
+- English Learner
+
+**Data Sources**: KYRC25_EDOP_Gifted_Participation_by_Grade_Level.csv, KYRC24_EDOP_Gifted_Participation_by_Grade_Level.csv, gifted_and_talented_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Count (non-negative integers)
+
+---
+
+## CTE Pathways
+**Source**: `etl/cte_pathways.py`
+
+Career and Technical Education (CTE) pathway availability and completion metrics by program area.
+
+### Pathway Metrics
+- `num_cte_pathways` - Number of CTE pathways available at the school
+- `cte_pathway_enrollment` - Total active enrollment in CTE pathways
+- `cte_concentrator_count` - Number of CTE concentrator students
+- `cte_pathway_completer_count` - Number of students completing CTE pathways
+- `cte_pathway_completion_rate` - Percentage of concentrators completing pathways (Completers / Concentrators * 100)
+
+**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+
+**Data Sources**: KYRC25_CTE_Career_Pathways.csv, KYRC24_CTE_Career_Pathways.csv, career_pathways_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Count (non-negative integers), Rate (0-100%)
+**Demographics**: School-level only (All Students)
+
+---
+
+## School Courses
+**Source**: `etl/school_courses.py`
+
+General course offerings including middle school Algebra 1 access.
+
+### Course Metrics
+- `algebra_1_grade_8_count` - Number of 8th grade students enrolled in Algebra 1
+- `has_algebra_1_access` - Boolean indicator (1/0) for whether 8th graders have access to Algebra 1
+- `courses_offered_count` - Count of unique courses offered (aggregated metric)
+
+**Note**: This dataset contains course-level data without demographic breakdowns. All records have `student_group='All Students'`.
+
+**Data Sources**: KYRC25_EDOP_School_Courses_Summary.csv, school_courses_summary_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Count (non-negative integers), Boolean (0 or 1)
+**Demographics**: School-level only (All Students)
+
+---
+
+## Career Readiness Indicators
+**Source**: `etl/career_readiness_indicators.py`
+
+Career readiness metrics for CTE programs tracking various readiness indicators.
+
+### Readiness Indicators
+- `career_readiness_industry_certification_count` - Students earning industry certifications
+- `career_readiness_apprenticeship_count` - Students participating in apprenticeships
+- `career_readiness_cooperative_education_count` - Students in cooperative education
+- `career_readiness_internship_count` - Students participating in internships
+- `career_readiness_advanced_placement_count` - Students in advanced placement (CTE context)
+- `career_readiness_dual_credit_cte_count` - Students earning dual credit through CTE
+- `career_readiness_transition_readiness_count` - Students meeting transition readiness criteria
+
+**Note**: This dataset contains school/program-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+
+**Data Sources**: KYRC24_CTE_Career_Readiness_Indicators.csv, career_readiness_indicators_{year}.csv
+**Years Available**: 2023-2024
+**Unit**: Count (non-negative integers)
+**Demographics**: School-level only (All Students)
+
+---
+
 ## Naming Conventions
 
 All KPIs follow these standard naming patterns:
