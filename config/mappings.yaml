@@ -71,6 +71,28 @@ sources:
       processing_date: "2025-07-25"
       data_quality_flag: "reviewed"
 
+  secondary_enrollment:
+    # Secondary enrollment (grades 6-12) - separate from student_enrollment
+    rename: {}
+    dtype:
+      county_number: "str"
+      district_number: "str"
+      school_number: "str"
+      school_year: "str"
+      all_grades: "Int64"
+      total_student_count: "Int64"
+      grade_6: "Int64"
+      grade_7: "Int64"
+      grade_8: "Int64"
+      grade_9: "Int64"
+      grade_10: "Int64"
+      grade_11: "Int64"
+      grade_12: "Int64"
+      grade_14: "Int64"
+    derive:
+      processing_date: "2025-11-25"
+      data_quality_flag: "reviewed"
+
   teacher_experience:
     rename: {}
       # Normalization handled automatically in ETL module
@@ -174,6 +196,21 @@ sources:
       data_quality_flag: "reviewed"
 
   career_readiness_indicators:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  students_taught_by_out_of_field_teachers:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  teacher_working_conditions:
+    derive:
+      processing_date: "2025-11-24"
+      data_quality_flag: "reviewed"
+
+  district_school_list:
     derive:
       processing_date: "2025-11-24"
       data_quality_flag: "reviewed"

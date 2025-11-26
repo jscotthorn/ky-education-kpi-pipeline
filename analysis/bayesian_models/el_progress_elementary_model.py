@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Bayesian Hierarchical Model for Graduation Rates
+Bayesian Hierarchical Model for EL Progress - Elementary Schools
 
-Subclass of BaseHierarchicalModel for 4-year graduation rate analysis.
-Kentucky's average graduation rate is ~93%.
+Subclass of BaseHierarchicalModel for English Learner progress analysis.
+EL progress score 140 indicates students achieving English proficiency.
 
 Usage:
-    python graduation_rate_model.py                    # Default (Finnish horseshoe)
-    python graduation_rate_model.py --horseshoe       # Classic horseshoe
-    python graduation_rate_model.py --normal          # Normal priors (no shrinkage)
+    python el_progress_elementary_model.py                    # Default (Finnish horseshoe)
+    python el_progress_elementary_model.py --horseshoe       # Classic horseshoe
+    python el_progress_elementary_model.py --normal          # Normal priors (no shrinkage)
 """
 
 from typing import Dict, List, Tuple
@@ -16,53 +16,44 @@ from typing import Dict, List, Tuple
 from base_hierarchical_model import BaseHierarchicalModel
 
 
-class GraduationRateModel(BaseHierarchicalModel):
+class ELProgressElementaryModel(BaseHierarchicalModel):
     """
-    Bayesian hierarchical model for 4-year graduation rates.
+    Bayesian hierarchical model for elementary school EL progress rates.
 
-    Graduation rates in Kentucky average ~93% with relatively low variance.
-    This model uses tighter variance priors than reading/kindergarten models.
+    EL progress scores typically have high variance - many schools have
+    small EL populations leading to volatile rates.
     """
 
     @property
     def OUTCOME_NAME(self) -> str:
-        return 'graduation_rate'
+        return 'el_progress_rate'
 
     @property
     def MODEL_NAME(self) -> str:
-        return 'graduation'
+        return 'el_progress_elementary'
 
     def get_state_mean_prior(self) -> Tuple[float, float]:
-        """KY graduation rate ~93%."""
-        return (93.0, 10.0)
+        """EL progress scores vary widely - use wide prior."""
+        return (15.0, 15.0)
 
     def get_variance_priors(self) -> Dict[str, float]:
-        """Tighter variance for graduation (high rates, low variance)."""
+        """Wide variance for EL progress (high variation across schools)."""
         return {
-            'sigma_district': 5.0,
-            'sigma_school': 3.0,
-            'sigma_y': 2.0
+            'sigma_district': 10.0,
+            'sigma_school': 8.0,
+            'sigma_y': 8.0
         }
 
     def get_tau_scale(self) -> float:
-        """
-        Tau scale for horseshoe: p0/p where p0 ~ 5 expected effective predictors.
-        With ~22 predictors: 5/22 ≈ 0.23
-        """
-        return 0.23
+        """Tau scale for horseshoe."""
+        return 0.5
 
     def get_slab_parameters(self) -> Tuple[float, float]:
         """Slab parameters for Finnish horseshoe."""
-        return (2.0, 4.0)
+        return (3.0, 4.0)
 
     def get_tract_columns(self) -> List[str]:
-        """
-        Tract columns for graduation model.
-
-        Removed after diagnostic analysis (Nov 2025):
-        - tract_pct_broadband: HDI includes zero, highly correlated with income/education
-        - tract_pct_housing_cost_burden_30_plus: HDI includes zero, inverse of owner_occupied
-        """
+        """Tract columns for EL progress model."""
         return [
             'tract_median_household_income',
             'tract_poverty_rate',
@@ -70,39 +61,43 @@ class GraduationRateModel(BaseHierarchicalModel):
             'tract_unemployment_rate',
             'tract_pct_single_parent',
             'tract_pct_owner_occupied',
+            'tract_pct_broadband',
+            'tract_pct_housing_cost_burden_30_plus',
         ]
 
     def get_model_description(self) -> str:
-        return "BAYESIAN HIERARCHICAL MODEL - GRADUATION RATES"
+        return "BAYESIAN HIERARCHICAL MODEL - EL PROGRESS (ELEMENTARY)"
 
 
 def main():
     """Main execution."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Run Bayesian hierarchical model for graduation rates")
+    parser = argparse.ArgumentParser(description="Run Bayesian hierarchical model for EL progress (elementary)")
     parser.add_argument('--prior', type=str, choices=['normal', 'horseshoe', 'finnish'],
                        default='finnish', help="Prior type (default: finnish)")
     parser.add_argument('--horseshoe', action='store_true', help="Use classic horseshoe prior")
     parser.add_argument('--finnish', action='store_true', help="Use Finnish horseshoe (default)")
     parser.add_argument('--normal', action='store_true', help="Use normal priors")
-    parser.add_argument('--non-centered', action='store_true', help="Use non-centered parameterization")
+    parser.add_argument('--non-centered', action='store_true', default=True,
+                       help="Use non-centered parameterization (default: True)")
+    parser.add_argument('--centered', action='store_true', help="Use centered parameterization")
     parser.add_argument('--skip-loo', action='store_true', help="Skip LOO cross-validation")
     parser.add_argument('--skip-prior-check', action='store_true', help="Skip prior predictive check")
     args = parser.parse_args()
 
-    # Determine prior type
     prior_type = args.prior
     if args.normal:
         prior_type = "normal"
     elif args.horseshoe:
         prior_type = "horseshoe"
 
-    # Run model
-    model = GraduationRateModel(verbose=True)
+    non_centered = not args.centered
+
+    model = ELProgressElementaryModel(verbose=True)
     school_effects = model.run(
         prior_type=prior_type,
-        non_centered=args.non_centered,
+        non_centered=non_centered,
         run_prior_check=not args.skip_prior_check,
         run_loo=not args.skip_loo
     )

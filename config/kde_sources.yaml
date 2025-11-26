@@ -183,24 +183,31 @@ raw_directories:
 
   district_school_list:
     - "KYRC24_OVW_District_School_List.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_District_School_List.csv"
     - "district_school_list_2023.csv"
     - "district_school_list_2022.csv"
     - "district_school_list_2021.csv"
     - "district_school_list_2020.csv"
 
   student_enrollment:
+    # Note: Primary enrollment files contain ALL grades (PreK-12).
+    # Secondary enrollment is processed separately as secondary_enrollment KPI.
     - "KYRC24_OVW_Student_Enrollment.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Student_Enrollment.csv"
+    - "primary_enrollment_2023.csv"
+    - "primary_enrollment_2022.csv"
+    - "primary_enrollment_2021.csv"
+    - "primary_enrollment_2020.csv"
+
+  secondary_enrollment:
+    # Secondary enrollment (grades 6-12) - separate from primary enrollment
     - url: "kyrc25"
       file: "KYRC25_OVW_Secondary_Enrollment.csv"
-    - "primary_enrollment_2023.csv"
     - "secondary_enrollment_2023.csv"
-    - "primary_enrollment_2022.csv"
     - "secondary_enrollment_2022.csv"
-    - "primary_enrollment_2021.csv"
     - "secondary_enrollment_2021.csv"
-    - "primary_enrollment_2020.csv"
     - "secondary_enrollment_2020.csv"
 
   teacher_experience:

@@ -1,0 +1,465 @@
+# Covariate Catalog for Bright Spots Bayesian Models
+# ===================================================
+#
+# This catalog defines all available covariates for hierarchical Bayesian models,
+# organized by category with documentation of data sources, theoretical relevance,
+# and literature support.
+#
+# Each indicator can specify which covariates to include based on:
+# 1. Theoretical relevance (does the covariate make sense for this outcome?)
+# 2. Empirical support (does research show a relationship?)
+# 3. Model diagnostics (does the covariate contribute predictive power?)
+#
+# Last updated: November 2025
+# Version: 1.0
+
+# =============================================================================
+# COVARIATE DEFINITIONS
+# =============================================================================
+
+covariates:
+  # ---------------------------------------------------------------------------
+  # Category 1: Student Demographics
+  # ---------------------------------------------------------------------------
+  demographics:
+    pct_economically_disadvantaged:
+      description: "Percentage of students qualifying for free/reduced lunch"
+      source: kde_enrollment
+      unit: percentage
+      expected_direction: negative  # Higher poverty -> lower outcomes
+      literature_support: "Universal predictor of educational outcomes"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+        - postsecondary_readiness
+        - discipline_rate
+        - proficiency_rate
+
+    pct_english_learners:
+      description: "Percentage of English Language Learner students"
+      source: kde_enrollment
+      unit: percentage
+      expected_direction: mixed  # Depends on outcome and support services
+      literature_support: "Mixed effects depending on school resources"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    pct_students_with_disabilities:
+      description: "Percentage of students with IEPs"
+      source: kde_enrollment
+      unit: percentage
+      expected_direction: negative
+      literature_support: "Strong predictor, but effect size varies by disability type"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+        - chronic_absenteeism
+
+    pct_african_american:
+      description: "Percentage of African American students"
+      source: kde_enrollment
+      unit: percentage
+      expected_direction: null  # We use for adjustment, not prediction
+      literature_support: "QuantCrit: use for equity adjustment, not deficit framing"
+      note: "Include to ensure fair comparison; interpret coefficients with care"
+      theoretical_relevance:
+        - graduation_rate
+        - discipline_rate
+        - postsecondary_readiness
+
+    pct_hispanic:
+      description: "Percentage of Hispanic/Latino students"
+      source: kde_enrollment
+      unit: percentage
+      expected_direction: null
+      literature_support: "QuantCrit: use for equity adjustment"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    pct_minority:
+      description: "Percentage of total minority students"
+      source: kde_enrollment
+      unit: percentage
+      expected_direction: null
+      literature_support: "Use as aggregate diversity measure"
+      note: "May be redundant with specific race variables"
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+
+  # ---------------------------------------------------------------------------
+  # Category 2: Teacher Quality
+  # ---------------------------------------------------------------------------
+  teacher_quality:
+    novice_teacher_rate:
+      description: "Combined percentage of teachers with <1yr and 1-3yr experience"
+      source: kde_staff_reports
+      unit: percentage
+      expected_direction: negative  # More novice teachers -> lower outcomes
+      literature_support: "Robust finding: teacher experience matters (Clotfelter et al.)"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    teacher_avg_experience:
+      description: "Average years of teaching experience"
+      source: kde_staff_reports
+      unit: years
+      expected_direction: positive
+      literature_support: "Strong effect in first 5 years, plateaus after"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    student_teacher_ratio:
+      description: "Number of students per teacher"
+      source: kde_staff_reports
+      unit: ratio
+      expected_direction: negative  # More students per teacher -> lower outcomes
+      literature_support: "Mixed evidence; class size reduction shows small effects"
+      theoretical_relevance:
+        - proficiency_rate
+        - chronic_absenteeism
+
+    teacher_turnover_rate:
+      description: "Annual teacher turnover rate"
+      source: kde_staff_reports
+      unit: percentage
+      expected_direction: negative
+      literature_support: "High turnover disrupts school climate and student relationships"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+        - discipline_rate
+
+    emergency_provisional_rate:
+      description: "Percentage of teachers on emergency or provisional certification"
+      source: kde_staff_reports
+      unit: percentage
+      expected_direction: negative
+      literature_support: "Non-certified teachers associated with lower outcomes"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+
+  # ---------------------------------------------------------------------------
+  # Category 3: Financial Resources
+  # ---------------------------------------------------------------------------
+  financial:
+    per_pupil_spending:
+      description: "Total district spending per student (all funds)"
+      source: kde_financial_transparency
+      unit: dollars
+      expected_direction: positive  # More spending -> better outcomes
+      literature_support: "Jackson et al. (2016): 10% spending increase -> 7% wage increase"
+      note: "District-level, not school-level"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    students_per_certified_staff:
+      description: "Number of students per certified staff member"
+      source: kde_financial_summary
+      unit: ratio
+      expected_direction: negative
+      literature_support: "Proxy for overall staffing adequacy"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+
+  # ---------------------------------------------------------------------------
+  # Category 4: Community Context - County Level
+  # ---------------------------------------------------------------------------
+  county_census:
+    county_median_income:
+      description: "Median household income at county level"
+      source: census_saipe
+      unit: dollars
+      expected_direction: positive
+      literature_support: "Strong SES predictor at community level"
+      note: "May be redundant with tract-level income"
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+
+    county_poverty_rate:
+      description: "Poverty rate for all ages at county level"
+      source: census_saipe
+      unit: percentage
+      expected_direction: negative
+      literature_support: "Community poverty affects school resources and peer effects"
+      note: "May be redundant with tract-level poverty"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+        - discipline_rate
+
+    county_child_poverty_rate:
+      description: "Poverty rate for children ages 5-17 at county level"
+      source: census_saipe
+      unit: percentage
+      expected_direction: negative
+      literature_support: "More directly relevant than overall poverty for education"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+        - proficiency_rate
+
+  # ---------------------------------------------------------------------------
+  # Category 5: Neighborhood Context - Census Tract Level
+  # ---------------------------------------------------------------------------
+  tract_census:
+    tract_median_household_income:
+      description: "Median household income at census tract level"
+      source: census_acs_5year
+      unit: dollars
+      expected_direction: positive
+      literature_support: "Captures within-county economic variation"
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+        - chronic_absenteeism
+
+    tract_poverty_rate:
+      description: "Poverty rate at census tract level"
+      source: census_acs_5year
+      unit: percentage
+      expected_direction: negative
+      literature_support: "Neighborhood disadvantage index component"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+        - discipline_rate
+
+    tract_pct_bachelors_plus:
+      description: "Percentage of adults with bachelor's degree or higher"
+      source: census_acs_5year
+      unit: percentage
+      expected_direction: positive
+      literature_support: "Parental education strongest predictor of student achievement"
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+        - proficiency_rate
+
+    tract_unemployment_rate:
+      description: "Local unemployment rate"
+      source: census_acs_5year
+      unit: percentage
+      expected_direction: negative
+      literature_support: "Economic stress affects family stability"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+
+    tract_pct_single_parent:
+      description: "Percentage of single-parent households"
+      source: census_acs_5year
+      unit: percentage
+      expected_direction: negative
+      literature_support: |
+        Standard neighborhood disadvantage measure (McLanahan et al.).
+        Association may be partly spurious - use for adjustment, not causal claims.
+      note: "One of canonical 7 census tract characteristics in neighborhood research"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+
+    tract_pct_owner_occupied:
+      description: "Percentage of owner-occupied housing units"
+      source: census_acs_5year
+      unit: percentage
+      expected_direction: positive
+      literature_support: |
+        Homeownership increases residential stability (Urban Institute).
+        Eviction/moves reduce achievement by up to 1 year of schooling.
+      note: "Proxy for residential stability, distinct from poverty measures"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+
+    # EXCLUDED COVARIATES (documented for transparency)
+    tract_pct_broadband:
+      description: "Percentage of households with broadband internet"
+      source: census_acs_5year
+      unit: percentage
+      status: excluded
+      exclusion_reason: |
+        Removed November 2025 after diagnostic analysis:
+        - HDI includes zero: +0.06 [-0.62, +0.77]
+        - Highly correlated with income (r=0.63) and education (r=0.60)
+        - EdWorkingPapers (2025): heterogeneous effects - benefits high achievers,
+          harms low achievers. May bias bright spot identification.
+      literature_support: "Mixed and potentially problematic"
+
+    tract_pct_housing_cost_burden_30_plus:
+      description: "Percentage of households paying >30% income on housing"
+      source: census_acs_5year
+      unit: percentage
+      status: excluded
+      exclusion_reason: |
+        Removed November 2025 after diagnostic analysis:
+        - HDI includes zero: +0.07 [-0.58, +0.72]
+        - Highly correlated with owner_occupied (r=-0.64) - measures inverse of same construct
+        - Redundant with existing poverty measures
+
+# =============================================================================
+# INDICATOR-SPECIFIC CONFIGURATIONS
+# =============================================================================
+
+indicators:
+  graduation_rate:
+    description: "4-year cohort graduation rate"
+    outcome_column: graduation_rate_4_year
+    prior_type: normal  # or horseshoe for automatic selection
+
+    # Covariates grouped by inclusion status
+    required_covariates:
+      - pct_economically_disadvantaged
+      - pct_students_with_disabilities
+      - pct_african_american
+      - tract_poverty_rate
+
+    recommended_covariates:
+      - novice_teacher_rate
+      - teacher_avg_experience
+      - per_pupil_spending
+      - tract_pct_bachelors_plus
+      - tract_pct_single_parent
+      - tract_pct_owner_occupied
+      - tract_unemployment_rate
+
+    optional_covariates:
+      - pct_english_learners
+      - pct_hispanic
+      - pct_minority
+      - teacher_turnover_rate
+      - emergency_provisional_rate
+      - student_teacher_ratio
+      - students_per_certified_staff
+      - county_median_income
+      - county_poverty_rate
+      - county_child_poverty_rate
+      - tract_median_household_income
+
+    excluded_covariates:
+      - tract_pct_broadband
+      - tract_pct_housing_cost_burden_30_plus
+
+    notes: |
+      Based on November 2025 model diagnostics:
+      - Per-pupil spending, teacher experience, tract poverty show strong effects (HDI excludes zero)
+      - Demographics important for fair comparison
+      - County-level variables may be redundant with tract-level
+
+  chronic_absenteeism:
+    description: "Percentage of students chronically absent (>10% of days)"
+    outcome_column: chronic_absenteeism_rate
+    prior_type: horseshoe  # Recommend shrinkage for exploratory analysis
+
+    required_covariates:
+      - pct_economically_disadvantaged
+      - pct_students_with_disabilities
+
+    recommended_covariates:
+      - tract_pct_owner_occupied  # Housing stability affects attendance
+      - tract_unemployment_rate
+      - teacher_turnover_rate  # School climate
+
+    optional_covariates:
+      - tract_pct_single_parent
+      - county_poverty_rate
+
+    excluded_covariates:
+      - tract_pct_broadband
+      - tract_pct_housing_cost_burden_30_plus
+
+    notes: |
+      Absenteeism likely driven by:
+      - Housing instability (frequent moves)
+      - Health access
+      - Transportation
+      - Family economic stress
+      Use horseshoe prior to let data determine relevant covariates.
+
+  postsecondary_readiness:
+    description: "College/career readiness indicator"
+    outcome_column: postsecondary_readiness_rate
+    prior_type: normal
+
+    required_covariates:
+      - pct_economically_disadvantaged
+      - pct_students_with_disabilities
+      - tract_pct_bachelors_plus  # Parental education critical
+
+    recommended_covariates:
+      - per_pupil_spending
+      - teacher_avg_experience
+      - tract_median_household_income
+
+    notes: |
+      Parental education (tract_pct_bachelors_plus) is the strongest predictor
+      of college-going behavior - always include.
+
+  discipline_rate:
+    description: "Suspension/expulsion rate"
+    outcome_column: discipline_rate
+    prior_type: horseshoe
+
+    required_covariates:
+      - pct_economically_disadvantaged
+      - pct_african_american  # Racial disparities in discipline
+
+    recommended_covariates:
+      - teacher_turnover_rate  # School climate
+      - tract_unemployment_rate  # Community stress
+
+    notes: |
+      Discipline rates show strong racial disparities - must control for demographics.
+      School climate factors (teacher stability) may matter more than SES.
+
+# =============================================================================
+# MODEL SELECTION SETTINGS
+# =============================================================================
+
+model_selection:
+  # Default prior type when not specified per-indicator
+  default_prior_type: normal
+
+  # Horseshoe prior settings (when used)
+  horseshoe:
+    tau_scale: 1.0  # Global shrinkage
+    slab_scale: 2.0  # For regularized horseshoe
+    slab_df: 4.0
+
+  # MCMC settings
+  mcmc:
+    draws: 2000
+    tune: 1000
+    chains: 4
+    target_accept: 0.95
+
+  # Diagnostic thresholds
+  diagnostics:
+    rhat_threshold: 1.01
+    ess_bulk_threshold: 400
+    ess_tail_threshold: 400
+    max_divergences_pct: 0.5
+    pareto_k_threshold: 0.7
+
+  # Covariate selection criteria
+  selection:
+    # For normal priors: exclude if HDI contains zero
+    hdi_excludes_zero: true
+    # For horseshoe: shrinkage factor threshold
+    shrinkage_threshold: 0.1
+    # Maximum correlation between covariates
+    max_correlation: 0.7

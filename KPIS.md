@@ -607,6 +607,23 @@ Career readiness metrics for CTE programs tracking various readiness indicators.
 
 ---
 
+## District School List (School Coordinates)
+**Source**: `etl/district_school_list.py`
+
+Geographic coordinates for Kentucky schools, enabling location-based analysis and mapping of school-level KPIs.
+
+- `school_latitude` - School latitude in decimal degrees (approximately 36-39° for Kentucky)
+- `school_longitude` - School longitude in decimal degrees (approximately -89° to -82° for Kentucky)
+
+**Note**: This dataset contains school-level data only. All records have `student_group='All Students'` - there are no demographic breakdowns. Coordinates are validated to fall within Kentucky's geographic boundaries.
+
+**Data Sources**: KYRC25_OVW_District_School_List.csv, KYRC24_OVW_District_School_List.csv, district_school_list_{year}.csv
+**Years Available**: 2020-2025
+**Unit**: Decimal degrees (WGS84 coordinate system)
+**Demographics**: School-level only (All Students)
+
+---
+
 ## Naming Conventions
 
 All KPIs follow these standard naming patterns:

@@ -544,6 +544,90 @@ class CensusACS5ETL:
 
         return list(range(2009, latest_year + 1))
 
+    def extract_all_tracts_statewide(
+        self,
+        year: int,
+        variables: Optional[List[str]] = None,
+    ) -> pd.DataFrame:
+        """
+        Extract tract-level ACS data for ALL Kentucky tracts in one API call.
+
+        Args:
+            year: ACS 5-year ending year (e.g., 2022 for 2018-2022 data)
+            variables: List of ACS variable codes to fetch (default: all)
+
+        Returns:
+            DataFrame with one row per tract (all ~1,400 KY tracts)
+        """
+        if variables is None:
+            variables = list(ACS_VARIABLES.keys())
+
+        var_list = ",".join(["NAME"] + variables)
+
+        url = f"{self.BASE_URL}/{year}/acs/acs5"
+        params = {
+            "get": var_list,
+            "for": "tract:*",
+            "in": f"state:{self.STATE_FIPS}",  # All tracts in Kentucky
+        }
+
+        if self.api_key:
+            params["key"] = self.api_key
+
+        logger.info(f"Fetching ACS 5-year data for ALL Kentucky tracts, year {year}")
+
+        try:
+            response = requests.get(url, params=params, timeout=120)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            logger.error(f"Census API request failed: {e}")
+            raise
+
+        try:
+            data = response.json()
+        except ValueError as e:
+            logger.error(f"Failed to parse Census API response: {e}")
+            raise ValueError(f"Invalid JSON response from Census API: {e}")
+
+        if not data or len(data) < 2:
+            raise ValueError(f"No data returned from Census API for year {year}")
+
+        df = pd.DataFrame(data[1:], columns=data[0])
+
+        logger.info(f"Extracted {len(df)} tract records statewide")
+
+        return df
+
+    def run_all_tracts_statewide(
+        self,
+        year: int,
+        output_dir: Optional[Path] = None,
+    ) -> pd.DataFrame:
+        """
+        Run full ETL for ALL Kentucky tracts (statewide).
+
+        Args:
+            year: ACS 5-year ending year
+            output_dir: Directory to save output
+
+        Returns:
+            Transformed DataFrame with all KY tracts
+        """
+        # Extract all tracts in one API call
+        df_raw = self.extract_all_tracts_statewide(year)
+
+        # Transform
+        df_transformed = self.transform(df_raw, year, "tract")
+
+        # Load
+        if output_dir:
+            filename = f"census_acs_tracts_statewide_{year}.csv"
+            output_path = output_dir / filename
+            self.load(df_transformed, output_path)
+            print(f"Wrote {output_path}")
+
+        return df_transformed
+
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
     """
@@ -596,6 +680,11 @@ if __name__ == "__main__":
         help="Fetch data for all major Kentucky counties",
     )
     parser.add_argument(
+        "--statewide",
+        action="store_true",
+        help="Fetch tract data for ALL Kentucky tracts (statewide)",
+    )
+    parser.add_argument(
         "--counties-only",
         action="store_true",
         help="Fetch county-level data instead of tract-level",
@@ -624,6 +713,8 @@ if __name__ == "__main__":
 
     if args.counties_only:
         etl.run_counties(args.year, args.output, args.long_format)
+    elif args.statewide:
+        etl.run_all_tracts_statewide(args.year, args.output)
     elif args.all_major:
         etl.run_multiple_counties(
             args.year, list(KY_MAJOR_COUNTIES.keys()), args.output

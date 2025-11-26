@@ -57,7 +57,7 @@ def clean_enrollment_data(df: pd.DataFrame) -> pd.DataFrame:
 
 class StudentEnrollmentETL(BaseETL):
     """ETL module for processing student enrollment data."""
-    
+
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {
@@ -271,10 +271,10 @@ class StudentEnrollmentETL(BaseETL):
         """Override to include student enrollment specific missing value handling."""
         # Apply base missing value standardization
         df = super().standardize_missing_values(df)
-        
+
         # Apply enrollment-specific cleaning
         df = clean_enrollment_data(df)
-        
+
         return df
 
 
