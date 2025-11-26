@@ -99,6 +99,34 @@ def load_covariate_effects(model_name: str) -> List[Dict[str, Any]]:
     return records
 
 
+def load_county_covariate_effects(model_name: str) -> List[Dict[str, Any]]:
+    """Load county-specific covariate effects for a model."""
+    effects_file = MODELS_DIR / model_name / "county_covariate_effects.csv"
+    if not effects_file.exists():
+        # Not all models may have county-varying slopes
+        return []
+
+    df = pd.read_csv(effects_file)
+
+    records = []
+    for _, row in df.iterrows():
+        record = {
+            "model": model_name,
+            "county": str(row["county"]),
+            "predictor": str(row["predictor"]),
+            "global_effect": float(row["global_effect"]),
+            "county_effect": float(row["county_effect"]),
+            "county_deviation": float(row["county_deviation"]),
+            "effect_std": float(row["effect_std"]),
+            "ci_lower_2.5": float(row["ci_lower_2.5"]),
+            "ci_upper_97.5": float(row["ci_upper_97.5"]),
+            "differs_from_global": bool(row["differs_from_global"]),
+        }
+        records.append(record)
+
+    return records
+
+
 def load_model_diagnostics(model_name: str) -> Optional[Dict[str, Any]]:
     """Load model diagnostics from summary file."""
     summary_file = MODELS_DIR / model_name / "model_summary.csv"
@@ -140,6 +168,7 @@ def combine_results(model_names: Optional[List[str]] = None) -> Dict[str, Any]:
 
     all_school_effects: List[Dict[str, Any]] = []
     all_covariate_effects: List[Dict[str, Any]] = []
+    all_county_covariate_effects: List[Dict[str, Any]] = []
     model_diagnostics: Dict[str, Any] = {}
 
     for model_name in model_names:
@@ -153,6 +182,11 @@ def combine_results(model_names: Optional[List[str]] = None) -> Dict[str, Any]:
         print(f"    Covariate effects: {len(covariate_effects)} records")
         all_covariate_effects.extend(covariate_effects)
 
+        county_covariate_effects = load_county_covariate_effects(model_name)
+        if county_covariate_effects:
+            print(f"    County covariate effects: {len(county_covariate_effects)} records")
+            all_county_covariate_effects.extend(county_covariate_effects)
+
         diagnostics = load_model_diagnostics(model_name)
         if diagnostics:
             model_diagnostics[model_name] = diagnostics
@@ -164,9 +198,11 @@ def combine_results(model_names: Optional[List[str]] = None) -> Dict[str, Any]:
             "models": model_names,
             "total_schools": len(all_school_effects),
             "total_covariates": len(all_covariate_effects),
+            "total_county_covariates": len(all_county_covariate_effects),
         },
         "school_effects": all_school_effects,
         "covariate_effects": all_covariate_effects,
+        "county_covariate_effects": all_county_covariate_effects,
         "model_diagnostics": model_diagnostics,
     }
 
@@ -226,6 +262,8 @@ def main():
         print(f"  Models: {len(results['metadata']['models'])}")
         print(f"  School effects: {results['metadata']['total_schools']}")
         print(f"  Covariate effects: {results['metadata']['total_covariates']}")
+        if results['metadata'].get('total_county_covariates', 0) > 0:
+            print(f"  County covariate effects: {results['metadata']['total_county_covariates']}")
 
 
 if __name__ == "__main__":

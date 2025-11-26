@@ -58,11 +58,13 @@ class DistrictSchoolListETL(BaseETL):
         }
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
-        """Extract latitude and longitude as KPI metrics.
+        """Extract latitude, longitude, and grade range as KPI metrics.
 
         Both coordinates must be valid for either to be included. This ensures
         geographic data integrity - a school with only one valid coordinate
         would be unusable for mapping purposes.
+
+        Grade range (low_grade, high_grade) is extracted for school type classification.
         """
         metrics = {}
         lat_value = None
@@ -97,13 +99,58 @@ class DistrictSchoolListETL(BaseETL):
             metrics['school_latitude'] = lat_value
             metrics['school_longitude'] = lon_value
 
+        # Extract grade range for school type classification
+        low_grade = row.get('low_grade', pd.NA)
+        high_grade = row.get('high_grade', pd.NA)
+
+        if pd.notna(low_grade):
+            metrics['school_low_grade'] = self._normalize_grade(low_grade)
+
+        if pd.notna(high_grade):
+            metrics['school_high_grade'] = self._normalize_grade(high_grade)
+
         return metrics
+
+    def _normalize_grade(self, grade: Any) -> float:
+        """Normalize grade value to numeric.
+
+        Handles special cases:
+        - 'P', 'PK', 'Preschool' -> -1 (Pre-K)
+        - 'K' -> 0 (Kindergarten)
+        - Ordinal suffixes ('1st', '2nd', '3rd', '4th', '5th', etc.) -> numeric
+        - Numeric grades -> as-is
+        """
+        if pd.isna(grade):
+            return pd.NA
+
+        grade_str = str(grade).strip().upper()
+
+        # Handle pre-kindergarten
+        if grade_str in ['P', 'PK', 'PRE-K', 'PREK', 'PRESCHOOL']:
+            return -1.0
+
+        # Handle kindergarten
+        if grade_str in ['K', 'KG', 'KINDERGARTEN']:
+            return 0.0
+
+        # Strip ordinal suffixes (ST, ND, RD, TH)
+        import re
+        grade_cleaned = re.sub(r'(ST|ND|RD|TH)$', '', grade_str)
+
+        # Try numeric conversion
+        try:
+            return float(grade_cleaned)
+        except (ValueError, TypeError):
+            logger.warning(f"Could not convert grade '{grade}' to numeric")
+            return pd.NA
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         """Get default metrics for suppressed records (unlikely for directory data)."""
         return {
             'school_latitude': pd.NA,
             'school_longitude': pd.NA,
+            'school_low_grade': pd.NA,
+            'school_high_grade': pd.NA,
         }
 
     def should_skip_row(self, row: pd.Series) -> bool:

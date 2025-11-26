@@ -162,13 +162,20 @@ class BaseHierarchicalModel(ABC):
         # Create categorical indices for hierarchical structure
         df['district_cat'] = df['district'].astype('category')
         df['school_cat'] = df['school_id'].astype('category')
+        df['county_cat'] = df['county_name'].astype('category')
 
         district_idx = df['district_cat'].cat.codes.values
         school_idx = df['school_cat'].cat.codes.values
+        county_idx = df['county_cat'].cat.codes.values
 
         n_districts = len(df['district_cat'].cat.categories)
         n_schools = len(df['school_cat'].cat.categories)
+        n_counties = len(df['county_cat'].cat.categories)
 
+        # Store county names for later reference
+        county_names = list(df['county_cat'].cat.categories)
+
+        self.log(f"Counties: {n_counties}")
         self.log(f"Districts: {n_districts}")
         self.log(f"Schools: {n_schools}")
         self.log(f"Observations per school: {len(df) / n_schools:.1f}")
@@ -262,8 +269,9 @@ class BaseHierarchicalModel(ABC):
         self.log(f"  Std: {y.std():.2f}")
         self.log(f"  Range: [{y.min():.2f}, {y.max():.2f}]")
 
-        # Create mapping from school to district
+        # Create mapping from school to district and school to county
         school_to_district = df.groupby('school_cat')['district_cat'].first().cat.codes.values
+        school_to_county = df.groupby('school_cat')['county_cat'].first().cat.codes.values
 
         self.data = {
             'df': df,
@@ -274,9 +282,13 @@ class BaseHierarchicalModel(ABC):
             'predictor_names': available_predictors,
             'district_idx': district_idx,
             'school_idx': school_idx,
+            'county_idx': county_idx,
             'school_to_district': school_to_district,
+            'school_to_county': school_to_county,
             'n_districts': n_districts,
             'n_schools': n_schools,
+            'n_counties': n_counties,
+            'county_names': county_names,
             'n_predictors': len(available_predictors),
             'predictor_categories': {
                 'demographics': avail_demo,
@@ -302,13 +314,15 @@ class BaseHierarchicalModel(ABC):
     # MODEL BUILDING
     # =========================================================================
 
-    def build_model(self, prior_type: str = "finnish", non_centered: bool = True) -> pm.Model:
+    def build_model(self, prior_type: str = "finnish", non_centered: bool = True,
+                    county_varying_slopes: bool = True) -> pm.Model:
         """
         Build the hierarchical Bayesian model.
 
         Args:
             prior_type: "normal", "horseshoe", or "finnish"
             non_centered: If True, use non-centered parameterization
+            county_varying_slopes: If True, allow predictor effects to vary by county
 
         Returns:
             PyMC model object
@@ -320,6 +334,8 @@ class BaseHierarchicalModel(ABC):
         self.log(f"\nPrior type: {prior_type.upper()}")
         if non_centered:
             self.log("  Using NON-CENTERED parameterization")
+        if county_varying_slopes:
+            self.log("  Using COUNTY-VARYING SLOPES for predictors")
 
         mu_state_mu, mu_state_sigma = self.get_state_mean_prior()
         var_priors = self.get_variance_priors()
@@ -330,6 +346,7 @@ class BaseHierarchicalModel(ABC):
             X = pm.Data('X', self.data['X_scaled'])
             district_idx = pm.Data('district_idx', self.data['district_idx'])
             school_idx = pm.Data('school_idx', self.data['school_idx'])
+            county_idx = pm.Data('county_idx', self.data['county_idx'])
             school_to_district = pm.Data('school_to_district', self.data['school_to_district'])
 
             # State-level hyperprior
@@ -363,11 +380,37 @@ class BaseHierarchicalModel(ABC):
                                           sigma=sigma_school,
                                           shape=self.data['n_schools'])
 
-            # Regression coefficients
+            # Regression coefficients - global effects
             beta = self._build_coefficient_priors(prior_type)
 
-            # Expected outcome
-            mu = mu_state + district_effect[district_idx] + school_effect[school_idx] + pm.math.dot(X, beta)
+            if county_varying_slopes:
+                # County-varying slopes: allow predictor effects to deviate by county
+                # This uses a hierarchical structure where county deviations are shrunk toward zero
+                n_counties = self.data['n_counties']
+                n_predictors = self.data['n_predictors']
+
+                # Variance for county-level slope deviations (one per predictor)
+                sigma_county_slope = pm.HalfCauchy('sigma_county_slope', beta=1.0, shape=n_predictors)
+
+                # County-specific deviations from global slopes (non-centered)
+                beta_county_raw = pm.Normal('beta_county_raw', mu=0, sigma=1,
+                                           shape=(n_counties, n_predictors))
+                beta_county_deviation = pm.Deterministic(
+                    'beta_county_deviation',
+                    beta_county_raw * sigma_county_slope[None, :]
+                )
+
+                # Total county-specific slopes = global + county deviation
+                beta_county = pm.Deterministic('beta_county', beta[None, :] + beta_county_deviation)
+
+                # Expected outcome with county-varying slopes
+                # For each observation, use its county's specific slopes
+                beta_for_obs = beta_county[county_idx]  # Shape: (n_obs, n_predictors)
+                mu = mu_state + district_effect[district_idx] + school_effect[school_idx] + \
+                     pm.math.sum(X * beta_for_obs, axis=1)
+            else:
+                # Standard model with global slopes only
+                mu = mu_state + district_effect[district_idx] + school_effect[school_idx] + pm.math.dot(X, beta)
 
             # Likelihood
             sigma_y = pm.HalfCauchy('sigma_y', beta=var_priors['sigma_y'])
@@ -378,9 +421,12 @@ class BaseHierarchicalModel(ABC):
         self.log(f"  District effects: {self.data['n_districts']} (σ ~ HalfCauchy({var_priors['sigma_district']}))")
         self.log(f"  School effects: {self.data['n_schools']} (σ ~ HalfCauchy({var_priors['sigma_school']}))")
         self.log(f"  Predictors: {self.data['n_predictors']} with {prior_type.upper()} prior")
+        if county_varying_slopes:
+            self.log(f"  County-varying slopes: {self.data['n_counties']} counties × {self.data['n_predictors']} predictors")
         self.log(f"  Observation noise: σ_y ~ HalfCauchy({var_priors['sigma_y']})")
 
         self.model = model
+        self.county_varying_slopes = county_varying_slopes
         return model
 
     def _build_coefficient_priors(self, prior_type: str):
@@ -840,6 +886,67 @@ class BaseHierarchicalModel(ABC):
         self.log(f"\nSaving school effects to: {effects_file}")
         school_effects_df.to_csv(effects_file, index=False)
 
+        # Save county-specific slopes if county_varying_slopes was enabled
+        if getattr(self, 'county_varying_slopes', False) and 'beta_county' in self.trace.posterior:
+            self.log("\n" + "-" * 60)
+            self.log("COUNTY-SPECIFIC PREDICTOR EFFECTS")
+            self.log("-" * 60)
+
+            # Extract county-specific slopes: shape (chains, draws, n_counties, n_predictors)
+            beta_county_samples = self.trace.posterior['beta_county'].values
+            beta_county_mean = beta_county_samples.mean(axis=(0, 1))  # (n_counties, n_predictors)
+            beta_county_std = beta_county_samples.std(axis=(0, 1))
+            beta_county_lower = np.percentile(beta_county_samples, 2.5, axis=(0, 1))
+            beta_county_upper = np.percentile(beta_county_samples, 97.5, axis=(0, 1))
+
+            # Extract county deviations from global
+            beta_deviation_samples = self.trace.posterior['beta_county_deviation'].values
+            beta_deviation_mean = beta_deviation_samples.mean(axis=(0, 1))
+
+            # Get global effects for comparison
+            beta_global = beta_means  # Already computed above
+
+            county_names = self.data['county_names']
+            predictor_names = self.data['predictor_names']
+
+            # Create long-format dataframe for county effects
+            county_effects_rows = []
+            for c_idx, county_name in enumerate(county_names):
+                for p_idx, predictor in enumerate(predictor_names):
+                    county_effects_rows.append({
+                        'county': county_name,
+                        'predictor': predictor,
+                        'global_effect': beta_global[p_idx],
+                        'county_effect': beta_county_mean[c_idx, p_idx],
+                        'county_deviation': beta_deviation_mean[c_idx, p_idx],
+                        'effect_std': beta_county_std[c_idx, p_idx],
+                        'ci_lower_2.5': beta_county_lower[c_idx, p_idx],
+                        'ci_upper_97.5': beta_county_upper[c_idx, p_idx],
+                        # Is the county effect significantly different from global?
+                        'differs_from_global': (beta_county_lower[c_idx, p_idx] > beta_global[p_idx]) or \
+                                               (beta_county_upper[c_idx, p_idx] < beta_global[p_idx])
+                    })
+
+            county_effects_df = pd.DataFrame(county_effects_rows)
+
+            # Save county effects
+            county_effects_file = self.MODEL_DIR / "county_covariate_effects.csv"
+            self.log(f"\nSaving county-specific effects to: {county_effects_file}")
+            county_effects_df.to_csv(county_effects_file, index=False)
+
+            # Log Fayette County comparison
+            fayette_effects = county_effects_df[county_effects_df['county'] == 'FAYETTE']
+            if len(fayette_effects) > 0:
+                self.log("\nFayette County vs Statewide (significant differences):")
+                sig_diff = fayette_effects[fayette_effects['differs_from_global']]
+                if len(sig_diff) > 0:
+                    for _, row in sig_diff.iterrows():
+                        direction = "stronger" if abs(row['county_effect']) > abs(row['global_effect']) else "weaker"
+                        self.log(f"  {row['predictor']}: global={row['global_effect']:.3f}, "
+                                f"Fayette={row['county_effect']:.3f} ({direction})")
+                else:
+                    self.log("  No significant differences from statewide effects")
+
         self.log("\nAll results saved")
         return school_effects_df
 
@@ -848,7 +955,8 @@ class BaseHierarchicalModel(ABC):
     # =========================================================================
 
     def run(self, prior_type: str = "finnish", non_centered: bool = True,
-            run_prior_check: bool = True, run_loo: bool = True) -> pd.DataFrame:
+            run_prior_check: bool = True, run_loo: bool = True,
+            county_varying_slopes: bool = True) -> pd.DataFrame:
         """
         Run the complete modeling pipeline.
 
@@ -857,6 +965,7 @@ class BaseHierarchicalModel(ABC):
             non_centered: If True, use non-centered parameterization
             run_prior_check: If True, run prior predictive check
             run_loo: If True, run LOO cross-validation
+            county_varying_slopes: If True, allow predictor effects to vary by county
 
         Returns:
             DataFrame with school effects
@@ -866,12 +975,15 @@ class BaseHierarchicalModel(ABC):
             self.log(f"WITH {prior_type.upper()} PRIORS")
         if non_centered:
             self.log("WITH NON-CENTERED PARAMETERIZATION")
+        if county_varying_slopes:
+            self.log("WITH COUNTY-VARYING SLOPES")
 
         # Load data
         self.load_and_prepare_data()
 
         # Build model
-        self.build_model(prior_type=prior_type, non_centered=non_centered)
+        self.build_model(prior_type=prior_type, non_centered=non_centered,
+                        county_varying_slopes=county_varying_slopes)
 
         # Prior predictive check
         if run_prior_check:

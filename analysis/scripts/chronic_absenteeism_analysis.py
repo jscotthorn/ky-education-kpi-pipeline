@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Chronic Absenteeism Analysis Dataset
+Chronic Absenteeism Analysis Dataset (Elementary Schools)
 
 Creates analysis dataset for chronic absenteeism rates using:
 - KPI master file for absenteeism rates
+- School grade level data (filters to elementary schools with high_grade = 5)
 - Precomputed demographics (or enrollment-based)
 - Teacher quality, financial, and census covariates
 
@@ -22,10 +23,10 @@ from base_analysis_dataset import BaseAnalysisDataset
 
 class ChronicAbsenteeismAnalysisDataset(BaseAnalysisDataset):
     """
-    Analysis dataset for chronic absenteeism rates.
+    Analysis dataset for chronic absenteeism rates (Elementary Schools only).
 
     Filters:
-    - All school types (all grades metric)
+    - Elementary schools only (high_grade = 5)
     - years 2023-2025
     - All Students only
     - Unsuppressed values
@@ -51,8 +52,8 @@ class ChronicAbsenteeismAnalysisDataset(BaseAnalysisDataset):
         return True
 
     def load_outcome_data(self) -> pd.DataFrame:
-        """Load chronic absenteeism rate data from KPI master."""
-        self.log("LOADING CHRONIC ABSENTEEISM RATE DATA", header=True)
+        """Load chronic absenteeism rate data from KPI master, filtered to elementary schools."""
+        self.log("LOADING CHRONIC ABSENTEEISM RATE DATA (ELEMENTARY SCHOOLS)", header=True)
 
         # Read KPI master file
         self.log(f"Reading KPI master file: {self.KPI_FILE}")
@@ -84,6 +85,27 @@ class ChronicAbsenteeismAnalysisDataset(BaseAnalysisDataset):
         ca_df = ca_df[ca_df['school_name'] != '---District Total---'].copy()
         self.log(f"After excluding district totals: {len(ca_df):,} records")
         self.log(f"Unique schools: {ca_df['school_id'].nunique()}")
+
+        # Load school grade level data to filter to elementary schools
+        self.log("\nLoading school grade level data...")
+        grade_df = df[df['metric'] == 'school_high_grade'].copy()
+        grade_df['high_grade'] = pd.to_numeric(grade_df['value'], errors='coerce')
+        grade_df = grade_df[['school_id', 'year', 'high_grade']].drop_duplicates()
+        self.log(f"Found {len(grade_df):,} school grade level records")
+
+        # Merge grade data with chronic absenteeism data
+        ca_df = ca_df.merge(
+            grade_df,
+            on=['school_id', 'year'],
+            how='left'
+        )
+        self.log(f"After merging grade data: {len(ca_df):,} records")
+        self.log(f"Schools with grade data: {ca_df['high_grade'].notna().sum():,}")
+
+        # Filter to elementary schools (high_grade = 5)
+        ca_df = ca_df[ca_df['high_grade'] == 5].copy()
+        self.log(f"Elementary schools (high_grade=5): {len(ca_df):,} records")
+        self.log(f"Unique elementary schools: {ca_df['school_id'].nunique()}")
 
         # Select and return columns
         result = ca_df[[

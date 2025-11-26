@@ -1,9 +1,10 @@
 # Bright Spots Methodology: Hierarchical Bayesian Framework for Identifying Positive Deviant Schools
 
-**Date:** November 25, 2025
-**Version:** 1.1
+**Date:** November 26, 2025
+**Version:** 1.2
 **Context:** Kentucky Statewide Analysis with Fayette County Focus
-**Model Location:** `analysis/bayesian_models/graduation_rate_model.py`
+**Model Location:** `analysis/bayesian_models/base_hierarchical_model.py` (base class)
+**Indicator Models:** `analysis/bayesian_models/*_model.py` (11 indicators)
 
 ---
 
@@ -98,9 +99,9 @@ Where weights depend on sample size[^9]. Schools with few observations get heavy
 
 **Mathematical guarantee (Stein's Paradox)**[^16]: With 3+ groups, a shrinkage estimator *always* has lower mean squared error than no-pooling estimators. Partial pooling reduces MSE by 36-47% compared to no-pooling approaches[^17].
 
-### 3.2 Three-Level Model Structure
+### 3.2 Three-Level Model Structure with County-Varying Slopes
 
-Our model implements a three-level hierarchy matching Kentucky's educational structure:
+Our model implements a three-level hierarchy matching Kentucky's educational structure, with an additional county-varying slopes component:
 
 ```
 Level 3: State          μ_state ~ Normal(93, 10)
@@ -108,7 +109,10 @@ Level 3: State          μ_state ~ Normal(93, 10)
 Level 2: Districts      district_effect ~ Normal(0, σ_district)
            (n=170)            |
 Level 1: Schools        school_effect ~ Normal(district_effect, σ_school)
-           (n=228)
+           (n=700+)
+                              +
+County-Varying Slopes   β_county[c] = β + deviation[c]
+           (n=120)
 ```
 
 **Mathematical Specification:**
@@ -116,28 +120,65 @@ Level 1: Schools        school_effect ~ Normal(district_effect, σ_school)
 ```
 y_ijk ~ Normal(μ_ijk, σ_y)
 
-μ_ijk = μ_state + district_effect[j] + school_effect[i] + X_ijk · β
+μ_ijk = μ_state + district_effect[j] + school_effect[i] + X_ijk · β_county[c]
 
 Where:
-  y_ijk = outcome (e.g., graduation rate) for school i in district j
+  y_ijk = outcome (e.g., graduation rate) for school i in district j in county c
   μ_state = state-level intercept
   district_effect[j] = district-level random effect
   school_effect[i] = school-level random effect (nested within district)
   X_ijk = matrix of standardized covariates
-  β = vector of regression coefficients
+  β = global regression coefficients
+  β_county[c] = β + β_deviation[c] (county-specific slopes)
+  β_deviation[c] ~ Normal(0, σ_county_slope) for each predictor
 ```
 
-### 3.3 Prior Specifications
+### 3.3 County-Varying Slopes
+
+The model includes county-varying slopes to capture regional differences in how predictors relate to outcomes. This allows us to identify where predictor effects differ significantly from statewide patterns (e.g., "In Fayette County, teacher experience has a stronger relationship with outcomes than statewide").
+
+**Implementation (non-centered parameterization):**
+
+```python
+# Variance for county-level slope deviations (one per predictor)
+sigma_county_slope = pm.HalfCauchy('sigma_county_slope', beta=1.0, shape=n_predictors)
+
+# County-specific deviations from global slopes
+beta_county_raw = pm.Normal('beta_county_raw', mu=0, sigma=1, shape=(n_counties, n_predictors))
+beta_county_deviation = beta_county_raw * sigma_county_slope
+
+# Total county-specific slopes = global + county deviation
+beta_county = beta + beta_county_deviation
+```
+
+A county's predictor effect is flagged as "different from statewide" if the 95% credible interval for the county-specific effect excludes the global effect.
+
+### 3.4 Prior Specifications
 
 Following recommendations from Gelman (2006)[^18] for variance parameters in hierarchical models:
 
-| Parameter | Prior Distribution | Values | Rationale |
-|-----------|-------------------|--------|-----------|
-| `μ_state` | Normal(93, 10) | KY avg ~93% | Domain-informed intercept |
-| `σ_district` | HalfCauchy(5) | Scale=5 | Allows values near zero, heavy tails for robustness |
-| `σ_school` | HalfCauchy(3) | Scale=3 | Slightly tighter than district level |
-| `β` | Normal(0, 5) | Weakly informative | Zero-centered, allows moderate effects |
-| `σ_y` | HalfCauchy(2) | Scale=2 | Observation-level noise |
+| Parameter | Prior Distribution | Default Values | Rationale |
+|-----------|-------------------|----------------|-----------|
+| `μ_state` | Normal(μ, σ) | Varies by indicator | Domain-informed intercept |
+| `σ_district` | HalfCauchy(β) | 5-10 | Allows values near zero, heavy tails for robustness |
+| `σ_school` | HalfCauchy(β) | 3-8 | Slightly tighter than district level |
+| `β` | Finnish Horseshoe | τ ~ 0.23-0.5 | Sparse shrinkage, non-centered parameterization |
+| `σ_county_slope` | HalfCauchy(1) | Scale=1 | County-level slope deviations |
+| `σ_y` | HalfCauchy(β) | 2-8 | Observation-level noise |
+
+**Indicator-Specific Prior Settings:**
+
+| Indicator | State Mean Prior | σ_district | σ_school | σ_y |
+|-----------|------------------|------------|----------|-----|
+| Graduation Rate | Normal(93, 10) | 5.0 | 3.0 | 2.0 |
+| Reading Grade 3 | Normal(43, 15) | 10.0 | 5.0 | 5.0 |
+| Math Grade 8 | Normal(38, 15) | 10.0 | 5.0 | 5.0 |
+| Kindergarten Readiness | Normal(47, 15) | 10.0 | 5.0 | 5.0 |
+| Postsecondary Enrollment | Normal(45, 15) | 8.0 | 5.0 | 5.0 |
+| Postsecondary Readiness | Normal(83, 10) | 6.0 | 4.0 | 4.0 |
+| Chronic Absenteeism | Normal(29, 15) | 10.0 | 6.0 | 6.0 |
+| EL Progress (all levels) | Normal(15, 15) | 10.0 | 8.0 | 8.0 |
+| School Climate | Normal(85, 10) | 5.0 | 4.0 | 4.0 |
 
 **Why Half-Cauchy priors?** Gelman (2006)[^18] recommends against inverse-gamma for variance parameters, which can behave poorly near zero. Half-Cauchy priors:
 - Are unbounded at zero (allow for no variance if warranted)
@@ -166,7 +207,6 @@ Our model incorporates **22 covariates** across five categories:
 - `pct_students_with_disabilities` - % students with IEPs
 - `pct_african_american` - % African American students
 - `pct_hispanic` - % Hispanic/Latino students
-- `pct_minority` - % total minority students
 
 **Category 2: Teacher Quality (5 variables)**
 - `novice_teacher_rate` - Combined % teachers with <1yr + 1-3yr experience
@@ -309,10 +349,12 @@ PSIS-LOO (Pareto-smoothed importance sampling)[^25] provides:
 | Setting | Value | Rationale |
 |---------|-------|-----------|
 | Chains | 4 | Minimum for robust R-hat computation[^23] |
-| Draws per chain | 2000 | Sufficient for stable posterior estimates |
-| Tuning/warmup | 1000 | Allows adaptation of step size |
+| Draws per chain | 4000 | Sufficient for stable posterior estimates with county-varying slopes |
+| Tuning/warmup | 2000 | Extended for complex hierarchical structure |
 | Target accept | 0.95 | Higher for hierarchical models[^26] |
 | Random seed | 42 | Reproducibility |
+
+**Note:** The increased draws (4000 vs 2000) and tuning (2000 vs 1000) are necessary for the county-varying slopes component, which adds n_counties × n_predictors additional parameters to estimate.
 
 ### 7.2 Software Stack
 
@@ -342,7 +384,20 @@ PSIS-LOO (Pareto-smoothed importance sampling)[^25] provides:
 Economic data lags by 12 months (Census SAIPE releases December for prior year). This is acceptable because:
 - Median income changes ~2-3% annually (slow-moving)
 - Poverty rates are stable except during recessions
-- Documentation explicitly tracks data vintages
+- Documentation explicitly tracks data dates
+
+**Acceptable Lag Times by Variable Type:**
+
+| Variable Type | Acceptable Lag | Rationale |
+|--------------|----------------|-----------|
+| Student outcomes | Current year | Primary analysis target |
+| School characteristics | Current year | Changes quickly (enrollment, staff) |
+| Teacher data | Current year | Turnover matters year-to-year |
+| Financial data | 6-12 months | Fiscal year alignment (July-June) |
+| Economic (income, poverty) | 12-24 months | Changes slowly (~2-3% annually) |
+| Unemployment | < 3 months | Can spike during recessions |
+
+**Principle:** Use most recent available data for each variable. Fast-moving variables (teachers, enrollment) require current-year data; slow-moving economic indicators are acceptable with 12-month lag.
 
 ---
 
@@ -541,29 +596,52 @@ Test Statistic: STANDARD DEVIATION
 ky-education-kpi-pipeline/
 ├── analysis/
 │   ├── bayesian_models/
-│   │   ├── base_model.py                 # Abstract base with horseshoe prior support
-│   │   ├── graduation_rate_model.py      # Main model implementation (22 covariates)
-│   │   ├── identify_bright_spots.py      # Posterior analysis
+│   │   ├── base_hierarchical_model.py    # Abstract base class with county-varying slopes
+│   │   ├── base_model.py                 # Legacy base (deprecated)
+│   │   ├── graduation_rate_model.py      # Graduation rate indicator
+│   │   ├── reading_grade3_model.py       # 3rd grade reading proficiency
+│   │   ├── math_grade8_model.py          # 8th grade math proficiency
+│   │   ├── kindergarten_readiness_model.py
+│   │   ├── postsecondary_enrollment_model.py
+│   │   ├── postsecondary_readiness_model.py
+│   │   ├── chronic_absenteeism_model.py
+│   │   ├── el_progress_elementary_model.py
+│   │   ├── el_progress_middle_model.py
+│   │   ├── el_progress_high_model.py
+│   │   ├── school_climate_model.py
+│   │   ├── combine_results.py            # Combines all model outputs to JSON
+│   │   ├── identify_bright_spots.py      # Posterior analysis (legacy)
 │   │   └── visualize_results.py          # Forest plots, diagnostics
 │   ├── config/
 │   │   ├── __init__.py                   # Covariate catalog loader utilities
 │   │   └── covariate_catalog.yaml        # Master catalog of all covariates
 │   ├── datasets/
 │   │   ├── graduation_analysis.csv       # Combined model data
+│   │   ├── reading_grade3_analysis.csv
+│   │   ├── math_grade8_analysis.csv
+│   │   ├── [other indicator]_analysis.csv
 │   │   └── demographic_predictors.csv    # Student demographics
 │   ├── outputs/
 │   │   ├── models/
-│   │   │   ├── graduation_rate_trace.nc  # MCMC trace (ArviZ format)
-│   │   │   ├── model_summary.csv         # Posterior parameter summaries
-│   │   │   ├── covariate_effects.csv     # Beta coefficient estimates
-│   │   │   └── school_effects.csv        # School-level random effects
+│   │   │   ├── graduation/
+│   │   │   │   ├── graduation_trace.nc   # MCMC trace (ArviZ format)
+│   │   │   │   ├── model_summary.csv     # Posterior parameter summaries
+│   │   │   │   ├── covariate_effects.csv # Global beta coefficients
+│   │   │   │   ├── county_covariate_effects.csv  # County-specific slopes
+│   │   │   │   └── school_effects.csv    # School-level random effects
+│   │   │   ├── reading_grade3/
+│   │   │   ├── math_grade8/
+│   │   │   └── [other indicators]/
 │   │   └── diagnostics/
-│   │       ├── prior_predictive_check.png
-│   │       └── posterior_predictive_check.png
+│   │       └── [indicator]/
+│   │           ├── prior_predictive_check.png
+│   │           └── posterior_predictive_check.png
 │   ├── create_analysis_dataset.py        # Data preparation pipeline
 │   ├── derive_demographics.py            # Demographic predictor extraction
 │   └── BRIGHT_SPOTS_METHODOLOGY.md       # This document
 ├── data/
+│   ├── bayesian/
+│   │   └── bayesian_results.json         # Combined results for dashboard
 │   ├── kpi/
 │   │   └── kpi_master.csv                # All KDE indicators
 │   └── external/
@@ -579,6 +657,20 @@ ky-education-kpi-pipeline/
     ├── census_saipe.py                   # Census SAIPE ETL
     └── [other ETL pipelines]
 ```
+
+### Output Files
+
+Each model produces the following output files in `analysis/outputs/models/{indicator}/`:
+
+| File | Description |
+|------|-------------|
+| `{indicator}_trace.nc` | Full MCMC trace in NetCDF format (ArviZ compatible) |
+| `model_summary.csv` | Posterior summary statistics for key parameters |
+| `school_effects.csv` | School-level random effects with 95% credible intervals |
+| `covariate_effects.csv` | Global predictor effects with shrinkage factors |
+| `county_covariate_effects.csv` | County-specific predictor effects (new in v1.2) |
+
+The `combine_results.py` script aggregates all model outputs into `data/bayesian/bayesian_results.json` for consumption by the Angular dashboard.
 
 ---
 
