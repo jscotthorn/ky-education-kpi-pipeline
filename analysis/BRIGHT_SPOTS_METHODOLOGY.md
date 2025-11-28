@@ -1,7 +1,7 @@
 # Bright Spots Methodology: Hierarchical Bayesian Framework for Identifying Positive Deviant Schools
 
 **Date:** November 26, 2025
-**Version:** 1.2
+**Version:** 1.3
 **Context:** Kentucky Statewide Analysis with Fayette County Focus
 **Model Location:** `analysis/bayesian_models/base_hierarchical_model.py` (base class)
 **Indicator Models:** `analysis/bayesian_models/*_model.py` (11 indicators)
@@ -199,7 +199,7 @@ Free/Reduced Lunch (FRL) eligibility is a crude proxy for economic disadvantage[
 
 ### 4.2 Covariate Categories
 
-Our model incorporates **22 covariates** across five categories:
+Our model incorporates **27 covariates** across six categories:
 
 **Category 1: Student Demographics (6 variables)**
 - `pct_economically_disadvantaged` - % students qualifying for FRL
@@ -239,15 +239,32 @@ Census tract-level data provides more granular neighborhood context than county-
 - `tract_pct_single_parent` - % single-parent households (family structure)
 - `tract_pct_owner_occupied` - % owner-occupied housing (housing stability)
 
-**Excluded Tract-Level Variables (with rationale):**
+**Indicator-Specific Tract Variables:**
 
-Two tract-level variables were removed after November 2025 diagnostic analysis:
+Some tract-level variables are included only for specific indicators where theory supports their relevance:
 
-- ~~`tract_pct_broadband`~~ - **Removed**: HDI included zero (+0.06 [-0.62, +0.77]); highly correlated with income (r=0.63) and education (r=0.60). Research shows heterogeneous effects—benefits high-achieving students but harms low-achieving students[^37]—which could bias bright spot identification.
+- `tract_pct_broadband` - **Included for chronic absenteeism only**: Research shows heterogeneous effects on achievement[^37], but broadband access may have clearer effects on attendance (enabling virtual learning, parent communication). Excluded from other indicators due to high correlation with income (r=0.63) and education (r=0.60).
 
-- ~~`tract_pct_housing_cost_burden_30_plus`~~ - **Removed**: HDI included zero (+0.07 [-0.58, +0.72]); correlation of r=-0.64 with `tract_pct_owner_occupied` indicates it measures the inverse of the same construct. Redundant with existing poverty measures.
+- `tract_pct_housing_cost_burden_30_plus` - **Included for chronic absenteeism only**: Housing instability directly impacts attendance through moves, stress, and transportation issues. Excluded from other indicators where correlation with `tract_pct_owner_occupied` (r=-0.64) makes it redundant with existing poverty measures.
 
 Schools are geocoded to census tracts using their latitude/longitude coordinates via the Census Geocoding API[^35]. This enables joining tract-level ACS data to individual schools for more precise neighborhood characterization.
+
+**Category 6: Institutional Characteristics (5 variables, dummy-encoded)**
+
+Categorical variables representing school classification and federal funding status. These are encoded as binary (0/1) dummy variables to enable their use in regression models while preserving interpretability.
+
+**Title I Status** (Reference: "Not a Title 1 School"):
+- `title_i_schoolwide` - School has Title I Schoolwide program (1=yes, 0=no)
+- `title_i_targeted` - School has Title I Targeted Assistance program (1=yes, 0=no)
+- `title_i_eligible_no_program` - School is Title I eligible but no program implemented (1=yes, 0=no)
+
+**School Type** (Reference: A1 - Standard public school):
+- `school_type_a5` - Alternative program for remediation (1=yes, 0=no)
+- `school_type_a6` - Alternative program for state agency children (1=yes, 0=no)
+
+**Encoding Rationale:** Categorical variables are dummy-encoded with a reference category omitted to avoid multicollinearity. Binary predictors are NOT standardized—they retain their 0/1 values so coefficients represent the effect of "having the characteristic vs. not having it" rather than "per standard deviation change."
+
+**Why include institutional characteristics?** Title I status and school type reflect structural differences in school populations and resources that affect outcomes independently of demographics. For example, alternative schools (A5, A6) serve at-risk populations; their lower outcomes reflect population characteristics, not instructional quality. Including these controls ensures fair comparison of schools serving similar populations.
 
 ### 4.3 Covariate Catalog and Selection Framework
 
@@ -277,30 +294,35 @@ We deliberately include both demographics AND school resources as covariates. Th
 
 ## 5. Identifying Bright Spots
 
-### 5.1 Posterior Probability Criterion
+### 5.1 Credible Interval Criterion
 
-A school is identified as a **Bright Spot** when:
+A school is identified as a **Bright Spot** when its entire 95% credible interval for the school effect is above zero:
 
-$$P(\theta_j > \tau | \text{data}) > 0.80$$
+$$\text{CI}_{2.5\%}(\theta_j) > 0$$
 
 Where:
 - θ_j = school effect (performance relative to expectation)
-- τ = threshold (2.0 percentage points above expected)
-- 0.80 = certification probability
+- CI_{2.5%} = lower bound of the 95% highest density interval
 
-**Interpretation:** "We are at least 80% confident this school's true effect exceeds the threshold, after controlling for demographics and regional patterns."
+**Interpretation:** "We are at least 95% confident this school's true effect is positive (above expectation), after controlling for demographics and regional patterns."
+
+For **reverse indicators** (e.g., chronic absenteeism where lower is better), the criterion is inverted:
+
+$$\text{CI}_{97.5\%}(\theta_j) < 0$$
+
+This ensures a school is only labeled a bright spot when we are 95% confident it is performing better than expected (lower absenteeism in this case).
 
 ### 5.2 Threshold Selection Rationale
 
-The **2.0 percentage point threshold** is conservative:
-- Represents approximately 0.3-0.4 standard deviations
-- Large enough to be practically meaningful
-- Small enough to identify schools with replicable practices
+The **95% credible interval criterion** is conservative:
+- Equivalent to requiring p < 0.05 in frequentist terms
+- Ensures we only identify schools with strong statistical evidence
+- Reduces false positive rate at the cost of potentially missing some true bright spots
 
-The **80% probability criterion** follows conventions in Bayesian decision-making:
-- More conservative than point estimates (which ignore uncertainty)
-- Less stringent than 95% (which may be too demanding for small samples)
-- Balances false positive/negative rates appropriately
+This approach:
+- Avoids arbitrary effect size thresholds
+- Lets the uncertainty in each school's estimate drive the classification
+- Is robust to sample size differences (schools with more data have tighter CIs)
 
 ### 5.3 Credible Intervals
 
@@ -666,11 +688,35 @@ Each model produces the following output files in `analysis/outputs/models/{indi
 |------|-------------|
 | `{indicator}_trace.nc` | Full MCMC trace in NetCDF format (ArviZ compatible) |
 | `model_summary.csv` | Posterior summary statistics for key parameters |
-| `school_effects.csv` | School-level random effects with 95% credible intervals |
+| `school_effects.csv` | School-level random effects with 95% credible intervals and pooling diagnostics |
 | `covariate_effects.csv` | Global predictor effects with shrinkage factors |
 | `county_covariate_effects.csv` | County-specific predictor effects (new in v1.2) |
 
 The `combine_results.py` script aggregates all model outputs into `data/bayesian/bayesian_results.json` for consumption by the Angular dashboard.
+
+### Pooling Diagnostics
+
+The `school_effects.csv` includes two pooling diagnostics that quantify how much each school's estimate is influenced by its own data vs. the statewide pattern:
+
+**Global Pooling Factor (λ)**:
+$$\lambda = \frac{\sigma^2_{school}}{\sigma^2_{school} + \sigma^2_y}$$
+
+This ratio indicates how much weight is given to school-specific data across the model:
+- **λ ≥ 0.7**: Estimates rely mostly on each school's own data (minimal shrinkage)
+- **0.4 ≤ λ < 0.7**: Estimates balance school data with statewide patterns (moderate shrinkage)
+- **λ < 0.4**: Estimates are heavily stabilized using statewide patterns (strong shrinkage)
+
+The pooling factor is computed once per model and applies to all schools in that indicator.
+
+**School-Specific Reliability**:
+$$reliability_j = 1 - \frac{\sigma_{posterior,j}}{\sigma_{prior}}$$
+
+This measures how much a school's estimate improved from prior to posterior:
+- **≥ 0.5**: High reliability—the data substantially informed the estimate
+- **0.25–0.5**: Medium reliability—moderate data contribution
+- **< 0.25**: Low reliability—estimate relies heavily on borrowing from other schools
+
+Schools with low reliability (shown with "⚡ Less certain" badges in the dashboard) should be interpreted with more caution, as their estimates are driven more by the statewide average than their own performance data.
 
 ---
 

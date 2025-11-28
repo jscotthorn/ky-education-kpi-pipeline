@@ -85,6 +85,71 @@ class BaseAnalysisDataset(ABC):
         return str(name).lower().strip()
 
     # =========================================================================
+    # CHUNKED KPI READING - For handling large KPI master file efficiently
+    # =========================================================================
+
+    def read_kpi_chunked(
+        self,
+        metrics: list[str],
+        chunksize: int = 500_000,
+        additional_filters: Optional[dict] = None
+    ) -> pd.DataFrame:
+        """
+        Read KPI master file in chunks, filtering to specific metrics.
+
+        This dramatically reduces memory usage and load time for the 11GB+ KPI file
+        by only keeping rows that match the specified metrics.
+
+        Args:
+            metrics: List of metric names to filter for (e.g., ['graduation_rate_4_year'])
+            chunksize: Number of rows to read per chunk (default 500k)
+            additional_filters: Optional dict of {column: value} for additional filtering
+                               e.g., {'student_group': 'All Students', 'suppressed': lambda x: x != 'Y'}
+
+        Returns:
+            DataFrame containing only rows matching the specified metrics
+        """
+        self.log(f"Reading KPI master file (chunked): {self.KPI_FILE}")
+        self.log(f"  Filtering for metrics: {metrics}")
+
+        chunks = []
+        total_rows_read = 0
+        total_rows_kept = 0
+
+        for chunk in pd.read_csv(self.KPI_FILE, chunksize=chunksize, low_memory=False):
+            total_rows_read += len(chunk)
+
+            # Filter to specified metrics
+            filtered = chunk[chunk['metric'].isin(metrics)].copy()
+
+            # Apply additional filters if provided
+            if additional_filters:
+                for col, filter_val in additional_filters.items():
+                    if col in filtered.columns:
+                        if callable(filter_val):
+                            filtered = filtered[filter_val(filtered[col])]
+                        else:
+                            filtered = filtered[filtered[col] == filter_val]
+
+            if len(filtered) > 0:
+                chunks.append(filtered)
+                total_rows_kept += len(filtered)
+
+            # Progress logging every 5M rows
+            if total_rows_read % 5_000_000 == 0:
+                self.log(f"  Processed {total_rows_read:,} rows, kept {total_rows_kept:,}")
+
+        self.log(f"  Total: processed {total_rows_read:,} rows, kept {total_rows_kept:,}")
+
+        if chunks:
+            result = pd.concat(chunks, ignore_index=True)
+            self.log(f"  Result: {len(result):,} records for {len(metrics)} metric(s)")
+            return result
+        else:
+            self.log("  Warning: No matching records found!")
+            return pd.DataFrame()
+
+    # =========================================================================
     # ABSTRACT METHODS - Subclasses must implement
     # =========================================================================
 
@@ -482,6 +547,64 @@ class BaseAnalysisDataset(ABC):
 
         return census_wide
 
+    def load_institutional_characteristics(self) -> pd.DataFrame:
+        """
+        Load institutional characteristics from KPI master file.
+
+        These are dummy-encoded categorical variables:
+        - Title I Status (schoolwide, targeted, eligible_no_program)
+        - School Type dummies (a5=alternative, a6=state agency children)
+
+        Note: School Type A1 is the reference category (standard public schools).
+        Note: "Not a Title 1 School" is the reference category for Title I.
+        """
+        self.log("LOADING INSTITUTIONAL CHARACTERISTICS", header=True)
+
+        # Define the institutional metrics to load
+        institutional_metrics = [
+            'title_i_schoolwide',
+            'title_i_targeted',
+            'title_i_eligible_no_program',
+            'school_type_a5',
+            'school_type_a6',
+        ]
+
+        # Use chunked reading to efficiently load from large KPI file
+        inst_df = self.read_kpi_chunked(institutional_metrics)
+        self.log(f"  Found {len(inst_df):,} institutional characteristic records")
+
+        if len(inst_df) == 0:
+            self.log("  Warning: No institutional characteristics found in KPI master!")
+            return pd.DataFrame()
+
+        # Convert value to numeric
+        inst_df['value'] = pd.to_numeric(inst_df['value'], errors='coerce')
+
+        # Pivot to wide format
+        pivot_df = inst_df.pivot_table(
+            index=['year', 'school_id'],
+            columns='metric',
+            values='value',
+            aggfunc='first'
+        ).reset_index()
+
+        # Fill missing with 0 (reference category)
+        for col in institutional_metrics:
+            if col in pivot_df.columns:
+                pivot_df[col] = pivot_df[col].fillna(0).astype(int)
+            else:
+                pivot_df[col] = 0
+
+        self.log(f"  Institutional characteristics: {len(pivot_df):,} school-year records")
+
+        # Report distribution
+        for col in institutional_metrics:
+            if col in pivot_df.columns:
+                n_ones = pivot_df[col].sum()
+                self.log(f"    {col}: {n_ones} schools ({100*n_ones/len(pivot_df):.1f}%)")
+
+        return pivot_df
+
     def load_tract_level_data(self) -> pd.DataFrame:
         """
         Load tract-level Census ACS data for within-county variation.
@@ -703,7 +826,8 @@ class BaseAnalysisDataset(ABC):
 
     def merge_covariates(self, outcome_df: pd.DataFrame, demo_df: pd.DataFrame,
                          teacher_df: pd.DataFrame, financial_df: pd.DataFrame,
-                         census_df: pd.DataFrame, tract_df: pd.DataFrame) -> pd.DataFrame:
+                         census_df: pd.DataFrame, tract_df: pd.DataFrame,
+                         institutional_df: pd.DataFrame = None) -> pd.DataFrame:
         """Merge all covariate DataFrames with the outcome data."""
         self.log("MERGING DATASETS", header=True)
 
@@ -861,6 +985,36 @@ class BaseAnalysisDataset(ABC):
         else:
             self.log("\n5. Skipping tract-level data (not available)")
 
+        # 6. Merge institutional characteristics (Title I, School Type dummies)
+        if institutional_df is not None and len(institutional_df) > 0:
+            self.log("\n6. Merging institutional characteristics...")
+
+            # Normalize school_id for matching
+            def normalize_school_id(x):
+                if pd.isna(x):
+                    return None
+                return str(int(float(x)))
+
+            merged['school_id'] = merged['school_id'].apply(normalize_school_id)
+            institutional_df = institutional_df.copy()
+            institutional_df['school_id'] = institutional_df['school_id'].apply(normalize_school_id)
+
+            merged = merged.merge(
+                institutional_df,
+                on=['year', 'school_id'],
+                how='left'
+            )
+
+            inst_cols = [c for c in institutional_df.columns if c.startswith('title_i_') or c.startswith('school_type_')]
+            for col in inst_cols:
+                if col in merged.columns:
+                    # Fill NaN with 0 (reference category)
+                    merged[col] = merged[col].fillna(0).astype(int)
+                    n_ones = merged[col].sum()
+                    self.log(f"   {col}: {n_ones} / {len(merged)} ({100*n_ones/len(merged):.1f}%)")
+        else:
+            self.log("\n6. Skipping institutional characteristics (not available)")
+
         return merged
 
     # =========================================================================
@@ -920,6 +1074,13 @@ class BaseAnalysisDataset(ABC):
         if len(tract_cols) > 5:
             self.log(f"  ... and {len(tract_cols) - 5} more")
 
+        inst_cols = [c for c in df.columns if c.startswith('title_i_') or c.startswith('school_type_')]
+        if inst_cols:
+            self.log(f"\nInstitutional Characteristics ({len(inst_cols)}):")
+            for col in inst_cols:
+                n_ones = df[col].sum()
+                self.log(f"  {col}: {n_ones} schools ({100*n_ones/len(df):.1f}%)")
+
     # =========================================================================
     # MAIN WORKFLOW
     # =========================================================================
@@ -945,17 +1106,21 @@ class BaseAnalysisDataset(ABC):
         financial_df = self.load_financial_metrics()
         census_df = self.load_census_county_data()
         tract_df = self.load_tract_level_data()
+        institutional_df = self.load_institutional_characteristics()
 
         # Merge all datasets
         merged = self.merge_covariates(
-            outcome_df, demo_df, teacher_df, financial_df, census_df, tract_df
+            outcome_df, demo_df, teacher_df, financial_df, census_df, tract_df,
+            institutional_df
         )
 
         # Add region classification
         merged = self.add_region_mapping(merged)
 
-        # Add Fayette County indicator
-        merged['is_fayette'] = (merged['district'] == 'Fayette County').astype(int)
+        # Add Fayette County indicator (check both district name and county_name)
+        is_fayette_district = merged['district'] == 'Fayette County'
+        is_fayette_county = merged['county_name'].str.upper() == 'FAYETTE' if 'county_name' in merged.columns else False
+        merged['is_fayette'] = (is_fayette_district | is_fayette_county).astype(int)
         self.log(f"\nFayette County schools: {merged['is_fayette'].sum()}")
 
         # Handle missing values

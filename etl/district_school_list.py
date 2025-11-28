@@ -2,12 +2,30 @@
 District School List ETL Module
 
 Processes Kentucky school directory data to extract school location coordinates
-as KPI metrics. This provides latitude and longitude for geographic analysis
-and mapping of school-level metrics.
+and institutional characteristics as KPI metrics.
 
 Data includes:
 - School latitude (decimal degrees)
 - School longitude (decimal degrees)
+- School Type (dummy-encoded for Bayesian models)
+- Title I Status (dummy-encoded for Bayesian models)
+
+School Type codes (KDE classification):
+- A1: Standard public school (reference category)
+- A2: Career/Technical Education center
+- A3: Special education program
+- A4: Preschool program
+- A5: Alternative program (remediation)
+- A6: Alternative program (state agency children)
+- A8, B1, B2, C2, D1: Other classifications
+
+Title I Status categories:
+- Not a Title 1 School (reference category)
+- Title 1 Eligible - Schoolwide School
+- Title 1 Eligible - Targeted Assistance School
+- Title 1 Eligible - No Program
+- Title 1 - Schoolwide School
+- Title 1 Eligible - Schoolwide Program
 
 Note: This is institutional-level data without demographic breakdowns.
 All records have student_group='All Students'.
@@ -57,14 +75,35 @@ class DistrictSchoolListETL(BaseETL):
             'Co-Op': 'co_op',
         }
 
+    # School Type codes to create dummy variables for (A1 is reference category)
+    SCHOOL_TYPE_DUMMIES = ['A2', 'A3', 'A4', 'A5', 'A6', 'A8', 'B1', 'B2', 'C2', 'D1']
+
+    # Title I Status categories (reference: "Not a Title 1 School")
+    # We create a simplified binary indicator plus a "schoolwide" indicator
+    TITLE_I_SCHOOLWIDE_PATTERNS = [
+        'Title 1 Eligible - Schoolwide School',
+        'Title 1 - Schoolwide School',
+        'Title 1 Eligible - Schoolwide Program',
+    ]
+    TITLE_I_TARGETED_PATTERNS = [
+        'Title 1 Eligible - Targeted Assistance School',
+    ]
+    TITLE_I_ELIGIBLE_NO_PROGRAM_PATTERNS = [
+        'Title 1 Eligible - No Program',
+    ]
+
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
-        """Extract latitude, longitude, and grade range as KPI metrics.
+        """Extract latitude, longitude, grade range, school type, and Title I status.
 
         Both coordinates must be valid for either to be included. This ensures
         geographic data integrity - a school with only one valid coordinate
         would be unusable for mapping purposes.
 
         Grade range (low_grade, high_grade) is extracted for school type classification.
+
+        School Type and Title I Status are dummy-encoded for use in Bayesian models:
+        - School Type: A1 is reference category (1150 schools, 77% of data)
+        - Title I: "Not a Title 1 School" is reference category (368 schools, 25%)
         """
         metrics = {}
         lat_value = None
@@ -109,6 +148,63 @@ class DistrictSchoolListETL(BaseETL):
         if pd.notna(high_grade):
             metrics['school_high_grade'] = self._normalize_grade(high_grade)
 
+        # Extract School Type dummy variables
+        school_type = row.get('school_type', pd.NA)
+        metrics.update(self._encode_school_type(school_type))
+
+        # Extract Title I Status dummy variables
+        title_i_status = row.get('title_i_status', pd.NA)
+        metrics.update(self._encode_title_i_status(title_i_status))
+
+        return metrics
+
+    def _encode_school_type(self, school_type: Any) -> Dict[str, int]:
+        """Encode School Type as dummy variables.
+
+        A1 (standard public school) is the reference category and is omitted.
+        Returns binary indicators for other school types.
+        """
+        metrics = {}
+
+        # Initialize all dummies to 0
+        for code in self.SCHOOL_TYPE_DUMMIES:
+            metrics[f'school_type_{code.lower()}'] = 0
+
+        if pd.notna(school_type):
+            school_type_str = str(school_type).strip().upper()
+            # Set the appropriate dummy to 1 if it matches
+            if school_type_str in self.SCHOOL_TYPE_DUMMIES:
+                metrics[f'school_type_{school_type_str.lower()}'] = 1
+
+        return metrics
+
+    def _encode_title_i_status(self, title_i_status: Any) -> Dict[str, int]:
+        """Encode Title I Status as dummy variables.
+
+        Creates three binary indicators:
+        - title_i_schoolwide: 1 if school has schoolwide Title I program
+        - title_i_targeted: 1 if school has targeted assistance Title I program
+        - title_i_eligible_no_program: 1 if eligible but no program implemented
+
+        Reference category: "Not a Title 1 School" (all dummies = 0)
+        """
+        metrics = {
+            'title_i_schoolwide': 0,
+            'title_i_targeted': 0,
+            'title_i_eligible_no_program': 0,
+        }
+
+        if pd.notna(title_i_status):
+            status_str = str(title_i_status).strip()
+
+            if status_str in self.TITLE_I_SCHOOLWIDE_PATTERNS:
+                metrics['title_i_schoolwide'] = 1
+            elif status_str in self.TITLE_I_TARGETED_PATTERNS:
+                metrics['title_i_targeted'] = 1
+            elif status_str in self.TITLE_I_ELIGIBLE_NO_PROGRAM_PATTERNS:
+                metrics['title_i_eligible_no_program'] = 1
+            # "Not a Title 1 School" -> all zeros (reference category)
+
         return metrics
 
     def _normalize_grade(self, grade: Any) -> float:
@@ -146,12 +242,20 @@ class DistrictSchoolListETL(BaseETL):
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         """Get default metrics for suppressed records (unlikely for directory data)."""
-        return {
+        defaults = {
             'school_latitude': pd.NA,
             'school_longitude': pd.NA,
             'school_low_grade': pd.NA,
             'school_high_grade': pd.NA,
         }
+        # Add School Type dummies (all 0 = A1 reference category)
+        for code in self.SCHOOL_TYPE_DUMMIES:
+            defaults[f'school_type_{code.lower()}'] = 0
+        # Add Title I dummies (all 0 = Not a Title 1 School)
+        defaults['title_i_schoolwide'] = 0
+        defaults['title_i_targeted'] = 0
+        defaults['title_i_eligible_no_program'] = 0
+        return defaults
 
     def should_skip_row(self, row: pd.Series) -> bool:
         """

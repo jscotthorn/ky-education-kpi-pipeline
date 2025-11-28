@@ -18,8 +18,14 @@ import numpy as np
 import pymc as pm
 import arviz as az
 import matplotlib.pyplot as plt
+import seaborn as sns
 import warnings
-warnings.filterwarnings('ignore')
+# Filter specific warnings rather than blanket suppression
+# This allows important convergence warnings to surface
+warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', message='.*deprecated.*')
+warnings.filterwarnings('ignore', message='.*Tuning samples will be drawn.*')
+warnings.filterwarnings('ignore', message='.*Auto-assigning.*')  # PyMC auto-assignment messages
 
 
 class BaseHierarchicalModel(ABC):
@@ -102,6 +108,35 @@ class BaseHierarchicalModel(ABC):
             'tract_pct_owner_occupied',
         ]
 
+    def get_institutional_columns(self) -> List[str]:
+        """
+        Return list of institutional characteristic columns (dummy-encoded categorical).
+
+        These are binary indicators for school type and Title I status.
+        Reference categories (all dummies = 0):
+        - School Type: A1 (standard public school)
+        - Title I: Not a Title 1 School
+        """
+        return [
+            # Title I status (most common categories)
+            'title_i_schoolwide',
+            'title_i_targeted',
+            'title_i_eligible_no_program',
+            # School type (most relevant for outcome analysis)
+            'school_type_a5',   # Alternative programs
+            'school_type_a6',   # State agency children
+        ]
+
+    def get_binary_columns(self) -> List[str]:
+        """
+        Return list of columns that are binary (0/1) and should NOT be standardized.
+
+        Binary/dummy variables retain their natural interpretation when kept at 0/1,
+        whereas standardization would change their interpretation (coefficient becomes
+        effect per SD rather than effect of having vs not having the characteristic).
+        """
+        return self.get_institutional_columns()
+
     def get_model_description(self) -> str:
         """Return description for print output."""
         return f"BAYESIAN HIERARCHICAL MODEL - {self.MODEL_NAME.upper()}"
@@ -134,6 +169,7 @@ class BaseHierarchicalModel(ABC):
         self.data = None
         self.model = None
         self.trace = None
+        self.imputation_summary: list = []  # Track missing data imputation for reporting
 
     def log(self, message: str, header: bool = False):
         """Print message if verbose mode is on."""
@@ -210,9 +246,11 @@ class BaseHierarchicalModel(ABC):
 
         tract_census_cols = self.get_tract_columns()
 
+        institutional_cols = self.get_institutional_columns()
+
         # Combine all predictor categories
         all_predictor_cols = (demographic_cols + teacher_quality_cols + financial_cols +
-                              county_census_cols + tract_census_cols)
+                              county_census_cols + tract_census_cols + institutional_cols)
 
         # Check which predictors are available and have data
         # Exclude columns that are entirely NaN (e.g., tract data for high schools without geocoding)
@@ -227,6 +265,7 @@ class BaseHierarchicalModel(ABC):
         avail_financial = [c for c in financial_cols if c in available_predictors]
         avail_county = [c for c in county_census_cols if c in available_predictors]
         avail_tract = [c for c in tract_census_cols if c in available_predictors]
+        avail_institutional = [c for c in institutional_cols if c in available_predictors]
 
         self.log("\n" + "-" * 60)
         self.log("PREDICTORS BY CATEGORY")
@@ -237,29 +276,105 @@ class BaseHierarchicalModel(ABC):
         self._print_predictor_category("3. Financial Resources", avail_financial, financial_cols, df)
         self._print_predictor_category("4. Census - County Level", avail_county, county_census_cols, df)
         self._print_predictor_category("5. Census - Tract Level", avail_tract, tract_census_cols, df)
+        self._print_predictor_category("6. Institutional (categorical)", avail_institutional, institutional_cols, df)
 
         self.log(f"\nTotal predictors: {len(available_predictors)}")
 
         # Get predictor matrix and handle missing values
         X = df[available_predictors].copy()
+        n_obs = len(X)
 
+        # Compute missing data statistics
         missing_counts = X.isna().sum()
+        missing_pcts = (missing_counts / n_obs * 100).round(1)
+
         if missing_counts.sum() > 0:
-            self.log(f"\nHandling missing predictor values:")
+            self.log(f"\nMISSING DATA DIAGNOSTICS")
+            self.log("-" * 60)
+
+            # Categorize by missingness severity
+            high_missing = []  # >10% missing
+            moderate_missing = []  # 5-10% missing
+            low_missing = []  # <5% missing
+
+            for col in X.columns:
+                n_missing = missing_counts[col]
+                pct_missing = missing_pcts[col]
+                if n_missing > 0:
+                    if pct_missing > 10:
+                        high_missing.append((col, n_missing, pct_missing))
+                    elif pct_missing > 5:
+                        moderate_missing.append((col, n_missing, pct_missing))
+                    else:
+                        low_missing.append((col, n_missing, pct_missing))
+
+            if high_missing:
+                self.log(f"\n  HIGH MISSINGNESS (>10%) - Consider excluding or careful interpretation:")
+                for col, n, pct in high_missing:
+                    self.log(f"    {col}: {n} obs ({pct}%)")
+
+            if moderate_missing:
+                self.log(f"\n  MODERATE MISSINGNESS (5-10%) - Mean imputation may bias results:")
+                for col, n, pct in moderate_missing:
+                    self.log(f"    {col}: {n} obs ({pct}%)")
+
+            if low_missing:
+                self.log(f"\n  LOW MISSINGNESS (<5%) - Mean imputation acceptable:")
+                for col, n, pct in low_missing:
+                    self.log(f"    {col}: {n} obs ({pct}%)")
+
+            # Apply mean imputation with explicit logging
+            self.log(f"\n  Applying mean imputation to all missing values...")
+            imputation_summary = []
             for col in X.columns:
                 n_missing = X[col].isna().sum()
                 if n_missing > 0:
                     col_mean = X[col].mean()
                     X[col] = X[col].fillna(col_mean)
-                    self.log(f"  {col}: Imputed {n_missing} missing with mean {col_mean:.2f}")
+                    imputation_summary.append({
+                        'column': col,
+                        'n_imputed': n_missing,
+                        'pct_imputed': missing_pcts[col],
+                        'imputed_value': col_mean
+                    })
+
+            # Store imputation info for potential downstream reporting
+            self.imputation_summary = imputation_summary
+
+            total_imputed = sum(item['n_imputed'] for item in imputation_summary)
+            total_cells = n_obs * len(X.columns)
+            self.log(f"\n  Total: {total_imputed} values imputed ({total_imputed/total_cells*100:.2f}% of data matrix)")
+            self.log(f"\n  NOTE: Mean imputation can attenuate coefficient estimates toward zero.")
+            self.log(f"  Coefficients for predictors with >5% missing should be interpreted cautiously.")
+
+        # Identify binary columns that should NOT be standardized
+        binary_cols = set(self.get_binary_columns())
+        is_binary = np.array([col in binary_cols for col in available_predictors])
 
         X = X.values
 
-        # Standardize predictors
+        # Standardize continuous predictors, keep binary predictors at 0/1
+        # This preserves the interpretation of binary coefficients as
+        # "effect of having characteristic vs not having it"
         X_mean = X.mean(axis=0)
         X_std = X.std(axis=0)
         X_std = np.where(X_std == 0, 1, X_std)
-        X_scaled = (X - X_mean) / X_std
+
+        # Create scaled version
+        X_scaled = np.zeros_like(X, dtype=float)
+        for i in range(X.shape[1]):
+            if is_binary[i]:
+                # Keep binary predictors as-is (0/1)
+                X_scaled[:, i] = X[:, i]
+            else:
+                # Standardize continuous predictors
+                X_scaled[:, i] = (X[:, i] - X_mean[i]) / X_std[i]
+
+        n_binary = is_binary.sum()
+        if n_binary > 0:
+            self.log(f"\nBinary predictors (NOT standardized): {n_binary}")
+            for col in [available_predictors[i] for i in range(len(available_predictors)) if is_binary[i]]:
+                self.log(f"   {col}")
 
         # Outcome
         y = df[self.OUTCOME_NAME].values
@@ -295,7 +410,8 @@ class BaseHierarchicalModel(ABC):
                 'teacher_quality': avail_teacher,
                 'financial': avail_financial,
                 'county_census': avail_county,
-                'tract_census': avail_tract
+                'tract_census': avail_tract,
+                'institutional': avail_institutional
             }
         }
 
@@ -769,6 +885,230 @@ class BaseHierarchicalModel(ABC):
             return None, False
 
     # =========================================================================
+    # COLLINEARITY DIAGNOSTICS
+    # =========================================================================
+
+    def compute_collinearity_diagnostics(self, significant_only: bool = True) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        """
+        Compute collinearity diagnostics for predictors.
+
+        Computes:
+        1. VIF (Variance Inflation Factor) for each predictor
+        2. Pairwise correlation matrix
+        3. Bivariate correlations with outcome (to detect suppression effects)
+
+        Args:
+            significant_only: If True, only analyze significant predictors (based on 95% CI)
+
+        Returns:
+            Tuple of (vif_df, correlation_matrix, suppression_df)
+        """
+        if self.trace is None or self.data is None:
+            raise ValueError("Must call sample_posterior() first")
+
+        self.log("COLLINEARITY DIAGNOSTICS", header=True)
+
+        # Get predictor data (unscaled for correlation interpretation)
+        X_unscaled = self.data['df'][self.data['predictor_names']].copy()
+        y = self.data['y']
+        predictor_names = self.data['predictor_names']
+
+        # Get coefficient estimates
+        beta_samples = self.trace.posterior['beta'].values
+        beta_means = beta_samples.mean(axis=(0, 1))
+        beta_lower = np.percentile(beta_samples, 2.5, axis=(0, 1))
+        beta_upper = np.percentile(beta_samples, 97.5, axis=(0, 1))
+
+        # Identify significant predictors (95% CI excludes zero)
+        significant_mask = (beta_lower > 0) | (beta_upper < 0)
+        significant_predictors = [p for p, sig in zip(predictor_names, significant_mask) if sig]
+
+        self.log(f"\nSignificant predictors (95% CI excludes zero): {len(significant_predictors)}/{len(predictor_names)}")
+
+        # Select predictors to analyze
+        if significant_only and len(significant_predictors) >= 2:
+            analyze_predictors = significant_predictors
+            self.log("Analyzing significant predictors only")
+        else:
+            analyze_predictors = predictor_names
+            self.log("Analyzing all predictors")
+
+        X_analyze = X_unscaled[analyze_predictors].copy()
+
+        # Handle any remaining NaN values
+        X_analyze = X_analyze.fillna(X_analyze.mean())
+
+        # ---------------------------------------------------------------------
+        # 1. VARIANCE INFLATION FACTOR (VIF)
+        # ---------------------------------------------------------------------
+        self.log("\n" + "-" * 60)
+        self.log("1. VARIANCE INFLATION FACTOR (VIF)")
+        self.log("-" * 60)
+        self.log("   VIF > 5: moderate concern | VIF > 10: high multicollinearity")
+
+        try:
+            from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+            # Standardize for VIF calculation
+            X_std = (X_analyze - X_analyze.mean()) / X_analyze.std()
+            X_std = X_std.dropna(axis=1, how='all')  # Drop any all-NaN columns
+
+            vif_data = []
+            for i, predictor in enumerate(X_std.columns):
+                vif = variance_inflation_factor(X_std.values, i)
+                vif_data.append({
+                    'predictor': predictor,
+                    'VIF': vif,
+                    'flag': '⚠️ HIGH' if vif > 10 else ('⚠️' if vif > 5 else '')
+                })
+
+            vif_df = pd.DataFrame(vif_data).sort_values('VIF', ascending=False)
+
+            # Print VIF results
+            self.log("\n   Predictor                             VIF     Flag")
+            self.log("   " + "-" * 55)
+            for _, row in vif_df.iterrows():
+                self.log(f"   {row['predictor']:35s} {row['VIF']:7.2f}   {row['flag']}")
+
+            # Flag any high VIF
+            high_vif = vif_df[vif_df['VIF'] > 5]
+            if len(high_vif) > 0:
+                self.log(f"\n   WARNING: {len(high_vif)} predictor(s) with VIF > 5")
+            else:
+                self.log("\n   All VIF values are acceptable (< 5)")
+
+        except ImportError:
+            self.log("\n   statsmodels not available - skipping VIF calculation")
+            vif_df = pd.DataFrame()
+        except Exception as e:
+            self.log(f"\n   VIF calculation failed: {e}")
+            vif_df = pd.DataFrame()
+
+        # ---------------------------------------------------------------------
+        # 2. PAIRWISE CORRELATION MATRIX
+        # ---------------------------------------------------------------------
+        self.log("\n" + "-" * 60)
+        self.log("2. PAIRWISE CORRELATIONS (significant predictors)")
+        self.log("-" * 60)
+
+        corr_matrix = X_analyze.corr()
+
+        # Find high correlations (|r| > 0.5)
+        high_corrs = []
+        for i, pred1 in enumerate(analyze_predictors):
+            for j, pred2 in enumerate(analyze_predictors):
+                if i < j:  # Upper triangle only
+                    r = corr_matrix.loc[pred1, pred2]
+                    if abs(r) > 0.5:
+                        high_corrs.append({
+                            'predictor_1': pred1,
+                            'predictor_2': pred2,
+                            'correlation': r
+                        })
+
+        if high_corrs:
+            self.log(f"\n   High correlations (|r| > 0.5):")
+            for hc in sorted(high_corrs, key=lambda x: -abs(x['correlation'])):
+                self.log(f"   {hc['predictor_1'][:25]:25s} <-> {hc['predictor_2'][:25]:25s}: r={hc['correlation']:+.3f}")
+        else:
+            self.log("\n   No pairwise correlations exceed |r| = 0.5")
+
+        # Generate correlation heatmap
+        if len(analyze_predictors) >= 2:
+            fig, ax = plt.subplots(figsize=(12, 10))
+            mask = np.triu(np.ones_like(corr_matrix, dtype=bool), k=1)
+            sns.heatmap(corr_matrix, mask=mask, annot=True, fmt='.2f', cmap='RdBu_r',
+                       center=0, vmin=-1, vmax=1, square=True, ax=ax,
+                       annot_kws={'size': 8})
+            ax.set_title('Pairwise Correlations (Significant Predictors)')
+            plt.tight_layout()
+            corr_file = self.DIAG_DIR / 'predictor_correlations.png'
+            plt.savefig(corr_file, dpi=300, bbox_inches='tight')
+            plt.close()
+            self.log(f"\n   Saved: {corr_file}")
+
+        # ---------------------------------------------------------------------
+        # 3. SUPPRESSION EFFECT DETECTION
+        # ---------------------------------------------------------------------
+        self.log("\n" + "-" * 60)
+        self.log("3. SUPPRESSION EFFECT DETECTION")
+        self.log("-" * 60)
+        self.log("   Comparing bivariate correlation with outcome vs model coefficient")
+        self.log("   Sign flip or large magnitude change may indicate suppression")
+
+        suppression_data = []
+        for i, predictor in enumerate(predictor_names):
+            # Bivariate correlation with outcome
+            pred_values = X_unscaled[predictor].fillna(X_unscaled[predictor].mean())
+            bivar_corr = np.corrcoef(pred_values, y)[0, 1]
+
+            # Model coefficient (standardized effect)
+            model_coef = beta_means[i]
+            coef_lower = beta_lower[i]
+            coef_upper = beta_upper[i]
+            is_significant = (coef_lower > 0) or (coef_upper < 0)
+
+            # Detect potential suppression
+            sign_flip = (bivar_corr * model_coef) < 0
+            magnitude_change = abs(model_coef) > 2 * abs(bivar_corr) if abs(bivar_corr) > 0.05 else False
+
+            suppression_flag = ''
+            if sign_flip and is_significant:
+                suppression_flag = '⚠️ SIGN FLIP'
+            elif magnitude_change and is_significant:
+                suppression_flag = '⚠️ MAGNITUDE'
+
+            suppression_data.append({
+                'predictor': predictor,
+                'bivariate_corr': bivar_corr,
+                'model_coef': model_coef,
+                'coef_ci_lower': coef_lower,
+                'coef_ci_upper': coef_upper,
+                'significant': is_significant,
+                'sign_flip': sign_flip,
+                'suppression_flag': suppression_flag
+            })
+
+        suppression_df = pd.DataFrame(suppression_data)
+
+        # Print suppression analysis
+        self.log("\n   Predictor                          Bivar r   Coef     Significant   Flag")
+        self.log("   " + "-" * 75)
+        for _, row in suppression_df.sort_values('model_coef', key=abs, ascending=False).iterrows():
+            sig_str = "***" if row['significant'] else ""
+            self.log(f"   {row['predictor']:35s} {row['bivariate_corr']:+.3f}   {row['model_coef']:+.3f}   {sig_str:3s}          {row['suppression_flag']}")
+
+        # Highlight potential suppression effects
+        suppressors = suppression_df[suppression_df['suppression_flag'] != '']
+        if len(suppressors) > 0:
+            self.log(f"\n   POTENTIAL SUPPRESSION EFFECTS DETECTED:")
+            for _, row in suppressors.iterrows():
+                self.log(f"   - {row['predictor']}: bivariate r={row['bivariate_corr']:+.3f}, "
+                        f"model coef={row['model_coef']:+.3f} ({row['suppression_flag']})")
+            self.log("\n   Note: Suppression occurs when controlling for other variables changes")
+            self.log("   the relationship between a predictor and outcome. This is not necessarily")
+            self.log("   problematic - it may reveal the true partial effect after accounting for")
+            self.log("   confounders. Interpret coefficients as conditional effects.")
+        else:
+            self.log("\n   No obvious suppression effects detected")
+
+        # Save diagnostics to CSV
+        if len(vif_df) > 0:
+            vif_file = self.MODEL_DIR / "collinearity_vif.csv"
+            vif_df.to_csv(vif_file, index=False)
+            self.log(f"\n   Saved VIF: {vif_file}")
+
+        corr_file_csv = self.MODEL_DIR / "collinearity_correlations.csv"
+        corr_matrix.to_csv(corr_file_csv)
+        self.log(f"   Saved correlations: {corr_file_csv}")
+
+        suppression_file = self.MODEL_DIR / "collinearity_suppression.csv"
+        suppression_df.to_csv(suppression_file, index=False)
+        self.log(f"   Saved suppression analysis: {suppression_file}")
+
+        return vif_df, corr_matrix, suppression_df
+
+    # =========================================================================
     # RESULTS SAVING
     # =========================================================================
 
@@ -819,6 +1159,53 @@ class BaseHierarchicalModel(ABC):
             return 'other'
         covariate_df['category'] = covariate_df['predictor'].apply(get_category)
 
+        # Add bivariate correlations and interpretation flags for downstream reporting
+        X_unscaled = self.data['df'][self.data['predictor_names']]
+        y = self.data['y']
+        bivar_corrs = []
+        interpretations = []
+
+        for i, predictor in enumerate(self.data['predictor_names']):
+            # Compute bivariate correlation with outcome
+            pred_values = X_unscaled[predictor].fillna(X_unscaled[predictor].mean())
+            bivar_r = np.corrcoef(pred_values, y)[0, 1]
+            bivar_corrs.append(bivar_r)
+
+            # Determine interpretation category
+            # Categories:
+            #   - not_significant: 95% CI includes zero
+            #   - suppressed_sign_flip: bivariate and model coefficient have opposite signs (RED FLAG)
+            #   - conditional_only: near-zero bivariate but significant model effect
+            #   - suppressed_weakened: same sign but model effect much weaker than bivariate
+            #   - direct_effect: same sign, similar or stronger magnitude (includes strengthened effects)
+            model_coef = beta_means[i]
+            is_significant = (beta_lower_2_5[i] > 0) or (beta_upper_97_5[i] < 0)
+            sign_flip = (bivar_r * model_coef) < 0
+            near_zero_bivar = abs(bivar_r) < 0.05
+            same_sign = (bivar_r * model_coef) > 0
+            # Effect weakened substantially (same sign but model coef < 50% of bivariate)
+            weakened = same_sign and (abs(model_coef) < 0.5 * abs(bivar_r)) if abs(bivar_r) > 0.1 else False
+
+            if not is_significant:
+                interpretation = "not_significant"
+            elif sign_flip:
+                interpretation = "suppressed_sign_flip"
+            elif near_zero_bivar and abs(model_coef) > 0.5:
+                interpretation = "conditional_only"
+            elif weakened:
+                interpretation = "suppressed_weakened"
+            else:
+                interpretation = "direct_effect"
+
+            interpretations.append(interpretation)
+
+        covariate_df['bivariate_corr'] = bivar_corrs
+        covariate_df['interpretation'] = interpretations
+
+        # Add a flag for effects safe to report without caveats
+        # direct_effect and not_significant are safe; suppressed effects need caveats
+        covariate_df['report_safe'] = covariate_df['interpretation'].isin(['direct_effect', 'not_significant'])
+
         # Check for horseshoe priors
         has_horseshoe = 'tau' in self.trace.posterior and 'lambdas' in self.trace.posterior
         if has_horseshoe:
@@ -844,16 +1231,35 @@ class BaseHierarchicalModel(ABC):
         self.log("COVARIATE EFFECTS (sorted by magnitude)")
         self.log("-" * 60)
 
+        # Show interpretation flags for suppressed effects
+        interp_symbols = {
+            'direct_effect': '',
+            'not_significant': '',
+            'suppressed_sign_flip': '[SIGN]',
+            'suppressed_weakened': '[WEAK]',
+            'conditional_only': '[COND]'
+        }
+
         for _, row in covariate_df.iterrows():
             sig = "***" if row['ci_lower_2.5'] * row['ci_upper_97.5'] > 0 else ""
+            interp_flag = interp_symbols.get(row['interpretation'], '')
             if has_horseshoe:
                 shrink = row['shrinkage_factor']
                 eff = "+" if row['effective'] else " "
                 self.log(f"  {eff} {row['predictor']:35s}: {row['effect_mean']:+.3f} "
-                        f"({row['ci_lower_2.5']:+.3f}, {row['ci_upper_97.5']:+.3f}) shrink={shrink:.2f} {sig}")
+                        f"({row['ci_lower_2.5']:+.3f}, {row['ci_upper_97.5']:+.3f}) shrink={shrink:.2f} {sig} {interp_flag}")
             else:
                 self.log(f"  {row['predictor']:37s}: {row['effect_mean']:+.3f} "
-                        f"({row['ci_lower_2.5']:+.3f}, {row['ci_upper_97.5']:+.3f}) {sig}")
+                        f"({row['ci_lower_2.5']:+.3f}, {row['ci_upper_97.5']:+.3f}) {sig} {interp_flag}")
+
+        # Print interpretation key if any suppression detected
+        suppressed = covariate_df[covariate_df['interpretation'].str.startswith('suppressed') |
+                                   (covariate_df['interpretation'] == 'conditional_only')]
+        if len(suppressed) > 0:
+            self.log("\n  Interpretation flags:")
+            self.log("    [SIGN] = sign flip from bivariate correlation (suppression - needs caveat)")
+            self.log("    [WEAK] = effect weakened substantially after controls (suppression)")
+            self.log("    [COND] = near-zero bivariate, significant conditional effect")
 
         # Save school effects
         school_effects = self.trace.posterior['school_effect'].values
@@ -869,6 +1275,38 @@ class BaseHierarchicalModel(ABC):
         district_names = self.data['df'].groupby('school_cat')['district'].first().values
         is_fayette = self.data['df'].groupby('school_cat')['is_fayette'].first().values
 
+        # Compute pooling/shrinkage diagnostics
+        # The pooling factor λ = σ²_school / (σ²_school + σ²_y)
+        # indicates how much the school estimate relies on its own data vs. being shrunk to group mean
+        # λ close to 1 = minimal shrinkage (estimate mostly from own data)
+        # λ close to 0 = heavy shrinkage (estimate mostly from group mean)
+        sigma_school_samples = self.trace.posterior['sigma_school'].values.flatten()
+        sigma_y_samples = self.trace.posterior['sigma_y'].values.flatten()
+
+        # Compute pooling factor for each posterior draw
+        pooling_factor_samples = (sigma_school_samples**2) / (sigma_school_samples**2 + sigma_y_samples**2)
+        pooling_factor_mean = pooling_factor_samples.mean()
+        pooling_factor_std = pooling_factor_samples.std()
+        pooling_factor_lower = np.percentile(pooling_factor_samples, 2.5)
+        pooling_factor_upper = np.percentile(pooling_factor_samples, 97.5)
+
+        # For individual schools, compute reliability as the ratio of posterior to prior variance
+        # Schools with smaller posterior variance relative to prior have more reliable estimates
+        sigma_school_mean = sigma_school_samples.mean()
+        # Reliability for each school: how much the posterior SD is reduced from prior
+        # reliability = 1 - (posterior_std / prior_std), bounded to [0, 1]
+        school_reliability = np.clip(1 - (school_effects_std / sigma_school_mean), 0, 1)
+
+        self.log("\n" + "-" * 60)
+        self.log("POOLING DIAGNOSTICS")
+        self.log("-" * 60)
+        self.log(f"  Global pooling factor (λ): {pooling_factor_mean:.3f} [{pooling_factor_lower:.3f}, {pooling_factor_upper:.3f}]")
+        self.log(f"    (λ=1: no shrinkage, λ=0: complete shrinkage to group mean)")
+        self.log(f"  σ_school: {sigma_school_mean:.2f}")
+        self.log(f"  σ_y: {sigma_y_samples.mean():.2f}")
+        self.log(f"  School reliability range: {school_reliability.min():.3f} - {school_reliability.max():.3f}")
+        self.log(f"  Schools with high reliability (>0.5): {(school_reliability > 0.5).sum()} / {len(school_reliability)}")
+
         school_effects_df = pd.DataFrame({
             'school_id': school_ids,
             'school_name': school_names,
@@ -879,7 +1317,9 @@ class BaseHierarchicalModel(ABC):
             'ci_lower_2.5': school_effects_lower_2_5,
             'ci_upper_97.5': school_effects_upper_97_5,
             'ci_lower_10': school_effects_lower_10,
-            'ci_upper_90': school_effects_upper_90
+            'ci_upper_90': school_effects_upper_90,
+            'pooling_factor': pooling_factor_mean,  # Global factor (same for all schools in this model)
+            'reliability': school_reliability  # School-specific reliability based on posterior precision
         })
 
         effects_file = self.MODEL_DIR / "school_effects.csv"
@@ -997,6 +1437,9 @@ class BaseHierarchicalModel(ABC):
 
         # Posterior predictive checks
         ppc_passed = self.posterior_predictive_checks()
+
+        # Collinearity diagnostics
+        self.compute_collinearity_diagnostics()
 
         # LOO-CV
         if run_loo:

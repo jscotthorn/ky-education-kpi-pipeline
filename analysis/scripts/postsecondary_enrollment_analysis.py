@@ -51,12 +51,8 @@ class PostsecondaryEnrollmentAnalysisDataset(BaseAnalysisDataset):
         """Load postsecondary enrollment rate data from KPI master."""
         self.log("LOADING POSTSECONDARY ENROLLMENT RATE DATA", header=True)
 
-        # Read KPI master file
-        self.log(f"Reading KPI master file: {self.KPI_FILE}")
-        df = pd.read_csv(self.KPI_FILE, low_memory=False)
-
-        # Filter to postsecondary enrollment rate
-        ps_df = df[df['metric'] == 'postsecondary_enrollment_total_ky_college_rate'].copy()
+        # Use chunked reading to efficiently load from large KPI file
+        ps_df = self.read_kpi_chunked(['postsecondary_enrollment_total_ky_college_rate'])
         self.log(f"Found {len(ps_df):,} postsecondary enrollment rate records")
 
         # Convert value to numeric

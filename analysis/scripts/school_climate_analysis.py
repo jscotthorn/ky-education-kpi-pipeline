@@ -53,12 +53,8 @@ class SchoolClimateAnalysisDataset(BaseAnalysisDataset):
         """Load school climate index data from KPI master."""
         self.log("LOADING SCHOOL CLIMATE INDEX DATA", header=True)
 
-        # Read KPI master file
-        self.log(f"Reading KPI master file: {self.KPI_FILE}")
-        df = pd.read_csv(self.KPI_FILE, low_memory=False)
-
-        # Filter to climate index score
-        sc_df = df[df['metric'] == 'climate_index_score'].copy()
+        # Use chunked reading to efficiently load from large KPI file
+        sc_df = self.read_kpi_chunked(['climate_index_score'])
         self.log(f"Found {len(sc_df):,} school climate index records")
 
         # Convert value to numeric

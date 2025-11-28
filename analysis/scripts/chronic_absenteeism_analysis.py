@@ -55,12 +55,8 @@ class ChronicAbsenteeismAnalysisDataset(BaseAnalysisDataset):
         """Load chronic absenteeism rate data from KPI master, filtered to elementary schools."""
         self.log("LOADING CHRONIC ABSENTEEISM RATE DATA (ELEMENTARY SCHOOLS)", header=True)
 
-        # Read KPI master file
-        self.log(f"Reading KPI master file: {self.KPI_FILE}")
-        df = pd.read_csv(self.KPI_FILE, low_memory=False)
-
-        # Filter to chronic absenteeism rate (all grades)
-        ca_df = df[df['metric'] == 'chronic_absenteeism_rate_all_grades'].copy()
+        # Use chunked reading to efficiently load from large KPI file
+        ca_df = self.read_kpi_chunked(['chronic_absenteeism_rate_all_grades'])
         self.log(f"Found {len(ca_df):,} chronic absenteeism rate records")
 
         # Convert value to numeric
@@ -88,7 +84,8 @@ class ChronicAbsenteeismAnalysisDataset(BaseAnalysisDataset):
 
         # Load school grade level data to filter to elementary schools
         self.log("\nLoading school grade level data...")
-        grade_df = df[df['metric'] == 'school_high_grade'].copy()
+        grade_raw = self.read_kpi_chunked(['school_high_grade'])
+        grade_df = grade_raw.copy()
         grade_df['high_grade'] = pd.to_numeric(grade_df['value'], errors='coerce')
         grade_df = grade_df[['school_id', 'year', 'high_grade']].drop_duplicates()
         self.log(f"Found {len(grade_df):,} school grade level records")

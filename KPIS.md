@@ -607,19 +607,41 @@ Career readiness metrics for CTE programs tracking various readiness indicators.
 
 ---
 
-## District School List (School Coordinates)
+## District School List (School Coordinates and Institutional Characteristics)
 **Source**: `etl/district_school_list.py`
 
-Geographic coordinates for Kentucky schools, enabling location-based analysis and mapping of school-level KPIs.
+Geographic coordinates and institutional classification data for Kentucky schools.
 
+### Geographic Coordinates
 - `school_latitude` - School latitude in decimal degrees (approximately 36-39° for Kentucky)
 - `school_longitude` - School longitude in decimal degrees (approximately -89° to -82° for Kentucky)
+
+### School Type (Dummy-Encoded)
+KDE school classification codes, dummy-encoded for use in Bayesian models. A1 (standard public school) is the reference category (all dummies = 0).
+
+- `school_type_a2` - Career/Technical Education center (1=yes, 0=no)
+- `school_type_a3` - Special education program (1=yes, 0=no)
+- `school_type_a4` - Preschool program (1=yes, 0=no)
+- `school_type_a5` - Alternative program - remediation (1=yes, 0=no)
+- `school_type_a6` - Alternative program - state agency children (1=yes, 0=no)
+- `school_type_a8` - Other classification A8 (1=yes, 0=no)
+- `school_type_b1` - Classification B1 (1=yes, 0=no)
+- `school_type_b2` - Classification B2 (1=yes, 0=no)
+- `school_type_c2` - Classification C2 (1=yes, 0=no)
+- `school_type_d1` - Classification D1 (1=yes, 0=no)
+
+### Title I Status (Dummy-Encoded)
+Title I federal funding status, dummy-encoded for use in Bayesian models. "Not a Title 1 School" is the reference category (all dummies = 0).
+
+- `title_i_schoolwide` - Title I Schoolwide program (1=yes, 0=no) - includes Eligible-Schoolwide, Schoolwide School, and Eligible-Schoolwide Program
+- `title_i_targeted` - Title I Targeted Assistance program (1=yes, 0=no)
+- `title_i_eligible_no_program` - Title I Eligible but no program implemented (1=yes, 0=no)
 
 **Note**: This dataset contains school-level data only. All records have `student_group='All Students'` - there are no demographic breakdowns. Coordinates are validated to fall within Kentucky's geographic boundaries.
 
 **Data Sources**: KYRC25_OVW_District_School_List.csv, KYRC24_OVW_District_School_List.csv, district_school_list_{year}.csv
 **Years Available**: 2020-2025
-**Unit**: Decimal degrees (WGS84 coordinate system)
+**Unit**: Binary indicators (0 or 1), Decimal degrees for coordinates
 **Demographics**: School-level only (All Students)
 
 ---

@@ -54,12 +54,8 @@ class PostsecondaryReadinessAnalysisDataset(BaseAnalysisDataset):
         """Load postsecondary readiness rate data from KPI master."""
         self.log("LOADING POSTSECONDARY READINESS RATE DATA", header=True)
 
-        # Read KPI master file
-        self.log(f"Reading KPI master file: {self.KPI_FILE}")
-        df = pd.read_csv(self.KPI_FILE, low_memory=False)
-
-        # Filter to postsecondary readiness rate
-        ps_df = df[df['metric'] == 'postsecondary_readiness_rate'].copy()
+        # Use chunked reading to efficiently load from large KPI file
+        ps_df = self.read_kpi_chunked(['postsecondary_readiness_rate'])
         self.log(f"Found {len(ps_df):,} postsecondary readiness rate records")
 
         # Convert value to numeric

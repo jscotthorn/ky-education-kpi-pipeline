@@ -52,12 +52,8 @@ class ELProgressElementaryAnalysisDataset(BaseAnalysisDataset):
         """Load EL progress data from KPI master."""
         self.log("LOADING EL PROGRESS DATA (ELEMENTARY)", header=True)
 
-        # Read KPI master file
-        self.log(f"Reading KPI master file: {self.KPI_FILE}")
-        df = pd.read_csv(self.KPI_FILE, low_memory=False)
-
-        # Filter to EL progress score 140 (proficiency) for elementary
-        el_df = df[df['metric'] == 'english_learner_score_140_elementary'].copy()
+        # Use chunked reading to efficiently load from large KPI file
+        el_df = self.read_kpi_chunked(['english_learner_score_140_elementary'])
         self.log(f"Found {len(el_df):,} EL progress elementary records")
 
         # Convert value to numeric

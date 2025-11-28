@@ -12,11 +12,25 @@ Usage:
 
 import argparse
 import json
+import math
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
+
+
+def sanitize_for_json(obj: Any) -> Any:
+    """Recursively sanitize object, converting NaN/Inf to None for valid JSON."""
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    elif isinstance(obj, dict):
+        return {k: sanitize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_for_json(item) for item in obj]
+    return obj
 
 
 # Path setup
@@ -61,6 +75,11 @@ def load_school_effects(model_name: str) -> List[Dict[str, Any]]:
         for col in ["ci_lower_2.5", "ci_upper_97.5", "ci_lower_10", "ci_upper_90"]:
             if col in df.columns:
                 record[col] = float(row[col])
+        # Add pooling diagnostics if present
+        if "pooling_factor" in df.columns:
+            record["pooling_factor"] = float(row["pooling_factor"])
+        if "reliability" in df.columns:
+            record["reliability"] = float(row["reliability"])
         records.append(record)
 
     return records
@@ -94,6 +113,13 @@ def load_covariate_effects(model_name: str) -> List[Dict[str, Any]]:
         if "shrinkage_factor" in df.columns:
             record["shrinkage_factor"] = float(row["shrinkage_factor"])
             record["effective"] = bool(row["effective"])
+        # Add collinearity diagnostic fields if present
+        if "bivariate_corr" in df.columns:
+            record["bivariate_corr"] = float(row["bivariate_corr"])
+        if "interpretation" in df.columns:
+            record["interpretation"] = str(row["interpretation"])
+        if "report_safe" in df.columns:
+            record["report_safe"] = bool(row["report_safe"])
         records.append(record)
 
     return records
@@ -216,8 +242,10 @@ def save_results(results: Dict[str, Any], output_path: Optional[Path] = None) ->
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Sanitize NaN/Inf values before serialization
+    sanitized_results = sanitize_for_json(results)
     with open(output_path, "w") as f:
-        json.dump(results, f, indent=2)
+        json.dump(sanitized_results, f, indent=2)
 
     print(f"\nResults saved to: {output_path}")
     return output_path

@@ -51,12 +51,8 @@ class GraduationAnalysisDataset(BaseAnalysisDataset):
         """Load graduation rate data from KPI master."""
         self.log("LOADING GRADUATION RATE DATA", header=True)
 
-        # Read KPI master file
-        self.log(f"Reading KPI master file: {self.KPI_FILE}")
-        df = pd.read_csv(self.KPI_FILE, low_memory=False)
-
-        # Filter to graduation rate
-        grad_df = df[df['metric'] == 'graduation_rate_4_year'].copy()
+        # Use chunked reading to efficiently load from large KPI file
+        grad_df = self.read_kpi_chunked(['graduation_rate_4_year'])
         self.log(f"Found {len(grad_df):,} graduation rate records")
 
         # Convert value to numeric
