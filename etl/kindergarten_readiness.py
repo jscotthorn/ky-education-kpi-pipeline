@@ -7,7 +7,7 @@ across multiple years.
 """
 from pathlib import Path
 import pandas as pd
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import logging
 
 import sys
@@ -98,6 +98,28 @@ class KindergartenReadinessETL(BaseETL):
             "Prior Setting": "prior_setting",
             "PRIOR SETTING": "prior_setting",
             "PRIOR_SETTING": "prior_setting",  # 2025 uses uppercase with underscore
+
+            # Historical xlsx format (2018-19) - KSCREEN
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_number',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'SCH_CD': 'school_code',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
+            'DEMOGRAPHIC': 'demographic',
+            'ENROLLMENT': 'enrollment',
+            'NUMTESTED': 'number_tested',
+            'PARTICIPATIONRATE': 'participation_rate',
+            'NOTREADY': 'not_ready_percent',  # % not ready
+            'READY': 'ready_percent',  # % ready (plain)
+            'READYWITHENRICHMENTS': 'ready_with_enrichments_percent',
+            'TOTALREADY': 'total_percent_ready',  # % total ready
         }
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
@@ -241,28 +263,32 @@ class KindergartenReadinessETL(BaseETL):
             df["suppressed"] = "N"
         return df
 
-    def create_kpi_template(self, row: pd.Series, source_file: str) -> Dict[str, Any]:
+    def create_kpi_template(self, row: pd.Series, source_file: str) -> Optional[Dict[str, Any]]:
         """
         Override to handle kindergarten-specific suppression logic.
-        
+
         For kindergarten readiness, KDE marks records as suppressed even when
         values exist. We override the suppression flag when actual data is present.
         """
         template = super().create_kpi_template(row, source_file)
-        
+
+        # If template is None (e.g., filtered demographic), return None
+        if template is None:
+            return None
+
         # Override suppression if we have actual readiness data
         # Check if total_percent_ready or component readiness values exist
         has_readiness_data = (
             pd.notna(row.get("total_percent_ready")) or
             pd.notna(row.get("total_ready_count")) or
             (pd.notna(row.get("ready_with_interventions_count")) and
-             pd.notna(row.get("ready_count")) and 
+             pd.notna(row.get("ready_count")) and
              pd.notna(row.get("ready_with_enrichments_count")))
         )
-        
+
         if has_readiness_data and template['suppressed'] == 'Y':
             template['suppressed'] = 'N'
-            
+
         return template
 
 

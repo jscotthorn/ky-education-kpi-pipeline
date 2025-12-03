@@ -9,11 +9,20 @@ Usage:
     python el_progress_middle_model.py                    # Default (Finnish horseshoe)
     python el_progress_middle_model.py --horseshoe       # Classic horseshoe
     python el_progress_middle_model.py --normal          # Normal priors (no shrinkage)
+    python el_progress_middle_model.py --student-group african_american
+    python el_progress_middle_model.py --all-groups
 """
 
 from typing import Dict, List, Tuple
+import sys
+from pathlib import Path
 
 from base_hierarchical_model import BaseHierarchicalModel
+
+# Add config directory to path for imports
+CONFIG_DIR = Path(__file__).parent.parent / "config"
+sys.path.insert(0, str(CONFIG_DIR))
+from student_groups import ALL_GROUP_SLUGS, TARGET_GROUP_SLUGS
 
 
 class ELProgressMiddleModel(BaseHierarchicalModel):
@@ -44,13 +53,9 @@ class ELProgressMiddleModel(BaseHierarchicalModel):
             'sigma_y': 8.0
         }
 
-    def get_tau_scale(self) -> float:
-        """Tau scale for horseshoe."""
-        return 0.5
-
     def get_slab_parameters(self) -> Tuple[float, float]:
-        """Slab parameters for Finnish horseshoe."""
-        return (3.0, 4.0)
+        """Slab parameters for Finnish horseshoe: c2 ~ InverseGamma(2, 8)."""
+        return (2.0, 4.0)
 
     def get_tract_columns(self) -> List[str]:
         """Tract columns for EL progress model."""
@@ -69,11 +74,28 @@ class ELProgressMiddleModel(BaseHierarchicalModel):
         return "BAYESIAN HIERARCHICAL MODEL - EL PROGRESS (MIDDLE)"
 
 
+def run_for_group(student_group: str, prior_type: str, non_centered: bool,
+                  run_prior_check: bool, run_loo: bool):
+    """Run model for a single student group."""
+    model = ELProgressMiddleModel(verbose=True, student_group=student_group)
+    return model.run(
+        prior_type=prior_type,
+        non_centered=non_centered,
+        run_prior_check=run_prior_check,
+        run_loo=run_loo
+    )
+
+
 def main():
     """Main execution."""
     import argparse
 
     parser = argparse.ArgumentParser(description="Run Bayesian hierarchical model for EL progress (middle)")
+    parser.add_argument('--student-group', type=str, default='all_students',
+                       choices=ALL_GROUP_SLUGS,
+                       help=f"Student group to analyze. Choices: {ALL_GROUP_SLUGS}")
+    parser.add_argument('--all-groups', action='store_true',
+                       help="Run for all student groups (all_students + target demographics)")
     parser.add_argument('--prior', type=str, choices=['normal', 'horseshoe', 'finnish'],
                        default='finnish', help="Prior type (default: finnish)")
     parser.add_argument('--horseshoe', action='store_true', help="Use classic horseshoe prior")
@@ -94,15 +116,31 @@ def main():
 
     non_centered = not args.centered
 
-    model = ELProgressMiddleModel(verbose=True)
-    school_effects = model.run(
-        prior_type=prior_type,
-        non_centered=non_centered,
-        run_prior_check=not args.skip_prior_check,
-        run_loo=not args.skip_loo
-    )
+    # Determine which groups to run
+    if args.all_groups:
+        groups_to_run = ['all_students'] + TARGET_GROUP_SLUGS
+        print(f"\nRunning for {len(groups_to_run)} student groups: {groups_to_run}\n")
+    else:
+        groups_to_run = [args.student_group]
 
-    return school_effects
+    # Run for each group
+    results = {}
+    for i, group in enumerate(groups_to_run, 1):
+        if len(groups_to_run) > 1:
+            print(f"\n{'#' * 60}")
+            print(f"# GROUP {i}/{len(groups_to_run)}: {group}")
+            print(f"{'#' * 60}\n")
+        results[group] = run_for_group(
+            group, prior_type, non_centered,
+            not args.skip_prior_check, not args.skip_loo
+        )
+
+    if len(groups_to_run) > 1:
+        print(f"\n{'=' * 60}")
+        print(f"ALL GROUPS COMPLETE: {len(results)} models run")
+        print("=" * 60)
+
+    return results if len(results) > 1 else list(results.values())[0]
 
 
 if __name__ == "__main__":

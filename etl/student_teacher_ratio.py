@@ -70,6 +70,21 @@ class StudentTeacherRatioETL(BaseETL):
             'Student-Teacher Ratio': 'ratio',
             'Ratio': 'ratio',
             'STUDENT TO TEACHER RATIOSTUDENT TO TEACHER RATIO': 'ratio', # Historical file anomaly
+
+            # Historical xlsx format (2018-19)
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_number',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'SCH_CD': 'school_code',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
+            'STDNT_TCH_RATIO': 'ratio',
         }
     
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:

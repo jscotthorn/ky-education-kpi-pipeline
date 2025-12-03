@@ -14,9 +14,10 @@ except ImportError:  # pragma: no cover - allow running as script
 from pathlib import Path
 import pandas as pd
 from pydantic import BaseModel
-from typing import Dict, Any, Optional, Union, List
+from typing import Dict, Any, Optional, Union, List, Tuple
 import logging
 from datetime import datetime
+import fnmatch
 
 import sys
 from pathlib import Path
@@ -143,19 +144,112 @@ class BaseETL(ABC):
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         """
         Get detaults for suppressed metrics for a row.
-        
+
         This method allows each ETL module to define its own default metrics
         when actual values cannot be extracted, particularly for suppressed
         records that need to be preserved in the output with NA values.
-        
+
         Args:
             row: A pandas Series representing one row of data
-            
+
         Returns:
             Dictionary mapping metric names to pd.NA or other default values
         """
         pass
-    
+
+    @property
+    def xlsx_sheet_map(self) -> Dict[str, str]:
+        """
+        Map xlsx filename patterns to sheet names containing data.
+
+        Override in subclass to specify which sheet to read for each xlsx file.
+        Default: 'DATA' sheet for all xlsx files.
+
+        Returns:
+            Dict mapping filename patterns (glob-style) to sheet names.
+            Use '*' as a catch-all default.
+
+        Example:
+            return {
+                'ASSESSMENT_PROFICIENCY_*.xlsx': 'DATA',
+                'GAP_*.xlsx': 'DATA',
+                '*': 'Sheet1'  # fallback
+            }
+        """
+        return {'*': 'DATA'}
+
+    def _find_data_files(self, source_dir: Path) -> List[Tuple[Path, Optional[str]]]:
+        """
+        Find all data files (CSV and XLSX) with optional sheet info.
+
+        Args:
+            source_dir: Directory to search for data files
+
+        Returns:
+            List of tuples: (file_path, sheet_name or None for CSV)
+        """
+        files: List[Tuple[Path, Optional[str]]] = []
+
+        # CSV files (no sheet needed) - case insensitive
+        for pattern in ["*.csv", "*.CSV"]:
+            for f in source_dir.glob(pattern):
+                files.append((f, None))
+
+        # XLSX files (with sheet from config) - case insensitive
+        for pattern in ["*.xlsx", "*.XLSX"]:
+            for xlsx_file in source_dir.glob(pattern):
+                sheet = self._get_xlsx_sheet(xlsx_file)
+                files.append((xlsx_file, sheet))
+
+        return files
+
+    def _get_xlsx_sheet(self, xlsx_file: Path) -> str:
+        """
+        Determine which sheet to read from xlsx file.
+
+        Uses fnmatch to match filename against patterns in xlsx_sheet_map.
+
+        Args:
+            xlsx_file: Path to xlsx file
+
+        Returns:
+            Sheet name to read
+        """
+        sheet_map = self.xlsx_sheet_map
+        for pattern, sheet in sheet_map.items():
+            if pattern == '*' or fnmatch.fnmatch(xlsx_file.name, pattern):
+                return sheet
+        return 'DATA'  # Default fallback
+
+    def _read_data_file(self, file_path: Path, sheet: Optional[str] = None) -> pd.DataFrame:
+        """
+        Read CSV or XLSX file into DataFrame.
+
+        Args:
+            file_path: Path to data file
+            sheet: Sheet name for xlsx files (ignored for csv)
+
+        Returns:
+            DataFrame with file contents (all columns as strings)
+        """
+        suffix = file_path.suffix.lower()
+
+        if suffix == '.xlsx':
+            logger.info(f"Reading xlsx file: {file_path.name}, sheet: {sheet or 'DATA'}")
+            return pd.read_excel(
+                file_path,
+                sheet_name=sheet or 'DATA',
+                dtype=str
+            )
+        else:
+            # CSV file
+            return pd.read_csv(
+                file_path,
+                encoding='utf-8-sig',
+                dtype=str,
+                low_memory=False
+            )
+
     def get_column_mappings(self) -> Dict[str, str]:
         """
         Get combined column mappings (common + module-specific).
@@ -398,16 +492,16 @@ class BaseETL(ABC):
         
         return False
     
-    def create_kpi_template(self, row: pd.Series, source_file: str) -> Dict[str, Any]:
+    def create_kpi_template(self, row: pd.Series, source_file: str) -> Optional[Dict[str, Any]]:
         """
         Create a base KPI record template from a data row.
-        
+
         Args:
             row: Data row
             source_file: Source filename
-            
+
         Returns:
-            Base KPI record dictionary
+            Base KPI record dictionary, or None if demographic should be filtered out
         """
         # Extract school identification
         school_id = self.extract_school_id(row)
@@ -418,7 +512,11 @@ class BaseETL(ABC):
         student_group = self.demographic_mapper.map_demographic(
             original_demographic, year, source_file
         )
-        
+
+        # If demographic should be filtered out (e.g., accountability codes), return None
+        if student_group is None:
+            return None
+
         # Check if record is suppressed
         is_suppressed = row.get('suppressed', 'N') == 'Y'
         
@@ -462,7 +560,11 @@ class BaseETL(ABC):
             
             # Create base KPI template
             kpi_template = self.create_kpi_template(row, source_file)
-            
+
+            # Skip rows with filtered demographics (e.g., accountability codes)
+            if kpi_template is None:
+                continue
+
             # Extract metrics using module-specific logic
             metrics = self.extract_metrics(row)
             
@@ -741,25 +843,25 @@ class BaseETL(ABC):
     def process(self, raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
         """
         Main transformation method with streaming output - template method pattern.
-        
+
         Args:
             raw_dir: Path to raw data directory
-            proc_dir: Path to processed data directory  
+            proc_dir: Path to processed data directory
             cfg: Configuration dictionary
         """
         source_dir = raw_dir / self.source_name
-        
+
         if not source_dir.exists():
             logger.info(f"No raw data directory for {self.source_name}; skipping.")
             return
-        
-        # Find all CSV files (case-insensitive for .csv and .CSV extensions)
-        csv_files = list(source_dir.glob("*.csv")) + list(source_dir.glob("*.CSV"))
-        if not csv_files:
-            logger.info(f"No CSV files found in {source_dir}; skipping.")
+
+        # Find all data files (CSV and XLSX)
+        data_files = self._find_data_files(source_dir)
+        if not data_files:
+            logger.info(f"No data files found in {source_dir}; skipping.")
             return
 
-        logger.info(f"Found {len(csv_files)} files to process for {self.source_name}")
+        logger.info(f"Found {len(data_files)} files to process for {self.source_name}")
         
         # Set up streaming output
         output_path = proc_dir / f"{self.source_name}.csv"
@@ -773,30 +875,30 @@ class BaseETL(ABC):
         with open(output_path, 'w', newline='', encoding='utf-8') as csvfile:
             writer = None
             header_written = False
-            
-            for csv_file in csv_files:
+
+            for data_file, sheet in data_files:
                 files_processed += 1
-                logger.info(f"Processing {csv_file.name} ({files_processed}/{len(csv_files)})")
-                
+                logger.info(f"Processing {data_file.name} ({files_processed}/{len(data_files)})")
+
                 try:
                     # Check if file is empty before attempting to read
-                    if csv_file.stat().st_size == 0:
-                        logger.warning(f"Empty file (0 bytes): {csv_file.name}")
+                    if data_file.stat().st_size == 0:
+                        logger.warning(f"Empty file (0 bytes): {data_file.name}")
                         continue
-                    
-                    # Read CSV file as strings to avoid mixed-type warnings and handle large files
-                    df = pd.read_csv(csv_file, encoding='utf-8-sig', dtype=str, low_memory=False)
+
+                    # Read data file (CSV or XLSX)
+                    df = self._read_data_file(data_file, sheet)
                     
                     # Skip if empty DataFrame
                     if df.empty:
-                        logger.warning(f"Empty DataFrame: {csv_file.name}")
+                        logger.warning(f"Empty DataFrame: {data_file.name}")
                         continue
-                    
+
                     # Apply standard transformations
                     df = self.normalize_column_names(df)
                     df = self.standardize_missing_values(df)
                     df = self.normalize_grade_field(df)
-                    df = self.add_derived_fields(df, conf.derive, csv_file.name)
+                    df = self.add_derived_fields(df, conf.derive, data_file.name)
 
                     # Apply configuration-based transformations
                     if conf.rename:
@@ -817,7 +919,7 @@ class BaseETL(ABC):
                                     logger.warning(f"Failed to convert column {col} to {dtype}: {e}")
                     
                     # Convert to KPI format
-                    kpi_df = self.convert_to_kpi_format(df, csv_file.name)
+                    kpi_df = self.convert_to_kpi_format(df, data_file.name)
                     
                     if not kpi_df.empty:
                         # Ensure school_id is string type before writing
@@ -857,15 +959,15 @@ class BaseETL(ABC):
                             
                             # Progress logging for large files (every 50K rows)
                             if kpi_rows_written % 50000 == 0:
-                                logger.info(f"  → Written {kpi_rows_written:,} KPI rows from {csv_file.name} ({kpi_rows_written/len(kpi_df)*100:.1f}%)")
-                        
+                                logger.info(f"  → Written {kpi_rows_written:,} KPI rows from {data_file.name} ({kpi_rows_written/len(kpi_df)*100:.1f}%)")
+
                         total_kpi_rows += len(kpi_df)
-                        logger.info(f"✓ Completed {csv_file.name}: {len(df)} → {len(kpi_df)} KPI rows (Running total: {total_kpi_rows:,})")
+                        logger.info(f"✓ Completed {data_file.name}: {len(df)} → {len(kpi_df)} KPI rows (Running total: {total_kpi_rows:,})")
                     else:
-                        logger.warning(f"No KPI data created from {csv_file.name}")
-                    
+                        logger.warning(f"No KPI data created from {data_file.name}")
+
                 except Exception as e:
-                    logger.error(f"Error processing {csv_file.name}: {e}")
+                    logger.error(f"Error processing {data_file.name}: {e}")
                     continue
         
         if total_kpi_rows == 0:

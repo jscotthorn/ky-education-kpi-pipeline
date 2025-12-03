@@ -83,19 +83,29 @@ class CTEParticipationETL(BaseETL):
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {
-            # Participation rate columns
+            # Participation rate columns (KYRC24 and earlier)
             'CTE Participants in All Grades': 'cte_participation_rate',
             'CTE PARTICIPANTS IN ALL GRADES': 'cte_participation_rate',
-            
-            # Eligible completer count columns
+
+            # KYRC25 format - counts that need rate calculation
+            'All High School CTE Participants': 'cte_participant_count',
+            'ALL HIGH SCHOOL CTE PARTICIPANTS': 'cte_participant_count',
+            'All High School Enrollments': 'total_student_count',
+            'ALL HIGH SCHOOL ENROLLMENTS': 'total_student_count',
+            '12th Grade Completers': 'cte_completer_count_grade_12',
+            '12TH GRADE COMPLETERS': 'cte_completer_count_grade_12',
+            '12th Grade Participants': 'cte_participant_count_grade_12',
+            '12TH GRADE PARTICIPANTS': 'cte_participant_count_grade_12',
+
+            # Eligible completer count columns (KYRC24 and earlier)
             'Grade 12 CTE Eligible Completer': 'cte_eligible_completer_count',
             'GRADE 12 CTE ELIGIBLE COMPLETER': 'cte_eligible_completer_count',
-            
-            # Completion rate columns
+
+            # Completion rate columns (KYRC24 and earlier)
             'Grade 12 CTE Completers': 'cte_completion_rate',
             'GRADE 12 CTE COMPLETERS': 'cte_completion_rate',
-            
-            # Total student count for calculating rates when needed
+
+            # Total student count for calculating rates when needed (KYRC24)
             'Total Number of Student': 'total_student_count',
             'TOTAL NUMBER OF STUDENT': 'total_student_count',
         }
@@ -127,47 +137,64 @@ class CTEParticipationETL(BaseETL):
     
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics = {}
-        
-        # Extract CTE participation (rate or count)
-        participation_value = row.get('cte_participation_rate', pd.NA)
+
+        # Get counts from KYRC25 format
+        participant_count = row.get('cte_participant_count', pd.NA)
         total_students = row.get('total_student_count', pd.NA)
-        
-        if pd.notna(participation_value):
-            # Determine if this is a rate or count based on the value and data availability
-            if participation_value <= 100:
-                # This appears to be a rate (0-100%)
-                metrics['cte_participation_rate'] = participation_value
+        completer_count_12 = row.get('cte_completer_count_grade_12', pd.NA)
+        participant_count_12 = row.get('cte_participant_count_grade_12', pd.NA)
+
+        # Get values from KYRC24 format (rates directly)
+        participation_rate_direct = row.get('cte_participation_rate', pd.NA)
+        eligible_completer_count = row.get('cte_eligible_completer_count', pd.NA)
+        completion_rate_direct = row.get('cte_completion_rate', pd.NA)
+
+        # Handle KYRC25 format (counts) - calculate rates from counts
+        if pd.notna(participant_count) and pd.notna(total_students):
+            # Clean counts (remove commas if present)
+            participant_count = clean_numeric_with_commas(pd.Series([participant_count])).iloc[0]
+            total_students = clean_numeric_with_commas(pd.Series([total_students])).iloc[0]
+            if pd.notna(participant_count) and pd.notna(total_students) and total_students > 0:
+                rate = round((participant_count / total_students) * 100, 1)
+                metrics['cte_participation_rate'] = rate
+        elif pd.notna(participation_rate_direct):
+            # KYRC24 format - value is already a rate
+            if participation_rate_direct <= 100:
+                metrics['cte_participation_rate'] = participation_rate_direct
             else:
-                # This appears to be a count (>100) - convert to rate if we have total
+                # Fallback: appears to be a count - convert if we have total
                 if pd.notna(total_students) and total_students > 0:
-                    rate = round((participation_value / total_students) * 100, 1)
+                    rate = round((participation_rate_direct / total_students) * 100, 1)
                     metrics['cte_participation_rate'] = rate
                 else:
-                    # Can't convert to rate due to missing/suppressed total
-                    # Store as count with different metric name for historical data
-                    metrics['cte_participation_count'] = participation_value
-        
-        # Extract Grade 12 CTE eligible completer count
-        eligible_count = row.get('cte_eligible_completer_count', pd.NA)
-        if pd.notna(eligible_count):
-            metrics['cte_eligible_completer_count_grade_12'] = eligible_count
-        
-        # Extract Grade 12 CTE completion (rate or count)
-        completion_value = row.get('cte_completion_rate', pd.NA)
-        if pd.notna(completion_value):
-            if completion_value <= 100:
-                # This appears to be a rate (0-100%)
-                metrics['cte_completion_rate_grade_12'] = completion_value
-            else:
-                # This appears to be a count (>100) - convert to rate if we have eligible count
-                if pd.notna(eligible_count) and eligible_count > 0:
-                    rate = round((completion_value / eligible_count) * 100, 1)
-                    metrics['cte_completion_rate_grade_12'] = rate
+                    metrics['cte_participation_count'] = participation_rate_direct
+
+        # Handle Grade 12 completion - KYRC25 format (counts)
+        if pd.notna(completer_count_12) and pd.notna(participant_count_12):
+            completer_count_12 = clean_numeric_with_commas(pd.Series([completer_count_12])).iloc[0]
+            participant_count_12 = clean_numeric_with_commas(pd.Series([participant_count_12])).iloc[0]
+            if pd.notna(completer_count_12) and pd.notna(participant_count_12) and participant_count_12 > 0:
+                rate = round((completer_count_12 / participant_count_12) * 100, 1)
+                metrics['cte_completion_rate_grade_12'] = rate
+                # Also store counts for reference
+                metrics['cte_completer_count_grade_12'] = completer_count_12
+                metrics['cte_participant_count_grade_12'] = participant_count_12
+        else:
+            # KYRC24 format - eligible completer count and completion rate
+            if pd.notna(eligible_completer_count):
+                metrics['cte_eligible_completer_count_grade_12'] = eligible_completer_count
+
+            if pd.notna(completion_rate_direct):
+                if completion_rate_direct <= 100:
+                    metrics['cte_completion_rate_grade_12'] = completion_rate_direct
                 else:
-                    # Can't convert to rate due to missing eligible count
-                    # Store as count with different metric name for historical data
-                    metrics['cte_completion_count_grade_12'] = completion_value
-        
+                    # Appears to be a count - convert if we have eligible count
+                    if pd.notna(eligible_completer_count) and eligible_completer_count > 0:
+                        rate = round((completion_rate_direct / eligible_completer_count) * 100, 1)
+                        metrics['cte_completion_rate_grade_12'] = rate
+                    else:
+                        metrics['cte_completion_count_grade_12'] = completion_rate_direct
+
         return metrics
     
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
@@ -177,24 +204,32 @@ class CTEParticipationETL(BaseETL):
             'cte_participation_count': pd.NA,
             'cte_eligible_completer_count_grade_12': pd.NA,
             'cte_completion_rate_grade_12': pd.NA,
-            'cte_completion_count_grade_12': pd.NA
+            'cte_completion_count_grade_12': pd.NA,
+            # KYRC25 format fields
+            'cte_completer_count_grade_12': pd.NA,
+            'cte_participant_count_grade_12': pd.NA,
         }
     
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         """Override to include CTE participation specific missing value handling."""
         # Apply base missing value standardization
         df = super().standardize_missing_values(df)
-        
-        # Handle comma-separated numbers before cleaning
-        numeric_columns = ['cte_participation_rate', 'cte_eligible_completer_count', 'cte_completion_rate']
+
+        # Handle comma-separated numbers before cleaning (both KYRC24 and KYRC25 formats)
+        numeric_columns = [
+            'cte_participation_rate', 'cte_eligible_completer_count', 'cte_completion_rate',
+            # KYRC25 format columns
+            'cte_participant_count', 'total_student_count',
+            'cte_completer_count_grade_12', 'cte_participant_count_grade_12',
+        ]
         for col in numeric_columns:
             if col in df.columns and df[col].dtype == 'object':
                 # Remove commas from string values
                 df[col] = df[col].astype(str).str.replace(',', '')
-        
+
         # Apply CTE-specific cleaning
         df = clean_cte_data(df)
-        
+
         return df
 
 

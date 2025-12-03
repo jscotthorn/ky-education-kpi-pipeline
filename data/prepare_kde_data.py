@@ -96,6 +96,8 @@ class KDEDownloader:
                     base_url = self.config.get('base_url_2025', self.config['base_url'])
                 elif url_type == 'kyrc25':
                     base_url = self.config.get('base_url_kyrc25', self.config['base_url'])
+                elif url_type == 'historical':
+                    base_url = self.config.get('base_url_historical', self.config['base_url'])
                 else:
                     base_url = self.config['base_url']
 

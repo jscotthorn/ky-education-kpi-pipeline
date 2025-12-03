@@ -99,6 +99,29 @@ class GraduationRatesETL(BaseETL):
             'NUMBER OF STUDENTS IN 4-YEAR COHORT': 'students_4_year_cohort',
             'NUMBER OF GRADS IN 5-YEAR COHORT': 'grads_5_year_cohort',
             'NUMBER OF STUDENTS IN 5-YEAR COHORT': 'students_5_year_cohort',
+
+            # Historical xlsx format (2018-19)
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_number',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'SCH_CD': 'school_code',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
+            'DEMOGRAPHIC': 'demographic',
+            'SUPPRESSED4YR': 'suppressed_4_year',
+            'SUPPRESSED5YR': 'suppressed_5_year',
+            'GRADRATE4YR': 'graduation_rate_4_year',
+            'GRADRATE5YR': 'graduation_rate_5_year',
+            'GRADS4YR': 'grads_4_year_cohort',
+            'GRADS5YR': 'grads_5_year_cohort',
+            'COHORT4YR': 'students_4_year_cohort',
+            'COHORT5YR': 'students_5_year_cohort',
         }
     
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:

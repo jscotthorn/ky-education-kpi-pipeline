@@ -21,9 +21,14 @@ raw_directories:
     - url: "kyrc25"
       file: "KYRC25_OVW_Chronic_Absenteeism.csv"
     - "chronic_absenteeism_2023.csv"
+    # Note: 2020-2022 files don't exist on KDE server (likely due to COVID attendance disruptions)
+    # Historical xlsx files (pre-2020)
+    - "CHRONIC_ABSENTEEISM_18-19.xlsx"
 
   cte_participation:
     - "KYRC24_CTE_Participation.csv"
+    - url: "kyrc25"
+      file: "KYRC25_CTE_Participation.csv"
     - "cte_by_student_group_2023.csv"
     - "cte_by_student_group_2022.csv"
 
@@ -35,6 +40,7 @@ raw_directories:
     - "english_language_proficiency_2022.csv"
     - "english_learner_proficiency_2021.csv"
     - "english_learner_proficiency_2020.csv"
+    # Note: ENGLISH_LEARNERS_18-19.xlsx is EL demographics by language, not proficiency progress scores
 
   graduation_rates:
     - "KYRC24_ACCT_4_Year_High_School_Graduation.csv"
@@ -45,6 +51,8 @@ raw_directories:
     - "graduation_rate_2022.csv"
     - "graduation_rate_2021.csv"
     - "graduation_rate_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "GRADUATION_RATE_18-19.xlsx"
 
   kentucky_summative_assessment:
     - "KYRC24_ACCT_Kentucky_Summative_Assessment.csv"
@@ -56,6 +64,9 @@ raw_directories:
     - "asmt_performance_by_level_2021.csv"
     - "asmt_performance_by_grade_2023.csv"
     - "asmt_performance_by_grade_2022.csv"
+    # Historical xlsx files (pre-2020)
+    - "ASSESSMENT_PROFICIENCY_GRADE_18-19.xlsx"
+    - "ASSESSMENT_PROFICIENCY_GRADE_17-18.xlsx"
     - "asmt_performance_by_grade_2021.csv"
 
   kindergarten_readiness:
@@ -66,6 +77,8 @@ raw_directories:
     - "kindergarten_screen_2022.csv"
     - "kindergarten_screen_2021.csv"
     - "kindergarten_screen_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "KSCREEN_18-19.xlsx"
 
   out_of_school_suspension:
     - "KYRC24_OVW_Student_Suspensions.csv"
@@ -81,6 +94,7 @@ raw_directories:
     - "transition_in_state_postsecondary_education_2023.csv"
     - "transition_in_state_postsecondary_education_2022.csv"
     - "transition_in_state_postsecondary_education_2021.csv"
+    # Note: TRANSITION_TO_ADULT_LIFE_18-19.xlsx tracks different metrics (broad adult life outcomes vs in-state college)
 
   postsecondary_readiness:
     - "KYRC24_ACCT_Postsecondary_Readiness.csv"
@@ -88,6 +102,8 @@ raw_directories:
       file: "Postsecondary_Readiness_2025.CSV"
     - "postsecondary_readiness_2023.csv"
     - "postsecondary_readiness_2022.csv"
+    # Historical xlsx files (pre-2020)
+    - "TRANSITION_READINESS_ACCOUNTABILITY_18-19.xlsx"
 
   safe_schools:
     - "KYRC24_SAFE_Behavior_Events_by_Context.csv"
@@ -121,6 +137,8 @@ raw_directories:
     - "precautionary_measures_2022.csv"
     - "precautionary_measures_2021.csv"
     - "precautionary_measures_2020.csv"
+    # Note: SCHOOL_EXPERIENCE_18-19.xlsx is teacher experience years, not climate survey
+    # Note: SAFE_SCHOOLS_18-19.xlsx is behavior events in wide format, incompatible
 
   safe_schools_discipline:
     - "KYRC24_SAFE_Discipline_Resolutions.csv"
@@ -129,6 +147,8 @@ raw_directories:
     - "safe_schools_discipline_2022.csv"
     - "safe_schools_discipline_2021.csv"
     - "safe_schools_discipline_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "SAFE_SCHOOLS_18-19.xlsx"
 
   benchmark_assessment:
     - "KYRC24_ASMT_Benchmark.csv"
@@ -189,6 +209,8 @@ raw_directories:
     - "district_school_list_2022.csv"
     - "district_school_list_2021.csv"
     - "district_school_list_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "DISTRICT_SCHOOL_LIST_18-19.xlsx"
 
   student_enrollment:
     # Note: Primary enrollment files contain ALL grades (PreK-12).
@@ -200,6 +222,8 @@ raw_directories:
     - "primary_enrollment_2022.csv"
     - "primary_enrollment_2021.csv"
     - "primary_enrollment_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "STUDENT_PRIMARY_ENROLLMENT_18-19.xlsx"
 
   secondary_enrollment:
     # Secondary enrollment (grades 6-12) - separate from primary enrollment
@@ -209,6 +233,8 @@ raw_directories:
     - "secondary_enrollment_2022.csv"
     - "secondary_enrollment_2021.csv"
     - "secondary_enrollment_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "STUDENT_SECONDARY_ENROLLMENT_18-19.xlsx"
 
   teacher_experience:
     - "KYRC24_OVW_Average_Years_School_Experience.csv"
@@ -218,6 +244,8 @@ raw_directories:
     - "average_years_school_experience_2022.csv"
     - "average_years_school_experience_2021.csv"
     - "average_years_school_experience_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "SCHOOL_EXPERIENCE_18-19.xlsx"
 
   student_teacher_ratio:
     - "KYRC24_OVW_Student_to_Teacher_Ratio.csv"
@@ -227,6 +255,8 @@ raw_directories:
     - "student_teacher_ratio_2022.csv"
     - "student_teacher_ratio_2021.csv"
     - "student_teacher_ratio_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "STUDENT_TEACHER_RATIO_18-19.xlsx"
 
   novice_teachers:
     # Institutional novice teacher percentages
@@ -254,6 +284,8 @@ raw_directories:
     - "spending_per_student_2022.csv"
     - "spending_per_student_2021.csv"
     - "spending_per_student_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "SPENDING_PER_STUDENT_18-19.xlsx"
 
   # Teacher Quality Indicators
   teacher_turnover:
@@ -263,6 +295,8 @@ raw_directories:
     - "teacher_turnover_2023.csv"
     - "teacher_turnover_2022.csv"
     - "teacher_turnover_2021.csv"
+    # Historical xlsx files (pre-2020)
+    - "TEACHER_TURNOVER_18-19.xlsx"
 
   teacher_certification:
     - "KYRC24_OVW_Teacher_Certification_Data.csv"
@@ -321,6 +355,7 @@ raw_directories:
     - "advanced_courses_participation_and_performance_2022.csv"
     - "advanced_courses_offered_2021.csv"
     - "advanced_courses_participation_and_performance_2021.csv"
+    # Note: ADVANCED_COURSES_EXAMS_*.xlsx have different schema (course type codes, column names)
 
   dual_credit:
     # Dual credit is only available in KYRC24/KYRC25 formats
@@ -337,6 +372,7 @@ raw_directories:
       file: "KYRC25_CTE_Career_Pathways.csv"
     - "career_pathways_2023.csv"
     - "career_pathways_2021.csv"
+    # Note: CAREER_PATHWAYS_18-19.xlsx has pathway names not counts, incompatible schema
 
   career_readiness_indicators:
     - "KYRC24_CTE_Career_Readiness_Indicators.csv"
@@ -350,6 +386,8 @@ raw_directories:
       file: "KYRC25_EDOP_School_Courses_Summary.csv"
     - "school_courses_summary_2023.csv"
     - "school_courses_summary_2021.csv"
+    # Historical xlsx files (pre-2020)
+    - "SCHOOL_COURSES_SUMMARY_18-19.xlsx"
 
   gifted_talented:
     - "KYRC24_EDOP_Gifted_Participation_by_Category.csv"
@@ -361,12 +399,20 @@ raw_directories:
     - "gifted_and_talented_2023.csv"
     - "gifted_and_talented_2022.csv"
     - "gifted_and_talented_2021.csv"
+    # Historical xlsx files (pre-2020)
+    - "GIFTED_AND_TALENTED_18-19.xlsx"
 
   # Financial Summary - District-level financial and staffing metrics
-  # KPIs: student membership, fund balance, fund balance %, staff FTE counts
+  # KPIs: student membership, fund balance, fund balance %, staff FTE counts,
+  #       students per certified/classified/non-teacher certified staff ratios
   financial_summary:
     - "KYRC24_FT_Financial_Summary.csv"
+    - url: "kyrc25"
+      file: "KYRC25_FT_Financial_Summary.csv"
     - "financial_summary_2023.csv"
     - "financial_summary_2022.csv"
     - "financial_summary_2021.csv"
     - "financial_summary_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "FINANCE_18-19.xlsx"
+

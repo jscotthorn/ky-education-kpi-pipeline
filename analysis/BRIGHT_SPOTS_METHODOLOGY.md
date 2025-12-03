@@ -1,10 +1,11 @@
 # Bright Spots Methodology: Hierarchical Bayesian Framework for Identifying Positive Deviant Schools
 
-**Date:** November 26, 2025
-**Version:** 1.3
+**Date:** December 1, 2025
+**Version:** 1.5
 **Context:** Kentucky Statewide Analysis with Fayette County Focus
 **Model Location:** `analysis/bayesian_models/base_hierarchical_model.py` (base class)
 **Indicator Models:** `analysis/bayesian_models/*_model.py` (11 indicators)
+**Prior Analysis:** `analysis/prior_analysis/` (empirically-informed priors)
 
 ---
 
@@ -52,6 +53,31 @@ In educational contexts, this means identifying schools that achieve exceptional
 ### 1.3 Moving Beyond Deficit Thinking
 
 Traditional educational data analysis often falls into **Deficit Thinking**—attributing performance gaps solely to perceived deficiencies of students, families, or communities[^10]. Our approach instead employs **Asset-Based Analysis**, asking: "What are these schools doing differently that enables success despite structural barriers?"
+
+### 1.4 Student Group Analysis: QuantCrit in Practice
+
+Following QuantCrit methodology, we run **separate models for each student group** rather than aggregating all students. This ensures we identify schools achieving exceptional outcomes for specific populations.
+
+**Analyzed Student Groups:**
+
+| Group | KDE Identifier | Description | Target Group |
+|-------|----------------|-------------|--------------|
+| All Students | `All Students` | School-wide average | No (baseline) |
+| Economically Disadvantaged | `Economically Disadvantaged` | FRL-eligible students | Yes |
+| African American | `African American` | Black/African American students | Yes |
+| Students with Disabilities | `Students with Disabilities (IEP)` | Students with IEPs | Yes |
+| Hispanic/Latino | `Hispanic or Latino` | Hispanic/Latino students | Yes |
+| Homeless | `Homeless` | Students experiencing homelessness | Yes |
+| English Learners | `English Learner` | English Language Learners | Yes |
+
+**Why separate models?** Aggregating outcomes across groups masks critical variation. A school with strong overall performance may simultaneously underserve specific populations. Separate models enable us to identify schools excelling for *each* historically marginalized group, consistent with QuantCrit's emphasis on disaggregation[^2].
+
+**Implementation:** Each indicator model runs 7 times (all students + 6 target groups), producing group-specific:
+- School effect estimates
+- Predictor effect estimates
+- Bright spot classifications
+
+See `analysis/config/student_groups.py` for the student group configuration.
 
 ---
 
@@ -155,35 +181,110 @@ A county's predictor effect is flagged as "different from statewide" if the 95% 
 
 ### 3.4 Prior Specifications
 
-Following recommendations from Gelman (2006)[^18] for variance parameters in hierarchical models:
+Following recommendations from Gelman (2006)[^18] for variance parameters in hierarchical models, our system now uses **empirically-informed priors** computed from historical data. This follows guidance from Van de Schoot & Miočević (2017)[^38] showing that properly constructed informative priors enhance parameter estimates, especially with small sample sizes.
 
-| Parameter | Prior Distribution | Default Values | Rationale |
-|-----------|-------------------|----------------|-----------|
-| `μ_state` | Normal(μ, σ) | Varies by indicator | Domain-informed intercept |
-| `σ_district` | HalfCauchy(β) | 5-10 | Allows values near zero, heavy tails for robustness |
-| `σ_school` | HalfCauchy(β) | 3-8 | Slightly tighter than district level |
-| `β` | Finnish Horseshoe | τ ~ 0.23-0.5 | Sparse shrinkage, non-centered parameterization |
+#### 3.4.1 Empirically-Informed Prior Pipeline
+
+Rather than using fixed default priors, the model loads **group-specific priors** from historical analysis:
+
+```
+analysis/outputs/prior_analysis/{indicator}/{student_group}/recommended_priors.csv
+```
+
+The prior analysis pipeline (`analysis/prior_analysis/indicators/{indicator}/historical_review.py`) computes priors using:
+
+1. **State mean prior**: Historical mean ± 0.7 × historical SD (allows shrinkage while remaining data-informed)
+2. **Variance priors**: 1.5 × observed between-school/district SD (weakly informative but scaled to data)
+
+This ensures that priors for African American students differ appropriately from All Students priors, consistent with QuantCrit methodology.
+
+#### 3.4.2 Prior Parameter Table
+
+| Parameter | Prior Distribution | Computation | Rationale |
+|-----------|-------------------|-------------|-----------|
+| `μ_state` | Normal(μ, σ) | Historical mean, max(5, 0.7×SD) | Empirically-informed intercept |
+| `σ_district` | HalfCauchy(β) | 1.5 × observed district SD | Allows variability while stabilizing |
+| `σ_school` | HalfCauchy(β) | 1.5 × observed school SD | Slightly tighter than district |
+| `β` | Finnish Horseshoe[^40] | Data-dependent τ | Sparse shrinkage with slab regularization |
 | `σ_county_slope` | HalfCauchy(1) | Scale=1 | County-level slope deviations |
-| `σ_y` | HalfCauchy(β) | 2-8 | Observation-level noise |
+| `σ_y` | HalfCauchy(β) | 1.5 × observed residual SD | Observation-level noise |
 
-**Indicator-Specific Prior Settings:**
+#### 3.4.3 Data-Dependent Horseshoe Prior
+
+The global shrinkage parameter τ is computed using the formula from Piironen & Vehtari (2017)[^39]:
+
+$$\tau_0 = \frac{m_{eff}}{p - m_{eff}} \cdot \frac{\sigma_y}{\sqrt{n}}$$
+
+Where:
+- $m_{eff}$ = expected number of effective (non-zero) predictors (default: 6)
+- $p$ = total number of predictors (~20-27)
+- $\sigma_y$ = prior for observation noise (from variance priors)
+- $n$ = sample size (number of school-year observations)
+
+**Implementation:**
+```python
+# In _build_coefficient_priors()
+m_eff = self.get_m_eff()  # Default 6, overridable per indicator
+tau_scale = (m_eff / (n_predictors - m_eff)) * (sigma_y_prior / np.sqrt(n_obs))
+tau = pm.HalfCauchy('tau', beta=tau_scale)
+```
+
+**Slab regularization** prevents extreme large effects:
+```python
+slab_scale, slab_df = self.get_slab_parameters()  # Default (2.0, 4.0)
+c2 = pm.InverseGamma('c2', alpha=slab_df/2, beta=slab_df * slab_scale**2 / 2)
+# Results in c2 ~ InverseGamma(2, 8), mean ~8
+```
+
+#### 3.4.4 Fallback Default Prior Settings
+
+When prior analysis is unavailable, indicators use these defaults:
 
 | Indicator | State Mean Prior | σ_district | σ_school | σ_y |
 |-----------|------------------|------------|----------|-----|
-| Graduation Rate | Normal(93, 10) | 5.0 | 3.0 | 2.0 |
+| Graduation Rate | Normal(93.7, 2.5) | 5.0 | 2.9 | 3.6 |
 | Reading Grade 3 | Normal(43, 15) | 10.0 | 5.0 | 5.0 |
 | Math Grade 8 | Normal(38, 15) | 10.0 | 5.0 | 5.0 |
 | Kindergarten Readiness | Normal(47, 15) | 10.0 | 5.0 | 5.0 |
 | Postsecondary Enrollment | Normal(45, 15) | 8.0 | 5.0 | 5.0 |
 | Postsecondary Readiness | Normal(83, 10) | 6.0 | 4.0 | 4.0 |
-| Chronic Absenteeism | Normal(29, 15) | 10.0 | 6.0 | 6.0 |
+| Chronic Absenteeism | Normal(24.4, 5.0) | 15.1 | 9.9 | 4.5 |
 | EL Progress (all levels) | Normal(15, 15) | 10.0 | 8.0 | 8.0 |
 | School Climate | Normal(85, 10) | 5.0 | 4.0 | 4.0 |
 
-**Why Half-Cauchy priors?** Gelman (2006)[^18] recommends against inverse-gamma for variance parameters, which can behave poorly near zero. Half-Cauchy priors:
+**Why Half-Cauchy priors?** Gelman (2006)[^18] and Polson & Scott (2012)[^40] recommend against inverse-gamma for variance parameters, which can behave poorly near zero. Half-Cauchy priors:
 - Are unbounded at zero (allow for no variance if warranted)
 - Have heavy tails (robust to outliers)
 - Provide better behavior than inverse-gamma in small samples
+
+### 3.5 Likelihood Options
+
+The model supports three likelihood types for different outcome characteristics:
+
+| Likelihood | Use Case | Implementation |
+|------------|----------|----------------|
+| `normal` | Unbounded outcomes | Standard Normal(μ, σ) |
+| `beta` | Bounded [0,100] rates | Beta(μ·ν, (1-μ)·ν) with logit link |
+| `logit` | Bounded rates with better sampling | Normal on logit scale, sigmoid back-transform |
+
+**Logit-transformed Normal** (used for graduation rates) provides:
+- Bounded predictions via sigmoid back-transformation
+- Better MCMC sampling than Beta regression for hierarchical models
+- Easier interpretation of school effects on logit scale
+
+### 3.6 Year Fixed Effects
+
+For multi-year data, the model includes **sum-to-zero constrained year fixed effects**:
+
+```python
+# Free parameters for years 0 to n_years-2
+year_effect_free = pm.Normal('year_effect_free', mu=0, sigma=5, shape=n_years - 1)
+# Last year constrained: sum(all years) = 0
+year_effect_last = -pm.math.sum(year_effect_free)
+year_effect = pm.math.concatenate([year_effect_free, [year_effect_last]])
+```
+
+This addresses temporal trends while maintaining identifiability (the year effects sum to zero by construction)
 
 ---
 
@@ -361,6 +462,52 @@ PSIS-LOO (Pareto-smoothed importance sampling)[^25] provides:
 - Pareto k diagnostics for individual observation influence
 
 **Reliability criterion:** < 5% of observations with Pareto k > 0.7
+
+### 6.4 Collinearity Diagnostics
+
+Multicollinearity among predictors can inflate posterior uncertainty and produce unstable coefficient estimates. We compute three complementary diagnostics:
+
+**Variance Inflation Factor (VIF)**
+
+VIF measures how much the variance of a coefficient estimate is inflated due to correlation with other predictors:
+
+| VIF Range | Interpretation |
+|-----------|----------------|
+| < 5 | Acceptable |
+| 5-10 | Moderate concern |
+| > 10 | High multicollinearity (consider removing) |
+
+VIF is computed from standardized predictors using:
+```
+VIF_j = 1 / (1 - R²_j)
+```
+where R²_j is the R-squared from regressing predictor j on all other predictors.
+
+**Pairwise Correlation Matrix**
+
+We examine all predictor-predictor correlations, flagging pairs with |r| > 0.7 for potential concern. Highly correlated predictors may represent redundant information or measurement of similar constructs.
+
+### 6.5 Suppression Effect Detection
+
+Statistical suppression occurs when controlling for correlated variables changes the relationship between a predictor and outcome—sometimes dramatically. We detect suppression by comparing bivariate correlations with model coefficients:
+
+| Pattern | Interpretation | Reporting Guidance |
+|---------|----------------|-------------------|
+| **direct_effect** | Same sign, similar or stronger magnitude | Safe to report without caveats |
+| **suppressed_sign_flip** | Model coefficient has opposite sign from bivariate r | **Requires caveat** - effect depends on other variables |
+| **suppressed_weakened** | Same sign but model effect < 50% of bivariate | **Requires caveat** - shared variance with other predictors |
+| **conditional_only** | Near-zero bivariate r (|r| < 0.05) but significant model effect | Effect emerges only when controlling for confounders |
+| **not_significant** | 95% HDI includes zero | Do not interpret as meaningful |
+
+**Detection logic:**
+- **Sign flip:** `(bivariate_corr × model_coef) < 0` AND 95% CI excludes zero
+- **Magnitude change:** `|model_coef| > 2 × |bivariate_corr|` AND bivariate |r| > 0.05
+
+**Interpretation guidance:**
+Suppression effects are not necessarily problematic—they can reveal true conditional relationships. However, they require careful interpretation:
+- Report suppressed effects with explicit acknowledgment that the relationship holds "controlling for community factors"
+- Consider whether the suppressor variable is causally prior to the predictor of interest
+- For policy communication, emphasize direct effects unless suppression reveals actionable insights
 
 ---
 
@@ -636,7 +783,16 @@ ky-education-kpi-pipeline/
 │   │   └── visualize_results.py          # Forest plots, diagnostics
 │   ├── config/
 │   │   ├── __init__.py                   # Covariate catalog loader utilities
-│   │   └── covariate_catalog.yaml        # Master catalog of all covariates
+│   │   ├── covariate_catalog.yaml        # Master catalog of all covariates
+│   │   └── student_groups.py             # QuantCrit student group definitions
+│   ├── prior_analysis/
+│   │   ├── indicators/
+│   │   │   ├── graduation_rate/
+│   │   │   │   └── historical_review.py  # Empirical prior generation
+│   │   │   ├── chronic_absenteeism/
+│   │   │   ├── reading_grade3/
+│   │   │   └── [other indicators]/
+│   │   └── aggregate_priors.py           # Combine all indicator priors
 │   ├── datasets/
 │   │   ├── graduation_analysis.csv       # Combined model data
 │   │   ├── reading_grade3_analysis.csv
@@ -644,13 +800,24 @@ ky-education-kpi-pipeline/
 │   │   ├── [other indicator]_analysis.csv
 │   │   └── demographic_predictors.csv    # Student demographics
 │   ├── outputs/
+│   │   ├── prior_analysis/
+│   │   │   ├── graduation_rate/
+│   │   │   │   ├── all_students/
+│   │   │   │   │   └── recommended_priors.csv   # Group-specific priors
+│   │   │   │   ├── african_american/
+│   │   │   │   ├── economically_disadvantaged/
+│   │   │   │   └── [other student groups]/
+│   │   │   └── [other indicators]/
 │   │   ├── models/
 │   │   │   ├── graduation/
-│   │   │   │   ├── graduation_trace.nc   # MCMC trace (ArviZ format)
-│   │   │   │   ├── model_summary.csv     # Posterior parameter summaries
-│   │   │   │   ├── covariate_effects.csv # Global beta coefficients
-│   │   │   │   ├── county_covariate_effects.csv  # County-specific slopes
-│   │   │   │   └── school_effects.csv    # School-level random effects
+│   │   │   │   ├── all_students/             # Per-group model outputs
+│   │   │   │   │   ├── graduation_trace.nc   # MCMC trace (ArviZ format)
+│   │   │   │   │   ├── model_summary.csv     # Posterior parameter summaries
+│   │   │   │   │   ├── covariate_effects.csv # Global beta coefficients
+│   │   │   │   │   ├── county_covariate_effects.csv  # County-specific slopes
+│   │   │   │   │   └── school_effects.csv    # School-level random effects
+│   │   │   │   ├── african_american/
+│   │   │   │   └── [other student groups]/
 │   │   │   ├── reading_grade3/
 │   │   │   ├── math_grade8/
 │   │   │   └── [other indicators]/
@@ -689,10 +856,28 @@ Each model produces the following output files in `analysis/outputs/models/{indi
 | `{indicator}_trace.nc` | Full MCMC trace in NetCDF format (ArviZ compatible) |
 | `model_summary.csv` | Posterior summary statistics for key parameters |
 | `school_effects.csv` | School-level random effects with 95% credible intervals and pooling diagnostics |
-| `covariate_effects.csv` | Global predictor effects with shrinkage factors |
-| `county_covariate_effects.csv` | County-specific predictor effects (new in v1.2) |
+| `covariate_effects.csv` | Global predictor effects with shrinkage factors and interpretation flags |
+| `county_covariate_effects.csv` | County-specific predictor effects with both statewide and county interpretation |
 
 The `combine_results.py` script aggregates all model outputs into `data/bayesian/bayesian_results.json` for consumption by the Angular dashboard.
+
+### Covariate Effect Interpretation Flags
+
+Covariate effects include interpretation flags to help identify when effects require caveats or careful interpretation:
+
+**`statewide_interpretation`**: Based on whether the statewide 95% CI excludes zero, combined with bivariate correlation analysis to detect suppression effects:
+- `direct_effect`: CI excludes zero, same sign as bivariate correlation (safe to report)
+- `suppressed_sign_flip`: CI excludes zero, but opposite sign from bivariate correlation (RED FLAG - requires strong caveat)
+- `suppressed_weakened`: Same sign but model effect is <50% of bivariate correlation (multicollinearity weakened the effect)
+- `conditional_only`: Near-zero bivariate correlation but significant model effect (effect only emerges after controlling for other factors)
+- `not_significant`: 95% CI includes zero
+
+**`county_interpretation`**: Same categories, but computed using the county-specific CI instead of the statewide CI. This is critical for county-focused reporting because:
+- A predictor may be `not_significant` statewide but significant in a specific county (or vice versa)
+- The dashboard should use `county_interpretation` when displaying Fayette-specific effects
+- The dashboard should use `statewide_interpretation` only when showing statewide effects
+
+The `county_covariate_effects.csv` includes both interpretation fields to enable proper caveat display regardless of which effect is being shown.
 
 ### Pooling Diagnostics
 
@@ -731,3 +916,11 @@ Schools with low reliability (shown with "⚡ Less certain" badges in the dashbo
 [^36]: Statewide geocoding completed November 25, 2025. See `etl/school_tract_geocoding.py` for implementation and `data/external/school_tracts/school_tracts_statewide_2021.csv` for output.
 
 [^37]: EdWorkingPapers (2025). "Heterogeneous Effects of Closing the Digital Divide During COVID-19 on Student Engagement and Achievement." https://edworkingpapers.com/ai25-1153. Key finding: broadband access boosted achievement for high-performing students but reduced engagement and achievement for low-performing pupils.
+
+[^38]: Van de Schoot, R., & Miočević, M. (Eds.). (2020). *Small Sample Size Solutions: A Guide for Applied Researchers and Practitioners*. Routledge. Chapter 10: "Eliciting Informative Priors by Pooling Data from Similar Studies." https://doi.org/10.4324/9780429273872
+
+[^39]: Piironen, J., & Vehtari, A. (2017). "Sparsity information and regularization in the horseshoe and other shrinkage priors." *Electronic Journal of Statistics*, 11(2), 5018-5051. https://doi.org/10.1214/17-EJS1337SI. Introduces the regularized (Finnish) horseshoe with slab regularization and the data-dependent τ₀ formula.
+
+[^40]: Polson, N. G., & Scott, J. G. (2012). "On the half-Cauchy prior for a global scale parameter." *Bayesian Analysis*, 7(4), 887-902. https://doi.org/10.1214/12-BA730. Original development of the horseshoe prior for sparse signal recovery.
+
+[^41]: Gelman, A., Simpson, D., & Betancourt, M. (2017). "The prior can often only be understood in the context of the likelihood." *Entropy*, 19(10), 555. https://doi.org/10.3390/e19100555. Discusses principled approaches to prior specification using data to inform weakly informative priors.

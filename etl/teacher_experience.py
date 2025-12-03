@@ -36,6 +36,22 @@ class TeacherExperienceETL(BaseETL):
             'EDUCATOR COUNT': 'educator_count',
             'Average Years of Experience': 'average_years_experience',
             'AVERAGE YEARS OF EXPERIENCE': 'average_years_experience',
+            # Historical xlsx format (2018-19) - SCHOOL_EXPERIENCE
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_number',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'SCH_CD': 'school_code',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
+            'TOTEXP': 'total_experience',  # Total years * teachers
+            'CNTEXP': 'educator_count',  # Count of teachers
+            'AVGEXPERIENCEYEARS': 'average_years_experience',
         }
     
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
@@ -67,18 +83,35 @@ class TeacherExperienceETL(BaseETL):
             
         return defaults
     
+    def _parse_numeric_with_commas(self, value) -> float:
+        """Parse numeric values that may contain comma formatting (e.g., '2,984')."""
+        if pd.isna(value):
+            return pd.NA
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            # Remove commas and whitespace before converting
+            cleaned = value.replace(',', '').strip()
+            try:
+                return float(cleaned)
+            except ValueError:
+                return pd.NA
+        return pd.NA
+
     def should_skip_row(self, row: pd.Series) -> bool:
         """Skip rows that don't have teacher experience data."""
         # Check if we have educator count (denominator)
-        educator_count = row.get('educator_count', pd.NA)
+        # Handle comma-formatted numbers like '2,984' for large districts
+        educator_count_raw = row.get('educator_count', pd.NA)
+        educator_count = self._parse_numeric_with_commas(educator_count_raw)
         if pd.isna(educator_count) or educator_count == 0:
             return True
-            
+
         # Check if we have average years
         avg_years = row.get('average_years_experience', pd.NA)
         if pd.isna(avg_years):
             return True
-            
+
         return False  # Don't call super() - institutional data has no demographics
 
 

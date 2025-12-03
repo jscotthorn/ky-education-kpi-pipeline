@@ -84,9 +84,10 @@ def calculate_aggregate_index_scores(df: pd.DataFrame) -> pd.DataFrame:
     survey_data['question_type_clean'] = survey_data['question_type'].str.upper().str.strip()
     
     # Group by key fields and question type, calculate mean scores
+    # NOTE: Use 'district_name' to match base_etl.py column naming convention
     groupby_cols = [
-        'district', 'school_name', 'year', 'student_group', 
-        'county_number', 'county_name', 'district_number', 
+        'district_name', 'school_name', 'year', 'student_group',
+        'county_number', 'county_name', 'district_number',
         'school_number', 'school_code', 'state_school_id', 'nces_id',
         'co_op', 'co_op_code', 'school_type', 'level', 'source_file'
     ]
@@ -178,8 +179,10 @@ class SafeSchoolsClimateETL(BaseETL):
     def module_column_mappings(self) -> Dict[str, str]:
         return {
             # Standard KPI fields from survey files
-            'District Name': 'district',
-            'DISTRICT NAME': 'district',
+            # NOTE: Map to 'district_name' to match base_etl.py's create_kpi_template()
+            # which uses row.get('district_name', 'Unknown District')
+            'District Name': 'district_name',
+            'DISTRICT NAME': 'district_name',
             'School Name': 'school_name',
             'SCHOOL NAME': 'school_name',
             'County Number': 'county_number',
@@ -209,7 +212,7 @@ class SafeSchoolsClimateETL(BaseETL):
             # 2025 files use quoted column names
             '"School Year"': 'school_year',
             '"School Code"': 'school_code',
-            '"District Name"': 'district',
+            '"District Name"': 'district_name',
             '"School Name"': 'school_name',
             '"Level"': 'level',
             '"Demographic"': 'demographic',
@@ -349,11 +352,16 @@ class SafeSchoolsClimateETL(BaseETL):
         
         # Map to standard KPI column names
         kpi_df = calculated_df.copy()
-        
+
+        # Rename district_name -> district to match KPI output format
+        # (Internal processing uses district_name to match base_etl.py convention)
+        if 'district_name' in kpi_df.columns:
+            kpi_df = kpi_df.rename(columns={'district_name': 'district'})
+
         # Generate school_id from school_code if not present
         if 'school_id' not in kpi_df.columns and 'school_code' in kpi_df.columns:
             kpi_df['school_id'] = kpi_df['school_code']
-        
+
         # Ensure required KPI columns exist (all 19 standard columns)
         kpi_columns = [
             'year', 'metric', 'district', 'school_name', 'student_group', 'value', 'suppressed',
@@ -608,12 +616,12 @@ class SafeSchoolsClimateETL(BaseETL):
             # Combine all raw survey data
             all_survey_df = pd.concat(raw_survey_data, ignore_index=True)
 
-            # DEBUG: Check district values in survey data
-            if 'district' in all_survey_df.columns:
-                logger.info(f"Survey data has district column. Sample values: {all_survey_df['district'].value_counts().head(10).to_dict()}")
-                logger.info(f"Survey data district null count: {all_survey_df['district'].isna().sum()} out of {len(all_survey_df)}")
+            # DEBUG: Check district values in survey data (uses district_name internally)
+            if 'district_name' in all_survey_df.columns:
+                logger.info(f"Survey data has district_name column. Sample values: {all_survey_df['district_name'].value_counts().head(10).to_dict()}")
+                logger.info(f"Survey data district_name null count: {all_survey_df['district_name'].isna().sum()} out of {len(all_survey_df)}")
             else:
-                logger.warning("Survey data MISSING district column!")
+                logger.warning("Survey data MISSING district_name column!")
 
             # CRITICAL FIX: Normalize year column for 2025 survey files
             # The 2025 files have school_year="20242025" but we need year="2025"
@@ -626,23 +634,23 @@ class SafeSchoolsClimateETL(BaseETL):
             calculated_scores_df = calculate_aggregate_index_scores(all_survey_df)
 
             if not calculated_scores_df.empty:
-                # DEBUG: Check district values in calculated scores
-                if 'district' in calculated_scores_df.columns:
-                    logger.info(f"Calculated scores have district column. Sample values: {calculated_scores_df['district'].value_counts().head(10).to_dict()}")
-                    logger.info(f"Calculated scores district null count: {calculated_scores_df['district'].isna().sum()} out of {len(calculated_scores_df)}")
+                # DEBUG: Check district values in calculated scores (uses district_name internally)
+                if 'district_name' in calculated_scores_df.columns:
+                    logger.info(f"Calculated scores have district_name column. Sample values: {calculated_scores_df['district_name'].value_counts().head(10).to_dict()}")
+                    logger.info(f"Calculated scores district_name null count: {calculated_scores_df['district_name'].isna().sum()} out of {len(calculated_scores_df)}")
                     # Check for 2025 data specifically
                     if 'year' in calculated_scores_df.columns:
                         logger.info(f"Calculated scores year values: {calculated_scores_df['year'].value_counts().to_dict()}")
                         year_2025_df = calculated_scores_df[calculated_scores_df['year'] == '2025']
                         if not year_2025_df.empty:
                             logger.info(f"Year 2025 calculated scores: {len(year_2025_df)} records")
-                            logger.info(f"Year 2025 Fayette County calculated scores: {len(year_2025_df[year_2025_df['district'] == 'Fayette County'])} records")
+                            logger.info(f"Year 2025 Fayette County calculated scores: {len(year_2025_df[year_2025_df['district_name'] == 'Fayette County'])} records")
                         else:
                             logger.warning("No year 2025 calculated scores found!")
                     else:
                         logger.warning("Calculated scores MISSING year column!")
                 else:
-                    logger.warning("Calculated scores MISSING district column!")
+                    logger.warning("Calculated scores MISSING district_name column!")
 
                 # Format calculated scores as KPI data
                 calculated_kpi_df = self.format_calculated_scores_as_kpi(calculated_scores_df)

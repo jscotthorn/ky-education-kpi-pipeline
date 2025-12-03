@@ -159,10 +159,11 @@ def calculate_demographics(enrollment_df: pd.DataFrame) -> pd.DataFrame:
         'county_number', 'county_name', 'demographic_category'
     ])['enrollment'].sum().reset_index()
     
-    # Get total enrollment per school-year
+    # Get total enrollment per school-year (deduplicate to handle inconsistent metadata)
     total_enrollments = school_demo_df[
         school_demo_df['demographic_category'] == 'all_students'
-    ][['year', 'school_id', 'enrollment']].rename(columns={'enrollment': 'total_enrollment'})
+    ].groupby(['year', 'school_id'])['enrollment'].sum().reset_index()
+    total_enrollments = total_enrollments.rename(columns={'enrollment': 'total_enrollment'})
     
     # Merge total back in
     demo_with_total = school_demo_df.merge(
@@ -187,13 +188,25 @@ def calculate_demographics(enrollment_df: pd.DataFrame) -> pd.DataFrame:
     print(f"Years: {sorted(demo_pcts['year'].unique())}")
     
     # Pivot to wide format (one row per school-year)
+    # Use minimal index to avoid duplicates from inconsistent metadata across sources
     demo_wide = demo_pcts.pivot_table(
-        index=['year', 'school_id', 'school_name', 'district', 'district_number',
-               'county_number', 'county_name'],
+        index=['year', 'school_id'],
         columns='demographic_category',
         values='pct',
         aggfunc='first'  # Take first if duplicates
     ).reset_index()
+
+    # Get school metadata (school_name, district, etc.) - take first occurrence per school-year
+    school_metadata = demo_pcts.groupby(['year', 'school_id']).agg({
+        'school_name': 'first',
+        'district': 'first',
+        'district_number': 'first',
+        'county_number': 'first',
+        'county_name': 'first'
+    }).reset_index()
+
+    # Merge metadata back
+    demo_wide = demo_wide.merge(school_metadata, on=['year', 'school_id'], how='left')
     
     # Rename columns to have pct_ prefix
     rename_mapping = {col: f'pct_{col}' for col in DEMOGRAPHIC_GROUPS.keys()}

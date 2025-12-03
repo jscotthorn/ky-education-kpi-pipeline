@@ -41,12 +41,15 @@ class SchoolCoursesETL(BaseETL):
             # Course identification
             'Course Category': 'course_category',
             'COURSE CATEGORY': 'course_category',
+            'COURSECATEGORY': 'course_category',
             'State Course Code': 'course_code',
             'STATE COURSE CODE': 'course_code',
+            'STATECOURSECODE': 'course_code',
             'State Course Name': 'course_name',
             'STATE COURSE NAME': 'course_name',
+            'STATECOURSENAME': 'course_name',
 
-            # Student counts by grade
+            # Student counts by grade (modern format)
             'Student Count': 'student_count',
             'STUDENT COUNT': 'student_count',
             'Preschool Count': 'preschool_count',
@@ -79,6 +82,36 @@ class SchoolCoursesETL(BaseETL):
             'GRADE12 COUNT': 'grade12_count',
             'Grade14 Count': 'grade14_count',
             'GRADE14 COUNT': 'grade14_count',
+
+            # Historical xlsx format (2018-19)
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_number',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'SCH_CD': 'school_code',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
+            'TOTAL_STUDENTS': 'student_count',
+            'P': 'preschool_count',
+            'K': 'kindergarten_count',
+            'G1': 'grade1_count',
+            'G2': 'grade2_count',
+            'G3': 'grade3_count',
+            'G4': 'grade4_count',
+            'G5': 'grade5_count',
+            'G6': 'grade6_count',
+            'G7': 'grade7_count',
+            'G8': 'grade8_count',
+            'G9': 'grade9_count',
+            'G10': 'grade10_count',
+            'G11': 'grade11_count',
+            'G12': 'grade12_count',
+            'G14': 'grade14_count',
         }
 
     def should_skip_row(self, row: pd.Series) -> bool:

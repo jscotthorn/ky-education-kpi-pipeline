@@ -60,10 +60,16 @@ class DistrictSchoolListETL(BaseETL):
             # Additional school info columns that might be useful
             'Low Grade': 'low_grade',
             'LOW GRADE': 'low_grade',
+            'LOW_GRADE': 'low_grade',
             'High Grade': 'high_grade',
             'HIGH GRADE': 'high_grade',
+            'HIGH_GRADE': 'high_grade',
             'Title I Status': 'title_i_status',
             'TITLE I STATUS': 'title_i_status',
+            'TITLE1_STATUS': 'title_i_status',
+            'School Type': 'school_type',
+            'SCHOOL TYPE': 'school_type',
+            'SCH_TYPE': 'school_type',
             'Address': 'address',
             'ADDRESS': 'address',
             'City': 'city',
@@ -73,23 +79,42 @@ class DistrictSchoolListETL(BaseETL):
             # NCES ID variations
             'NCES Id': 'nces_id',
             'Co-Op': 'co_op',
+            # Historical xlsx format (2018-19)
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_number',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'SCH_CD': 'school_code',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
         }
 
     # School Type codes to create dummy variables for (A1 is reference category)
     SCHOOL_TYPE_DUMMIES = ['A2', 'A3', 'A4', 'A5', 'A6', 'A8', 'B1', 'B2', 'C2', 'D1']
 
-    # Title I Status categories (reference: "Not a Title 1 School")
+    # Title I Status categories (reference: "Not a Title 1 School" / "Not a Title I School")
     # We create a simplified binary indicator plus a "schoolwide" indicator
+    # Note: Some years use "Title 1" and others use "Title I" (capital I)
     TITLE_I_SCHOOLWIDE_PATTERNS = [
         'Title 1 Eligible - Schoolwide School',
         'Title 1 - Schoolwide School',
         'Title 1 Eligible - Schoolwide Program',
+        'Title I Eligible - Schoolwide School',
+        'Title I - Schoolwide School',
+        'Title I Eligible - Schoolwide Program',
     ]
     TITLE_I_TARGETED_PATTERNS = [
         'Title 1 Eligible - Targeted Assistance School',
+        'Title I Eligible - Targeted Assistance School',
     ]
     TITLE_I_ELIGIBLE_NO_PROGRAM_PATTERNS = [
         'Title 1 Eligible - No Program',
+        'Title I Eligible - No Program',
     ]
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:

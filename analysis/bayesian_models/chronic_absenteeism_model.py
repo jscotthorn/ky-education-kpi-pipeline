@@ -9,13 +9,21 @@ Chronic absenteeism measures the percentage of students who miss
 Kentucky's average chronic absenteeism rate is ~29%.
 
 Usage:
-    python chronic_absenteeism_model.py                    # Default (Finnish horseshoe)
-    python chronic_absenteeism_model.py --horseshoe       # Classic horseshoe
-    python chronic_absenteeism_model.py --normal          # Normal priors (no shrinkage)
-    python chronic_absenteeism_model.py --non-centered    # Non-centered parameterization
+    python chronic_absenteeism_model.py                               # Default (all_students)
+    python chronic_absenteeism_model.py --student-group african_american
+    python chronic_absenteeism_model.py --all-groups                  # Run for all target groups
+    python chronic_absenteeism_model.py --horseshoe                   # Classic horseshoe
+    python chronic_absenteeism_model.py --normal                      # Normal priors (no shrinkage)
 """
 
+import sys
+from pathlib import Path
 from typing import Dict, List, Tuple
+
+# Add config directory to path for imports
+CONFIG_DIR = Path(__file__).parent.parent / "config"
+sys.path.insert(0, str(CONFIG_DIR))
+from student_groups import ALL_GROUP_SLUGS, TARGET_GROUP_SLUGS
 
 from base_hierarchical_model import BaseHierarchicalModel
 
@@ -38,27 +46,23 @@ class ChronicAbsenteeismModel(BaseHierarchicalModel):
         return 'chronic_absenteeism'
 
     def get_state_mean_prior(self) -> Tuple[float, float]:
-        """KY chronic absenteeism ~29%."""
-        return (29.0, 15.0)
+        """KY chronic absenteeism ~24.4% (from empirical prior analysis)."""
+        return (24.4, 5.0)
 
     def get_variance_priors(self) -> Dict[str, float]:
-        """Wider variance for chronic absenteeism (high variation across schools)."""
+        """
+        Variance priors from empirical analysis (1.5x observed SD).
+        Chronic absenteeism shows high district variation with tighter observation noise.
+        """
         return {
-            'sigma_district': 10.0,
-            'sigma_school': 6.0,
-            'sigma_y': 6.0
+            'sigma_district': 15.1,
+            'sigma_school': 9.9,
+            'sigma_y': 4.5
         }
 
-    def get_tau_scale(self) -> float:
-        """
-        Tau scale for horseshoe.
-        With ~22 predictors and ~5 expected effective: 0.5
-        """
-        return 0.5
-
     def get_slab_parameters(self) -> Tuple[float, float]:
-        """Slab parameters for Finnish horseshoe."""
-        return (3.0, 4.0)
+        """Slab parameters for Finnish horseshoe: c2 ~ InverseGamma(2, 8)."""
+        return (2.0, 4.0)
 
     def get_tract_columns(self) -> List[str]:
         """
@@ -81,11 +85,28 @@ class ChronicAbsenteeismModel(BaseHierarchicalModel):
         return "BAYESIAN HIERARCHICAL MODEL - CHRONIC ABSENTEEISM"
 
 
+def run_for_group(student_group: str, prior_type: str, non_centered: bool,
+                  run_prior_check: bool, run_loo: bool):
+    """Run model for a single student group."""
+    model = ChronicAbsenteeismModel(verbose=True, student_group=student_group)
+    return model.run(
+        prior_type=prior_type,
+        non_centered=non_centered,
+        run_prior_check=run_prior_check,
+        run_loo=run_loo
+    )
+
+
 def main():
     """Main execution."""
     import argparse
 
     parser = argparse.ArgumentParser(description="Run Bayesian hierarchical model for chronic absenteeism")
+    parser.add_argument('--student-group', type=str, default='all_students',
+                       choices=ALL_GROUP_SLUGS,
+                       help=f"Student group to analyze. Choices: {ALL_GROUP_SLUGS}")
+    parser.add_argument('--all-groups', action='store_true',
+                       help="Run for all student groups (all_students + target demographics)")
     parser.add_argument('--prior', type=str, choices=['normal', 'horseshoe', 'finnish'],
                        default='finnish', help="Prior type (default: finnish)")
     parser.add_argument('--horseshoe', action='store_true', help="Use classic horseshoe prior")
@@ -108,16 +129,31 @@ def main():
     # Non-centered default unless --centered specified
     non_centered = not args.centered
 
-    # Run model
-    model = ChronicAbsenteeismModel(verbose=True)
-    school_effects = model.run(
-        prior_type=prior_type,
-        non_centered=non_centered,
-        run_prior_check=not args.skip_prior_check,
-        run_loo=not args.skip_loo
-    )
+    # Determine which groups to run
+    if args.all_groups:
+        groups_to_run = ['all_students'] + TARGET_GROUP_SLUGS
+        print(f"\nRunning for {len(groups_to_run)} student groups: {groups_to_run}\n")
+    else:
+        groups_to_run = [args.student_group]
 
-    return school_effects
+    # Run for each group
+    results = {}
+    for i, group in enumerate(groups_to_run, 1):
+        if len(groups_to_run) > 1:
+            print(f"\n{'#' * 60}")
+            print(f"# GROUP {i}/{len(groups_to_run)}: {group}")
+            print(f"{'#' * 60}\n")
+        results[group] = run_for_group(
+            group, prior_type, non_centered,
+            not args.skip_prior_check, not args.skip_loo
+        )
+
+    if len(groups_to_run) > 1:
+        print(f"\n{'=' * 60}")
+        print(f"ALL GROUPS COMPLETE: {len(results)} models run")
+        print("=" * 60)
+
+    return results if len(results) > 1 else list(results.values())[0]
 
 
 if __name__ == "__main__":

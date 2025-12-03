@@ -10,12 +10,24 @@ Creates analysis dataset for postsecondary readiness rates using:
 Postsecondary readiness measures whether students are academically
 prepared for college or career pathways upon graduation.
 
-Output: analysis/datasets/postsecondary_readiness_analysis.csv
+Output: analysis/datasets/postsecondary_readiness_analysis_{student_group}.csv
+
+Usage:
+    python postsecondary_readiness_analysis.py                           # All Students (default)
+    python postsecondary_readiness_analysis.py --student-group african_american
+    python postsecondary_readiness_analysis.py --all-groups              # Run for all target groups
 """
 
+import argparse
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import sys
+
+# Add config directory to path for imports
+CONFIG_DIR = Path(__file__).parent.parent / "config"
+sys.path.insert(0, str(CONFIG_DIR))
+from student_groups import ALL_GROUP_SLUGS, TARGET_GROUP_SLUGS
 
 from base_analysis_dataset import BaseAnalysisDataset
 
@@ -65,9 +77,13 @@ class PostsecondaryReadinessAnalysisDataset(BaseAnalysisDataset):
         ps_df = ps_df[ps_df['suppressed'] != 'Y'].copy()
         self.log(f"After removing suppressed: {len(ps_df):,} records")
 
-        # Filter to All Students only
-        ps_df = ps_df[ps_df['student_group'] == 'All Students'].copy()
-        self.log(f"All Students only: {len(ps_df):,} records")
+        # Remove rows with missing outcome values (NaN in source data)
+        ps_df = ps_df[ps_df['postsecondary_readiness_rate'].notna()].copy()
+        self.log(f"After removing missing values: {len(ps_df):,} records")
+
+        # Filter to specified student group
+        ps_df = ps_df[ps_df['student_group'] == self.student_group_name].copy()
+        self.log(f"{self.student_group_name}: {len(ps_df):,} records")
 
         # Filter to years 2022-2025
         ps_df['year'] = pd.to_numeric(ps_df['year'], errors='coerce')
@@ -91,22 +107,66 @@ class PostsecondaryReadinessAnalysisDataset(BaseAnalysisDataset):
         return result
 
 
-def main():
-    """Main execution."""
+def run_for_group(student_group: str) -> pd.DataFrame:
+    """Run analysis for a single student group."""
     print("=" * 60)
-    print("CREATE POSTSECONDARY READINESS ANALYSIS DATASET")
+    print(f"CREATE POSTSECONDARY READINESS ANALYSIS DATASET")
+    print(f"Student Group: {student_group}")
     print("=" * 60)
 
-    dataset = PostsecondaryReadinessAnalysisDataset(verbose=True)
+    dataset = PostsecondaryReadinessAnalysisDataset(verbose=True, student_group=student_group)
     df = dataset.create_dataset()
 
     print("\n" + "=" * 60)
     print("POSTSECONDARY READINESS ANALYSIS DATASET COMPLETE")
     print("=" * 60)
 
-    print(f"\nNext step: Run Bayesian model on {dataset.OUTPUT_DIR / dataset.OUTPUT_FILENAME}")
+    print(f"\nNext step: Run Bayesian model on {dataset.OUTPUT_DIR / dataset.output_filename}")
 
     return df
+
+
+def main():
+    """Main execution."""
+    parser = argparse.ArgumentParser(
+        description="Create postsecondary readiness analysis dataset for specified student group"
+    )
+    parser.add_argument(
+        '--student-group',
+        type=str,
+        default='all_students',
+        choices=ALL_GROUP_SLUGS,
+        help=f"Student group to analyze. Choices: {ALL_GROUP_SLUGS}"
+    )
+    parser.add_argument(
+        '--all-groups',
+        action='store_true',
+        help="Run for all student groups (all_students + target demographics)"
+    )
+    args = parser.parse_args()
+
+    # Determine which groups to run
+    if args.all_groups:
+        groups_to_run = ['all_students'] + TARGET_GROUP_SLUGS
+        print(f"\nRunning for {len(groups_to_run)} student groups: {groups_to_run}\n")
+    else:
+        groups_to_run = [args.student_group]
+
+    # Run for each group
+    results = {}
+    for i, group in enumerate(groups_to_run, 1):
+        if len(groups_to_run) > 1:
+            print(f"\n{'#' * 60}")
+            print(f"# GROUP {i}/{len(groups_to_run)}: {group}")
+            print(f"{'#' * 60}\n")
+        results[group] = run_for_group(group)
+
+    if len(groups_to_run) > 1:
+        print(f"\n{'=' * 60}")
+        print(f"ALL GROUPS COMPLETE: {len(results)} datasets created")
+        print("=" * 60)
+
+    return results if len(results) > 1 else list(results.values())[0]
 
 
 if __name__ == "__main__":

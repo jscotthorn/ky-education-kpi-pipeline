@@ -69,7 +69,7 @@ class SecondaryEnrollmentETL(BaseETL):
             'Grade 12': 'grade_12',
             'Grade 14': 'grade_14',
 
-            # Historical format (uppercase)
+            # Historical format (uppercase from 2020-2023 CSVs)
             'TOTAL STUDENT COUNT': 'total_student_count',
             'GRADE6 COUNT': 'grade_6',
             'GRADE7 COUNT': 'grade_7',
@@ -88,6 +88,37 @@ class SecondaryEnrollmentETL(BaseETL):
             'GRADE3 COUNT': 'grade_3',
             'GRADE4 COUNT': 'grade_4',
             'GRADE5 COUNT': 'grade_5',
+
+            # Historical xlsx format (2018-19)
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_number',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'SCH_CD': 'school_code',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
+            'STUDENTGROUP': 'demographic',
+            'TOTALSTUDENTS_CNT': 'total_student_count',
+            'P_CNT': 'preschool',
+            'K_CNT': 'k',
+            'G1_CNT': 'grade_1',
+            'G2_CNT': 'grade_2',
+            'G3_CNT': 'grade_3',
+            'G4_CNT': 'grade_4',
+            'G5_CNT': 'grade_5',
+            'G6_CNT': 'grade_6',
+            'G7_CNT': 'grade_7',
+            'G8_CNT': 'grade_8',
+            'G9_CNT': 'grade_9',
+            'G10_CNT': 'grade_10',
+            'G11_CNT': 'grade_11',
+            'G12_CNT': 'grade_12',
+            'G14_CNT': 'grade_14',
         }
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:

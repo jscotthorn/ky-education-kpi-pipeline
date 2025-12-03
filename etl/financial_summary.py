@@ -1,14 +1,17 @@
 """
 Financial Summary ETL Module
 
-Processes Kentucky district-level financial summary data from 2020-2024.
-Extracts KPIs for student membership, fund balance, and staff FTE counts.
+Processes Kentucky district-level financial summary data from 2020-2025.
+Extracts KPIs for student membership, fund balance, staff FTE counts, and staff ratios.
 
 Data includes:
 - End-of-Year Student Membership (district totals)
 - Fund Balance (absolute and percentage)
 - Certified Staff FTE (total and teachers only)
 - Classified Staff FTE
+- Students per Certified Staff ratio
+- Students per Classified Staff ratio
+- Students per Non-Teacher Certified Staff ratio
 
 Note: This dataset contains district-level aggregates only, with no demographic breakdowns
 or school-level data. All records are assigned "All Students" as the student group.
@@ -61,6 +64,7 @@ class FinancialSummaryETL(BaseETL):
         Handles column name variations across years:
         - KYRC24: Title case (e.g., "End-of-Year Student Membership")
         - 2020-2023: Uppercase (e.g., "MEMBERSHIP")
+        - 2018-19: FINANCE xlsx format
         """
         return {
             # Student Membership
@@ -90,6 +94,25 @@ class FinancialSummaryETL(BaseETL):
             'Classified Staff': 'classified_staff',
             'FTE CLASSIFIED STAFF': 'classified_staff',
             'FTE Classified Staff': 'classified_staff',
+
+            # Historical xlsx format (2018-19) - FINANCE
+            # Note: 2018-19 is district-level only, so DIST_NUMBER becomes school_code
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'school_code',  # District-level data uses district number as identifier
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
+            'GENERALFUNDBALANCE': 'fund_balance',
+            'GENERALFUNDBALANCE_PCT': 'fund_balance_pct',
+            'FTE_CERTIFIEDSTAFF': 'certified_staff',
+            'FTE_CERTIFIEDSTAFF_TEACHERS': 'certified_staff_teachers',
+            'FTE_CLASSIFIEDSTAFF': 'classified_staff',
         }
 
     def should_skip_row(self, row: pd.Series) -> bool:
@@ -184,6 +207,40 @@ class FinancialSummaryETL(BaseETL):
             except (ValueError, TypeError):
                 pass
 
+        # Staff Ratio Calculations (students per staff)
+        membership = row.get('membership')
+        if pd.notna(membership) and float(membership) > 0:
+            membership_val = float(membership)
+
+            # Students per Certified Staff
+            if pd.notna(certified_total) and float(certified_total) > 0:
+                try:
+                    metrics['students_per_certified_staff'] = round(
+                        membership_val / float(certified_total), 2
+                    )
+                except (ValueError, TypeError, ZeroDivisionError):
+                    pass
+
+            # Students per Classified Staff
+            if pd.notna(row.get('classified_staff')) and float(row['classified_staff']) > 0:
+                try:
+                    metrics['students_per_classified_staff'] = round(
+                        membership_val / float(row['classified_staff']), 2
+                    )
+                except (ValueError, TypeError, ZeroDivisionError):
+                    pass
+
+            # Students per Non-Teacher Certified Staff
+            if pd.notna(certified_total) and pd.notna(certified_teachers):
+                try:
+                    non_teacher = float(certified_total) - float(certified_teachers)
+                    if non_teacher > 0:
+                        metrics['students_per_non_teacher_certified_staff'] = round(
+                            membership_val / non_teacher, 2
+                        )
+                except (ValueError, TypeError, ZeroDivisionError):
+                    pass
+
         return metrics
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
@@ -201,6 +258,9 @@ class FinancialSummaryETL(BaseETL):
             'certified_staff_non_teachers_fte': pd.NA,
             'classified_staff_fte': pd.NA,
             'total_staff_fte': pd.NA,
+            'students_per_certified_staff': pd.NA,
+            'students_per_classified_staff': pd.NA,
+            'students_per_non_teacher_certified_staff': pd.NA,
         }
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:

@@ -111,6 +111,27 @@ class SpendingPerStudentETL(BaseETL):
             # Additional fields (2020 only)
             'MEMBERSHIP': 'membership',
             'Membership': 'membership',
+
+            # Historical xlsx format (2018-19)
+            # Note: 2018-19 file lacks SCH_CD, so use STATE_SCH_ID as school_code
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_number',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'STATE_SCH_ID': 'school_code',  # Map to school_code for consistency
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
+            'PERSON_PER_STU_FED': 'personnel_spending_federal',
+            'NONPERSON_PER_STU_FED': 'non_personnel_spending_federal',
+            'TOTAL_PER_STU_FED': 'total_spending_federal',
+            'PERSON_PER_STU_STATELOCAL': 'personnel_spending_state_local',
+            'NONPERSON_PER_STU_STATELOCAL': 'non_personnel_spending_state_local',
+            'TOTAL_PER_STU_STATELOCAL': 'total_spending_state_local',
+            'TOTAL_PER_STU_ALLFUNDS': 'total_spending_all_funds',
         }
 
     def should_skip_row(self, row: pd.Series) -> bool:

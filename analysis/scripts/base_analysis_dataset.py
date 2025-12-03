@@ -16,9 +16,18 @@ all the shared covariate loading and merging functionality.
 
 from abc import ABC, abstractmethod
 from pathlib import Path
+import sys
 from typing import Optional
 import pandas as pd
 import numpy as np
+
+# Add config directory to path for imports
+CONFIG_DIR = Path(__file__).parent.parent / "config"
+sys.path.insert(0, str(CONFIG_DIR))
+from student_groups import (
+    get_student_group, name_to_slug, slug_to_name,
+    STUDENT_GROUP_BY_SLUG, StudentGroup
+)
 
 
 class BaseAnalysisDataset(ABC):
@@ -56,8 +65,15 @@ class BaseAnalysisDataset(ABC):
     APPALACHIAN_COUNTIES = ['BELL', 'FLOYD', 'HARLAN', 'JOHNSON', 'KNOTT', 'LESLIE',
                             'LETCHER', 'MAGOFFIN', 'MARTIN', 'PERRY', 'PIKE', 'WHITLEY']
 
-    def __init__(self, verbose: bool = True):
-        """Initialize the dataset builder."""
+    def __init__(self, verbose: bool = True, student_group: str = "All Students"):
+        """
+        Initialize the dataset builder.
+
+        Args:
+            verbose: Whether to print progress messages
+            student_group: Student group to analyze (KDE name or slug).
+                          Default "All Students" for school-wide averages.
+        """
         self.verbose = verbose
         self.OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
 
@@ -66,6 +82,25 @@ class BaseAnalysisDataset(ABC):
             raise ValueError("Subclass must define OUTCOME_NAME")
         if not self.OUTPUT_FILENAME:
             raise ValueError("Subclass must define OUTPUT_FILENAME")
+
+        # Set up student group
+        self._student_group_config = get_student_group(student_group)
+        if self._student_group_config is None:
+            raise ValueError(f"Unknown student group: {student_group}. "
+                           f"Valid groups: {list(STUDENT_GROUP_BY_SLUG.keys())}")
+
+        self.student_group_name = self._student_group_config.name  # KDE value
+        self.student_group_slug = self._student_group_config.slug  # filename-safe
+
+    @property
+    def output_filename(self) -> str:
+        """
+        Get output filename with student group suffix.
+
+        Returns filename like: graduation_analysis_african_american.csv
+        """
+        base = self.OUTPUT_FILENAME.replace('.csv', '')
+        return f"{base}_{self.student_group_slug}.csv"
 
     def log(self, message: str, header: bool = False) -> None:
         """Print a log message if verbose mode is enabled."""
@@ -1093,11 +1128,13 @@ class BaseAnalysisDataset(ABC):
         1. Load outcome data
         2. Load all covariates
         3. Merge datasets
-        4. Add derived features (region, is_fayette)
+        4. Add derived features (region, is_fayette, student_group)
         5. Impute missing values
         6. Validate and save
         """
-        self.log(f"CREATING {self.OUTCOME_NAME.upper().replace('_', ' ')} ANALYSIS DATASET", header=True)
+        group_label = f" ({self.student_group_name})" if self.student_group_name != "All Students" else ""
+        self.log(f"CREATING {self.OUTCOME_NAME.upper().replace('_', ' ')} ANALYSIS DATASET{group_label}", header=True)
+        self.log(f"Student Group: {self.student_group_name} (slug: {self.student_group_slug})")
 
         # Load all data sources
         outcome_df = self.load_outcome_data()
@@ -1123,8 +1160,20 @@ class BaseAnalysisDataset(ABC):
         merged['is_fayette'] = (is_fayette_district | is_fayette_county).astype(int)
         self.log(f"\nFayette County schools: {merged['is_fayette'].sum()}")
 
+        # Add student group identifiers for downstream processing
+        merged['student_group'] = self.student_group_name
+        merged['student_group_slug'] = self.student_group_slug
+
         # Handle missing values
         merged = self.impute_missing_values(merged)
+
+        # Deduplicate to ensure one row per school-year (merges can create duplicates
+        # from upstream data quality issues; keep first occurrence)
+        n_before = len(merged)
+        merged = merged.drop_duplicates(subset=['year', 'school_id'], keep='first')
+        n_dropped = n_before - len(merged)
+        if n_dropped > 0:
+            self.log(f"\nDeduplication: removed {n_dropped} duplicate rows on (year, school_id)")
 
         # Clean up temporary columns
         for col in ['school_name_norm', 'district_norm']:
@@ -1134,9 +1183,10 @@ class BaseAnalysisDataset(ABC):
         # Validate
         self.validate_dataset(merged)
 
-        # Save
-        output_file = self.OUTPUT_DIR / self.OUTPUT_FILENAME
+        # Save with student-group-specific filename
+        output_file = self.OUTPUT_DIR / self.output_filename
         merged.to_csv(output_file, index=False)
         self.log(f"\nSaved: {output_file}")
+        self.log(f"Student group: {self.student_group_name}")
 
         return merged

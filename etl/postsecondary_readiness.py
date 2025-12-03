@@ -66,6 +66,23 @@ class PostsecondaryReadinessETL(BaseETL):
             'POSTSECONDARY RATE': 'postsecondary_rate',
             'Postsecondary Rate With Bonus': 'postsecondary_rate_with_bonus',
             'POSTSECONDARY RATE WITH BONUS': 'postsecondary_rate_with_bonus',
+            # Historical xlsx format (2018-19) - TRANSITION_READINESS_ACCOUNTABILITY
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_number',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'SCH_CD': 'school_code',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
+            'DEMOGRAPHIC': 'demographic',
+            'SUPPRESSED': 'suppressed',
+            'TRANSITIONRATE': 'postsecondary_rate',
+            'TRANRATEWBONUS': 'postsecondary_rate_with_bonus',
         }
     
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
@@ -99,8 +116,12 @@ class PostsecondaryReadinessETL(BaseETL):
         for _, row in df.iterrows():
             if self.should_skip_row(row):
                 continue
-            
+
             kpi_template = self.create_kpi_template(row, source_file)
+            if kpi_template is None:
+                # Row was filtered (e.g., demographic not recognized or filtered out)
+                continue
+
             metrics = self.extract_metrics(row)
             
             # Special handling for postsecondary readiness: always create both metrics

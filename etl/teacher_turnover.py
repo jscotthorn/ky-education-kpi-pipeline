@@ -52,6 +52,23 @@ class TeacherTurnoverETL(BaseETL):
             # Turnover percentage
             'Turnover Percent': 'turnover_percent',
             'TURNOVER PERCENT': 'turnover_percent',
+
+            # Historical xlsx format (2018-19)
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_number',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'SCH_CD': 'school_code',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
+            'TCH_TURNOVER_CNT': 'teacher_turnover_count',
+            'TCH_TOTAL': 'teacher_count',
+            'TURNOVER_PCT': 'turnover_percent',
         }
 
     def should_skip_row(self, row: pd.Series) -> bool:

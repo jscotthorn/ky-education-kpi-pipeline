@@ -75,11 +75,27 @@ class KentuckySummativeAssessmentETL(BaseETL):
             'PROFICIENT': 'proficient',
             'Distinguished': 'distinguished',
             'DISTINGUISHED': 'distinguished',
+            'distinguished': 'distinguished',  # Historical xlsx has lowercase
             'Proficient / Distinguished': 'proficient_distinguished',
             'Proficient/Distinguished': 'proficient_distinguished',  # 2025 format (no spaces)
             'PROFICIENT/DISTINGUISHED': 'proficient_distinguished',
+            'PROFICIENT_DISTINGUISHED': 'proficient_distinguished',  # Historical xlsx format (underscore)
             'Content Index': 'content_index',
             'CONTENT INDEX': 'content_index',
+            # Historical xlsx format columns (pre-2020)
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_code',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_code',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'SCH_CD': 'school_code',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            # Note: DEMOGRAPHIC -> demographic mapping is in base_etl.py
+            'GRADE': 'grade',
+            'TESTED': 'tested',
         }
 
     def _normalize_subject(self, value: Any) -> str:
@@ -171,7 +187,20 @@ class KentuckySummativeAssessmentETL(BaseETL):
         add('apprentice_rate', row.get('apprentice'))
         add('proficient_rate', row.get('proficient'))
         add('distinguished_rate', row.get('distinguished'))
-        add('proficient_distinguished_rate', row.get('proficient_distinguished'))
+
+        # Use proficient_distinguished if available, otherwise compute from individual rates
+        prof_dist = row.get('proficient_distinguished')
+        if pd.isna(prof_dist) or prof_dist is None:
+            # Compute from individual proficient + distinguished rates
+            proficient = row.get('proficient')
+            distinguished = row.get('distinguished')
+            if pd.notna(proficient) and pd.notna(distinguished):
+                try:
+                    prof_dist = float(proficient) + float(distinguished)
+                except (ValueError, TypeError):
+                    prof_dist = None
+        add('proficient_distinguished_rate', prof_dist)
+
         if 'content_index' in row:
             add('content_index_score', row.get('content_index'))
 
