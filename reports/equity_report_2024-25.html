@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FCPS Equity Council Committee — Equity Scorecard 2024–25</title>
+  <style>
+    /* ── Base typography ── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 11pt;
+      line-height: 1.55;
+      color: #1a1a1a;
+      background: #fff;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ── Colours ── */
+    :root {
+      --blue: #003875;
+      /* FCPS deep blue */
+      --gold: #C8922A;
+      /* FCPS gold */
+      --light: #f0f4f9;
+      --rule: #c0cad8;
+    }
+
+    /* ── Print / screen margins ── */
+    @media screen {
+      body {
+        background: #e8ecf0;
+      }
+
+      .page {
+        background: #fff;
+        max-width: 8.5in;
+        margin: 1em auto;
+        padding: 1in 1in 1in 1in;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, .18);
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        font-size: 10.5pt;
+      }
+
+      .page {
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+      }
+    }
+
+    /* ── Page-break control ── */
+    .section {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    .cover {
+      page-break-before: avoid;
+      break-before: avoid;
+    }
+
+    /* ── Cover page ── */
+    .cover {
+      display: flex;
+      flex-direction: column;
+      min-height: 9in;
+      justify-content: space-between;
+    }
+
+    .cover-header {
+      border-bottom: 4px solid var(--gold);
+      padding-bottom: 1.2em;
+      margin-bottom: 2em;
+    }
+
+    .cover-header .district-label {
+      font-size: 10pt;
+      font-family: Arial, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--blue);
+      margin: 0 0 .25em;
+    }
+
+    .cover-header h1 {
+      font-size: 28pt;
+      font-weight: bold;
+      color: var(--blue);
+      margin: 0 0 .15em;
+      line-height: 1.15;
+    }
+
+    .cover-header h2 {
+      font-size: 15pt;
+      font-weight: normal;
+      color: var(--gold);
+      margin: 0;
+    }
+
+    .cover-meta {
+      font-family: Arial, sans-serif;
+      font-size: 10pt;
+      color: #555;
+    }
+
+    .cover-meta p {
+      margin: .2em 0;
+    }
+
+    /* ── Executive summary placeholder ── */
+    .exec-summary {
+      border: 2px dashed var(--gold);
+      background: #fffbf2;
+      border-radius: 4px;
+      padding: 1.6em 2em;
+      margin: 2.5em 0;
+    }
+
+    .exec-summary h3 {
+      font-family: Arial, sans-serif;
+      font-size: 13pt;
+      color: var(--blue);
+      margin: 0 0 .5em;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .exec-summary .placeholder-text {
+      color: #999;
+      font-style: italic;
+      font-size: 10.5pt;
+    }
+
+    /* ── Table of contents ── */
+    .toc {
+      margin-top: 2em;
+    }
+
+    .toc h3 {
+      font-family: Arial, sans-serif;
+      font-size: 11pt;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--blue);
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: .3em;
+      margin-bottom: .6em;
+    }
+
+    .toc ol {
+      margin: 0;
+      padding-left: 1.4em;
+      font-family: Arial, sans-serif;
+      font-size: 10pt;
+      line-height: 1.8;
+    }
+
+    .toc li.cross-grade {
+      color: #555;
+      font-style: italic;
+    }
+
+    /* ── Section headers ── */
+    .section-header {
+      border-top: 5px solid var(--blue);
+      padding-top: 1em;
+      margin-bottom: 1.4em;
+    }
+
+    .section-header .indicator-label {
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--gold);
+      margin: 0 0 .2em;
+    }
+
+    .section-header h2 {
+      font-size: 20pt;
+      font-weight: bold;
+      color: var(--blue);
+      margin: 0 0 .2em;
+      line-height: 1.1;
+    }
+
+    .section-header .meta {
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      color: #777;
+      margin: .3em 0 0;
+    }
+
+    /* ── Subsection headings ── */
+    h3 {
+      font-family: Arial, sans-serif;
+      font-size: 12pt;
+      color: var(--blue);
+      margin: 1.4em 0 .4em;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: .2em;
+    }
+
+    h4 {
+      font-family: Arial, sans-serif;
+      font-size: 10.5pt;
+      color: #333;
+      margin: 1em 0 .3em;
+    }
+
+    /* ── Status box ── */
+    .status-box {
+      background: var(--light);
+      border-left: 4px solid var(--blue);
+      border-radius: 0 4px 4px 0;
+      padding: .9em 1.2em;
+      margin: 1em 0 1.4em;
+      font-family: Arial, sans-serif;
+      font-size: 10.5pt;
+    }
+
+    .status-box .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5em;
+    }
+
+    .status-box .stat {}
+
+    .status-box .stat-label {
+      font-size: 9pt;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .status-box .stat-value {
+      font-size: 14pt;
+      font-weight: bold;
+      color: var(--blue);
+      display: block;
+    }
+
+    .status-box .stat-note {
+      font-size: 9pt;
+      color: #888;
+    }
+
+    .status-box .gap-callout {
+      margin-top: .6em;
+      font-size: 10pt;
+      color: #555;
+      border-top: 1px solid var(--rule);
+      padding-top: .5em;
+    }
+
+    /* ── Data quality / definition note ── */
+    .data-note-box {
+      background: #fffbf2;
+      border-left: 4px solid var(--gold);
+      border-radius: 0 4px 4px 0;
+      padding: .8em 1.1em;
+      margin: 0 0 1.4em;
+      font-family: Arial, sans-serif;
+      font-size: 9.5pt;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .data-note-box strong {
+      color: #333;
+    }
+
+    /* ── Lower = better notice ── */
+    .lower-is-better {
+      display: inline-block;
+      background: #fff3cd;
+      border: 1px solid #f0c040;
+      border-radius: 3px;
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      padding: .15em .5em;
+      margin-bottom: .8em;
+      color: #6b4c00;
+    }
+
+    /* ── Observations ── */
+    .observations {
+      font-size: 10.5pt;
+      line-height: 1.6;
+    }
+
+    .observations p {
+      margin: .6em 0;
+    }
+
+    .observations ul {
+      margin: .4em 0 .6em 1.4em;
+      padding: 0;
+    }
+
+    .observations ul li {
+      margin-bottom: .3em;
+    }
+
+    /* ── Demographic table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: Arial, sans-serif;
+      font-size: 9.5pt;
+      margin: .6em 0 1em;
+    }
+
+    thead tr {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    thead th {
+      padding: .45em .6em;
+      text-align: left;
+      font-weight: 600;
+      font-size: 9pt;
+    }
+
+    tbody tr:nth-child(even) {
+      background: var(--light);
+    }
+
+    tbody tr:first-child td {
+      font-weight: bold;
+    }
+
+    tbody td {
+      padding: .38em .6em;
+      border-bottom: 1px solid #dde3ec;
+    }
+
+    .trend-up {
+      color: #1a7a1a;
+      font-weight: bold;
+    }
+
+    .trend-down {
+      color: #b00020;
+      font-weight: bold;
+    }
+
+    .trend-flat {
+      color: #666;
+    }
+
+    .gap-neg {
+      color: #b00020;
+    }
+
+    .gap-pos {
+      color: #1a7a1a;
+    }
+
+    /* ── Key findings ── */
+    .findings {
+      background: var(--light);
+      border-radius: 4px;
+      padding: .9em 1.2em;
+      margin: .8em 0 1em;
+      font-family: Arial, sans-serif;
+      font-size: 10pt;
+    }
+
+    .findings h4 {
+      margin-top: .4em;
+      color: var(--blue);
+      font-size: 10pt;
+    }
+
+    .findings ul {
+      margin: .3em 0 .5em 1.3em;
+      padding: 0;
+    }
+
+    .findings li {
+      margin-bottom: .25em;
+    }
+
+    .findings .note-inline {
+      margin: .5em 0 0;
+      font-size: 9pt;
+      font-style: italic;
+      color: #666;
+    }
+
+    /* ── EL sub-levels ── */
+    .el-level {
+      margin-bottom: 1.4em;
+    }
+
+    .el-level h3 {
+      font-size: 11pt;
+      background: var(--blue);
+      color: #fff;
+      padding: .35em .7em;
+      border-radius: 3px;
+      border: none;
+      margin-bottom: .5em;
+    }
+
+    /* ── Footer note ── */
+    .draft-note {
+      margin-top: 2em;
+      border-top: 1px solid var(--rule);
+      padding-top: .5em;
+      font-family: Arial, sans-serif;
+      font-size: 8.5pt;
+      color: #999;
+      font-style: italic;
+    }
+
+    /* ── DRAFT watermark — remove the <div class="draft-banner"> elements to publish ── */
+    .draft-banner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-35deg);
+      font-family: Arial, sans-serif;
+      font-size: 72pt;
+      font-weight: 900;
+      letter-spacing: .2em;
+      color: #c00;
+      opacity: 0.07;
+      text-transform: uppercase;
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+    }
+
+    /* ── Print page numbers via CSS (optional) ── */
+    @page {
+      size: letter;
+      margin: 0.85in 0.9in;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════════════════════
+     COVER PAGE
+═══════════════════════════════════════════════════ -->
+  <div class="page cover">
+
+    <div>
+      <div class="draft-banner">Draft</div>
+      <div class="cover-header">
+        <p class="district-label">Fayette County Board of Education &mdash; Equity Council Committee</p>
+        <h1>Equity Scorecard</h1>
+        <h2>School Year 2024&ndash;25</h2>
+      </div>
+
+      <!-- Executive Summary placeholder -->
+      <div class="exec-summary">
+        <h3>Executive Summary</h3>
+        <p>The Fayette County Public Schools Equity Scorecard provides a snapshot of student outcomes across key
+          academic, engagement, and postsecondary indicators. The data shows encouraging progress in several areas,
+          including kindergarten readiness, reading and math proficiency, and postsecondary readiness. District averages
+          have improved across multiple indicators in recent years, and in some areas Fayette County performs at or
+          above the Kentucky state average.</p>
+        <p>At the same time, the scorecard highlights opportunity gaps between student groups. English Learners and
+          students with disabilities experience the largest gaps across several measures, including math proficiency,
+          graduation rates, and postsecondary readiness. Differences in outcomes across schools also remain significant
+          in some indicators, pointing to the importance of continued focus on equitable access to resources and
+          supports.</p>
+        <p>The report also reflects the impact of ongoing district initiatives aimed at improving outcomes for all
+          students, including early childhood programs, instructional improvements, multilingual supports, and expanded
+          pathways to college and career readiness. These efforts represent important steps toward addressing
+          disparities and strengthening student success.</p>
+        <p>The Equity Scorecard is intended to support transparency, guide decision-making, and help the district track
+          progress toward more equitable outcomes. Continued attention to closing opportunity gaps and strengthening
+          targeted supports will be essential to ensuring every student has the opportunity to succeed.</p>
+        <p>The Council is also making available an online <a href="https://main.drgvm91ifzfa1.amplifyapp.com/"
+            target="_blank">Opportunity Index</a>, which will allow for better, ongoing reporting on these indicators
+          and related school metrics.
+        </p>
+      </div>
+
+      <!-- Table of contents -->
+      <div class="toc">
+        <h3>Indicators in This Report</h3>
+        <ol>
+          <li>Kindergarten Readiness</li>
+          <li>3rd Grade Reading Proficiency</li>
+          <li>8th Grade Math Proficiency</li>
+          <li>9th Grade On-Track</li>
+          <li>4-Year Graduation Rate</li>
+          <li>Postsecondary Readiness</li>
+          <li>Postsecondary Enrollment</li>
+          <li class="cross-grade">Chronic Absenteeism &mdash; cross-grade indicator</li>
+          <li class="cross-grade">School Climate Index &mdash; cross-grade indicator</li>
+          <li class="cross-grade">English Learner Proficiency &mdash; cross-grade indicator</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="cover-meta">
+      <p><strong>Data source:</strong> Kentucky Department of Education &mdash; <a
+          href="https://reportcard.kyschools.us/data-download?pid=c340f7d5-efbd-5fb8-cab8-3a128835f84c">reportcard.kyschools.us</a>;
+        <br>Fayette County Public Schools &mdash; <a href="https://www.fcps.net">fcps.net</a> (9th Grade On-Track)
+      </p>
+      <p><strong>Prepared by:</strong> Equity Council Committee, Fayette County Board of Education</p>
+
+    </div>
+
+  </div><!-- /cover -->
+
+
+  <!-- ═══════════════════════════════════════════════════
+     1. KINDERGARTEN READINESS
+═══════════════════════════════════════════════════ -->
+  <div class="page section">
+    <div class="draft-banner">Draft</div>
+    <div class="section-header">
+      <p class="indicator-label">Indicator 1 &mdash; Early Childhood</p>
+      <h2>Kindergarten Readiness</h2>
+      <p class="meta">Data source: Kentucky Department of Education</p>
+    </div>
+
+    <h3>Indicator Overview</h3>
+    <div class="observations">
+      <p>Kindergarten Readiness measures how prepared students are when they first enter the district, reflecting the
+        learning experiences and support they received before public school begins. Because Kentucky&rsquo;s public
+        preschool programs are income- and need-based, the majority of students entering kindergarten in FCPS have not
+        received pre-K instruction from a Kentucky public school.</p>
+      <p>Students are assessed using the BRIGANCE screening tool, which measures five areas: academic skills, language,
+        physical development, self-help, and social-emotional development. All students entering kindergarten are
+        normally screened within the first 30 days of school.</p>
+    </div>
+
+    <div class="data-note-box">
+      <strong>Note:</strong> Kindergarten readiness is screened before or just as a child enters kindergarten &mdash;
+      many FCPS schools screen prior to the start of the school year &mdash; so it reflects the learning and support a
+      child received before public school began, not something the receiving school produced. It should not be read
+      as a school performance measure.
+    </div>
+
+    <h3>Current Status (2024&ndash;25)</h3>
+    <div class="status-box">
+      <div class="status-row">
+        <div class="stat"><span class="stat-label">FCPS District Average</span><span class="stat-value">48.0%</span>
+        </div>
+        <div class="stat"><span class="stat-label">State Average</span><span class="stat-value">46.0%</span><span
+            class="stat-note">Fayette is 2.0 pp above state</span></div>
+        <div class="stat"><span class="stat-label">Largest Gap</span><span class="stat-value">Hispanic or
+            Latino</span><span class="stat-note">27.0 pp below district average</span></div>
+      </div>
+    </div>
+
+    <h3>Key Observations and Recommendations</h3>
+    <div class="observations">
+      <ul>
+        <li>FCPS is 2% higher than the Kentucky State average and the percentages of Kindergarten Readiness have been
+          increasing over the last 3 years.</li>
+        <li>This could be in part due to the FCPS Preschool Program. Preschool is not a mandatory program, but it is
+          available to children who meet the requirements (age, special needs, and/or income). See <a
+            href="https://www.fcps.net/school-resources/early-childhood-education/preschool">fcps.net/school-resources/early-childhood-education/preschool</a>
+          for more information.</li>
+        <li>However, there is always an opportunity to improve, especially for our Hispanic or Latino students who have
+          the largest gap of 27% below the district average.</li>
+        <li>The FCPS Classroom on Wheels is a fantastic program that engages preschool resources with the community. See
+          <a
+            href="https://www.fcps.net/school-resources/early-childhood-education/classroom-on-wheels">fcps.net/&hellip;/classroom-on-wheels</a>
+          for more information. There is an opportunity to increase the resources in locations in Lexington with a high
+          Hispanic or Latino population as well as the number of resources in Spanish.
+        </li>
+        <li>Cardinal Valley Elementary School has the lowest rate of Kindergarten Readiness in FCPS, however their
+          student population is 76% Hispanic or Latino. They are addressing this by utilizing the only heritage-speaker
+          dual language immersion program in the state, and Cardinal Valley Elementary has the highest English Learner
+          Progress Rate in the district, at 68%.</li>
+      </ul>
+    </div>
+
+    <h3>Demographic Breakdown</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Student Group</th>
+          <th>Rate (%)</th>
+          <th>Gap from All Students</th>
+          <th>3-Year Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>All Students</td>
+          <td>48.0</td>
+          <td>&mdash;</td>
+          <td class="trend-up">↑ +6.0 pp</td>
+        </tr>
+        <tr>
+          <td>Economically Disadvantaged</td>
+          <td>33.0</td>
+          <td class="gap-neg">−15.0 pp</td>
+          <td class="trend-up">↑ +8.0 pp</td>
+        </tr>
+        <tr>
+          <td>African American</td>
+          <td>39.0</td>
+          <td class="gap-neg">−9.0 pp</td>
+          <td class="trend-up">↑ +12.0 pp</td>
+        </tr>
+        <tr>
+          <td>Hispanic or Latino</td>
+          <td>21.0</td>
+          <td class="gap-neg">−27.0 pp</td>
+          <td class="trend-up">↑ +2.0 pp</td>
+        </tr>
+        <tr>
+          <td>White (non-Hispanic)</td>
+          <td>67.0</td>
+          <td class="gap-pos">+19.0 pp</td>
+          <td class="trend-up">↑ +8.0 pp</td>
+        </tr>
+        <tr>
+          <td>Students with Disabilities (IEP)</td>
+          <td>27.0</td>
+          <td class="gap-neg">−21.0 pp</td>
+          <td class="trend-up">↑ +8.0 pp</td>
+        </tr>
+        <tr>
+          <td>English Learner</td>
+          <td>27.0</td>
+          <td class="gap-neg">−21.0 pp</td>
+          <td class="trend-up">↑ +4.0 pp</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="findings">
+      <h4>Largest Gap</h4>
+      <p>The largest achievement gap exists for <strong>Hispanic or Latino</strong> students (27.0 pp below district
+        average).</p>
+      <h4>Trend Analysis &mdash; All tracked groups are improving.</h4>
+      <h4>School Variation</h4>
+      <ul>
+        <li><strong>Highest readiness rate:</strong> Clays Mill Elementary School (82.0%)</li>
+        <li><strong>Lowest readiness rate:</strong> Cardinal Valley Elementary School (7.0%)</li>
+        <li><strong>Range:</strong> 75.0 percentage points</li>
+      </ul>
+    </div>
+
+    <p class="draft-note">Data source: Kentucky Department of Education &mdash; <a
+        href="https://reportcard.kyschools.us/data-download?pid=c340f7d5-efbd-5fb8-cab8-3a128835f84c">reportcard.kyschools.us/data-download</a>
+    </p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════
+     2. 3RD GRADE READING
+═══════════════════════════════════════════════════ -->
+  <div class="page section">
+    <div class="draft-banner">Draft</div>
+    <div class="section-header">
+      <p class="indicator-label">Indicator 2 &mdash; Elementary</p>
+      <h2>3rd Grade Reading Proficiency</h2>
+      <p class="meta">Data source: Kentucky Department of Education</p>
+    </div>
+
+    <h3>Indicator Overview</h3>
+    <div class="observations">
+      <p>3rd Grade Reading Proficiency is a critical milestone. It marks the transition from <em>learning to read</em>
+        to <em>reading to learn</em>, which is fundamental for success in all other subjects.</p>
+      <p>Students are assessed on reading comprehension and literacy skills as a component of the Kentucky Summative
+        Assessment (KSA), aligned to Kentucky Academic Standards for Reading and Writing.</p>
+    </div>
+
+    <h3>Current Status (2024&ndash;25)</h3>
+    <div class="status-box">
+      <div class="status-row">
+        <div class="stat"><span class="stat-label">FCPS District Average</span><span class="stat-value">50.0%</span>
+        </div>
+        <div class="stat"><span class="stat-label">State Average</span><span class="stat-value">47.0%</span><span
+            class="stat-note">Fayette is 3.0 pp above state</span></div>
+        <div class="stat"><span class="stat-label">Largest Gap</span><span class="stat-value">Students with Disabilities
+            (IEP)</span><span class="stat-note">25.0 pp below district average</span></div>
+      </div>
+    </div>
+
+    <h3>Key Observations and Recommendations</h3>
+    <div class="observations">
+      <p>FCPS 3rd Grade Reading Proficiency is 3 percentage points above the state average, and all student groups have
+        been improving over the last 3 years. African American students have shown the strongest gains of any group (+8
+        percentage points), reflecting meaningful momentum in closing the achievement gap.</p>
+      <p>The largest gaps are for Students with Disabilities (IEP) (25 percentage points below the district average) and
+        English Learners (24 percentage points below). While SWD students have gained 3 percentage points over 3 years,
+        EL students have gained just 1 percentage point &mdash; nearly flat. Additional early literacy supports targeted
+        at these groups, particularly as science of reading practices are implemented district-wide, represent an
+        important opportunity.</p>
+      <p>The widest gap that exists is between schools, where we see a 67-percentage-point spread between the highest
+        and lowest-performing elementary schools. The ECC notes that geography and socioeconomic conditions seem highly
+        correlated to school performance for this indicator, and we recommend attention be paid to improving the
+        lowest-performing schools.</p>
+    </div>
+
+    <h3>Demographic Breakdown</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Student Group</th>
+          <th>Rate (%)</th>
+          <th>Gap from All Students</th>
+          <th>3-Year Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>All Students</td>
+          <td>50.0</td>
+          <td>&mdash;</td>
+          <td class="trend-up">↑ +2.0 pp</td>
+        </tr>
+        <tr>
+          <td>Economically Disadvantaged</td>
+          <td>37.0</td>
+          <td class="gap-neg">−13.0 pp</td>
+          <td class="trend-up">↑ +5.0 pp</td>
+        </tr>
+        <tr>
+          <td>African American</td>
+          <td>35.0</td>
+          <td class="gap-neg">−15.0 pp</td>
+          <td class="trend-up">↑ +8.0 pp</td>
+        </tr>
+        <tr>
+          <td>Hispanic or Latino</td>
+          <td>33.0</td>
+          <td class="gap-neg">−17.0 pp</td>
+          <td class="trend-up">↑ +3.0 pp</td>
+        </tr>
+        <tr>
+          <td>White (non-Hispanic)</td>
+          <td>67.0</td>
+          <td class="gap-pos">+17.0 pp</td>
+          <td class="trend-up">↑ +5.0 pp</td>
+        </tr>
+        <tr>
+          <td>Students with Disabilities (IEP)</td>
+          <td>25.0</td>
+          <td class="gap-neg">−25.0 pp</td>
+          <td class="trend-up">↑ +3.0 pp</td>
+        </tr>
+        <tr>
+          <td>English Learner</td>
+          <td>26.0</td>
+          <td class="gap-neg">−24.0 pp</td>
+          <td class="trend-flat">→ +1.0 pp</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="findings">
+      <h4>Largest Gap</h4>
+      <p>The largest achievement gap exists for <strong>Students with Disabilities (IEP)</strong> (25.0 pp below
+        district average).</p>
+      <h4>Trend Analysis</h4>
+      <ul>
+        <li><strong>Improving:</strong> Economically Disadvantaged, African American, Hispanic or Latino, White
+          (non-Hispanic), Students with Disabilities (IEP)</li>
+        <li><strong>Stable:</strong> English Learner (+1.0 pp)</li>
+      </ul>
+      <h4>School Variation</h4>
+      <ul>
+        <li><strong>Highest performing school:</strong> Rosa Parks Elementary School (85.0%)</li>
+        <li><strong>Lowest performing school:</strong> Harrison Elementary School (18.0%)</li>
+        <li><strong>Range:</strong> 67.0 percentage points</li>
+      </ul>
+    </div>
+
+    <p class="draft-note">Data source: Kentucky Department of Education &mdash; <a
+        href="https://reportcard.kyschools.us/data-download?pid=c340f7d5-efbd-5fb8-cab8-3a128835f84c">reportcard.kyschools.us/data-download</a>
+    </p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════
+     3. 8TH GRADE MATH
+═══════════════════════════════════════════════════ -->
+  <div class="page section">
+    <div class="draft-banner">Draft</div>
+    <div class="section-header">
+      <p class="indicator-label">Indicator 3 &mdash; Middle School</p>
+      <h2>8th Grade Math Proficiency</h2>
+      <p class="meta">Data source: Kentucky Department of Education</p>
+    </div>
+
+    <h3>Indicator Overview</h3>
+    <div class="observations">
+      <p>8th Grade Math Proficiency is a key indicator of future academic success.</p>
+      <p>Students are assessed on mathematics content including linear equations, functions, geometry, and statistics as
+        a component of the Kentucky Summative Assessment (KSA), aligned to Kentucky Academic Standards for Mathematics.
+        Performance contributes to school accountability ratings.</p>
+    </div>
+
+    <h3>Current Status (2024&ndash;25)</h3>
+    <div class="status-box">
+      <div class="status-row">
+        <div class="stat"><span class="stat-label">FCPS District Average</span><span class="stat-value">45.0%</span>
+        </div>
+        <div class="stat"><span class="stat-label">State Average</span><span class="stat-value">40.0%</span><span
+            class="stat-note">Fayette is 5.0 pp above state</span></div>
+        <div class="stat"><span class="stat-label">Largest Gap</span><span class="stat-value">English
+            Learner</span><span class="stat-note">32.0 pp below district average</span></div>
+      </div>
+    </div>
+
+    <h3>Key Observations and Recommendations</h3>
+    <div class="observations">
+      <p>FCPS 8th Grade Math Proficiency is 5 percentage points above the state average, and every student group is
+        improving. District-wide middle school math proficiency grew from 36% to 43% over the last two years. This
+        reflects the impact of increased academic rigor, alignment with Kentucky Academic Standards, and the addition of
+        instructional coaching at every school. In 2024&ndash;25, FCPS also invested $5.8 million in a new districtwide
+        math curriculum. See <a href="https://www.fcps.net/academic-programs">fcps.net/academic-programs</a> for more
+        information.</p>
+      <p>Despite broad improvement, English Learners (13%, 32 percentage points below the district average) and Students
+        with Disabilities (IEP) (14%, 31 percentage points below) face the largest gaps. Encouragingly, both groups are
+        among the fastest improving &mdash; EL students have gained 8 percentage points over 3 years, tied for the
+        strongest trend of any group. Sustaining and accelerating these gains will require continued targeted support,
+        particularly given how much ground remains to close.</p>
+      <p>SCAPA at Bluegrass (90%) is the highest-performing school for 8th grade math by a significant margin. The
+        68-percentage-point range between SCAPA and Lexington Traditional Magnet (22%) raises an important equity
+        question: how can the high expectations and accelerated model at schools like SCAPA be more broadly accessible
+        to students across the district? See <a
+          href="https://www.fcps.net/academic-programs/accelerated-learning-opportunities">fcps.net/&hellip;/accelerated-learning-opportunities</a>
+        for more information on FCPS accelerated learning programs.</p>
+    </div>
+
+    <h3>Demographic Breakdown</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Student Group</th>
+          <th>Rate (%)</th>
+          <th>Gap from All Students</th>
+          <th>3-Year Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>All Students</td>
+          <td>45.0</td>
+          <td>&mdash;</td>
+          <td class="trend-up">↑ +5.0 pp</td>
+        </tr>
+        <tr>
+          <td>Economically Disadvantaged</td>
+          <td>28.0</td>
+          <td class="gap-neg">−17.0 pp</td>
+          <td class="trend-up">↑ +5.0 pp</td>
+        </tr>
+        <tr>
+          <td>African American</td>
+          <td>24.0</td>
+          <td class="gap-neg">−21.0 pp</td>
+          <td class="trend-up">↑ +8.0 pp</td>
+        </tr>
+        <tr>
+          <td>Hispanic or Latino</td>
+          <td>30.0</td>
+          <td class="gap-neg">−15.0 pp</td>
+          <td class="trend-up">↑ +6.0 pp</td>
+        </tr>
+        <tr>
+          <td>White (non-Hispanic)</td>
+          <td>62.0</td>
+          <td class="gap-pos">+17.0 pp</td>
+          <td class="trend-up">↑ +6.0 pp</td>
+        </tr>
+        <tr>
+          <td>Students with Disabilities (IEP)</td>
+          <td>14.0</td>
+          <td class="gap-neg">−31.0 pp</td>
+          <td class="trend-up">↑ +5.0 pp</td>
+        </tr>
+        <tr>
+          <td>English Learner</td>
+          <td>13.0</td>
+          <td class="gap-neg">−32.0 pp</td>
+          <td class="trend-up">↑ +8.0 pp</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="findings">
+      <h4>Largest Gap</h4>
+      <p>The largest achievement gap exists for <strong>English Learner</strong> students (32.0 pp below district
+        average).</p>
+      <h4>Trend Analysis &mdash; All tracked groups are improving.</h4>
+      <h4>School Variation</h4>
+      <ul>
+        <li><strong>Highest performing school:</strong> SCAPA at Bluegrass (90.0%)</li>
+        <li><strong>Lowest performing school:</strong> Lexington Traditional Magnet School (22.0%)</li>
+        <li><strong>Range:</strong> 68.0 percentage points</li>
+      </ul>
+    </div>
+
+    <p class="draft-note">Data source: Kentucky Department of Education &mdash; <a
+        href="https://reportcard.kyschools.us/data-download?pid=c340f7d5-efbd-5fb8-cab8-3a128835f84c">reportcard.kyschools.us/data-download</a>
+    </p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════
+     4. 9TH GRADE ON-TRACK
+═══════════════════════════════════════════════════ -->
+  <div class="page section">
+    <div class="draft-banner">Draft</div>
+    <div class="section-header">
+      <p class="indicator-label">Indicator 4 &mdash; High School</p>
+      <h2>9th Grade On-Track</h2>
+      <p class="meta">Data source: Fayette County Public Schools</p>
+    </div>
+
+    <h3>Indicator Overview</h3>
+    <div class="observations">
+      <p>9th Grade On-Track measures the percentage of 9th graders who meet promotion criteria by the end of the school
+        year, meaning they have earned enough credits to be on track toward graduation.</p>
+      <p>Students who fall off-track in 9th grade are significantly less likely to graduate on time. This indicator is
+        tracked for Fayette County high schools only.</p>
+      <p><strong>Note: State-level comparison data is not available for this indicator.</strong></p>
+    </div>
+
+    <h3>Current Status (2024&ndash;25)</h3>
+    <div class="status-box">
+      <div class="status-row">
+        <div class="stat"><span class="stat-label">FCPS District Average</span><span class="stat-value">84.0%</span>
+        </div>
+        <div class="stat"><span class="stat-label">State Average</span><span class="stat-value">N/A</span></div>
+        <div class="stat"><span class="stat-label">Largest Gap</span><span class="stat-value">English
+            Learner</span><span class="stat-note">17.0 pp below district average</span></div>
+      </div>
+    </div>
+
+    <h3>Key Observations and Recommendations</h3>
+    <div class="observations">
+      <p>FCPS defines a student as &ldquo;9th grade on-track&rdquo; if they earn a minimum of 5.5 credits AND received a
+        Math credit AND received an English credit, making them &ldquo;on track&rdquo; to graduate in four years. This
+        is a locally-developed measure &mdash; Kentucky does not currently have a formal statewide definition for 9th
+        grade on-track status or include it in the state report card, making FCPS one of the relatively few districts in
+        the state systematically tracking this leading indicator of graduation. In 2024&ndash;25, 84% of FCPS 9th
+        graders met this benchmark. FCPS has invested in multiple programs to support successful high school
+        transitions, including Freshman Academies at Bryan Station, Tates Creek, and Frederick Douglass &mdash; small
+        learning communities that provide dedicated counselors, team-based teaching, and a required Freshman Seminar
+        covering study skills, goal setting, and career exploration &mdash; as well as the Summer Ignite Transition
+        Week, which orients incoming 9th graders to their new school before the year begins. See <a
+          href="https://www.fcps.net/academic-programs/academies-of-lexington">fcps.net/academic-programs/academies-of-lexington</a>
+        for more information.</p>
+      <p>English Learners face the largest on-track gap of any group: just 67% of EL students met the on-track threshold
+        in 2024&ndash;25, 17 percentage points below the district average, and this gap has remained essentially flat
+        over the past three years (−0.8 pp). Students with Disabilities (IEP) and Hispanic or Latino students also trail
+        the district average (78.5% and 75.4% respectively), though both groups are improving &mdash; Students with
+        Disabilities gained 4.9 percentage points over three years, the strongest trend of any demographic group. For
+        students who do fall off-track, FCPS offers credit recovery through eSchool (an online platform available
+        year-round) and the Re-engagement Center at Success Academy, which serves students ages 16+ who are at least one
+        year behind in credits and need a flexible, accelerated pathway to graduation. See <a
+          href="https://success.fcps.net/re-engagement-center">success.fcps.net/re-engagement-center</a> for more
+        information.</p>
+    </div>
+
+    <h3>Demographic Breakdown</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Student Group</th>
+          <th>Rate (%)</th>
+          <th>Gap from All Students</th>
+          <th>3-Year Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>All Students</td>
+          <td>84.0</td>
+          <td>&mdash;</td>
+          <td class="trend-flat">N/A</td>
+        </tr>
+        <tr>
+          <td>Economically Disadvantaged</td>
+          <td>77.5</td>
+          <td class="gap-neg">−6.5 pp</td>
+          <td class="trend-up">↑ +2.1 pp</td>
+        </tr>
+        <tr>
+          <td>African American</td>
+          <td>79.5</td>
+          <td class="gap-neg">−4.5 pp</td>
+          <td class="trend-flat">→ +0.4 pp</td>
+        </tr>
+        <tr>
+          <td>Hispanic or Latino</td>
+          <td>75.4</td>
+          <td class="gap-neg">−8.6 pp</td>
+          <td class="trend-up">↑ +1.0 pp</td>
+        </tr>
+        <tr>
+          <td>White (non-Hispanic)</td>
+          <td>90.0</td>
+          <td class="gap-pos">+6.0 pp</td>
+          <td class="trend-flat">→ 0.0 pp</td>
+        </tr>
+        <tr>
+          <td>Students with Disabilities (IEP)</td>
+          <td>78.5</td>
+          <td class="gap-neg">−5.5 pp</td>
+          <td class="trend-up">↑ +4.9 pp</td>
+        </tr>
+        <tr>
+          <td>English Learner</td>
+          <td>67.0</td>
+          <td class="gap-neg">−17.0 pp</td>
+          <td class="trend-down">↓ −0.8 pp</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="findings">
+      <h4>Largest Gap</h4>
+      <p>The largest achievement gap exists for <strong>English Learner</strong> students (17.0 pp below district
+        average).</p>
+      <h4>Trend Analysis</h4>
+      <ul>
+        <li><strong>Improving:</strong> Economically Disadvantaged (+2.1 pp), Hispanic or Latino (+1.0 pp), Students
+          with Disabilities (IEP) (+4.9 pp)</li>
+        <li><strong>Stable:</strong> African American (+0.4 pp), White (non-Hispanic) (0.0 pp), English Learner (−0.8
+          pp)</li>
+      </ul>
+      <h4>School Variation</h4>
+      <ul>
+        <li><strong>Highest performing school:</strong> STEAM Academy (99.1%)</li>
+        <li><strong>Lowest performing school:</strong> Martin Luther King Jr. Academy (26.2%)</li>
+        <li><strong>Range:</strong> 72.9 percentage points</li>
+      </ul>
+    </div>
+
+    <p class="draft-note">Data source: Fayette County Public Schools &mdash; <a href="https://www.fcps.net">fcps.net</a>
+    </p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════
+     5. GRADUATION RATE
+═══════════════════════════════════════════════════ -->
+  <div class="page section">
+    <div class="draft-banner">Draft</div>
+    <div class="section-header">
+      <p class="indicator-label">Indicator 5 &mdash; High School</p>
+      <h2>4-Year Graduation Rate</h2>
+      <p class="meta">Data source: Kentucky Department of Education</p>
+    </div>
+
+    <h3>Indicator Overview</h3>
+    <div class="observations">
+      <p>The 4-Year Graduation Rate is a critical measure of student success. It shows the percentage of students who
+        complete high school in four years, which is essential for college and career readiness.</p>
+      <p>This metric tracks students from when they enter high school through graduation, adjusted for students who
+        transfer in or out.</p>
+    </div>
+
+    <h3>Current Status (2024&ndash;25)</h3>
+    <div class="status-box">
+      <div class="status-row">
+        <div class="stat"><span class="stat-label">FCPS District Average</span><span class="stat-value">92.4%</span>
+        </div>
+        <div class="stat"><span class="stat-label">State Average</span><span class="stat-value">93.5%</span><span
+            class="stat-note">Fayette is 1.1 pp below state</span></div>
+        <div class="stat"><span class="stat-label">Largest Gap</span><span class="stat-value">English
+            Learner</span><span class="stat-note">14.8 pp below district average</span></div>
+      </div>
+    </div>
+
+    <h3>Key Observations and Recommendations</h3>
+    <div class="observations">
+      <ul>
+        <li>FCPS 4-year Graduation Rate is 1% lower than the Kentucky State average, however it has been increasing over
+          the last 3 years.</li>
+        <li>The largest gap is English Learners with a Graduation Rate of 77.6%, indicating there is an opportunity to
+          increase resources to this demographic in order to help them succeed. FCPS has Multilingual Services; see <a
+            href="https://www.fcps.net/families/multilingual-services">fcps.net/families/multilingual-services</a> for
+          more information.</li>
+        <li>The FCPS Student Success Team is actively working on removing barriers for attendance as a way to increase
+          Graduation Rates.</li>
+      </ul>
+    </div>
+
+    <h3>Demographic Breakdown</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Student Group</th>
+          <th>Rate (%)</th>
+          <th>Gap from All Students</th>
+          <th>3-Year Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>All Students</td>
+          <td>92.4</td>
+          <td>&mdash;</td>
+          <td class="trend-up">↑ +4.0 pp</td>
+        </tr>
+        <tr>
+          <td>Economically Disadvantaged</td>
+          <td>91.7</td>
+          <td class="gap-neg">−0.7 pp</td>
+          <td class="trend-up">↑ +5.0 pp</td>
+        </tr>
+        <tr>
+          <td>African American</td>
+          <td>93.8</td>
+          <td class="gap-pos">+1.4 pp</td>
+          <td class="trend-up">↑ +7.8 pp</td>
+        </tr>
+        <tr>
+          <td>Hispanic or Latino</td>
+          <td>84.2</td>
+          <td class="gap-neg">−8.2 pp</td>
+          <td class="trend-flat">→ +1.0 pp</td>
+        </tr>
+        <tr>
+          <td>White (non-Hispanic)</td>
+          <td>94.7</td>
+          <td class="gap-pos">+2.3 pp</td>
+          <td class="trend-up">↑ +3.6 pp</td>
+        </tr>
+        <tr>
+          <td>Students with Disabilities (IEP)</td>
+          <td>85.5</td>
+          <td class="gap-neg">−6.9 pp</td>
+          <td class="trend-up">↑ +5.4 pp</td>
+        </tr>
+        <tr>
+          <td>English Learner</td>
+          <td>77.6</td>
+          <td class="gap-neg">−14.8 pp</td>
+          <td class="trend-up">↑ +2.6 pp</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="findings">
+      <h4>Largest Gap</h4>
+      <p>The largest achievement gap exists for <strong>English Learner</strong> students (14.8 pp below district
+        average).</p>
+      <h4>Trend Analysis</h4>
+      <ul>
+        <li><strong>Improving:</strong> Economically Disadvantaged, African American, White (non-Hispanic), Students
+          with Disabilities (IEP), English Learner</li>
+        <li><strong>Stable:</strong> Hispanic or Latino (+1.0 pp)</li>
+      </ul>
+      <h4>School Variation</h4>
+      <ul>
+        <li><strong>Highest performing school:</strong> Lafayette High School (98.4%)</li>
+        <li><strong>Lowest performing school:</strong> Henry Clay High School (92.5%)</li>
+        <li><strong>Range:</strong> 5.9 percentage points</li>
+      </ul>
+      <p class="note-inline">Limited to FCPS's 6 comprehensive high schools. Alternative and
+        support programs (e.g. Martin Luther King Academy) are excluded &mdash; KDE reports them
+        at 0.0% because they do not graduate students directly; their enrolled students are
+        counted toward a home high school's rate instead.</p>
+    </div>
+
+    <p class="draft-note">Data source: Kentucky Department of Education &mdash; <a
+        href="https://reportcard.kyschools.us/data-download?pid=c340f7d5-efbd-5fb8-cab8-3a128835f84c">reportcard.kyschools.us/data-download</a>
+    </p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════
+     6. POSTSECONDARY READINESS
+═══════════════════════════════════════════════════ -->
+  <div class="page section">
+    <div class="draft-banner">Draft</div>
+    <div class="section-header">
+      <p class="indicator-label">Indicator 6 &mdash; Postsecondary</p>
+      <h2>Postsecondary Readiness</h2>
+      <p class="meta">Data source: Kentucky Department of Education</p>
+    </div>
+
+    <h3>Indicator Overview</h3>
+    <div class="observations">
+      <p>Postsecondary Readiness measures whether students are prepared for college or career after high school. This
+        includes meeting benchmarks in academics, career exploration, and college preparation.</p>
+      <p>Students must earn a diploma and meet at least one readiness measure, such as college entrance exam scores,
+        dual credit courses, AP/IB exams, industry certifications, or approved work experiences.</p>
+    </div>
+
+    <h3>Current Status (2024&ndash;25)</h3>
+    <div class="status-box">
+      <div class="status-row">
+        <div class="stat"><span class="stat-label">FCPS District Average</span><span class="stat-value">84.2%</span>
+        </div>
+        <div class="stat"><span class="stat-label">State Average</span><span class="stat-value">83.3%</span><span
+            class="stat-note">Fayette is 0.9 pp above state</span></div>
+        <div class="stat"><span class="stat-label">Largest Gap</span><span class="stat-value">Students with Disabilities
+            (IEP)</span><span class="stat-note">26.4 pp below district average</span></div>
+      </div>
+      <div class="status-row">
+        <div class="stat"><span class="stat-label">FCPS District Average (With High-Demand Bonus)</span><span
+            class="stat-value">91.3%</span></div>
+        <div class="stat"><span class="stat-label">State Average (With High-Demand Bonus)</span><span
+            class="stat-value">89.1%</span></div>
+      </div>
+    </div>
+
+    <h3>Key Observations and Recommendations</h3>
+    <div class="observations">
+      <ul>
+        <li>FCPS is 0.9% higher than the Kentucky State average, and the percentages of Postsecondary Readiness have
+          been increasing over the last 3 years.</li>
+        <li>This could be in part due to the opportunities available in FCPS High Schools. See <a
+            href="https://www.fcps.net/academic-programs/fayette-forward">fcps.net/academic-programs/fayette-forward</a>
+          for more information.</li>
+        <li>However, there is always an opportunity to improve, especially for our Students with Disabilities (IEP) who
+          have the largest gap of 26.4% below the district average.</li>
+      </ul>
+    </div>
+
+    <h3>Demographic Breakdown</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Student Group</th>
+          <th>Rate (%)</th>
+          <th>Gap from All Students</th>
+          <th>3-Year Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>All Students</td>
+          <td>84.2</td>
+          <td>&mdash;</td>
+          <td class="trend-up">↑ +14.8 pp</td>
+        </tr>
+        <tr>
+          <td>Economically Disadvantaged</td>
+          <td>78.1</td>
+          <td class="gap-neg">−6.1 pp</td>
+          <td class="trend-up">↑ +24.7 pp</td>
+        </tr>
+        <tr>
+          <td>African American</td>
+          <td>72.4</td>
+          <td class="gap-neg">−11.8 pp</td>
+          <td class="trend-up">↑ +25.7 pp</td>
+        </tr>
+        <tr>
+          <td>Hispanic or Latino</td>
+          <td>77.3</td>
+          <td class="gap-neg">−6.9 pp</td>
+          <td class="trend-up">↑ +19.6 pp</td>
+        </tr>
+        <tr>
+          <td>White (non-Hispanic)</td>
+          <td>92.0</td>
+          <td class="gap-pos">+7.8 pp</td>
+          <td class="trend-up">↑ +10.7 pp</td>
+        </tr>
+        <tr>
+          <td>Students with Disabilities (IEP)</td>
+          <td>57.8</td>
+          <td class="gap-neg">−26.4 pp</td>
+          <td class="trend-up">↑ +33.6 pp</td>
+        </tr>
+        <tr>
+          <td>English Learner</td>
+          <td>60.0</td>
+          <td class="gap-neg">−24.2 pp</td>
+          <td class="trend-up">↑ +40.0 pp</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="findings">
+      <h4>Largest Gap</h4>
+      <p>The largest achievement gap exists for <strong>Students with Disabilities (IEP)</strong> (26.4 pp below
+        district average).</p>
+      <h4>Trend Analysis &mdash; All tracked groups are improving, with remarkable gains for EL (+40.0 pp) and SWD
+        (+33.6 pp) over 3 years.</h4>
+      <h4>School Variation</h4>
+      <ul>
+        <li><strong>Highest performing school:</strong> Frederick Douglass High School (88.7%)</li>
+        <li><strong>Lowest performing school:</strong> Henry Clay High School (72.1%)</li>
+        <li><strong>Range:</strong> 16.6 percentage points</li>
+      </ul>
+    </div>
+
+    <p class="draft-note">Data source: Kentucky Department of Education &mdash; <a
+        href="https://reportcard.kyschools.us/data-download?pid=c340f7d5-efbd-5fb8-cab8-3a128835f84c">reportcard.kyschools.us/data-download</a>
+    </p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════
+     7. POSTSECONDARY ENROLLMENT
+═══════════════════════════════════════════════════ -->
+  <div class="page section">
+    <div class="draft-banner">Draft</div>
+    <div class="section-header">
+      <p class="indicator-label">Indicator 7 &mdash; Postsecondary</p>
+      <h2>Postsecondary Enrollment</h2>
+      <p class="meta">Data source: Kentucky Department of Education</p>
+    </div>
+
+    <h3>Indicator Overview</h3>
+    <div class="observations">
+      <p>Postsecondary Enrollment measures the percentage of students who enroll in Kentucky-based public or private
+        colleges or other postsecondary programs after high school graduation.</p>
+      <p><strong>Note: This indicator only tracks enrollment in Kentucky institutions. Students who enroll in
+          out-of-state or international institutions are not counted.</strong></p>
+    </div>
+
+    <h3>Current Status (2024&ndash;25)</h3>
+    <div class="status-box">
+      <div class="status-row">
+        <div class="stat"><span class="stat-label">FCPS District Average</span><span class="stat-value">47.9%</span>
+        </div>
+        <div class="stat"><span class="stat-label">State Average</span><span class="stat-value">N/A</span></div>
+        <div class="stat"><span class="stat-label">Largest Gap</span><span class="stat-value">Students with Disabilities
+            (IEP)</span><span class="stat-note">24.5 pp below district average</span></div>
+      </div>
+    </div>
+
+    <h3>Key Observations and Recommendations</h3>
+    <div class="observations">
+      <p>The US Bureau of Labor Statistics reported in 2023 that 61.4% of high school graduates enrolled in colleges or
+        universities. FCPS Postsecondary enrollment was 47.9%; however, it is notable to distinguish that FCPS only has
+        data on students who enrolled in Kentucky colleges or universities. Therefore, this number is lower than the
+        true percentage of students who enrolled in postsecondary education when you add in the students who went
+        out-of-state or internationally for their education.</p>
+      <p>While not the only option available to students &mdash; as there are a variety of ways to succeed after
+        graduation &mdash; postsecondary enrollment is an indicator of academic success.</p>
+    </div>
+
+    <h3>Demographic Breakdown</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Student Group</th>
+          <th>Rate (%)</th>
+          <th>Gap from All Students</th>
+          <th>3-Year Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>All Students</td>
+          <td>47.9</td>
+          <td>&mdash;</td>
+          <td class="trend-up">↑ +1.8 pp</td>
+        </tr>
+        <tr>
+          <td>Economically Disadvantaged</td>
+          <td>40.2</td>
+          <td class="gap-neg">−7.7 pp</td>
+          <td class="trend-up">↑ +4.6 pp</td>
+        </tr>
+        <tr>
+          <td>African American</td>
+          <td>44.7</td>
+          <td class="gap-neg">−3.2 pp</td>
+          <td class="trend-up">↑ +6.1 pp</td>
+        </tr>
+        <tr>
+          <td>Hispanic or Latino</td>
+          <td>37.5</td>
+          <td class="gap-neg">−10.4 pp</td>
+          <td class="trend-up">↑ +4.5 pp</td>
+        </tr>
+        <tr>
+          <td>White (non-Hispanic)</td>
+          <td>51.0</td>
+          <td class="gap-pos">+3.1 pp</td>
+          <td class="trend-flat">↓ −0.8 pp</td>
+        </tr>
+        <tr>
+          <td>Students with Disabilities (IEP)</td>
+          <td>23.4</td>
+          <td class="gap-neg">−24.5 pp</td>
+          <td class="trend-flat">N/A</td>
+        </tr>
+        <tr>
+          <td>English Learner</td>
+          <td>28.7</td>
+          <td class="gap-neg">−19.2 pp</td>
+          <td class="trend-flat">N/A</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="findings">
+      <h4>Largest Gap</h4>
+      <p>The largest achievement gap exists for <strong>Students with Disabilities (IEP)</strong> (24.5 pp below
+        district average).</p>
+      <h4>Trend Analysis</h4>
+      <ul>
+        <li><strong>Improving:</strong> Economically Disadvantaged (+4.6 pp), African American (+6.1 pp), Hispanic or
+          Latino (+4.5 pp)</li>
+        <li><strong>Stable:</strong> White (non-Hispanic) (−0.8 pp)</li>
+        <li><strong>Insufficient trend data:</strong> Students with Disabilities (IEP), English Learner</li>
+      </ul>
+      <h4>School Variation</h4>
+      <ul>
+        <li><strong>Highest performing school:</strong> Frederick Douglass High School (55.9%)</li>
+        <li><strong>Lowest performing school:</strong> Bryan Station High School (40.6%)</li>
+        <li><strong>Range:</strong> 15.3 percentage points</li>
+      </ul>
+    </div>
+
+    <p class="draft-note">Data source: Kentucky Department of Education &mdash; <a
+        href="https://reportcard.kyschools.us/data-download?pid=c340f7d5-efbd-5fb8-cab8-3a128835f84c">reportcard.kyschools.us/data-download</a>
+    </p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════
+     8. CHRONIC ABSENTEEISM (cross-grade)
+═══════════════════════════════════════════════════ -->
+  <div class="page section">
+    <div class="draft-banner">Draft</div>
+    <div class="section-header">
+      <p class="indicator-label">Indicator 8 &mdash; Cross-Grade</p>
+      <h2>Chronic Absenteeism</h2>
+      <p class="meta">Data source: Kentucky Department of Education</p>
+    </div>
+
+    <h3>Indicator Overview</h3>
+    <div class="observations">
+      <p>Chronic Absenteeism measures the percentage of students who miss 10% or more of school days. Regular attendance
+        is critical for academic success and student engagement.</p>
+      <p>Students who miss 10% of yearly school time (about two days a month) for any reason, excused or unexcused, are
+        considered chronically absent. This measure helps identify students who may need extra support to stay engaged
+        in school.</p>
+    </div>
+
+    <span class="lower-is-better">&#9660; Lower values indicate better performance for this indicator</span>
+
+    <h3>Current Status (2024&ndash;25)</h3>
+    <div class="status-box">
+      <div class="status-row">
+        <div class="stat"><span class="stat-label">FCPS District Average</span><span class="stat-value">27.0%</span>
+        </div>
+        <div class="stat"><span class="stat-label">State Average</span><span class="stat-value">N/A</span></div>
+        <div class="stat"><span class="stat-label">Largest Gap</span><span class="stat-value">Economically
+            Disadvantaged</span><span class="stat-note">6.6 pp above district average</span></div>
+      </div>
+    </div>
+
+    <h3>Key Observations and Recommendations</h3>
+    <div class="observations">
+      <ul>
+        <li>FCPS Chronic Absenteeism has been decreasing over the last 2 years.</li>
+        <li>This could be in part due to the FCPS Student Success Team who are actively working on removing barriers for
+          attendance as a way to increase Graduation Rates. See <a
+            href="https://www.fcps.net/about/departments-offices/student-belonging-success">fcps.net/&hellip;/student-belonging-success</a>
+          for more information.</li>
+        <li>The largest gap is Economically Disadvantaged students, which implies the need to provide extended supports
+          to our students outside of the classroom to increase attendance.</li>
+      </ul>
+    </div>
+
+    <h3>Demographic Breakdown</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Student Group</th>
+          <th>Rate (%)</th>
+          <th>Gap from All Students</th>
+          <th>3-Year Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>All Students</td>
+          <td>27.0</td>
+          <td>&mdash;</td>
+          <td class="trend-flat">N/A</td>
+        </tr>
+        <tr>
+          <td>Economically Disadvantaged</td>
+          <td>33.6</td>
+          <td class="gap-neg">+6.6 pp</td>
+          <td class="trend-flat">N/A</td>
+        </tr>
+        <tr>
+          <td>African American</td>
+          <td>29.0</td>
+          <td class="gap-neg">+2.0 pp</td>
+          <td class="trend-flat">N/A</td>
+        </tr>
+        <tr>
+          <td>Hispanic or Latino</td>
+          <td>31.6</td>
+          <td class="gap-neg">+4.6 pp</td>
+          <td class="trend-flat">N/A</td>
+        </tr>
+        <tr>
+          <td>White (non-Hispanic)</td>
+          <td>24.7</td>
+          <td class="gap-pos">−2.3 pp</td>
+          <td class="trend-flat">N/A</td>
+        </tr>
+        <tr>
+          <td>Students with Disabilities (IEP)</td>
+          <td>32.8</td>
+          <td class="gap-neg">+5.8 pp</td>
+          <td class="trend-flat">N/A</td>
+        </tr>
+        <tr>
+          <td>English Learner</td>
+          <td>24.5</td>
+          <td class="gap-pos">−2.5 pp</td>
+          <td class="trend-flat">N/A</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="findings">
+      <h4>Largest Gap</h4>
+      <p>The largest gap exists for <strong>Economically Disadvantaged</strong> students (6.6 pp above district
+        average). For this indicator, higher values are worse.</p>
+      <h4>Trend Analysis</h4>
+      <p>Insufficient trend data available across all groups.</p>
+      <h4>School Variation</h4>
+      <ul>
+        <li><strong>Lowest chronic absenteeism:</strong> Rosa Parks Elementary School (6.4%)</li>
+        <li><strong>Highest chronic absenteeism:</strong> Audrey Grevious Center (92.5%)</li>
+        <li><strong>Range:</strong> 86.1 percentage points</li>
+      </ul>
+    </div>
+
+    <p class="draft-note">Data source: Kentucky Department of Education &mdash; <a
+        href="https://reportcard.kyschools.us/data-download?pid=c340f7d5-efbd-5fb8-cab8-3a128835f84c">reportcard.kyschools.us/data-download</a>
+    </p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════
+     9. SCHOOL CLIMATE (cross-grade)
+═══════════════════════════════════════════════════ -->
+  <div class="page section">
+    <div class="draft-banner">Draft</div>
+    <div class="section-header">
+      <p class="indicator-label">Indicator 9 &mdash; Cross-Grade</p>
+      <h2>School Climate Index</h2>
+      <p class="meta">Data source: Kentucky Department of Education</p>
+    </div>
+
+    <h3>Indicator Overview</h3>
+    <div class="observations">
+      <p>School Climate Index measures students&rsquo; sense of belonging, safety, and engagement at school. A positive
+        school climate is essential for student well-being and academic success.</p>
+      <p>This indicator captures student perceptions of whether their school is caring and welcoming, whether rules are
+        fair, whether adults care about and support students, and whether students feel encouraged and part of their
+        school. It is measured through 14 survey questions on a scale from Strongly Disagree to Strongly Agree.</p>
+    </div>
+
+    <h3>Current Status (2024&ndash;25)</h3>
+    <div class="status-box">
+      <div class="status-row">
+        <div class="stat"><span class="stat-label">FCPS District Average</span><span class="stat-value">78.7 pts</span>
+        </div>
+        <div class="stat"><span class="stat-label">State Average</span><span class="stat-value">80.0 pts</span><span
+            class="stat-note">Fayette is 1.3 pts below state</span></div>
+        <div class="stat"><span class="stat-label">Largest Gap</span><span class="stat-value">English
+            Learner</span><span class="stat-note">1.9 pts below district average</span></div>
+      </div>
+    </div>
+
+    <h3>Key Observations and Recommendations</h3>
+    <div class="observations">
+      <p>The School Climate Index reflects student perceptions of belonging, fairness, adult support, and engagement. In
+        2024&ndash;25, FCPS scored 78.7 points &mdash; 1.3 points below the state average of 80.0, making this one of
+        the few indicators in this report where FCPS trails the state. FCPS has made substantial investments in programs
+        designed to improve school climate, including Positive Behavioral Interventions and Supports (PBIS), a
+        district-wide framework with universal behavioral expectations and tiered intervention; Social Emotional
+        Learning (SEL) programming with twice-yearly DESSA assessments at all grade levels; and a dedicated department
+        for Unity, Belonging, and Student Efficacy focused on creating psychologically safe environments for
+        historically marginalized students. The district also maintains a comprehensive 10-Point Safety Investment Plan
+        covering school culture, mental health, prevention, and physical safety. See <a
+          href="https://www.fcps.net/families/student-support-services/social-emotional-learning">fcps.net/&hellip;/social-emotional-learning</a>
+        and <a
+          href="https://www.fcps.net/families/student-support-services/positive-behavior-intervention-and-supports">fcps.net/&hellip;/positive-behavior-intervention-and-supports</a>
+        for more information.</p>
+      <p>Scores across demographic groups have been largely stable over the past three years, with modest declines for
+        most groups. African American students and Students with Disabilities (IEP) have seen the largest dips (3.0
+        points each over three years), followed by English Learners (−2.3 points) and Hispanic or Latino students (−2.1
+        points). These are movements worth monitoring but not yet a cause for alarm. The more notable observation is the
+        persistent gap between these groups and the district average, which reflects an ongoing equity dimension in how
+        students experience school climate.</p>
+      <p>The school-level breakdown tells an important structural story. Elementary schools score in the low-to-mid
+        70s&ndash;80s, with meaningful variation between campuses (11-point range) that likely reflects school-specific
+        differences in culture and practice. Middle schools score lower overall and show the widest variation (13
+        points), suggesting climate is less consistent at that level. All six high schools are clustered tightly between
+        65 and 67 points, suggesting the challenge at the high school level is not campus-specific.</p>
+    </div>
+
+    <h3>Demographic Breakdown</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Student Group</th>
+          <th>Score (pts)</th>
+          <th>Gap from All Students</th>
+          <th>3-Year Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>All Students</td>
+          <td>78.7</td>
+          <td>&mdash;</td>
+          <td class="trend-down">↓ −0.8 pts</td>
+        </tr>
+        <tr>
+          <td>Economically Disadvantaged</td>
+          <td>77.8</td>
+          <td class="gap-neg">−0.9 pts</td>
+          <td class="trend-down">↓ −1.7 pts</td>
+        </tr>
+        <tr>
+          <td>African American</td>
+          <td>76.9</td>
+          <td class="gap-neg">−1.8 pts</td>
+          <td class="trend-down">↓ −3.0 pts</td>
+        </tr>
+        <tr>
+          <td>Hispanic or Latino</td>
+          <td>77.2</td>
+          <td class="gap-neg">−1.5 pts</td>
+          <td class="trend-down">↓ −2.1 pts</td>
+        </tr>
+        <tr>
+          <td>White (non-Hispanic)</td>
+          <td>80.2</td>
+          <td class="gap-pos">+1.5 pts</td>
+          <td class="trend-flat">N/A</td>
+        </tr>
+        <tr>
+          <td>Students with Disabilities (IEP)</td>
+          <td>77.5</td>
+          <td class="gap-neg">−1.2 pts</td>
+          <td class="trend-down">↓ −3.0 pts</td>
+        </tr>
+        <tr>
+          <td>English Learner</td>
+          <td>76.8</td>
+          <td class="gap-neg">−1.9 pts</td>
+          <td class="trend-down">↓ −2.3 pts</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="findings">
+      <h4>Largest Gap</h4>
+      <p>The largest gap exists for <strong>English Learner</strong> students (1.9 pts below district average).</p>
+      <h4>Trend Analysis</h4>
+      <ul>
+        <li><strong>Stable:</strong> White (non-Hispanic)</li>
+        <li><strong>Declining:</strong> Economically Disadvantaged (−1.7), African American (−3.0), Hispanic or Latino
+          (−2.1), Students with Disabilities (IEP) (−3.0), English Learner (−2.3)</li>
+      </ul>
+      <h4>School Variation by Level</h4>
+      <ul>
+        <li><strong>Elementary</strong> (36 schools): Rosa Parks Elem. (82.9 pts) &mdash; Harrison Elem. (71.7 pts)
+          &bull; Range: 11.2 pts</li>
+        <li><strong>Middle</strong> (12 schools): SCAPA at Bluegrass (76.4 pts) &mdash; Winburn Middle (63.4 pts) &bull;
+          Range: 13.0 pts</li>
+        <li><strong>High</strong> (6 schools): Paul Laurence Dunbar HS (66.3 pts) &mdash; Henry Clay HS (64.9 pts)
+          &bull; Range: 1.4 pts</li>
+      </ul>
+    </div>
+
+    <p class="draft-note">Data source: Kentucky Department of Education &mdash; <a
+        href="https://reportcard.kyschools.us/data-download?pid=c340f7d5-efbd-5fb8-cab8-3a128835f84c">reportcard.kyschools.us/data-download</a>
+    </p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════
+     10. ENGLISH LEARNER PROFICIENCY (cross-grade)
+═══════════════════════════════════════════════════ -->
+  <div class="page section">
+    <div class="draft-banner">Draft</div>
+    <div class="section-header">
+      <p class="indicator-label">Indicator 10 &mdash; Cross-Grade</p>
+      <h2>English Learner Proficiency</h2>
+      <p class="meta">Data source: Kentucky Department of Education</p>
+    </div>
+
+    <h3>Indicator Overview</h3>
+    <div class="observations">
+      <p>English Learner Proficiency measures the percentage of English learners making meaningful progress in English
+        language acquisition, as assessed by the WIDA ACCESS for ELLs assessment.</p>
+      <p>Students are counted as making progress if they received a nonzero score on the ACCESS value table &mdash;
+        specifically those scoring at the 60&ndash;80, 100, or 140 point levels. A score of 0 indicates no measurable
+        progress. This combined rate captures all students demonstrating any level of English language growth, reported
+        separately for elementary, middle, and high school.</p>
+    </div>
+
+    <h3>Key Observations and Recommendations</h3>
+    <div class="observations">
+      <p>FCPS English Learner progress rates have been improving over the last 3 years, with the strongest performance
+        at the elementary level (72%), where Fayette outperforms the state average by 2 percentage points. Most student
+        groups at the elementary level have seen significant gains, with White (non-Hispanic) students up 21 percentage
+        points and African American students up 16 percentage points over 3 years. FCPS&rsquo;s investment in
+        Multilingual Services &mdash; including 8 Multilingual Family Ambassadors serving students across 87 languages
+        and 180+ countries, a Multilingual Center connecting families to food, housing, and employment resources, and
+        the FCPS Lau Plan &mdash; supports the broader EL community. The number of FCPS schools flagged for low EL
+        achievement under federal accountability dropped from 17 in 2022 to just 6 in 2024. See <a
+          href="https://www.fcps.net/families/multilingual-services">fcps.net/families/multilingual-services</a> for
+        more information.</p>
+      <p>There is a significant opportunity at the secondary level. Progress rates drop sharply from elementary (72%) to
+        middle school (40%) and high school (38%), and Fayette falls 3 percentage points below the state average at the
+        high school level. At the high school level, African American students have seen a decline of 3 percentage
+        points over the last 3 years, while White (non-Hispanic) students are 15 percentage points above the district
+        average. Strengthening secondary-level language supports and examining what is driving the decline among African
+        American high school EL students should be a priority.</p>
+      <p>Students with Disabilities (IEP) have the largest gap at all three school levels &mdash; 13 percentage points
+        below the district average at elementary, 7 at middle school, and 3 at high school &mdash; and show little
+        improvement at any level. This suggests an opportunity for deeper coordination between EL and special education
+        services.</p>
+      <p>Maxwell Spanish Immersion Elementary School (95%) and Cardinal Valley Elementary&rsquo;s heritage-speaker dual
+        language immersion program are notable bright spots demonstrating the impact of intentional language
+        programming. See <a
+          href="https://www.fcps.net/academic-programs/world-language-programs">fcps.net/academic-programs/world-language-programs</a>
+        for more information on FCPS dual language and world language programs.</p>
+    </div>
+
+    <!-- Elementary -->
+    <div class="el-level">
+      <h3>Elementary School</h3>
+
+      <div class="status-box">
+        <div class="status-row">
+          <div class="stat"><span class="stat-label">FCPS Average</span><span class="stat-value">72.0%</span></div>
+          <div class="stat"><span class="stat-label">State Average</span><span class="stat-value">70.0%</span><span
+              class="stat-note">Fayette is 2.0 pp above state</span></div>
+          <div class="stat"><span class="stat-label">Largest Gap</span><span class="stat-value">Students with
+              Disabilities (IEP)</span><span class="stat-note">13.0 pp below district avg.</span></div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Student Group</th>
+            <th>Rate (%)</th>
+            <th>Gap from All Students</th>
+            <th>3-Year Trend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>All Students</td>
+            <td>72.0</td>
+            <td>&mdash;</td>
+            <td class="trend-up">↑ +12.0 pp</td>
+          </tr>
+          <tr>
+            <td>Economically Disadvantaged</td>
+            <td>71.0</td>
+            <td class="gap-neg">−1.0 pp</td>
+            <td class="trend-up">↑ +12.0 pp</td>
+          </tr>
+          <tr>
+            <td>African American</td>
+            <td>72.0</td>
+            <td>&mdash;</td>
+            <td class="trend-up">↑ +16.0 pp</td>
+          </tr>
+          <tr>
+            <td>Hispanic or Latino</td>
+            <td>70.0</td>
+            <td class="gap-neg">−2.0 pp</td>
+            <td class="trend-up">↑ +8.0 pp</td>
+          </tr>
+          <tr>
+            <td>White (non-Hispanic)</td>
+            <td>78.0</td>
+            <td class="gap-pos">+6.0 pp</td>
+            <td class="trend-up">↑ +21.0 pp</td>
+          </tr>
+          <tr>
+            <td>Students with Disabilities (IEP)</td>
+            <td>59.0</td>
+            <td class="gap-neg">−13.0 pp</td>
+            <td class="trend-down">↓ −1.0 pp</td>
+          </tr>
+          <tr>
+            <td>English Learner</td>
+            <td colspan="3">N/A</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="findings">
+        <h4>School Variation</h4>
+        <ul>
+          <li><strong>Highest:</strong> Maxwell Spanish Immersion Elem. (95.0%)</li>
+          <li><strong>Lowest:</strong> Squires Elementary School (57.0%)</li>
+          <li><strong>Range:</strong> 38.0 pp</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Middle School -->
+    <div class="el-level">
+      <h3>Middle School</h3>
+
+      <div class="status-box">
+        <div class="status-row">
+          <div class="stat"><span class="stat-label">FCPS Average</span><span class="stat-value">40.0%</span></div>
+          <div class="stat"><span class="stat-label">State Average</span><span class="stat-value">39.0%</span><span
+              class="stat-note">Fayette is 1.0 pp above state</span></div>
+          <div class="stat"><span class="stat-label">Largest Gap</span><span class="stat-value">Students with
+              Disabilities (IEP)</span><span class="stat-note">7.0 pp below district avg.</span></div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Student Group</th>
+            <th>Rate (%)</th>
+            <th>Gap from All Students</th>
+            <th>3-Year Trend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>All Students</td>
+            <td>40.0</td>
+            <td>&mdash;</td>
+            <td class="trend-up">↑ +5.0 pp</td>
+          </tr>
+          <tr>
+            <td>Economically Disadvantaged</td>
+            <td>39.0</td>
+            <td class="gap-neg">−1.0 pp</td>
+            <td class="trend-up">↑ +4.0 pp</td>
+          </tr>
+          <tr>
+            <td>African American</td>
+            <td>45.0</td>
+            <td class="gap-pos">+5.0 pp</td>
+            <td class="trend-up">↑ +4.0 pp</td>
+          </tr>
+          <tr>
+            <td>Hispanic or Latino</td>
+            <td>36.0</td>
+            <td class="gap-neg">−4.0 pp</td>
+            <td class="trend-up">↑ +4.0 pp</td>
+          </tr>
+          <tr>
+            <td>White (non-Hispanic)</td>
+            <td>43.0</td>
+            <td class="gap-pos">+3.0 pp</td>
+            <td class="trend-up">↑ +7.0 pp</td>
+          </tr>
+          <tr>
+            <td>Students with Disabilities (IEP)</td>
+            <td>33.0</td>
+            <td class="gap-neg">−7.0 pp</td>
+            <td class="trend-down">↓ −1.0 pp</td>
+          </tr>
+          <tr>
+            <td>English Learner</td>
+            <td colspan="3">N/A</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="findings">
+        <h4>School Variation</h4>
+        <ul>
+          <li><strong>Highest:</strong> Southern Middle School (49.0%)</li>
+          <li><strong>Lowest:</strong> Tates Creek Middle School (31.0%)</li>
+          <li><strong>Range:</strong> 18.0 pp</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- High School -->
+    <div class="el-level">
+      <h3>High School</h3>
+
+      <div class="status-box">
+        <div class="status-row">
+          <div class="stat"><span class="stat-label">FCPS Average</span><span class="stat-value">38.0%</span></div>
+          <div class="stat"><span class="stat-label">State Average</span><span class="stat-value">41.0%</span><span
+              class="stat-note">Fayette is 3.0 pp below state</span></div>
+          <div class="stat"><span class="stat-label">Largest Gap</span><span class="stat-value">Economically
+              Disadvantaged</span><span class="stat-note">3.0 pp below district avg.</span></div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Student Group</th>
+            <th>Rate (%)</th>
+            <th>Gap from All Students</th>
+            <th>3-Year Trend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>All Students</td>
+            <td>38.0</td>
+            <td>&mdash;</td>
+            <td class="trend-up">↑ +6.0 pp</td>
+          </tr>
+          <tr>
+            <td>Economically Disadvantaged</td>
+            <td>35.0</td>
+            <td class="gap-neg">−3.0 pp</td>
+            <td class="trend-up">↑ +2.0 pp</td>
+          </tr>
+          <tr>
+            <td>African American</td>
+            <td>35.0</td>
+            <td class="gap-neg">−3.0 pp</td>
+            <td class="trend-down">↓ −3.0 pp</td>
+          </tr>
+          <tr>
+            <td>Hispanic or Latino</td>
+            <td>35.0</td>
+            <td class="gap-neg">−3.0 pp</td>
+            <td class="trend-up">↑ +6.0 pp</td>
+          </tr>
+          <tr>
+            <td>White (non-Hispanic)</td>
+            <td>53.0</td>
+            <td class="gap-pos">+15.0 pp</td>
+            <td class="trend-up">↑ +8.0 pp</td>
+          </tr>
+          <tr>
+            <td>Students with Disabilities (IEP)</td>
+            <td>35.0</td>
+            <td class="gap-neg">−3.0 pp</td>
+            <td class="trend-up">↑ +12.0 pp</td>
+          </tr>
+          <tr>
+            <td>English Learner</td>
+            <td colspan="3">N/A</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="findings">
+        <h4>Trend Note</h4>
+        <p>African American HS students are the only group with a declining trend at this level (−3.0 pp over 3 years).
+          All others are improving or stable.</p>
+        <h4>School Variation</h4>
+        <ul>
+          <li><strong>Highest:</strong> Tates Creek High School (47.0%)</li>
+          <li><strong>Lowest:</strong> Paul Laurence Dunbar High School (32.0%)</li>
+          <li><strong>Range:</strong> 15.0 pp</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="draft-note">Data source: Kentucky Department of Education &mdash; <a
+        href="https://reportcard.kyschools.us/data-download?pid=c340f7d5-efbd-5fb8-cab8-3a128835f84c">reportcard.kyschools.us/data-download</a>
+    </p>
+  </div>
+
+</body>
+
+</html>
