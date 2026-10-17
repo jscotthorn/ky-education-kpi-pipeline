@@ -19,9 +19,11 @@ so the parser treats it as an empty denominator. Tracked in issue #46
 (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/46).
 Do not treat the drop as the intended design.
 
-The four 2022 and 2023 columns named like rates hold counts in every row.
-The base parser publishes a count of 100 or below as the rate and nulls a
-count above 100. That loses data. It is pre-existing, tracked in issue #47
+The two columns the parser maps to rates (participants, completers) hold
+counts, as do all four 2022 and 2023 measure columns. ``TOTAL NUMBER OF
+STUDENT`` and ``GRADE 12 CTE ELIGIBLE COMPLETER`` are already mapped as
+counts. None of the headers is named like a rate. The base parser publishes
+a count of 100 or below as the rate and nulls a count above 100. That loses data. It is pre-existing, tracked in issue #47
 (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/47), and not
 changed here. KYRC24 has 42 genuine participation rates above 100 that the
 same cleaner nulls.

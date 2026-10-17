@@ -242,9 +242,12 @@ PRIOR_GRADE12_ANCHORS = {
     ("2025", "001010"): (23.3, 40, 172),
 }
 
-# 2022 and 2023 columns named like rates hold counts in every row. The base
-# parser publishes a count of 100 or below as the rate and nulls a count
-# above 100. Bryan Station 2022 stores completers 77 of 413 eligible (18.6%)
+# The two columns the parser maps to rates (participants, completers) hold
+# counts, as do all four 2022 and 2023 measure columns. TOTAL NUMBER OF
+# STUDENT and GRADE 12 CTE ELIGIBLE COMPLETER are already mapped as counts.
+# None of the headers is named like a rate. The base parser publishes a
+# count of 100 or below as the rate and nulls a count above 100. Bryan
+# Station 2022 stores completers 77 of 413 eligible (18.6%)
 # and the published completion-rate metric is 77. Participants above 100 are
 # nulled, so there is no participation rate. Pre-existing data loss, issue
 # #47 (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/47).
