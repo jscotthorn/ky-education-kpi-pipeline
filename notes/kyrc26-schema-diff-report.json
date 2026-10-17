@@ -1,0 +1,2798 @@
+{
+  "generated_at": "2026-10-17 18:55 UTC",
+  "blocked": [],
+  "identical_containers": 99,
+  "hash_mismatch": 0,
+  "length_mismatch": 0,
+  "header_rows": [
+    {
+      "stem": "ACCT_4_Year_High_School_Graduation.csv",
+      "kind": "identical",
+      "rows25": 9528,
+      "rows26": 9528,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ACCT_5_Year_High_School_Graduation.csv",
+      "kind": "identical",
+      "rows25": 9528,
+      "rows26": 9528,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ACCT_Assessment_Participation.csv",
+      "kind": "identical",
+      "rows25": 355096,
+      "rows26": 353220,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+      "kind": "identical",
+      "rows25": 19338,
+      "rows26": 19316,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ACCT_Index_Scores.csv",
+      "kind": "identical",
+      "rows25": 47466,
+      "rows26": 47412,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ACCT_Kentucky_Summative_Assessment.csv",
+      "kind": "identical",
+      "rows25": 278464,
+      "rows26": 278848,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ACCT_Postsecondary_Readiness.csv",
+      "kind": "identical",
+      "rows25": 10719,
+      "rows26": 10719,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ACCT_School_Improvement.csv",
+      "kind": "identical",
+      "rows25": 191,
+      "rows26": 211,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ACCT_Survey_Results.csv",
+      "kind": "identical",
+      "rows25": 1281582,
+      "rows26": 1280124,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ADLF_Current_Year_Graduates.csv",
+      "kind": "identical",
+      "rows25": 9666,
+      "rows26": 9522,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ADLF_Graduate_Outcomes.csv",
+      "kind": "identical",
+      "rows25": 529,
+      "rows26": 535,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ADLF_Transition_to_In_State_Postsecondary_Education.csv",
+      "kind": "identical",
+      "rows25": 9522,
+      "rows26": 6512,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ASMT_Alternate_Assessment_Participation.csv",
+      "kind": "identical",
+      "rows25": 18770,
+      "rows26": 18700,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ASMT_English_Language_Proficiency.csv",
+      "kind": "identical",
+      "rows25": 6868,
+      "rows26": 6924,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ASMT_Kindergarten_Screen_Composite.csv",
+      "kind": "identical",
+      "rows25": 83808,
+      "rows26": 82864,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ASMT_Kindergarten_Screen_Developmental_Domains.csv",
+      "kind": "identical",
+      "rows25": 83808,
+      "rows26": 82864,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ASMT_Measurements_of_Interim_Progress_English_Language_Proficiency.csv",
+      "kind": "identical",
+      "rows25": 1778,
+      "rows26": 1776,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ASMT_Measurements_of_Interim_Progress_Graduation_Rate.csv",
+      "kind": "identical",
+      "rows25": 14292,
+      "rows26": 14292,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ASMT_Measurements_of_Interim_Progress_Proficiency.csv",
+      "kind": "identical",
+      "rows25": 156960,
+      "rows26": 156852,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ASMT_National_Assessment_of_Educational_Progress.csv",
+      "kind": "identical",
+      "rows25": 128,
+      "rows26": 128,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "CTE_Career_Pathways.csv",
+      "kind": "identical",
+      "rows25": 5594,
+      "rows26": 5662,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "CTE_Career_Readiness_Indicators.csv",
+      "kind": "identical",
+      "rows25": 398,
+      "rows26": 397,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "CTE_Participation.csv",
+      "kind": "identical",
+      "rows25": 6526,
+      "rows26": 8245,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "CTE_Perkins_Report.csv",
+      "kind": "identical",
+      "rows25": 3396,
+      "rows26": 3313,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "CTE_Postsecondary_Opportunities.csv",
+      "kind": "identical",
+      "rows25": 8471,
+      "rows26": 8146,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "CTE_Student_Objectives.csv",
+      "kind": "identical",
+      "rows25": 474,
+      "rows26": 479,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "EDOP_Advanced_Courses_Offered.csv",
+      "kind": "identical",
+      "rows25": 4889,
+      "rows26": 4909,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "EDOP_Advanced_Courses_Participation_and_Performance.csv",
+      "kind": "identical",
+      "rows25": 6012,
+      "rows26": 5958,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "EDOP_Dual_Credit_Participation_and_Performance.csv",
+      "kind": "identical",
+      "rows25": 8784,
+      "rows26": 8712,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "EDOP_Gifted_Participation_by_Category.csv",
+      "kind": "identical",
+      "rows25": 21671,
+      "rows26": 21593,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "EDOP_School_Courses_Summary.csv",
+      "kind": "identical",
+      "rows25": 32793,
+      "rows26": 33385,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Adjusted_Average_Daily_Attendance_AADA.csv",
+      "kind": "identical",
+      "rows25": 1669,
+      "rows26": 1663,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Advanced_Coursework.csv",
+      "kind": "identical",
+      "rows25": 36612,
+      "rows26": 4077,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Arrests_and_Referrals_to_Law_Enforcement.csv",
+      "kind": "identical",
+      "rows25": 14960,
+      "rows26": 14949,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Attendance_Rate.csv",
+      "kind": "identical",
+      "rows25": 1669,
+      "rows26": 1663,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Average_Years_School_Experience.csv",
+      "kind": "identical",
+      "rows25": 1583,
+      "rows26": 1587,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Board_Members_SBDM.csv",
+      "kind": "identical",
+      "rows25": 8383,
+      "rows26": 8318,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Chronic_Absenteeism.csv",
+      "kind": "identical",
+      "rows25": 433440,
+      "rows26": 430848,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Chronic_Absenteeism_CRDC.csv",
+      "kind": "identical",
+      "rows25": 7526,
+      "rows26": 7389,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Dropout_Rate.csv",
+      "kind": "identical",
+      "rows25": 12204,
+      "rows26": 12204,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Economically_Disadvantaged.csv",
+      "kind": "identical",
+      "rows25": 28373,
+      "rows26": 25141,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Educator_Qualifications.csv",
+      "kind": "identical",
+      "rows25": 9792,
+      "rows26": 8145,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_English_Learners.csv",
+      "kind": "identical",
+      "rows25": 28373,
+      "rows26": 28271,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Extra_Year_in_Primary.csv",
+      "kind": "identical",
+      "rows25": 17289,
+      "rows26": 16740,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Harassment_and_Bullying.csv",
+      "kind": "identical",
+      "rows25": 1360,
+      "rows26": 1359,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Homeless.csv",
+      "kind": "identical",
+      "rows25": 28373,
+      "rows26": 28271,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Inexperienced_Staff.csv",
+      "kind": "identical",
+      "rows25": 924,
+      "rows26": 921,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Inexperienced_Teachers.csv",
+      "kind": "identical",
+      "rows25": 1583,
+      "rows26": 1587,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Migrant.csv",
+      "kind": "identical",
+      "rows25": 28373,
+      "rows26": 28271,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Parental_Involvement.csv",
+      "kind": "identical",
+      "rows25": 1143,
+      "rows26": 1144,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Preschool_Enrollment.csv",
+      "kind": "identical",
+      "rows25": 13560,
+      "rows26": 13590,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Preschool_Suspensions_and_Expulsions.csv",
+      "kind": "identical",
+      "rows25": 1872,
+      "rows26": 1016,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Secondary_Enrollment.csv",
+      "kind": "identical",
+      "rows25": 1185,
+      "rows26": 1235,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Student_Enrollment.csv",
+      "kind": "identical",
+      "rows25": 23136,
+      "rows26": 22923,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Student_Expulsions.csv",
+      "kind": "identical",
+      "rows25": 14960,
+      "rows26": 14949,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Student_Retention_Grades_4_12.csv",
+      "kind": "identical",
+      "rows25": 28116,
+      "rows26": 28062,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Student_Suspensions.csv",
+      "kind": "identical",
+      "rows25": 14960,
+      "rows26": 14949,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Student_to_Teacher_Ratio.csv",
+      "kind": "identical",
+      "rows25": 1608,
+      "rows26": 1432,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Students_Taught_by_Ineffective_Teachers.csv",
+      "kind": "identical",
+      "rows25": 1692,
+      "rows26": 1695,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Students_Taught_by_Inexperienced_Teachers.csv",
+      "kind": "identical",
+      "rows25": 2025,
+      "rows26": 2019,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+      "kind": "identical",
+      "rows25": 2025,
+      "rows26": 2019,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Students_with_Disabilities_IEP.csv",
+      "kind": "identical",
+      "rows25": 28233,
+      "rows26": 28125,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Teacher_Working_Conditions.csv",
+      "kind": "identical",
+      "rows25": 4302,
+      "rows26": 3282,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Teachers_Full_Time_Equivalent_FTE.csv",
+      "kind": "identical",
+      "rows25": 178,
+      "rows26": 178,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Teachers_by_Gender.csv",
+      "kind": "identical",
+      "rows25": 3220,
+      "rows26": 3214,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Teachers_by_Race_Ethnicity.csv",
+      "kind": "identical",
+      "rows25": 12880,
+      "rows26": 12856,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Violent_Offenses.csv",
+      "kind": "identical",
+      "rows25": 1360,
+      "rows26": 1359,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "SAFE_Approaches_that_are_actively_implemented_school_wide.csv",
+      "kind": "identical",
+      "rows25": 10247,
+      "rows26": 10042,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "SAFE_Behavior_Events_by_Context.csv",
+      "kind": "identical",
+      "rows25": 31711,
+      "rows26": 31597,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "SAFE_Behavior_Events_by_Grade_Level.csv",
+      "kind": "identical",
+      "rows25": 31711,
+      "rows26": 31597,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "SAFE_Behavior_Events_by_Location.csv",
+      "kind": "identical",
+      "rows25": 31711,
+      "rows26": 31597,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "SAFE_Behavior_Events_by_Type.csv",
+      "kind": "identical",
+      "rows25": 31711,
+      "rows26": 31597,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "SAFE_Legal_Sanctions.csv",
+      "kind": "identical",
+      "rows25": 31711,
+      "rows26": 31597,
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "ACCT_Crosstab_Cohort_4_Year.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 109275,
+      "rows26": 110133,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op => CO-OP; Co-Op Code => CO-OP Code"
+    },
+    {
+      "stem": "ACCT_Crosstab_Cohort_5_Year.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 105437,
+      "rows26": 108995,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op => CO-OP; Co-Op Code => CO-OP Code"
+    },
+    {
+      "stem": "ACCT_Crosstab_EditingMechanics.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 379080,
+      "rows26": 386298,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op => CO-OP; Co-Op Code => CO-OP Code"
+    },
+    {
+      "stem": "ACCT_Crosstab_Mathematics.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 472112,
+      "rows26": 475876,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op => CO-OP; Co-Op Code => CO-OP Code"
+    },
+    {
+      "stem": "ACCT_Crosstab_OnDemandWriting.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 379128,
+      "rows26": 386298,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op => CO-OP; Co-Op Code => CO-OP Code"
+    },
+    {
+      "stem": "ACCT_Crosstab_Reading.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 472116,
+      "rows26": 475876,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op => CO-OP; Co-Op Code => CO-OP Code"
+    },
+    {
+      "stem": "ACCT_Crosstab_Science.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 386226,
+      "rows26": 393623,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op => CO-OP; Co-Op Code => CO-OP Code"
+    },
+    {
+      "stem": "ACCT_Crosstab_SocialStudies.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 382792,
+      "rows26": 386326,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op => CO-OP; Co-Op Code => CO-OP Code"
+    },
+    {
+      "stem": "ACCT_Profile.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 1778,
+      "rows26": 1776,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op => CO-OP; Co-Op Code => CO-OP Code"
+    },
+    {
+      "stem": "ACCT_Summary.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 17580,
+      "rows26": 17560,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op => CO-OP; Co-Op Code => CO-OP Code"
+    },
+    {
+      "stem": "ASMT_Benchmark.csv",
+      "kind": "changed",
+      "rows25": 13032,
+      "rows26": 13224,
+      "added": "Reading and Writing",
+      "removed": "Reading; English",
+      "renames": ""
+    },
+    {
+      "stem": "ASMT_CAE.csv",
+      "kind": "changed",
+      "rows25": 13032,
+      "rows26": 13224,
+      "added": "Reading and Writing; Total Score",
+      "removed": "Reading; English; Composite Score",
+      "renames": ""
+    },
+    {
+      "stem": "ASMT_Kentucky_Summative_Assessment.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 581870,
+      "rows26": 579700,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op => CO-OP; Co-Op Code => CO-OP Code"
+    },
+    {
+      "stem": "ASMT_The_ACT.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 13032,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "CRDC_Chronic_Absenteeism.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 7526,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "EDOP_Career_Studies.csv",
+      "kind": "changed",
+      "rows25": 1490,
+      "rows26": 1485,
+      "added": "School Type; Equitable Access to Instructional Space; School Budget Allocation to CS Program; Professional Development Hours Offered to CS Teachers; Instructional Minutes Agricultural Education; Instructional Minutes Business and Marketing; +11 more",
+      "removed": "Question; Classroom/instructional space for Career and Technical Education programs is equitable to other content area programs.; What percentage of the school budget is allocated to Career and Technical Education programs?; How many hours of career studies-related professional development are offered to teachers instructing in career studies courses?; Please list the number of instructional minutes students have access to the Agriculture program area weekly.; Please list the number of instructional minutes students have access to the Business program area weekly.; +15 more",
+      "renames": "Co-Op -> CO-OP; Co-Op Code -> CO-OP Code; Program Offering Agriculture -> Program Offering Agricultural Education; Program Offering Business -> Program Offering Business and Marketing; Program Offering Construction -> Program Offering Construction Technology; Program Offering Education -> Program Offering Education and Training; +5 more"
+    },
+    {
+      "stem": "EDOP_Dual_Credit_Courses_Offered.csv",
+      "kind": "changed",
+      "rows25": 6467,
+      "rows26": 6402,
+      "added": "",
+      "removed": "",
+      "renames": "Couse Completers -> Course Completers"
+    },
+    {
+      "stem": "EDOP_Gifted_Participation_by_Grade_Level.csv",
+      "kind": "changed",
+      "rows25": 13899,
+      "rows26": 13711,
+      "added": "",
+      "removed": "Grade 14",
+      "renames": ""
+    },
+    {
+      "stem": "EDOP_Health_Education_and_Physical_Education.csv",
+      "kind": "changed",
+      "rows25": 1320,
+      "rows26": 1319,
+      "added": "Equitable Access to Instructional Space",
+      "removed": "",
+      "renames": "Co-Op -> CO-OP; Co-Op Code -> CO-OP Code; Instructional Minutes Physical Education -> Instructional Minutes Health Education and Physical Education; Facilities Access Health education classroom -> Facilities Access Health Education Classroom"
+    },
+    {
+      "stem": "EDOP_Visual_and_Performing_Arts.csv",
+      "kind": "changed",
+      "rows25": 1320,
+      "rows26": 1319,
+      "added": "School Type",
+      "removed": "; Program Offerings Other; Program Offering Other Program Name",
+      "renames": "Co-Op -> CO-OP; Co-Op Code -> CO-OP Code"
+    },
+    {
+      "stem": "EDOP_World_Languages.csv",
+      "kind": "changed",
+      "rows25": 1320,
+      "rows26": 1301,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op -> CO-OP; Co-Op Code -> CO-OP Code; Language Immersion French -> WL_Language Immersion French; Language Immersion Program Not Offered -> WL_Language Immersion Program Not Offered; Language Immersion Spanish -> WL_Language Immersion Spanish"
+    },
+    {
+      "stem": "FT_Facilities_Debt_Services.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 172,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_Financial_Summary.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 172,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_Grants.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 172,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_Learning_Environment.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 172,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_Operations.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 172,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_Personnel_Spending_per_Student_Federal_Funds.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 3338,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_Personnel_Spending_per_Student_State_Local_Funds.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 3338,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_Spending_per_Student.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 1150,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_State_Funding_SEEK.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 172,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_Statewide_Funding_Sources.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 172,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_Taxes.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 172,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_Total_Spending_per_Student_All_Fund_Sources.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 1669,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_Total_Spending_per_Student_Federal_Funds.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 1669,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "FT_Total_Spending_per_Student_State_Local_Funds.csv",
+      "kind": "no KYRC26 twin (404)",
+      "rows25": 1669,
+      "rows26": "",
+      "added": "",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Access_to_Technology.csv",
+      "kind": "changed",
+      "rows25": 1417,
+      "rows26": 1424,
+      "added": "",
+      "removed": "Student to Instruction Device Ratio; Used for school level url on overpage only; should not be included in School Profile Report or in the Overview/Precautionary Data",
+      "renames": "Of the total student instructional devices available, how many are Wi-Fi enabled devices provided by the school? (To include devices such as a tablet, laptop, and/or Chromebook that connects to the Internet primarily by Wi-Fi) (Note: will not appear in public SRC) -> Of the total student instructional devices available, how many are Wi-Fi enabled devices provided by the school? (To include devices such as a tablet, laptop, and/or Chromebook that connects to the Internet primarily by Wi-Fi); Does the school have wireless able to support bring your own device or 1:1 (dense wireless, ready for every student to connect 1 or 2 devices and have a good experience)? (Note: will not appear in public SRC) -> Does the school have wireless able to support bring your own device or 1:1 (dense wireless, ready for every student to connect 1 or 2 devices and have a good experience)?"
+    },
+    {
+      "stem": "OVW_District_School_List.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 1669,
+      "rows26": 1663,
+      "added": "",
+      "removed": "",
+      "renames": "Co-Op => CO-OP; Co-Op Code => CO-OP Code"
+    },
+    {
+      "stem": "OVW_Student_Membership.csv",
+      "kind": "changed",
+      "rows25": 12977,
+      "rows26": 12547,
+      "added": "",
+      "removed": "Preschool",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Teacher_Certification_Data.csv",
+      "kind": "changed",
+      "rows25": 1669,
+      "rows26": 1663,
+      "added": "Rank I Teacher Count; Percent Rank I Teachers; Rank II Teacher Count; Percent Rank II Teachers",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "OVW_Teacher_Turnover.csv",
+      "kind": "changed",
+      "rows25": 1669,
+      "rows26": 1663,
+      "added": "Instructional Staff Count; Instructional Staff Turnover Count; Instructional Staff Turnover Percent",
+      "removed": "",
+      "renames": ""
+    },
+    {
+      "stem": "SAFE_Discipline_Resolutions.csv",
+      "kind": "case_or_whitespace",
+      "rows25": 31711,
+      "rows26": 31597,
+      "added": "",
+      "removed": "",
+      "renames": "Expelled, Not Receiving Services (Ssp2) => Expelled, Not Receiving Services (SSP2)"
+    },
+    {
+      "stem": "SAFE_Precautionary_Measures.csv",
+      "kind": "changed",
+      "rows25": 1345,
+      "rows26": 1349,
+      "added": "",
+      "removed": "All classroom doors lock from the inside",
+      "renames": ""
+    }
+  ],
+  "domain_notes": [
+    "99 columns roll forward as KYRC25 ['20242025'] -> KYRC26 ['20252026']. Exceptions are listed below.",
+    "`ACCT_4_Year_High_School_Graduation.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ACCT_5_Year_High_School_Graduation.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ACCT_Assessment_Participation.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ACCT_English_Learners_Progress_Proficiency_Rate.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ACCT_Index_Scores.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ACCT_Kentucky_Summative_Assessment.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ACCT_Postsecondary_Readiness.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ACCT_School_Improvement.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ACCT_Survey_Results.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ADLF_Current_Year_Graduates.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ADLF_Current_Year_Graduates.csv` `School Type`: added []; removed ['A8']",
+    "`ADLF_Graduate_Outcomes.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ADLF_Graduate_Outcomes.csv` `School Type`: added ['D1']; removed []",
+    "`ADLF_Transition_to_In_State_Postsecondary_Education.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ADLF_Transition_to_In_State_Postsecondary_Education.csv` `School Type`: added ['D1']; removed []",
+    "`ASMT_Alternate_Assessment_Participation.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ASMT_Benchmark.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ASMT_CAE.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ASMT_English_Language_Proficiency.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ASMT_Kindergarten_Screen_Composite.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ASMT_Kindergarten_Screen_Developmental_Domains.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ASMT_Measurements_of_Interim_Progress_English_Language_Proficiency.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ASMT_Measurements_of_Interim_Progress_Graduation_Rate.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`ASMT_Measurements_of_Interim_Progress_Proficiency.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`CTE_Career_Pathways.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`CTE_Career_Pathways.csv` `School Type`: added ['B1']; removed []",
+    "`CTE_Career_Readiness_Indicators.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`CTE_Participation.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`CTE_Participation.csv` `School Type`: added ['B1']; removed []",
+    "`CTE_Perkins_Report.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`CTE_Perkins_Report.csv` `School Type`: added []; removed ['A3', 'A6']",
+    "`CTE_Postsecondary_Opportunities.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`CTE_Student_Objectives.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`CTE_Student_Objectives.csv` `School Type`: added ['B1']; removed []",
+    "`EDOP_Advanced_Courses_Offered.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`EDOP_Advanced_Courses_Offered.csv` `School Type`: added []; removed ['A8', 'D1']",
+    "`EDOP_Advanced_Courses_Participation_and_Performance.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`EDOP_Advanced_Courses_Participation_and_Performance.csv` `School Type`: added []; removed ['A8', 'D1']",
+    "`EDOP_Dual_Credit_Courses_Offered.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`EDOP_Dual_Credit_Courses_Offered.csv` `School Type`: added ['D1']; removed ['A8']",
+    "`EDOP_Dual_Credit_Participation_and_Performance.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`EDOP_Dual_Credit_Participation_and_Performance.csv` `School Type`: added ['D1']; removed ['A8']",
+    "`EDOP_Gifted_Participation_by_Category.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`EDOP_Gifted_Participation_by_Grade_Level.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`EDOP_Gifted_Participation_by_Grade_Level.csv` `School Type`: added []; removed ['A8']",
+    "`EDOP_School_Courses_Summary.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Access_to_Technology.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Adjusted_Average_Daily_Attendance_AADA.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Advanced_Coursework.csv` `Collected School Year`: KYRC25 ['20202021'] -> KYRC26 ['20212022']",
+    "`OVW_Advanced_Coursework.csv` `CO-OP`: added ['GLEC']; removed ['', 'GREC']",
+    "`OVW_Advanced_Coursework.csv` `CO-OP Code`: added []; removed ['']",
+    "`OVW_Advanced_Coursework.csv` `School Type`: added []; removed ['A3', 'A4', 'A8', 'D1']",
+    "`OVW_Arrests_and_Referrals_to_Law_Enforcement.csv` `Collected School Year`: KYRC25 ['20202021'] -> KYRC26 ['20212022']",
+    "`OVW_Arrests_and_Referrals_to_Law_Enforcement.csv` `CO-OP`: added ['', 'GLEC']; removed ['GREC']",
+    "`OVW_Arrests_and_Referrals_to_Law_Enforcement.csv` `CO-OP Code`: added ['']; removed []",
+    "`OVW_Attendance_Rate.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Average_Years_School_Experience.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Average_Years_School_Experience.csv` `School Type`: added ['D1']; removed []",
+    "`OVW_Board_Members_SBDM.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Chronic_Absenteeism.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Chronic_Absenteeism.csv` `School Type`: added []; removed ['A4']",
+    "`OVW_Chronic_Absenteeism_CRDC.csv` `Collected School Year`: KYRC25 ['20202021'] -> KYRC26 ['20242025']",
+    "`OVW_Chronic_Absenteeism_CRDC.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Chronic_Absenteeism_CRDC.csv` `School Type`: added ['B1']; removed ['A2']",
+    "`OVW_Dropout_Rate.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Economically_Disadvantaged.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Educator_Qualifications.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_English_Learners.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Extra_Year_in_Primary.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Extra_Year_in_Primary.csv` `School Type`: added []; removed ['A4']",
+    "`OVW_Harassment_and_Bullying.csv` `Collected School Year`: KYRC25 ['20202021'] -> KYRC26 ['20212022']",
+    "`OVW_Harassment_and_Bullying.csv` `CO-OP`: added ['', 'GLEC']; removed ['GREC']",
+    "`OVW_Harassment_and_Bullying.csv` `CO-OP Code`: added ['']; removed []",
+    "`OVW_Homeless.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Inexperienced_Staff.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Inexperienced_Teachers.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Inexperienced_Teachers.csv` `School Type`: added ['D1']; removed []",
+    "`OVW_Migrant.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Parental_Involvement.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Preschool_Enrollment.csv` `Collected School Year`: KYRC25 ['20202021'] -> KYRC26 ['20212022']",
+    "`OVW_Preschool_Enrollment.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Preschool_Suspensions_and_Expulsions.csv` `Collected School Year`: KYRC25 ['20202021'] -> KYRC26 ['20212022']",
+    "`OVW_Preschool_Suspensions_and_Expulsions.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Preschool_Suspensions_and_Expulsions.csv` `School Type`: added []; removed ['A6', 'D1']",
+    "`OVW_Secondary_Enrollment.csv` `CO-OP`: added ['NKCES']; removed []",
+    "`OVW_Secondary_Enrollment.csv` `CO-OP Code`: added ['905']; removed []",
+    "`OVW_Student_Enrollment.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Student_Expulsions.csv` `Collected School Year`: KYRC25 ['20202021'] -> KYRC26 ['20212022']",
+    "`OVW_Student_Expulsions.csv` `CO-OP`: added ['', 'GLEC']; removed ['GREC']",
+    "`OVW_Student_Expulsions.csv` `CO-OP Code`: added ['']; removed []",
+    "`OVW_Student_Membership.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Student_Retention_Grades_4_12.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Student_Suspensions.csv` `Collected School Year`: KYRC25 ['20202021'] -> KYRC26 ['20212022']",
+    "`OVW_Student_Suspensions.csv` `CO-OP`: added ['', 'GLEC']; removed ['GREC']",
+    "`OVW_Student_Suspensions.csv` `CO-OP Code`: added ['']; removed []",
+    "`OVW_Student_to_Teacher_Ratio.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Student_to_Teacher_Ratio.csv` `School Type`: added []; removed ['']",
+    "`OVW_Students_Taught_by_Ineffective_Teachers.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Students_Taught_by_Inexperienced_Teachers.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Students_Taught_by_Out_of_Field_Teachers.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Students_with_Disabilities_IEP.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Teacher_Certification_Data.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Teacher_Turnover.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Teacher_Working_Conditions.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Teacher_Working_Conditions.csv` `School Type`: added []; removed ['B1']",
+    "`OVW_Teachers_Full_Time_Equivalent_FTE.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Teachers_by_Gender.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Teachers_by_Race_Ethnicity.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`OVW_Violent_Offenses.csv` `Collected School Year`: KYRC25 ['20202021'] -> KYRC26 ['20212022']",
+    "`OVW_Violent_Offenses.csv` `CO-OP`: added ['', 'GLEC']; removed ['GREC']",
+    "`OVW_Violent_Offenses.csv` `CO-OP Code`: added ['']; removed []",
+    "`SAFE_Approaches_that_are_actively_implemented_school_wide.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`SAFE_Approaches_that_are_actively_implemented_school_wide.csv` `School Type`: added []; removed ['A6']",
+    "`SAFE_Behavior_Events_by_Context.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`SAFE_Behavior_Events_by_Grade_Level.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`SAFE_Behavior_Events_by_Location.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`SAFE_Behavior_Events_by_Type.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`SAFE_Discipline_Resolutions.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`SAFE_Legal_Sanctions.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`SAFE_Precautionary_Measures.csv` `CO-OP`: added ['GLEC']; removed ['GREC']",
+    "`SAFE_Precautionary_Measures.csv` `School Type`: added []; removed ['A6']"
+  ],
+  "code_notes": [
+    "`KYRC26_ACCT_Crosstab_Mathematics.csv` school codes: lengths {6: 461939, 3: 13937}, six-digit 461939/475876, other samples ['901', '901', '901', '901', '901', '901', '901', '901']",
+    "`KYRC26_ACCT_Crosstab_Reading.csv` school codes: lengths {6: 461939, 3: 13937}, six-digit 461939/475876, other samples ['901', '901', '901', '901', '901', '901', '901', '901']",
+    "`KYRC26_ACCT_Crosstab_Science.csv` school codes: lengths {6: 380519, 3: 13104}, six-digit 380519/393623, other samples ['901', '901', '901', '901', '901', '901', '901', '901']",
+    "`KYRC26_ACCT_Crosstab_SocialStudies.csv` school codes: lengths {6: 373382, 3: 12944}, six-digit 373382/386326, other samples ['901', '901', '901', '901', '901', '901', '901', '901']"
+  ],
+  "zip_notes": [
+    "`KYRC26_ACCT_Datasets.zip` (32806282 bytes) members=19; not in the individual link list: none",
+    "`KYRC26_ADLF_Datasets.zip` (152836 bytes) members=3; not in the individual link list: none",
+    "`KYRC26_ASMT_Datasets.zip` (9216886 bytes) members=11; not in the individual link list: none",
+    "`KYRC26_CTE_Datasets.zip` (283606 bytes) members=6; not in the individual link list: none",
+    "`KYRC26_EDOP_Datasets.zip` (1345447 bytes) members=11; not in the individual link list: none",
+    "`KYRC26_OVW_Datasets.zip` (5851445 bytes) members=41; not in the individual link list: none",
+    "`KYRC26_SAFE_Datasets.zip` (1781433 bytes) members=8; not in the individual link list: none",
+    "Educational coop 2026 zip members (15): Accountable_Assessment_Performance_2026.CSV, Accountable_Profile_2026.CSV, Accountable_Summary_2026.CSV, Assessment_Performance_by_Grade_2026.CSV, College Admissions Exam_2026.CSV, English_Language_Proficiency_2026.CSV, English_Learners_Attainment_2026.CSV, Graduation_Rate_2026.CSV, Kindergarten_Screen_2026.CSV, Postsecondary_Readiness_2026.CSV, Quality_of_School_Climate_and_Safety_Survey_Elementary_School_2026.CSV, Quality_of_School_Climate_and_Safety_Survey_High_School_2026.CSV, Quality_of_School_Climate_and_Safety_Survey_Index_Scores_2026.CSV, Quality_of_School_Climate_and_Safety_Survey_Middle_School_2026.CSV, Quality_of_School_Climate_and_Safety_Survey_Questions_2026.CSV"
+  ],
+  "only_primary": [],
+  "only_secondary": [],
+  "pairs": [
+    {
+      "stem": "ACCT_4_Year_High_School_Graduation.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 9528,
+      "rows26": 9528
+    },
+    {
+      "stem": "ACCT_5_Year_High_School_Graduation.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 9528,
+      "rows26": 9528
+    },
+    {
+      "stem": "ACCT_Assessment_Participation.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 355096,
+      "rows26": 353220
+    },
+    {
+      "stem": "ACCT_Crosstab_Cohort_4_Year.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP"
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 109275,
+      "rows26": 110133
+    },
+    {
+      "stem": "ACCT_Crosstab_Cohort_5_Year.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP"
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 105437,
+      "rows26": 108995
+    },
+    {
+      "stem": "ACCT_Crosstab_EditingMechanics.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP"
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 379080,
+      "rows26": 386298
+    },
+    {
+      "stem": "ACCT_Crosstab_Mathematics.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP"
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 472112,
+      "rows26": 475876
+    },
+    {
+      "stem": "ACCT_Crosstab_OnDemandWriting.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP"
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 379128,
+      "rows26": 386298
+    },
+    {
+      "stem": "ACCT_Crosstab_Reading.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP"
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 472116,
+      "rows26": 475876
+    },
+    {
+      "stem": "ACCT_Crosstab_Science.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP"
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 386226,
+      "rows26": 393623
+    },
+    {
+      "stem": "ACCT_Crosstab_SocialStudies.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP"
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 382792,
+      "rows26": 386326
+    },
+    {
+      "stem": "ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 19338,
+      "rows26": 19316
+    },
+    {
+      "stem": "ACCT_Index_Scores.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 47466,
+      "rows26": 47412
+    },
+    {
+      "stem": "ACCT_Kentucky_Summative_Assessment.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 278464,
+      "rows26": 278848
+    },
+    {
+      "stem": "ACCT_Postsecondary_Readiness.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 10719,
+      "rows26": 10719
+    },
+    {
+      "stem": "ACCT_Profile.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP"
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 1778,
+      "rows26": 1776
+    },
+    {
+      "stem": "ACCT_School_Improvement.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 191,
+      "rows26": 211
+    },
+    {
+      "stem": "ACCT_Summary.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP"
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 17580,
+      "rows26": 17560
+    },
+    {
+      "stem": "ACCT_Survey_Results.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1281582,
+      "rows26": 1280124
+    },
+    {
+      "stem": "ADLF_Current_Year_Graduates.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 9666,
+      "rows26": 9522
+    },
+    {
+      "stem": "ADLF_Graduate_Outcomes.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 529,
+      "rows26": 535
+    },
+    {
+      "stem": "ADLF_Transition_to_In_State_Postsecondary_Education.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 9522,
+      "rows26": 6512
+    },
+    {
+      "stem": "ASMT_Alternate_Assessment_Participation.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 18770,
+      "rows26": 18700
+    },
+    {
+      "stem": "ASMT_Benchmark.csv",
+      "change": {
+        "kind": "changed",
+        "added": [
+          "Reading and Writing"
+        ],
+        "removed": [
+          "Reading",
+          "English"
+        ],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 13032,
+      "rows26": 13224
+    },
+    {
+      "stem": "ASMT_CAE.csv",
+      "change": {
+        "kind": "changed",
+        "added": [
+          "Reading and Writing",
+          "Total Score"
+        ],
+        "removed": [
+          "Reading",
+          "English",
+          "Composite Score"
+        ],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 13032,
+      "rows26": 13224
+    },
+    {
+      "stem": "ASMT_English_Language_Proficiency.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 6868,
+      "rows26": 6924
+    },
+    {
+      "stem": "ASMT_Kentucky_Summative_Assessment.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP"
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 581870,
+      "rows26": 579700
+    },
+    {
+      "stem": "ASMT_Kindergarten_Screen_Composite.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 83808,
+      "rows26": 82864
+    },
+    {
+      "stem": "ASMT_Kindergarten_Screen_Developmental_Domains.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 83808,
+      "rows26": 82864
+    },
+    {
+      "stem": "ASMT_Measurements_of_Interim_Progress_English_Language_Proficiency.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1778,
+      "rows26": 1776
+    },
+    {
+      "stem": "ASMT_Measurements_of_Interim_Progress_Graduation_Rate.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 14292,
+      "rows26": 14292
+    },
+    {
+      "stem": "ASMT_Measurements_of_Interim_Progress_Proficiency.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 156960,
+      "rows26": 156852
+    },
+    {
+      "stem": "ASMT_National_Assessment_of_Educational_Progress.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 128,
+      "rows26": 128
+    },
+    {
+      "stem": "CTE_Career_Pathways.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 5594,
+      "rows26": 5662
+    },
+    {
+      "stem": "CTE_Career_Readiness_Indicators.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 398,
+      "rows26": 397
+    },
+    {
+      "stem": "CTE_Participation.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 6526,
+      "rows26": 8245
+    },
+    {
+      "stem": "CTE_Perkins_Report.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 3396,
+      "rows26": 3313
+    },
+    {
+      "stem": "CTE_Postsecondary_Opportunities.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 8471,
+      "rows26": 8146
+    },
+    {
+      "stem": "CTE_Student_Objectives.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 474,
+      "rows26": 479
+    },
+    {
+      "stem": "EDOP_Advanced_Courses_Offered.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 4889,
+      "rows26": 4909
+    },
+    {
+      "stem": "EDOP_Advanced_Courses_Participation_and_Performance.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 6012,
+      "rows26": 5958
+    },
+    {
+      "stem": "EDOP_Career_Studies.csv",
+      "change": {
+        "kind": "changed",
+        "added": [
+          "School Type",
+          "Equitable Access to Instructional Space",
+          "School Budget Allocation to CS Program",
+          "Professional Development Hours Offered to CS Teachers",
+          "Instructional Minutes Agricultural Education",
+          "Instructional Minutes Business and Marketing",
+          "Instructional Minutes Computer Science",
+          "Instructional Minutes Construction Technology",
+          "Instructional Minutes Education and Training",
+          "Instructional Minutes Engineering Technology",
+          "Instructional Minutes Family and Consumer Sciences",
+          "Instructional Minutes Health Sciences",
+          "Instructional Minutes JROTC/Law and Public Safety",
+          "Instructional Minutes Manufacturing Technology",
+          "Instructional Minutes Media Arts",
+          "Instructional Minutes Transportation",
+          "Link for more information"
+        ],
+        "removed": [
+          "Question",
+          "Classroom/instructional space for Career and Technical Education programs is equitable to other content area programs.",
+          "What percentage of the school budget is allocated to Career and Technical Education programs?",
+          "How many hours of career studies-related professional development are offered to teachers instructing in career studies courses?",
+          "Please list the number of instructional minutes students have access to the Agriculture program area weekly.",
+          "Please list the number of instructional minutes students have access to the Business program area weekly.",
+          "Please list the number of instructional minutes students have access to the Construction program area weekly.",
+          "Please list the number of instructional minutes students have access to the Education program area weekly.",
+          "Please list the number of instructional minutes students have access to the Family Consumer Sciences program area weekly.",
+          "Please list the number of instructional minutes students have access to the Government program area weekly.",
+          "Please list the number of instructional minutes students have access to the Health Science program area weekly.",
+          "Please list the number of instructional minutes students have access to the Information Technology program area weekly.",
+          "Please list the number of instructional minutes students have access to the Law & Public Safey program area weekly.",
+          "Please list the number of instructional minutes students have access to the Manufacturing program area weekly.",
+          "Please list the number of instructional minutes students have access to the Marketing program area weekly.",
+          "Please list the number of instructional minutes students have access to the Media Arts program area weekly.",
+          "Please list the number of instructional minutes students have access to the STEM program area weekly.",
+          "Please list the number of instructional minutes students have access to the Transportation program area weekly.",
+          "Program Offering Marketing",
+          "Program Offering STEM",
+          "Link to your school website showcasing your Career Studies program and other Career Studies extracurricular opportunities."
+        ],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP",
+            "score": 1.0
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code",
+            "score": 1.0
+          },
+          {
+            "from": "Program Offering Agriculture",
+            "to": "Program Offering Agricultural Education",
+            "score": 0.836
+          },
+          {
+            "from": "Program Offering Business",
+            "to": "Program Offering Business and Marketing",
+            "score": 0.781
+          },
+          {
+            "from": "Program Offering Construction",
+            "to": "Program Offering Construction Technology",
+            "score": 0.841
+          },
+          {
+            "from": "Program Offering Education",
+            "to": "Program Offering Education and Training",
+            "score": 0.8
+          },
+          {
+            "from": "Program Offering Family Consumer Sciences",
+            "to": "Program Offering Family and Consumer Sciences",
+            "score": 0.953
+          },
+          {
+            "from": "Program Offering Government",
+            "to": "Program Offering Computer Science",
+            "score": 0.733
+          },
+          {
+            "from": "Program Offering Information Technology",
+            "to": "Program Offering Engineering Technology",
+            "score": 0.846
+          },
+          {
+            "from": "Program Offering Law & Public Safety",
+            "to": "Program Offering JROTC/Law and Public Safety",
+            "score": 0.875
+          },
+          {
+            "from": "Program Offering Manufacturing",
+            "to": "Program Offering Manufacturing Technology",
+            "score": 0.845
+          }
+        ]
+      },
+      "rows25": 1490,
+      "rows26": 1485
+    },
+    {
+      "stem": "EDOP_Dual_Credit_Courses_Offered.csv",
+      "change": {
+        "kind": "changed",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": [
+          {
+            "from": "Couse Completers",
+            "to": "Course Completers",
+            "score": 0.97
+          }
+        ]
+      },
+      "rows25": 6467,
+      "rows26": 6402
+    },
+    {
+      "stem": "EDOP_Dual_Credit_Participation_and_Performance.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 8784,
+      "rows26": 8712
+    },
+    {
+      "stem": "EDOP_Gifted_Participation_by_Category.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 21671,
+      "rows26": 21593
+    },
+    {
+      "stem": "EDOP_Gifted_Participation_by_Grade_Level.csv",
+      "change": {
+        "kind": "changed",
+        "added": [],
+        "removed": [
+          "Grade 14"
+        ],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 13899,
+      "rows26": 13711
+    },
+    {
+      "stem": "EDOP_Health_Education_and_Physical_Education.csv",
+      "change": {
+        "kind": "changed",
+        "added": [
+          "Equitable Access to Instructional Space"
+        ],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP",
+            "score": 1.0
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code",
+            "score": 1.0
+          },
+          {
+            "from": "Instructional Minutes Physical Education",
+            "to": "Instructional Minutes Health Education and Physical Education",
+            "score": 0.792
+          },
+          {
+            "from": "Facilities Access Health education classroom",
+            "to": "Facilities Access Health Education Classroom",
+            "score": 1.0
+          }
+        ]
+      },
+      "rows25": 1320,
+      "rows26": 1319
+    },
+    {
+      "stem": "EDOP_School_Courses_Summary.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 32793,
+      "rows26": 33385
+    },
+    {
+      "stem": "EDOP_Visual_and_Performing_Arts.csv",
+      "change": {
+        "kind": "changed",
+        "added": [
+          "School Type"
+        ],
+        "removed": [
+          "",
+          "Program Offerings Other",
+          "Program Offering Other Program Name"
+        ],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP",
+            "score": 1.0
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code",
+            "score": 1.0
+          }
+        ]
+      },
+      "rows25": 1320,
+      "rows26": 1319
+    },
+    {
+      "stem": "EDOP_World_Languages.csv",
+      "change": {
+        "kind": "changed",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP",
+            "score": 1.0
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code",
+            "score": 1.0
+          },
+          {
+            "from": "Language Immersion French",
+            "to": "WL_Language Immersion French",
+            "score": 0.943
+          },
+          {
+            "from": "Language Immersion Program Not Offered",
+            "to": "WL_Language Immersion Program Not Offered",
+            "score": 0.962
+          },
+          {
+            "from": "Language Immersion Spanish",
+            "to": "WL_Language Immersion Spanish",
+            "score": 0.945
+          }
+        ]
+      },
+      "rows25": 1320,
+      "rows26": 1301
+    },
+    {
+      "stem": "OVW_Access_to_Technology.csv",
+      "change": {
+        "kind": "changed",
+        "added": [],
+        "removed": [
+          "Student to Instruction Device Ratio",
+          "Used for school level url on overpage only; should not be included in School Profile Report or in the Overview/Precautionary Data"
+        ],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": [
+          {
+            "from": "Of the total student instructional devices available, how many are Wi-Fi enabled devices provided by the school? (To include devices such as a tablet, laptop, and/or Chromebook that connects to the Internet primarily by Wi-Fi) (Note: will not appear in public SRC)",
+            "to": "Of the total student instructional devices available, how many are Wi-Fi enabled devices provided by the school? (To include devices such as a tablet, laptop, and/or Chromebook that connects to the Internet primarily by Wi-Fi)",
+            "score": 0.922
+          },
+          {
+            "from": "Does the school have wireless able to support bring your own device or 1:1 (dense wireless, ready for every student to connect 1 or 2 devices and have a good experience)? (Note: will not appear in public SRC)",
+            "to": "Does the school have wireless able to support bring your own device or 1:1 (dense wireless, ready for every student to connect 1 or 2 devices and have a good experience)?",
+            "score": 0.899
+          }
+        ]
+      },
+      "rows25": 1417,
+      "rows26": 1424
+    },
+    {
+      "stem": "OVW_Adjusted_Average_Daily_Attendance_AADA.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1669,
+      "rows26": 1663
+    },
+    {
+      "stem": "OVW_Advanced_Coursework.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 36612,
+      "rows26": 4077
+    },
+    {
+      "stem": "OVW_Arrests_and_Referrals_to_Law_Enforcement.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 14960,
+      "rows26": 14949
+    },
+    {
+      "stem": "OVW_Attendance_Rate.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1669,
+      "rows26": 1663
+    },
+    {
+      "stem": "OVW_Average_Years_School_Experience.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1583,
+      "rows26": 1587
+    },
+    {
+      "stem": "OVW_Board_Members_SBDM.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 8383,
+      "rows26": 8318
+    },
+    {
+      "stem": "OVW_Chronic_Absenteeism.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 433440,
+      "rows26": 430848
+    },
+    {
+      "stem": "OVW_Chronic_Absenteeism_CRDC.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 7526,
+      "rows26": 7389
+    },
+    {
+      "stem": "OVW_District_School_List.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Co-Op",
+            "to": "CO-OP"
+          },
+          {
+            "from": "Co-Op Code",
+            "to": "CO-OP Code"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 1669,
+      "rows26": 1663
+    },
+    {
+      "stem": "OVW_Dropout_Rate.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 12204,
+      "rows26": 12204
+    },
+    {
+      "stem": "OVW_Economically_Disadvantaged.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 28373,
+      "rows26": 25141
+    },
+    {
+      "stem": "OVW_Educator_Qualifications.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 9792,
+      "rows26": 8145
+    },
+    {
+      "stem": "OVW_English_Learners.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 28373,
+      "rows26": 28271
+    },
+    {
+      "stem": "OVW_Extra_Year_in_Primary.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 17289,
+      "rows26": 16740
+    },
+    {
+      "stem": "OVW_Harassment_and_Bullying.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1360,
+      "rows26": 1359
+    },
+    {
+      "stem": "OVW_Homeless.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 28373,
+      "rows26": 28271
+    },
+    {
+      "stem": "OVW_Inexperienced_Staff.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 924,
+      "rows26": 921
+    },
+    {
+      "stem": "OVW_Inexperienced_Teachers.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1583,
+      "rows26": 1587
+    },
+    {
+      "stem": "OVW_Migrant.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 28373,
+      "rows26": 28271
+    },
+    {
+      "stem": "OVW_Parental_Involvement.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1143,
+      "rows26": 1144
+    },
+    {
+      "stem": "OVW_Preschool_Enrollment.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 13560,
+      "rows26": 13590
+    },
+    {
+      "stem": "OVW_Preschool_Suspensions_and_Expulsions.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1872,
+      "rows26": 1016
+    },
+    {
+      "stem": "OVW_Secondary_Enrollment.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1185,
+      "rows26": 1235
+    },
+    {
+      "stem": "OVW_Student_Enrollment.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 23136,
+      "rows26": 22923
+    },
+    {
+      "stem": "OVW_Student_Expulsions.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 14960,
+      "rows26": 14949
+    },
+    {
+      "stem": "OVW_Student_Membership.csv",
+      "change": {
+        "kind": "changed",
+        "added": [],
+        "removed": [
+          "Preschool"
+        ],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 12977,
+      "rows26": 12547
+    },
+    {
+      "stem": "OVW_Student_Retention_Grades_4_12.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 28116,
+      "rows26": 28062
+    },
+    {
+      "stem": "OVW_Student_Suspensions.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 14960,
+      "rows26": 14949
+    },
+    {
+      "stem": "OVW_Student_to_Teacher_Ratio.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1608,
+      "rows26": 1432
+    },
+    {
+      "stem": "OVW_Students_Taught_by_Ineffective_Teachers.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1692,
+      "rows26": 1695
+    },
+    {
+      "stem": "OVW_Students_Taught_by_Inexperienced_Teachers.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 2025,
+      "rows26": 2019
+    },
+    {
+      "stem": "OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 2025,
+      "rows26": 2019
+    },
+    {
+      "stem": "OVW_Students_with_Disabilities_IEP.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 28233,
+      "rows26": 28125
+    },
+    {
+      "stem": "OVW_Teacher_Certification_Data.csv",
+      "change": {
+        "kind": "changed",
+        "added": [
+          "Rank I Teacher Count",
+          "Percent Rank I Teachers",
+          "Rank II Teacher Count",
+          "Percent Rank II Teachers"
+        ],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1669,
+      "rows26": 1663
+    },
+    {
+      "stem": "OVW_Teacher_Turnover.csv",
+      "change": {
+        "kind": "changed",
+        "added": [
+          "Instructional Staff Count",
+          "Instructional Staff Turnover Count",
+          "Instructional Staff Turnover Percent"
+        ],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1669,
+      "rows26": 1663
+    },
+    {
+      "stem": "OVW_Teacher_Working_Conditions.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 4302,
+      "rows26": 3282
+    },
+    {
+      "stem": "OVW_Teachers_Full_Time_Equivalent_FTE.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 178,
+      "rows26": 178
+    },
+    {
+      "stem": "OVW_Teachers_by_Gender.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 3220,
+      "rows26": 3214
+    },
+    {
+      "stem": "OVW_Teachers_by_Race_Ethnicity.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 12880,
+      "rows26": 12856
+    },
+    {
+      "stem": "OVW_Violent_Offenses.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1360,
+      "rows26": 1359
+    },
+    {
+      "stem": "SAFE_Approaches_that_are_actively_implemented_school_wide.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 10247,
+      "rows26": 10042
+    },
+    {
+      "stem": "SAFE_Behavior_Events_by_Context.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 31711,
+      "rows26": 31597
+    },
+    {
+      "stem": "SAFE_Behavior_Events_by_Grade_Level.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 31711,
+      "rows26": 31597
+    },
+    {
+      "stem": "SAFE_Behavior_Events_by_Location.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 31711,
+      "rows26": 31597
+    },
+    {
+      "stem": "SAFE_Behavior_Events_by_Type.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 31711,
+      "rows26": 31597
+    },
+    {
+      "stem": "SAFE_Discipline_Resolutions.csv",
+      "change": {
+        "kind": "case_or_whitespace",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [
+          {
+            "from": "Expelled, Not Receiving Services (Ssp2)",
+            "to": "Expelled, Not Receiving Services (SSP2)"
+          }
+        ],
+        "renames": []
+      },
+      "rows25": 31711,
+      "rows26": 31597
+    },
+    {
+      "stem": "SAFE_Legal_Sanctions.csv",
+      "change": {
+        "kind": "identical",
+        "added": [],
+        "removed": [],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 31711,
+      "rows26": 31597
+    },
+    {
+      "stem": "SAFE_Precautionary_Measures.csv",
+      "change": {
+        "kind": "changed",
+        "added": [],
+        "removed": [
+          "All classroom doors lock from the inside"
+        ],
+        "reordered": false,
+        "case_or_space": [],
+        "renames": []
+      },
+      "rows25": 1345,
+      "rows26": 1349
+    }
+  ],
+  "domain_note": "School code, school number, and district number omitted; the 80-value cap is not a full domain."
+}
