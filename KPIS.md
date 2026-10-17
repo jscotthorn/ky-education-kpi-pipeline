@@ -275,8 +275,8 @@ All above metrics are also available with `_by_demo` suffix for demographic grou
 - `student_enrollment_middle` - Combined enrollment for Grades 6-8
 - `student_enrollment_secondary` - Combined enrollment for Grades 9-12
 
-**Data Sources**: KYRC26_OVW_Student_Enrollment.csv, KYRC25_OVW_Student_Enrollment.csv, KYRC24_OVW_Student_Enrollment.csv, primary_enrollment_{year}.csv  
-**Years Available**: 2020-2026  
+**Data Sources**: KYRC26_OVW_Student_Enrollment.csv, KYRC25_OVW_Student_Enrollment.csv, KYRC24_OVW_Student_Enrollment.csv, primary_enrollment_{year}.csv, STUDENT_PRIMARY_ENROLLMENT_18-19.xlsx  
+**Years Available**: 2019-2026  
 **Unit**: Student count (non-negative integers)
 
 ---

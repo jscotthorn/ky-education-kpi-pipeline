@@ -473,6 +473,13 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
         assert row["suppressed"] == "N"
         assert float(_metric_value(combined, year, "999000", "student_enrollment_preschool")["value"]) == preschool
 
+    # 2024 state All Students primary, from the real KYRC24 fixture row.
+    # Every primary grade is comma-formatted. pandas 3 without the
+    # StringDtype cleaner drops the aggregate. pandas 2.3.3 already
+    # writes 331,857, and this branch restores that sum:
+    # 31,467 + 49,681 + 50,859 + 52,241 + 48,560 + 49,321 + 49,728.
+    assert float(_metric_value(combined, "2024", "999000", "student_enrollment_primary")["value"]) == 331857
+
     assert float(_metric_value(combined, "2025", "165000", "student_enrollment_total")["value"]) == 44390
     assert float(_metric_value(combined, "2024", "165000", "student_enrollment_total")["value"]) == 44362
     assert _metric_value(combined, "2025", "165000", "student_enrollment_total")["nces_id"] == "2101860"

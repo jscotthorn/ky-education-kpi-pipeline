@@ -1,7 +1,7 @@
 """
 Student Enrollment ETL Module
 
-Handles Kentucky student enrollment data (Preschool-Grade 12) across years 2020-2026.
+Handles Kentucky student enrollment data (Preschool-Grade 12) across years 2019-2026.
 Combines historical primary enrollment files and the KYRC overview files.
 Normalizes column names, handles schema variations, standardizes missing values,
 and applies demographic label standardization for consistent longitudinal reporting.
@@ -13,7 +13,7 @@ Data includes enrollment counts by grade level:
 """
 from pathlib import Path
 import pandas as pd
-from typing import Dict, Any, Union
+from typing import Any, Dict
 import logging
 import sys
 
@@ -32,8 +32,35 @@ def _is_string_like(series: pd.Series) -> bool:
 
     ``read_csv(..., dtype=str)`` on pandas 3 returns StringDtype, not object.
     A comma in ``669,865`` has to be removed before ``to_numeric``.
+    pandas 2.3.3 still returns object, so the older ``dtype == object``
+    strip already keeps that count. pandas is unpinned.
     """
     return series.dtype == object or bool(pd.api.types.is_string_dtype(series))
+
+
+def _count_is_blank(value: Any) -> bool:
+    """True when a count is missing or zero.
+
+    ``value or fallback`` raises ``boolean value of NA is ambiguous`` on
+    pandas 2 when ``value`` is ``pd.NA``. ``np.nan`` is truthy, so the same
+    expression does not fall through on pandas 3. Treat both as blank, and
+    keep the old falsy fallback for a numeric zero.
+    """
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip() == ""
+    try:
+        if bool(pd.isna(value)):
+            return True
+    except (TypeError, ValueError):
+        return False
+    if isinstance(value, bool):
+        return False
+    try:
+        return float(value) == 0.0
+    except (TypeError, ValueError):
+        return False
 
 
 def clean_enrollment_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -48,8 +75,8 @@ def clean_enrollment_data(df: pd.DataFrame) -> pd.DataFrame:
     for col in grade_columns:
         if col in df.columns:
             # Convert to numeric, handling commas in numbers.
-            # astype("string") keeps missing values as <NA>. astype(str) would
-            # turn those into the literal "nan" and then into a number.
+            # astype("string") keeps missing values as <NA>. astype(str) turns
+            # them into the literal "nan", and to_numeric then yields NaN.
             if _is_string_like(df[col]):
                 df[col] = (
                     df[col]
@@ -86,10 +113,11 @@ class StudentEnrollmentETL(BaseETL):
     def accepts_data_file(self, file_path: Path) -> bool:
         """Skip a student-membership extract dropped into this directory.
 
-        ``OVW_Student_Membership`` uses the same grade headers except
-        Preschool, and its All Grades total is not this file's total.
-        A parse would emit ``student_enrollment_*`` rows with different
-        counts. Membership is not registered here and has no ETL. Preschool
+        ``OVW_Student_Membership`` is a different count, not preschool
+        membership. KYRC26 has no Preschool column on that file, and its
+        All Grades total is not this file's total. The grade headers it
+        still has are mapped, so a parse would emit ``student_enrollment_*``
+        rows. Membership is not registered here and has no ETL. Preschool
         enrollment stays on ``OVW_Student_Enrollment``.
         """
         if "student_membership" in file_path.name.lower():
@@ -183,8 +211,11 @@ class StudentEnrollmentETL(BaseETL):
             except:
                 return pd.NA
         
-        # Total enrollment
-        total_val = row.get('all_grades') or row.get('total_student_count', pd.NA)
+        # Total enrollment. A blank All Grades cell is pd.NA after cleaning.
+        # ``or`` cannot test that value on pandas 2.
+        all_grades = row.get('all_grades', pd.NA)
+        total_count = row.get('total_student_count', pd.NA)
+        total_val = total_count if _count_is_blank(all_grades) else all_grades
         total_numeric = safe_numeric(total_val)
         if pd.notna(total_numeric) and total_numeric > 0:
             metrics['student_enrollment_total'] = total_numeric
@@ -207,7 +238,11 @@ class StudentEnrollmentETL(BaseETL):
             'student_enrollment_grade_12': safe_numeric(row.get('grade_12', pd.NA)),
         }
         
-        # Add individual grade metrics if they have values > 0
+        # A zero is an offered grade with a count of 0. It is omitted here
+        # (value > 0) and again in convert_to_kpi_format (value != 0). A
+        # blank grade never reaches this check. Whether a published zero
+        # should be a KPI row is a pre-existing design question, not
+        # suppression. Counts of 1 and 2 stay.
         for metric_name, value in grade_metrics.items():
             if pd.notna(value) and value > 0:
                 metrics[metric_name] = value
@@ -332,7 +367,8 @@ class StudentEnrollmentETL(BaseETL):
             
             # Create separate KPI rows for each metric
             for metric_name, metric_value in metrics.items():
-                if pd.notna(metric_value) and metric_value != 0:  # Skip zero enrollments
+                # Second zero skip. extract_metrics already drops value <= 0.
+                if pd.notna(metric_value) and metric_value != 0:
                     kpi_row = kpi_template.copy()
                     kpi_row['metric'] = metric_name
                     kpi_row['value'] = metric_value

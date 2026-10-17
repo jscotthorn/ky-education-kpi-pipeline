@@ -429,7 +429,9 @@ class TestKyrc26StudentEnrollment:
         notes/8: a row that is not suppressed and has every value empty is
         the absence of a row. These files have no Suppressed column. A
         constructed all-blank row emits nothing. There is no such row in
-        KYRC24, KYRC25, or KYRC26.
+        KYRC24, KYRC25, or KYRC26. Cleaning stores the empty total as
+        pd.NA. On pandas 2, ``row.get('all_grades') or ...`` raises
+        ``boolean value of NA is ambiguous``. The lookup treats NA as blank.
         """
         blank = pd.DataFrame({
             "School Year": ["20252026"],
