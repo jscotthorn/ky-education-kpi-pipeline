@@ -373,6 +373,248 @@ class TestGraduationRatesDataQuality:
         assert complete_metric_sets > 0, "No complete metric sets found in 2021 data"
 
 
+FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures" / "graduation_rates"
+
+# 4-year anchors the base-branch parser already emitted. A full-file run of
+# that parser wrote 7,606 KPI rows from the KYRC24 4-year file and 7,622 from
+# the KYRC25 4-year file. These are those files' state, district, and school
+# All Students rates.
+FOUR_YEAR_ANCHORS = {
+    ("2024", "999000"): "92.3",
+    ("2024", "165000"): "92.8",
+    ("2024", "165170"): "94.1",
+    ("2025", "999000"): "93.6",
+    ("2025", "165000"): "92.6",
+    ("2025", "165170"): "93.7",
+}
+
+# The base parser emitted no rows from ``5 Year Cohort Graduation Rate``.
+# These are the source values that header carries, locked once it is mapped.
+FIVE_YEAR_ANCHORS = {
+    ("2024", "999000"): "93.4",
+    ("2024", "165170"): "91.6",
+    ("2025", "999000"): "94.2",
+    ("2025", "165000"): "94.4",
+    ("2025", "165170"): "95.2",
+}
+
+
+def _run_fixtures(tmp_path: Path, filenames: list[str]) -> pd.DataFrame:
+    """Copy committed real-row excerpts into a raw directory and transform them."""
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "graduation_rates"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    for name in filenames:
+        (source_dir / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+    transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-10-17"}})
+    output = proc_dir / "graduation_rates.csv"
+    assert output.exists(), filenames
+    return pd.read_csv(output, dtype=str)
+
+
+def _comparable(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop the processing timestamp and sort so two runs can be compared."""
+    columns = [column for column in df.columns if column != "last_updated"]
+    return df[columns].sort_values(columns).reset_index(drop=True)
+
+
+def _metric_rows(
+    df: pd.DataFrame, year: str, school_id: str, metric: str, student_group: str
+) -> pd.DataFrame:
+    return df[
+        (df["year"] == year)
+        & (df["school_id"] == school_id)
+        & (df["metric"] == metric)
+        & (df["student_group"] == student_group)
+    ]
+
+
+def _metric_value(
+    df: pd.DataFrame, year: str, school_id: str, metric: str, student_group: str
+) -> pd.Series:
+    matches = _metric_rows(df, year, school_id, metric, student_group)
+    assert len(matches) == 1, (year, school_id, metric, student_group, len(matches))
+    return matches.iloc[0]
+
+
+def test_blank_suppression_is_skipped(tmp_path):
+    """A blank Suppressed cell is missing. A Suppressed=Y cell is kept.
+
+    Bryan Station American Indian, 4-year, was ``*`` / Y in KYRC25 and is
+    blank / blank in KYRC26, so 2026 emits no row. The blank pattern is not
+    new: KYRC25 already uses it for that school's Military Dependent row and
+    for Adair County High School American Indian. KYRC24 stores the empty
+    rate as one space and that row is skipped too.
+    """
+    output = _run_fixtures(
+        tmp_path,
+        [
+            "KYRC24_ACCT_4_Year_High_School_Graduation.csv",
+            "KYRC24_ACCT_5_Year_High_School_Graduation.csv",
+            "KYRC25_ACCT_4_Year_High_School_Graduation.csv",
+            "KYRC26_ACCT_4_Year_High_School_Graduation.csv",
+            "KYRC26_ACCT_5_Year_High_School_Graduation.csv",
+        ],
+    )
+    absent = "American Indian or Alaska Native"
+    for year, school_id, metric in (
+        ("2026", "165170", "graduation_rate_4_year"),
+        ("2026", "001010", "graduation_rate_4_year"),
+        ("2025", "001010", "graduation_rate_4_year"),
+        ("2024", "001010", "graduation_rate_4_year"),
+        ("2024", "001010", "graduation_rate_5_year"),
+    ):
+        assert _metric_rows(output, year, school_id, metric, absent).empty
+
+    assert _metric_rows(
+        output, "2025", "165170", "graduation_rate_4_year", "Military Dependent"
+    ).empty
+    assert _metric_rows(
+        output, "2026", "165170", "graduation_rate_5_year", "Military Dependent"
+    ).empty
+
+    prior = _metric_value(
+        output, "2025", "165170", "graduation_rate_4_year", absent
+    )
+    assert prior["suppressed"] == "Y"
+    assert pd.isna(prior["value"])
+    assert prior["source_file"] == "KYRC25_ACCT_4_Year_High_School_Graduation.csv"
+
+    current = _metric_value(
+        output, "2026", "165170", "graduation_rate_4_year", "Military Dependent"
+    )
+    assert current["suppressed"] == "Y"
+    assert pd.isna(current["value"])
+    assert current["source_file"] == "KYRC26_ACCT_4_Year_High_School_Graduation.csv"
+
+
+def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
+    """2025-26 KPIs from real cohort rows, with fixed earlier-year anchors.
+
+    State rates are 94.1 (4-year) and 94.5 (5-year). KPI year is 2026, from
+    school year 20252026. The 4-year anchors are values the base parser
+    already wrote. The 5-year anchors are source values from the cohort
+    header that parser did not map.
+    """
+    prior_names = [
+        "KYRC24_ACCT_4_Year_High_School_Graduation.csv",
+        "KYRC24_ACCT_5_Year_High_School_Graduation.csv",
+        "KYRC25_ACCT_4_Year_High_School_Graduation.csv",
+        "KYRC25_ACCT_5_Year_High_School_Graduation.csv",
+    ]
+    current_names = prior_names + [
+        "KYRC26_ACCT_4_Year_High_School_Graduation.csv",
+        "KYRC26_ACCT_5_Year_High_School_Graduation.csv",
+    ]
+    prior_only = _run_fixtures(tmp_path / "prior", prior_names)
+    combined = _run_fixtures(tmp_path / "combined", current_names)
+
+    # Same-branch check only: adding the 2026 excerpts does not rewrite earlier rows.
+    # The fixed anchors below are the prior-year regression.
+    prior_slice = combined[combined["year"].isin(["2024", "2025"])]
+    assert _comparable(prior_slice).equals(_comparable(prior_only))
+
+    assert set(combined["source_file"]) == set(current_names)
+    assert "20252026" not in set(combined["year"])
+    assert set(combined.loc[combined["source_file"].str.startswith("KYRC26_"), "year"]) == {"2026"}
+
+    state_4 = _metric_value(
+        combined, "2026", "999000", "graduation_rate_4_year", "All Students"
+    )
+    assert state_4["value"] == "94.1"
+    assert state_4["suppressed"] == "N"
+    assert state_4["district"] == "All Districts"
+    assert state_4["school_name"] == "---District Total---"
+    assert state_4["source_file"] == "KYRC26_ACCT_4_Year_High_School_Graduation.csv"
+
+    state_5 = _metric_value(
+        combined, "2026", "999000", "graduation_rate_5_year", "All Students"
+    )
+    assert state_5["value"] == "94.5"
+    assert state_5["suppressed"] == "N"
+    assert state_5["year"] == "2026"
+    assert state_5["source_file"] == "KYRC26_ACCT_5_Year_High_School_Graduation.csv"
+
+    district_4 = _metric_value(
+        combined, "2026", "165000", "graduation_rate_4_year", "All Students"
+    )
+    assert district_4["value"] == "93.9"
+    assert district_4["district"] == "Fayette County"
+    assert district_4["school_name"] == "---District Total---"
+    assert district_4["school_id"] == "165000"
+    assert district_4["co_op"] == "CKEC"
+    assert district_4["co_op_code"] == "901"
+    assert district_4["nces_id"] == "2101860"
+    assert district_4["suppressed"] == "N"
+
+    district_5 = _metric_value(
+        combined, "2026", "165000", "graduation_rate_5_year", "All Students"
+    )
+    assert district_5["value"] == "93.7"
+    assert district_5["school_id"] == "165000"
+
+    school_4 = _metric_value(
+        combined, "2026", "165170", "graduation_rate_4_year", "All Students"
+    )
+    assert school_4["value"] == "93.8"
+    assert school_4["district"] == "Fayette County"
+    assert school_4["school_name"] == "Bryan Station High School"
+    assert school_4["state_school_id"] == "034165170"
+    assert school_4["nces_id"] == "210186000388"
+    assert school_4["suppressed"] == "N"
+
+    school_5 = _metric_value(
+        combined, "2026", "165170", "graduation_rate_5_year", "All Students"
+    )
+    assert school_5["value"] == "94.0"
+    assert school_5["school_name"] == "Bryan Station High School"
+    assert school_5["suppressed"] == "N"
+
+    adair = _metric_value(
+        combined, "2026", "001010", "graduation_rate_4_year", "All Students"
+    )
+    assert adair["value"] == "97.6"
+    assert adair["school_name"] == "Adair County High School"
+    assert adair["school_id"] == "001010"
+
+    for year, school_id, metric, student_group in (
+        ("2026", "165170", "graduation_rate_4_year", "Asian"),
+        ("2026", "001010", "graduation_rate_4_year", "Foster Care"),
+        ("2026", "001010", "graduation_rate_5_year", "Foster Care"),
+        ("2026", "999000", "graduation_rate_5_year", "American Indian or Alaska Native"),
+        ("2024", "999000", "graduation_rate_4_year", "Military Dependent"),
+    ):
+        row = _metric_value(combined, year, school_id, metric, student_group)
+        assert row["suppressed"] == "Y"
+        assert pd.isna(row["value"])
+
+    # State 5-year American Indian was published in KYRC25 and is suppressed in KYRC26.
+    prior_state_group = _metric_value(
+        prior_only,
+        "2025",
+        "999000",
+        "graduation_rate_5_year",
+        "American Indian or Alaska Native",
+    )
+    assert prior_state_group["value"] == "88.0"
+    assert prior_state_group["suppressed"] == "N"
+
+    for (year, school_id), expected in FOUR_YEAR_ANCHORS.items():
+        row = _metric_value(
+            prior_only, year, school_id, "graduation_rate_4_year", "All Students"
+        )
+        assert row["value"] == expected
+        assert row["suppressed"] == "N"
+    for (year, school_id), expected in FIVE_YEAR_ANCHORS.items():
+        row = _metric_value(
+            prior_only, year, school_id, "graduation_rate_5_year", "All Students"
+        )
+        assert row["value"] == expected
+        assert row["suppressed"] == "N"
+
+
 if __name__ == "__main__":
     # Run specific test
     test = TestGraduationRatesEndToEnd()

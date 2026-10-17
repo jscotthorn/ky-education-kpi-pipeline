@@ -5,9 +5,12 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
 from etl.graduation_rates import transform, clean_graduation_rates, GraduationRatesETL
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestGraduationRatesETL:
@@ -259,6 +262,44 @@ class TestGraduationRatesETL:
         if len(non_suppressed) > 0:
             numeric_values = pd.to_numeric(non_suppressed['value'], errors='coerce')
             assert numeric_values.notna().all(), "Non-suppressed values should be numeric"
+
+    def test_kyrc26_cohort_files_are_accepted(self):
+        """KYRC26 cohort files are in scope. The 2024-25 temporary file stays."""
+        etl = GraduationRatesETL("graduation_rates")
+        assert etl.include_kyrc26 is True
+        assert (
+            etl.module_column_mappings["5 Year Cohort Graduation Rate"]
+            == "graduation_rate_5_year"
+        )
+        assert (
+            etl.module_column_mappings["4 Year Cohort Graduation Rate"]
+            == "graduation_rate_4_year"
+        )
+
+        names = [
+            "KYRC26_ACCT_4_Year_High_School_Graduation.csv",
+            "KYRC26_ACCT_5_Year_High_School_Graduation.csv",
+            "KYRC24_ACCT_5_Year_High_School_Graduation.csv",
+            "Graduation_Rate_2025.CSV",
+        ]
+        for name in names:
+            (self.sample_dir / name).write_text("School Year\n20252026\n")
+
+        found = sorted(path.name for path, _sheet in etl._find_data_files(self.sample_dir))
+        assert found == sorted(names)
+
+
+def test_temporary_2025_graduation_file_stays_registered():
+    """Leave Graduation_Rate_2025.CSV in place. Do not register a 2026 temporary file."""
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["graduation_rates"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert "Graduation_Rate_2025.CSV" in names
+    assert "Graduation_Rate_2026.CSV" not in names
+    assert "KYRC26_ACCT_4_Year_High_School_Graduation.csv" in names
+    assert "KYRC26_ACCT_5_Year_High_School_Graduation.csv" in names
 
 
 class TestGraduationRatesHelpers:

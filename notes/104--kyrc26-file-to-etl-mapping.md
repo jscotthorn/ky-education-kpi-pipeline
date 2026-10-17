@@ -19,8 +19,11 @@ The node ids are in journal 105 (census live API, pandas `StringDtype` versus `o
 | Module | Status |
 | --- | --- |
 | `chronic_absenteeism` | Merged in PR #38 (`cursor/chronic-absenteeism-kyrc26-1b59`). Opt-in, plus a hygiene filename guard for the CRDC extract. Shared changes: `.gitignore` keeps `tests/fixtures/**/*.csv`, and `PyYAML` is a project dependency because tests import it. Details are under that module |
+| `graduation_rates` | In review (`cursor/graduation-rates-kyrc26-05b6`). Opt-in, plus the `5 Year Cohort Graduation Rate` alias. No shared parser, config, or dependency changes. Details are under that module |
 
 `chronic_absenteeism` was re-tested on this branch after the review fixes: `42 failed, 394 passed, 104 skipped`. The 42 failure node ids match the develop baseline above. Run `python3 scripts/compare_pytest_to_journal105.py` and paste the report into the pull request. Do not commit a per-script diff file. The extra passes are the shared-prep tests already on `feature/2025-26-kyrc26` plus the chronic-absenteeism tests added here. Do not treat 375 passed as the number to match once shared prep is in the base.
+
+`graduation_rates` compare run, pandas 3.0.6: `42 failed, 398 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The four extra passes are the graduation tests added here. Do not treat 394 passed as the number to match once this module merges.
 
 ## What was checked
 
@@ -146,14 +149,72 @@ Do these for every later script. The chronic-absenteeism pilot is the example, n
 5. Re-read the module gotcha before requiring a `999000` row. `out_of_school_suspension` has no `999000` row in either year and the KPI year has to come from `School Year`, not the collected year. `student_teacher_ratio` has no state row and no district `All Schools` row in KYRC26; fixture a school row. Do not add a shared helper for a token or header that only one script needs.
 6. Run `python3 scripts/compare_pytest_to_journal105.py` and paste its report into the pull request body. Do not commit a per-script diff file. The script exits nonzero when a failure node id is new or any test errors. A failure already on the journal 105 list is not a regression.
 
-### `graduation_rates` — S
+### `graduation_rates` — S — in review
 
 | | |
 | --- | --- |
 | KYRC26 files | `KYRC26_ACCT_4_Year_High_School_Graduation.csv`, `KYRC26_ACCT_5_Year_High_School_Graduation.csv` |
-| Header changes | None. `4 Year Cohort Graduation Rate` is already mapped. School-code sets are identical to KYRC25 |
-| Fixtures / assertions | State 94.1 and 94.5, year `2026` |
+| Header changes | None versus KYRC25. `4 Year Cohort Graduation Rate` was already mapped. `5 Year Cohort Graduation Rate` was not, so the 5-year file emitted no rows until this alias. School-code sets are identical to KYRC25 |
+| Fixtures / assertions | State 94.1 and 94.5, year `2026`. Checked against the blob file, not a rewritten row |
 | Gotchas | Leave `Graduation_Rate_2025.CSV` in place for 2024-25. Do not add a temporary 2026 file |
+
+Result, checked 17 October 2026 against the public `datasets` container. `include_kyrc26 = True` and the 5-year cohort alias are the parser changes. `etl/kyrc.py`, `BaseETL`, `config/kde_sources.yaml`, and the demographic config were not edited. Re-HEAD both files after 26 October 2026. If the hashes diverge from the stamps below, take the newer stamp and record which container it came from.
+
+`datasets` HEAD for the KYRC26 files did not return Content-MD5. The UAT Content-MD5 matches the bytes downloaded from `datasets`, and `datasets` Last-Modified is newer, so these are the `datasets` objects.
+
+| File | Bytes | MD5 | Last-Modified |
+| --- | --- | --- | --- |
+| `KYRC26_ACCT_4_Year_High_School_Graduation.csv` | 1,175,641 | `21244adbcc429ba9158d4e2f790431de` | Thu, 15 Oct 2026 10:00:09 GMT |
+| `KYRC26_ACCT_5_Year_High_School_Graduation.csv` | 1,175,588 | `99fbcad12c03186b5733f609eddcfc97` | Thu, 15 Oct 2026 10:00:09 GMT |
+| `KYRC25_ACCT_4_Year_High_School_Graduation.csv` | 1,175,161 | `7e4fb3432624c4a8681a46862418e618` | Thu, 06 Aug 2026 17:29:55 GMT |
+| `KYRC25_ACCT_5_Year_High_School_Graduation.csv` | 1,174,850 | `ddcd0df0de09e52291c98a78353b03ac` | Thu, 14 May 2026 19:11:31 GMT |
+
+Each file has 9,528 data rows and the same 397 school codes. The MD5s are of those downloaded bytes. `Graduation_Rate_2025.CSV` on the OAA temporary URL returned 404 on this date, so it was not re-parsed. It stays registered. `Graduation_Rate_2026.CSV` was not added. The new alias does not match that file's `5-Year Graduation Rate` header.
+
+All Students, KPI `year` `2026` (source `School Year` `20252026`). `All Schools` is stored as `---District Total---`.
+
+| Row | School code | 4-year | 5-year | Suppressed |
+| --- | --- | --- | --- | --- |
+| State (`All Districts`) | `999000` | 94.1 | 94.5 | N |
+| Fayette County district | `165000` | 93.9 | 93.7 | N |
+| Bryan Station High School | `165170` | 93.8 | 94.0 | N |
+| Adair County High School | `001010` | 97.6 | 97.5 | N |
+
+Bryan Station `state_school_id` `034165170`, `nces_id` `210186000388`. Fayette district `nces_id` `2101860`, `co_op` `CKEC`, `co_op_code` `901`. That `901` is the cooperative code. The school code stays `165000`. KYRC25 stored Bryan Station's NCES id as `210186000000`; KYRC24 and KYRC26 both use `210186000388`.
+
+The 2024-25 control is the KYRC25 cohort files (same shape). State 93.6 and 94.2; Fayette `165000` 92.6 and 94.4; Bryan Station `165170` 93.7 and 95.2. The configured 2023-24 file is `KYRC24_ACCT_4_Year_High_School_Graduation.csv`: state 92.3, Fayette 92.8, Bryan Station 94.1. A base-branch run of that 4-year file wrote 7,606 KPI rows. The same run of the KYRC25 4-year file wrote 7,622. This branch matches both outputs exactly, ignoring `last_updated`. Two runs of this branch were not the comparison.
+
+`5 Year Cohort Graduation Rate` was unmapped, so the base branch wrote no KPI rows from `KYRC24_ACCT_5_Year_High_School_Graduation.csv` or `KYRC25_ACCT_5_Year_High_School_Graduation.csv`. The alias required for the KYRC26 rate 94.5 also fills that hole. KYRC24 5-year now writes 7,565 rows (state 93.4). KYRC25 5-year now writes 7,648 rows (state 94.2). No 4-year value that the base parser already emitted changed.
+
+Suppression in the file is `N`, `Y`, or blank. `Y` is `*` and is kept with an empty value. Blank means the rate cell is empty too, and that row is not emitted. There is no new code. KYRC24 stores the blank rate as one space; `to_numeric` already drops it, so do not add a space to the shared missing-value list for this file.
+
+| File | N | Y | Blank | KPI rows |
+| --- | --- | --- | --- | --- |
+| KYRC25 4-year | 5,733 | 1,889 | 1,906 | 7,622 |
+| KYRC26 4-year | 5,738 | 1,985 | 1,805 | 7,723 |
+| KYRC25 5-year | 5,607 | 2,041 | 1,880 | 7,648 |
+| KYRC26 5-year | 5,733 | 1,889 | 1,906 | 7,622 |
+
+KYRC26 writes 15,345 KPI rows (7,723 + 7,622). The 4-year file gains 101 rows and the 5-year file loses 26. Same 9,528 keys in each pair. The 4-year net is 461 cells moving blank to `Y` and 360 moving `Y` to blank. The 5-year net is 412 cells moving blank to `N` or `Y` and 438 moving `Y` to blank. A smaller extract is not a dropped column.
+
+The locked blank example is Bryan Station `165170`, 4-year, `American Indian or Alaska Native`: KYRC26 is blank and emits no row; the KYRC25 twin is `*` / `Y` and emits the suppressed placeholder. The reverse, same school, 4-year `Military Dependent`, is blank in KYRC25 and `Y` in KYRC26. Adair County High School `001010`, `American Indian or Alaska Native`, is blank in both years. The only KYRC26 state suppression is 5-year `American Indian or Alaska Native` (`*`); that group's KYRC25 5-year rate is 88.0. School-level suppressions used for the check: Bryan Station `Asian` and Adair County High School `Foster Care`, both `Y` / `*`.
+
+`CO-OP` value `GREC` is replaced by `GLEC` on 528 rows in each KYRC26 file. That is a value change on a column the parser already stores. It does not change a school code.
+
+Both years' demographic columns are the same 24 labels, all already in the 2026 demographic config. The full-file run reported 24 found and no unexpected labels. No new KPI names. `graduation_rate_4_year` and `graduation_rate_5_year` are the only metrics these files emit. There are no count or total columns.
+
+`KYRC26_ACCT_Crosstab_Cohort_4_Year.csv` and `KYRC26_ACCT_Crosstab_Cohort_5_Year.csv` are not registered under this directory. Their measure is `Year Cohort Rate`, and they have no `Demographic` column, so a parse emits no KPI rows. No filename guard. `KYRC26_ASMT_Measurements_of_Interim_Progress_Graduation_Rate.csv` is a different series and is not this module.
+
+Fixtures are real rows in `tests/fixtures/graduation_rates/`: nine KYRC26 4-year rows, seven KYRC26 5-year rows, and the prior-year anchors, including the Bryan Station American Indian pair and one KYRC24 space-blank row. `tests/test_fixture_sizes.py` passes.
+
+Lessons for later agents:
+
+1. "Header changes: none" means the KYRC26 header matches KYRC25. It does not mean every measure column is already mapped. Check the twin of the column the checklist names. This module's 4-year header was mapped and its 5-year header was not, which is why the base branch emitted no 5-year cohort rows.
+2. Compare the suppression value set, then the counts. Here the codes are still `N`, `Y`, and blank. Output row counts moved because cells changed code on the same keys. `N` plus `Y` equals the KPI rows, and blank emits nothing. Confirm that before adding a skip rule.
+3. A blank suppression cell is not `Y`. Emitting it as suppressed would mark a cohort the file did not report as a privacy suppression. notes/8 still applies.
+4. Before adding a filename guard, parse one sibling row. The cohort crosstabs emit nothing. The CRDC guard does not transfer.
+5. Prior-year identity is a diff of the files the base parser already emitted. This module's 4-year files match that output. The 5-year cohort files are new rows from a header the base parser dropped, not a rewrite of existing values.
+6. Do not add a shared helper for a header only this file uses. The 5-year alias lives on this module. Do not add a space to the shared missing-value list; KYRC24's space-blank rate is already skipped.
 
 ### `english_learner_progress` — S
 
@@ -439,10 +500,11 @@ On the blob, not registered, no ETL, do not add unless a module is in scope: `AS
 ## Suggested order
 
 1. `chronic_absenteeism`. Merged. Unchanged headers, state rate 23.5. See the pilot notes above before copying the pattern.
-2. The other opt-in modules above, in the order listed, through `kindergarten_readiness`. `student_teacher_ratio` fixtures a school row. `advanced_coursework` expects 257 overview schools and collected year `20212022`.
-3. `kentucky_summative_assessment` after one opt-in has landed.
-4. `safe_schools_discipline`, then `safe_schools_events`, then `safe_schools_climate`.
-5. `spending_per_student` and `financial_summary` when those KYRC26 names return 200.
-6. SAT (`ASMT_CAE`) only if a separate series is in scope. No script for the CRDC rename unless a CRDC KPI is in scope.
+2. `graduation_rates`. In review. State 94.1 and 94.5. The 5-year cohort header was unmapped. See that module's notes before copying the pattern onto the next file.
+3. The other opt-in modules above, in the order listed, through `kindergarten_readiness`. `student_teacher_ratio` fixtures a school row. `advanced_coursework` expects 257 overview schools and collected year `20212022`.
+4. `kentucky_summative_assessment` after one opt-in has landed.
+5. `safe_schools_discipline`, then `safe_schools_events`, then `safe_schools_climate`.
+6. `spending_per_student` and `financial_summary` when those KYRC26 names return 200.
+7. SAT (`ASMT_CAE`) only if a separate series is in scope. No script for the CRDC rename unless a CRDC KPI is in scope.
 
 No S module needs to become M because of a new header.
