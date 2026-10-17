@@ -221,7 +221,9 @@ class TestEnglishLearnerProgressEndToEnd:
         df_2024 = self.create_realistic_2024_data()
         df_2022 = self.create_realistic_2022_data()
         
-        file_2024 = self.sample_dir / "english_language_proficiency_2024.csv"
+        # Not english_language_proficiency_2024.csv. That temporary name is
+        # skipped so a leftover OAA extract cannot duplicate the KYRC24 file.
+        file_2024 = self.sample_dir / "english_language_proficiency_2024_format.csv"
         file_2022 = self.sample_dir / "english_language_proficiency_2022.csv"
         
         df_2024.to_csv(file_2024, index=False)
@@ -250,7 +252,7 @@ class TestEnglishLearnerProgressEndToEnd:
         
         # Verify multiple source files
         source_files = output_df['source_file'].unique()
-        assert 'english_language_proficiency_2024.csv' in source_files
+        assert 'english_language_proficiency_2024_format.csv' in source_files
         assert 'english_language_proficiency_2022.csv' in source_files
         
         # Verify both uppercase and mixed case column handling
@@ -433,3 +435,356 @@ class TestEnglishLearnerProgressEndToEnd:
         assert output_df['district'].notna().all()
         assert output_df['year'].notna().all()
         assert len(output_df['school_name'].unique()) >= 50, "Should have many unique schools"
+
+
+FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures" / "english_learner_progress"
+
+# Values the base-branch parser already wrote from the KYRC24 file
+# (19,360 source rows, 31,196 KPI rows) and from the KYRC25 file the same
+# parser emits once that file is the 2024-25 source. Score order is
+# 0, 60-80, 100, 140.
+PRIOR_ELEMENTARY_ANCHORS = {
+    ("2024", "999000"): ("29.0", "35.0", "23.0", "13.0"),
+    ("2024", "165000"): ("25.0", "36.0", "24.0", "15.0"),
+    ("2024", "001000"): ("38.0", "46.0", "15.0", None),
+    ("2025", "999000"): ("30.0", "35.0", "22.0", "13.0"),
+    ("2025", "165000"): ("29.0", "35.0", "23.0", "14.0"),
+    # Journal 77's temporary-file sample. The permanent KYRC25 cell matches it.
+    ("2025", "001000"): ("33.0", "47.0", "14.0", "5.0"),
+}
+
+SCORE_METRICS = (
+    "english_learner_score_0_elementary",
+    "english_learner_score_60_80_elementary",
+    "english_learner_score_100_elementary",
+    "english_learner_score_140_elementary",
+)
+
+
+def _run_fixtures(tmp_path: Path, filenames: list[str]) -> pd.DataFrame:
+    """Copy committed real-row excerpts into a raw directory and transform them."""
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "english_learner_progress"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    for name in filenames:
+        (source_dir / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+    transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-10-17"}})
+    output = proc_dir / "english_learner_progress.csv"
+    assert output.exists(), filenames
+    return pd.read_csv(output, dtype=str)
+
+
+def _comparable(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop the processing timestamp and sort so two runs can be compared."""
+    columns = [column for column in df.columns if column != "last_updated"]
+    return df[columns].sort_values(columns).reset_index(drop=True)
+
+
+def _metric_rows(
+    df: pd.DataFrame, year: str, school_id: str, metric: str, student_group: str
+) -> pd.DataFrame:
+    return df[
+        (df["year"] == year)
+        & (df["school_id"] == school_id)
+        & (df["metric"] == metric)
+        & (df["student_group"] == student_group)
+    ]
+
+
+def _metric_value(
+    df: pd.DataFrame, year: str, school_id: str, metric: str, student_group: str
+) -> pd.Series:
+    matches = _metric_rows(df, year, school_id, metric, student_group)
+    assert len(matches) == 1, (year, school_id, metric, student_group, len(matches))
+    return matches.iloc[0]
+
+
+def test_leftover_temporary_file_does_not_duplicate_a_year(tmp_path):
+    """A leftover English_Language_Proficiency_YYYY.CSV must not add a second year.
+
+    The temporary row uses a different rate and a 3-digit state code so a
+    duplicate would be visible. State elementary score 0 stays 29.0 (2024),
+    30.0 (2025), and 28.0 (2026).
+    """
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "english_learner_progress"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    names = [
+        "KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+        "KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+        "KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+    ]
+    for name in names:
+        (source_dir / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+    header = (
+        "School Year,School Code,District Name,School Name,Level,Demographic,Suppressed,"
+        "PERCENTAGE OF VALUE TABLE SCORE OF 0,PERCENTAGE OF VALUE TABLE SCORE OF 60 AND 80,"
+        "PERCENTAGE OF VALUE TABLE SCORE OF 100,PERCENTAGE OF VALUE TABLE SCORE OF 140\n"
+    )
+    for filename, year in (
+        ("English_Language_Proficiency_2024.CSV", "20232024"),
+        ("English_Language_Proficiency_2025.CSV", "20242025"),
+        ("English_Language_Proficiency_2026.CSV", "20252026"),
+    ):
+        (source_dir / filename).write_text(
+            header + f"{year},999,State,,ES,All Students,N,50,51,52,53\n"
+        )
+
+    transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-10-17"}})
+    output = pd.read_csv(proc_dir / "english_learner_progress.csv", dtype=str)
+
+    assert set(output["source_file"]) == set(names)
+    assert "50.0" not in set(output["value"].dropna())
+    assert "999" not in set(output["school_id"])
+    assert set(output.loc[output["district"] == "State", "school_id"]) == set()
+    assert _metric_value(
+        output, "2024", "999000", "english_learner_score_0_elementary", "All Students"
+    )["value"] == "29.0"
+    assert _metric_value(
+        output, "2025", "999000", "english_learner_score_0_elementary", "All Students"
+    )["value"] == "30.0"
+    assert _metric_value(
+        output, "2026", "999000", "english_learner_score_0_elementary", "All Students"
+    )["value"] == "28.0"
+
+
+def test_blank_suppression_is_skipped_and_partial_blank_omits_one_metric(tmp_path):
+    """A blank Suppressed cell is missing. A Suppressed=Y cell is kept.
+
+    Bryan Station American Indian, high school, is blank in KYRC25 and KYRC26
+    and a single space in KYRC24. None of those rows are emitted. Adair County
+    elementary All Students leaves score 140 empty in KYRC24 and KYRC26 while
+    Suppressed stays N, so the other three metrics are kept. That partial
+    blank is already in KYRC24.
+    """
+    output = _run_fixtures(
+        tmp_path,
+        [
+            "KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+            "KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+            "KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+        ],
+    )
+    absent = "American Indian or Alaska Native"
+    for year in ("2024", "2025", "2026"):
+        assert _metric_rows(
+            output, year, "165170", "english_learner_score_0_high", absent
+        ).empty
+
+    for year in ("2024", "2026"):
+        assert _metric_rows(
+            output, year, "001000", "english_learner_score_140_elementary", "All Students"
+        ).empty
+        kept = _metric_value(
+            output, year, "001000", "english_learner_score_0_elementary", "All Students"
+        )
+        assert kept["suppressed"] == "N"
+        assert kept["value"] in {"38.0", "30.0"}
+
+    published = _metric_value(
+        output, "2025", "001000", "english_learner_score_140_elementary", "All Students"
+    )
+    assert published["value"] == "5.0"
+    assert published["suppressed"] == "N"
+
+    suppressed = _metric_value(
+        output, "2026", "165170", "english_learner_score_0_high", "Asian"
+    )
+    assert suppressed["suppressed"] == "Y"
+    assert pd.isna(suppressed["value"])
+
+
+def test_sibling_files_emit_no_kpi_rows(tmp_path):
+    """Attainment, assessment, and overview English-learner files are not this metric.
+
+    None of those headers is a value-table score, so a dropped sibling emits
+    no KPI rows. No filename guard.
+    """
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "english_learner_progress"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    progress = "KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv"
+    (source_dir / progress).write_bytes((FIXTURE_DIR / progress).read_bytes())
+    (source_dir / "English_Learners_Attainment_2026.CSV").write_text(
+        "School Year,School Code,District Name,School Name,School Classification,Grade,"
+        "Suppressed,Number Tested,Number of Students Reaching Attainment,Attainment Rate\n"
+        "20252026,001,Adair County,,A1,00,Y,3,,\n"
+    )
+    (source_dir / "KYRC26_ASMT_English_Language_Proficiency.csv").write_text(
+        "School Year,County Number,County Name,District Number,District Name,School Number,"
+        "School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Grade,"
+        "Suppressed,Number Tested,Number Of Students Reaching Attainment,Attainment Rate\n"
+        "20252026,,,999,All Districts,,All Schools,999000,,,,,,All Grades,N,48753,5621,11.5\n"
+    )
+    (source_dir / "KYRC26_OVW_English_Learners.csv").write_text(
+        "School Year,County Number,County Name,District Number,District Name,School Number,"
+        "School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,"
+        "Demographic,English Learner,Total Student Count,Percent English Learners\n"
+        '20252026,,,999,All Districts,,All Schools,999000,,,,,,All Students,"51,432","640,083",8.0\n'
+    )
+    transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-10-17"}})
+    output = pd.read_csv(proc_dir / "english_learner_progress.csv", dtype=str)
+    assert set(output["source_file"]) == {progress}
+    assert "11.5" not in set(output["value"].dropna())
+
+
+def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
+    """2025-26 KPIs from real proficiency rows, with fixed earlier-year anchors.
+
+    State elementary scores are 28, 33, 24, and 15. KPI year is 2026, from
+    school year 20252026. District is All Districts. The 2024 anchors are
+    values the base parser already wrote from the KYRC24 file.
+    """
+    prior_names = [
+        "KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+        "KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+    ]
+    current_names = prior_names + [
+        "KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+    ]
+    prior_only = _run_fixtures(tmp_path / "prior", prior_names)
+    combined = _run_fixtures(tmp_path / "combined", current_names)
+
+    # Same-branch check only: adding the 2026 excerpt does not rewrite earlier rows.
+    # The fixed anchors below are the prior-year regression.
+    prior_slice = combined[combined["year"].isin(["2024", "2025"])]
+    assert _comparable(prior_slice).equals(_comparable(prior_only))
+
+    assert set(combined["source_file"]) == set(current_names)
+    assert "20252026" not in set(combined["year"])
+    assert set(combined.loc[combined["source_file"].str.startswith("KYRC26_"), "year"]) == {"2026"}
+
+    levels = {
+        "english_learner_score_0_elementary": "28.0",
+        "english_learner_score_60_80_elementary": "33.0",
+        "english_learner_score_100_elementary": "24.0",
+        "english_learner_score_140_elementary": "15.0",
+        "english_learner_score_0_middle": "54.0",
+        "english_learner_score_60_80_middle": "29.0",
+        "english_learner_score_100_middle": "12.0",
+        "english_learner_score_140_middle": "5.0",
+        "english_learner_score_0_high": "62.0",
+        "english_learner_score_60_80_high": "25.0",
+        "english_learner_score_100_high": "10.0",
+        "english_learner_score_140_high": "3.0",
+    }
+    for metric, expected in levels.items():
+        row = _metric_value(combined, "2026", "999000", metric, "All Students")
+        assert row["value"] == expected
+        assert row["suppressed"] == "N"
+        assert row["district"] == "All Districts"
+        assert row["school_name"] == "---District Total---"
+        assert row["year"] == "2026"
+        assert row["source_file"] == "KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv"
+
+    district = _metric_value(
+        combined, "2026", "165000", "english_learner_score_0_elementary", "All Students"
+    )
+    assert district["value"] == "24.0"
+    assert district["district"] == "Fayette County"
+    assert district["school_name"] == "---District Total---"
+    assert district["school_id"] == "165000"
+    assert district["co_op"] == "CKEC"
+    assert district["co_op_code"] == "901"
+    assert district["nces_id"] == "2101860"
+    assert district["suppressed"] == "N"
+    assert _metric_value(
+        combined, "2026", "165000", "english_learner_score_60_80_elementary", "All Students"
+    )["value"] == "33.0"
+    assert _metric_value(
+        combined, "2026", "165000", "english_learner_score_100_elementary", "All Students"
+    )["value"] == "25.0"
+    assert _metric_value(
+        combined, "2026", "165000", "english_learner_score_140_elementary", "All Students"
+    )["value"] == "18.0"
+    assert _metric_value(
+        combined, "2026", "165000", "english_learner_score_0_high", "All Students"
+    )["value"] == "66.0"
+
+    school = _metric_value(
+        combined, "2026", "165170", "english_learner_score_0_high", "All Students"
+    )
+    assert school["value"] == "70.0"
+    assert school["district"] == "Fayette County"
+    assert school["school_name"] == "Bryan Station High School"
+    assert school["state_school_id"] == "034165170"
+    assert school["nces_id"] == "210186000388"
+    assert school["school_type"] == "A1"
+    assert school["suppressed"] == "N"
+    assert _metric_value(
+        combined, "2026", "165170", "english_learner_score_60_80_high", "All Students"
+    )["value"] == "19.0"
+    assert _metric_value(
+        combined, "2026", "165170", "english_learner_score_100_high", "All Students"
+    )["value"] == "8.0"
+    assert _metric_value(
+        combined, "2026", "165170", "english_learner_score_140_high", "All Students"
+    )["value"] == "2.0"
+
+    # Published state group, next to the suppressed middle-school group.
+    state_group = _metric_value(
+        combined,
+        "2026",
+        "999000",
+        "english_learner_score_0_elementary",
+        "American Indian or Alaska Native",
+    )
+    assert state_group["value"] == "28.0"
+    assert state_group["suppressed"] == "N"
+
+    for metric in (
+        "english_learner_score_0_middle",
+        "english_learner_score_60_80_middle",
+        "english_learner_score_100_middle",
+        "english_learner_score_140_middle",
+        "english_learner_score_0_high",
+    ):
+        row = _metric_value(
+            combined, "2026", "999000", metric, "American Indian or Alaska Native"
+        )
+        assert row["suppressed"] == "Y"
+        assert pd.isna(row["value"])
+
+    for metric in (
+        "english_learner_score_0_high",
+        "english_learner_score_60_80_high",
+        "english_learner_score_100_high",
+        "english_learner_score_140_high",
+    ):
+        row = _metric_value(combined, "2026", "165170", metric, "Asian")
+        assert row["suppressed"] == "Y"
+        assert pd.isna(row["value"])
+
+    # KYRC25 stored Bryan Station's NCES id as 210186000000. KYRC24 and KYRC26 use 210186000388.
+    assert _metric_value(
+        prior_only, "2025", "165170", "english_learner_score_0_high", "All Students"
+    )["nces_id"] == "210186000000"
+    assert _metric_value(
+        prior_only, "2024", "165170", "english_learner_score_0_high", "All Students"
+    )["nces_id"] == "210186000388"
+    assert _metric_value(
+        prior_only, "2024", "165170", "english_learner_score_140_high", "All Students"
+    )["value"] == "0.0"
+
+    for (year, school_id), expected in PRIOR_ELEMENTARY_ANCHORS.items():
+        for metric, value in zip(SCORE_METRICS, expected):
+            if value is None:
+                assert _metric_rows(
+                    prior_only, year, school_id, metric, "All Students"
+                ).empty
+                continue
+            row = _metric_value(prior_only, year, school_id, metric, "All Students")
+            assert row["value"] == value
+            assert row["suppressed"] == "N"
+            if school_id == "999000":
+                assert row["district"] == "All Districts"
+            elif school_id == "165000":
+                assert row["district"] == "Fayette County"
+            else:
+                assert row["district"] == "Adair County"

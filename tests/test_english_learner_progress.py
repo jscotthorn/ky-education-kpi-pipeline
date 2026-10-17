@@ -6,12 +6,15 @@ from pathlib import Path
 import pandas as pd
 import tempfile
 import shutil
+import yaml
 from etl.constants import KPI_COLUMNS
 from etl.english_learner_progress import (
     transform,
     clean_percentage_scores,
     EnglishLearnerProgressETL,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestEnglishLearnerProgressETL:
@@ -417,3 +420,52 @@ class TestEnglishLearnerProgressETL:
         years = output_df['year'].astype(str).unique()
         assert '2024' in years
         assert '2022' in years
+
+    def test_kyrc26_file_is_accepted_and_temporary_extracts_are_not(self):
+        """KYRC proficiency files are in scope. A leftover temporary extract is not."""
+        assert self.etl.include_kyrc26 is True
+        assert (
+            self.etl.module_column_mappings["Percentage Of Value Table Score Of 0"]
+            == "percentage_score_0"
+        )
+        assert (
+            self.etl.module_column_mappings["PERCENTAGE OF VALUE TABLE SCORE OF 0"]
+            == "percentage_score_0"
+        )
+
+        accepted = [
+            "KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+            "KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+            "KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+            "english_language_proficiency_2023.csv",
+            "english_language_proficiency_2022.csv",
+        ]
+        rejected = [
+            "English_Language_Proficiency_2024.CSV",
+            "English_Language_Proficiency_2025.CSV",
+            "English_Language_Proficiency_2026.CSV",
+        ]
+        for name in accepted + rejected:
+            (self.sample_dir / name).write_text("School Year\n20252026\n")
+
+        found = sorted(path.name for path, _sheet in self.etl._find_data_files(self.sample_dir))
+        assert found == sorted(accepted)
+
+
+def test_kyrc25_file_replaces_the_temporary_2025_source():
+    """2024-25 comes from the permanent KYRC25 file. The dead temporary file is not registered."""
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["english_learner_progress"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert "KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv" in names
+    assert "KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv" in names
+    assert "KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv" in names
+    assert "english_language_proficiency_2023.csv" in names
+    assert "english_language_proficiency_2022.csv" in names
+    assert "English_Language_Proficiency_2024.CSV" not in names
+    assert "English_Language_Proficiency_2025.CSV" not in names
+    assert "English_Language_Proficiency_2026.CSV" not in names
+    assert names.count("KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv") == 1
+    assert names.count("KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv") == 1

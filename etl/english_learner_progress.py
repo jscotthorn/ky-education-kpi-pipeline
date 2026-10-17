@@ -1,6 +1,11 @@
 """English Learner Progress ETL Module
 
 Refactored to derive from BaseETL for standardized processing.
+
+KYRC26 is ``KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv``.
+Its value-table headers match the KYRC24 and KYRC25 files this module
+already maps. Level values are ``Elementary School``, ``Middle School``,
+and ``High School``.
 """
 from pathlib import Path
 import pandas as pd
@@ -32,7 +37,44 @@ def clean_percentage_scores(df: pd.DataFrame) -> pd.DataFrame:
 
 
 class EnglishLearnerProgressETL(BaseETL):
-    """ETL module for processing English Learner Progress data."""
+    """ETL module for processing English Learner Progress data.
+
+    KYRC26 uses the same value-table headers as KYRC24 and KYRC25.
+    ``English_Language_Proficiency_2025.CSV`` is 404. The permanent
+    KYRC25 file is the 2024-25 source. A leftover temporary extract for
+    2024, 2025, or 2026 would emit a second copy of that year because
+    those uppercase headers are already mapped.
+    """
+
+    # Opt in here, in the same change that accepts the file. BaseETL skips
+    # every KYRC26_* CSV until this is True.
+    include_kyrc26 = True
+
+    def accepts_data_file(self, file_path: Path) -> bool:
+        """Skip a leftover temporary OAA proficiency extract.
+
+        ``English_Language_Proficiency_2024.CSV``,
+        ``English_Language_Proficiency_2025.CSV``, and
+        ``English_Language_Proficiency_2026.CSV`` use the uppercase
+        value-table headers this module already maps. Permanent KYRC
+        files are the source for those years. The 2025 file is also 404
+        upstream. A leftover copy would emit a second set of rows beside
+        the KYRC file, under 3-digit district codes and district
+        ``State``. The match is case-insensitive.
+        ``english_language_proficiency_2023.csv`` and
+        ``english_language_proficiency_2022.csv`` stay.
+        """
+        if file_path.name.lower() in {
+            "english_language_proficiency_2024.csv",
+            "english_language_proficiency_2025.csv",
+            "english_language_proficiency_2026.csv",
+        }:
+            logger.info(
+                "Skipping %s; the permanent KYRC proficiency file is the source",
+                file_path.name,
+            )
+            return False
+        return super().accepts_data_file(file_path)
 
     @property
     def module_column_mappings(self) -> Dict[str, str]:
