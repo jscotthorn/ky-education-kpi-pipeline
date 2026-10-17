@@ -47,10 +47,12 @@ raw_directories:
 
   english_learner_progress:
     - "KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv"
+    # English_Language_Proficiency_2025.CSV on the OAA temporary URL is 404.
+    # This permanent file is the 2024-25 source. Do not register both.
+    - url: "kyrc25"
+      file: "KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv"
     - url: "kyrc26"
       file: "KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv"
-    - url: "2025"
-      file: "English_Language_Proficiency_2025.CSV"
     - "english_language_proficiency_2023.csv"
     - "english_language_proficiency_2022.csv"
     - "english_learner_proficiency_2021.csv"

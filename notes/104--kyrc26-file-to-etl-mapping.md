@@ -19,11 +19,14 @@ The node ids are in journal 105 (census live API, pandas `StringDtype` versus `o
 | Module | Status |
 | --- | --- |
 | `chronic_absenteeism` | Merged in PR #38 (`cursor/chronic-absenteeism-kyrc26-1b59`). Opt-in, plus a hygiene filename guard for the CRDC extract. Shared changes: `.gitignore` keeps `tests/fixtures/**/*.csv`, and `PyYAML` is a project dependency because tests import it. Details are under that module |
-| `graduation_rates` | In review in PR #39 (`cursor/graduation-rates-kyrc26-05b6`). Opt-in, the 5-year cohort alias, and a source swap in `config/kde_sources.yaml`: `Graduation_Rate_2025.CSV` is replaced by the two permanent KYRC25 cohort files. The parser skips leftover `Graduation_Rate_2024.CSV`, `Graduation_Rate_2025.CSV`, and `Graduation_Rate_2026.CSV` so those years are not written twice. No shared parser or dependency changes. Details are under that module |
+| `graduation_rates` | Merged in PR #39 (`cursor/graduation-rates-kyrc26-05b6`). Opt-in, the 5-year cohort alias, and a source swap in `config/kde_sources.yaml`: `Graduation_Rate_2025.CSV` is replaced by the two permanent KYRC25 cohort files. The parser skips leftover `Graduation_Rate_2024.CSV`, `Graduation_Rate_2025.CSV`, and `Graduation_Rate_2026.CSV` so those years are not written twice. No shared parser or dependency changes. Details are under that module |
+| `english_learner_progress` | In review in PR #40 (`cursor/english-learner-progress-kyrc26-26cf`). Opt-in, and a source swap in `config/kde_sources.yaml`: `English_Language_Proficiency_2025.CSV` is replaced by `KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv`. The parser skips leftover `English_Language_Proficiency_2024.CSV`, `English_Language_Proficiency_2025.CSV`, and `English_Language_Proficiency_2026.CSV` so those years are not written twice. No shared parser or dependency changes. Details are under that module |
 
 `chronic_absenteeism` was re-tested on this branch after the review fixes: `42 failed, 394 passed, 104 skipped`. The 42 failure node ids match the develop baseline above. Run `python3 scripts/compare_pytest_to_journal105.py` and paste the report into the pull request. Do not commit a per-script diff file. The extra passes are the shared-prep tests already on `feature/2025-26-kyrc26` plus the chronic-absenteeism tests added here. Do not treat 375 passed as the number to match once shared prep is in the base.
 
 `graduation_rates` compare run after the 2024 temporary-file skip, pandas 3.0.6: `42 failed, 400 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The extra pass beyond the KYRC25 source swap is `test_leftover_temporary_file_does_not_duplicate_2024`. Do not treat 394 passed as the number to match once this module merges.
+
+`english_learner_progress` compare run, pandas 3.0.6: `42 failed, 406 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The six passes beyond the graduation-rates total are the KYRC26 acceptance test, the KYRC25 source-swap test, the leftover-temporary-file test, the blank-and-partial-blank test, the sibling-file test, and the real-row fixture test. Do not treat 400 passed as the number to match once this module merges.
 
 ## What was checked
 
@@ -196,7 +199,7 @@ Journal 74's Adair County district sample was 4-year 96.5 / Female 98.0 / Male 9
 
 The temporary 2025 file had no School Type column, so its rows failed `analysis/scripts/graduation_analysis.py`'s `school_type == 'A1'` filter and never entered the analysis. The KYRC25 files set School Type. 8,730 year-2025 A1 KPI rows now pass that filter: 4,355 from the 4-year file and 4,375 from the 5-year file (suppression `N` or `Y`). Model results will change.
 
-Follow-up, not fixed here. `scripts/generate_report_drafts.py` selects state rows with `district == 'State'`. Every KYRC state row uses `All Districts` (graduation 2024–26, and chronic absenteeism). The graduation state average in those drafts will be missing until that lookup is updated.
+Follow-up, not fixed here. `scripts/generate_report_drafts.py` selects state rows with `district == 'State'`. Every KYRC state row uses `All Districts` (graduation 2024–26, chronic absenteeism, and English learner progress 2024–26). The graduation state average in those drafts will be missing until that lookup is updated. For English learner progress that lookup now finds no state row in 2024, 2025, or 2026: KYRC24 already stored `All Districts`, and the 2024-25 temporary file that used `State` is no longer registered. The 2022 and 2023 historical proficiency files still have district `State` (33 rows, school code `999`), so those two years still match.
 
 Suppression in the file is `N`, `Y`, or blank. `Y` is `*` and is kept with an empty value. Blank means the rate cell is empty too, and that row is not emitted. There is no new code. KYRC24 stores the blank rate as one space; `to_numeric` already drops it, so do not add a space to the shared missing-value list for this file.
 
@@ -230,14 +233,82 @@ Lessons for later agents:
 5. Prior-year identity is a diff of the files the base parser already emitted. This module's KYRC24 4-year file matches that output. The production rows added by the new alias are the KYRC24 5-year rows only. KYRC25 was not registered. Its 2024-25 rates already came from `Graduation_Rate_2025.CSV`, which mapped `5-Year Graduation Rate`. Replacing that dead file is a source swap, and the two sources must not both be registered.
 6. Do not add a shared helper for a header only this file uses. The 5-year alias lives on this module. Do not add a space to the shared missing-value list; KYRC24's space-blank rate is already skipped.
 
-### `english_learner_progress` — S
+### `english_learner_progress` — S — in review
 
 | | |
 | --- | --- |
 | KYRC26 files | `KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv` |
-| Header changes | None. Value-table headers already mapped |
-| Fixtures / assertions | Level values `Elementary School`, `Middle School`, `High School`. One state row |
-| Gotchas | Leave the temporary 2025 English-learner file in place. `KYRC26_ACCT_English_Learners_Attainment.csv` is 404 and is not this module |
+| Header changes | None versus KYRC25. Value-table headers were already mapped, including the uppercase temporary-file headers |
+| Fixtures / assertions | State elementary 28 / 33 / 24 / 15, year `2026`. Levels `Elementary School`, `Middle School`, `High School`. Checked against the blob file, not a rewritten row |
+| Gotchas | `English_Language_Proficiency_2025.CSV` is 404. The permanent KYRC25 file is the 2024-25 source. Skip leftover `English_Language_Proficiency_2024.CSV`, `English_Language_Proficiency_2025.CSV`, and `English_Language_Proficiency_2026.CSV`. `KYRC26_ACCT_English_Learners_Attainment.csv` is 404 and is not this module. `scripts/generate_report_drafts.py` still looks for district `State`. The three EL analysis scripts still cap the year at 2025 |
+
+Result, checked 17 October 2026 against the public `datasets` container. `include_kyrc26 = True` and the `kde_sources.yaml` source swap are the parser changes. `etl/kyrc.py`, `BaseETL`, and the demographic config were not edited. Re-HEAD the proficiency files after 26 October 2026. If the hashes diverge from the stamps below, take the newer stamp and record which container it came from.
+
+`datasets` HEAD for the KYRC26 file did not return Content-MD5. The UAT Content-MD5 matches the bytes downloaded from `datasets`, and `datasets` Last-Modified is newer, so this is the `datasets` object. The KYRC25 UAT Content-MD5 also matches the `datasets` download. Matching hashes keep `datasets` even though that UAT Last-Modified is later.
+
+| File | Bytes | MD5 | Last-Modified |
+| --- | --- | --- | --- |
+| `KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv` | 2,928,044 | `de16ecb7b399744797e2b122c487c5cb` | Thu, 15 Oct 2026 10:00:09 GMT |
+| `KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv` | 2,928,882 | `4e8d2db903f91dc908d642bc402c19af` | Thu, 14 May 2026 19:11:31 GMT |
+| `KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv` | 2,935,267 | `d38c9d255fdf3b1985359f8a75a59353` | Thu, 14 May 2026 19:11:28 GMT |
+
+The historical-datasets host serves the same KYRC24 bytes. Its KYRC25 copy is the same length and a different file (`7712d55bfc102b12b3bf2a625c730aa9`, Last-Modified Tue, 10 Feb 2026 20:37:51 GMT). KDE revised that file between the February historical copy and the May `datasets` file this config registers. The two copies differ in 51 rows, by up to 4 points. The revised rows are Jefferson County (16), Scott (8), Warren (7), Henderson (6), Shelby (6), Fayette (5), and Boone (3). The 4-point change is Tates Creek High School, White (non-Hispanic). The registered `kyrc25` URL is `datasets`. The MD5s above are of the downloaded bytes.
+
+KYRC26 has 19,316 data rows. KYRC25 has 19,338. KYRC24 has 19,360. Each year has 11 demographic labels, all already in the 2026 demographic config. The full-file run reported 11 found and no unexpected labels. No new KPI names. The twelve metrics are the four value-table scores at elementary, middle, and high.
+
+All Students, KPI `year` `2026` (source `School Year` `20252026`). `All Schools` is stored as `---District Total---`. Score order is 0, 60-80, 100, 140.
+
+| Row | School code | Level | Scores | Suppressed |
+| --- | --- | --- | --- | --- |
+| State (`All Districts`) | `999000` | Elementary | 28, 33, 24, 15 | N |
+| State (`All Districts`) | `999000` | Middle | 54, 29, 12, 5 | N |
+| State (`All Districts`) | `999000` | High | 62, 25, 10, 3 | N |
+| Fayette County district | `165000` | Elementary | 24, 33, 25, 18 | N |
+| Fayette County district | `165000` | High | 66, 23, 9, 2 | N |
+| Bryan Station High School | `165170` | High | 70, 19, 8, 2 | N |
+| Adair County district | `001000` | Elementary | 30, 39, 30, blank | N |
+
+Bryan Station `state_school_id` `034165170`, `nces_id` `210186000388`, `school_type` `A1`. Fayette district `nces_id` `2101860`, `co_op` `CKEC`, `co_op_code` `901`. That `901` is the cooperative code. The school code stays `165000`. KYRC25 stored Bryan Station's NCES id as `210186000000`. KYRC24 and KYRC26 both use `210186000388`.
+
+The configured 2023-24 file is `KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv`. A base-branch run wrote 31,196 KPI rows. This branch matches that output exactly, ignoring `last_updated`. State elementary All Students is 29, 35, 23, 13. Fayette elementary is 25, 36, 24, 15. Bryan Station high is 64, 29, 7, 0. Adair County elementary is 38, 46, 15, and score 140 is blank.
+
+`config/kde_sources.yaml` did not register the KYRC25 proficiency file. 2024-25 production came from `English_Language_Proficiency_2025.CSV`. That temporary file returned 404 on the OAA URL, on both blob containers, on the historical-datasets host, and on the Wayback lookup used here. It is no longer registered. The permanent KYRC25 file, parsed with the unchanged parser, writes 32,351 KPI rows. State elementary All Students is 30, 35, 22, 13. Fayette elementary is 29, 35, 23, 14. Journal 77's Adair County elementary sample is 33, 47, 14, 5, and the permanent file matches those four cells.
+
+Journal 77 (19 November 2025) is the surviving record of the temporary file: 19,635 source rows became 33,353 KPI rows, split 17,708 elementary, 8,300 middle, and 7,345 high. The permanent KYRC25 file has 19,338 source rows and writes 32,351 KPI rows: 17,319 elementary, 7,980 middle, and 7,052 high. Only the KYRC25 name is registered, so those 32,351 rows replace the temporary file's 33,353. They are not added to them.
+
+The 297 figure is source rows, not KPI rows. It is 9 educational cooperatives, codes 901–909, times 11 demographic groups times 3 levels. Those cooperative rows are what the permanent file leaves out, and they produce the 1,002 KPI-row gap: 17,708 − 17,319 = 389 elementary, 8,300 − 7,980 = 320 middle, and 7,345 − 7,052 = 293 high (389 + 320 + 293 = 1,002).
+
+Two other years have the same shape, and the 2025 temporary file itself cannot be re-read. The live `English_Language_Proficiency_2026.CSV` (1,665,216 bytes, not registered) versus KYRC26 differs by +1,031 KPI rows (34,708 versus 33,677), and every one of those rows is a cooperative total. After the 3-digit district codes are padded, the other 19,316 keys match. Suppression codes match. The 13,521 published numeric score cells match. Each of the four score columns also differs in 5,039 cells, all `*` in KYRC26 versus empty in the temporary file, on `Suppressed` `Y`. The temporary file stores the state district as `State` and the state school code as `999`. A Wayback copy of the 2023-24 temporary file versus KYRC24 differs by +1,003 KPI rows, again all cooperative totals.
+
+Suppression in the file is `N`, `Y`, or blank. `Y` is `*` and is kept as four empty metrics. Blank means every score cell is empty too, and that row is not emitted. An `N` row with one empty score emits the other scores and omits that one. There is no new code. About 97% of KYRC24's empty score cells are a single space (44,832 of 46,244). Those are the blank-suppression rows, and every score on those rows is one space. The other 1,412 empty cells are truly empty and sit on `Suppressed` `N` rows. `to_numeric` already drops the space, so do not add a space to the shared missing-value list.
+
+| File | N | Y | Blank | KPI rows |
+| --- | --- | --- | --- | --- |
+| KYRC24 | 3,390 | 4,762 | 11,208 | 31,196 |
+| KYRC25 | 3,603 | 4,771 | 10,964 | 32,351 |
+| KYRC26 | 3,673 | 5,039 | 10,604 | 33,677 |
+
+`N` plus `Y` is not the KPI count. A `Y` row emits four metrics. An `N` row emits one metric per filled score cell. Blank emits nothing. KYRC26 writes 1,326 more KPI rows than KYRC25. The source-row change is six schools, not a dropped column. Removed: Wurtland Middle `221024` and Wurtland Elementary `221110` (KEDC), Young Elementary `275374` (GREC), and Arlie Boggs Elementary `331210` (KVEC), 55 rows. Added: Mary E. Britton Middle `165220` (CKEC) and Greenup County School of Innovation `221015` (KEDC), 33 rows. On the 19,283 shared keys, 584 cells move `Y` to blank and 910 move blank to `Y`. 190 move `N` to `Y` and 244 move `Y` to `N`. 10 move blank to `N`. None move `N` to blank.
+
+The locked blank example is Bryan Station `165170`, high school, `American Indian or Alaska Native`: KYRC26 and KYRC25 are blank and emit no row. The KYRC24 twin stores the empty scores as one space and also emits no row. The partial blank is Adair County district `001000`, elementary, All Students: KYRC26 score 140 is empty and `Suppressed` is `N`, so the other three scores are kept (30, 39, 30). KYRC24 already omits that score (38, 46, 15). KYRC25 publishes it as 5. State suppressions, all three years, are middle and high `American Indian or Alaska Native`. Elementary for that group is published. In KYRC26 those scores are 28, 25, 33, 15. School-level suppression used for the check: Bryan Station high `Asian`, `Y` / `*`.
+
+`CO-OP` `GREC` is 1,529 rows and 133 school codes in the KYRC25 file. KYRC26 has no `GREC` rows. 132 of those codes are `GLEC` (1,518 rows). The 133rd is Young Elementary `275374`, which left the file. Nothing in this pipeline groups or joins on the co-op name. A later cross-year grouping on `co_op` would split that cooperative in two.
+
+`KYRC26_ACCT_English_Learners_Attainment.csv` is 404. The live temporary attainment file, `KYRC26_ASMT_English_Language_Proficiency.csv`, and `KYRC26_OVW_English_Learners.csv` do not use the value-table headers, so a parse emits no KPI rows. No filename guard. `English_Language_Proficiency_2026.CSV` does emit rows, because its uppercase headers were already mapped. The guard exists so a leftover copy cannot sit beside the KYRC file and write that year twice. The match is case-insensitive. The 2024-shaped unit test uses `english_language_proficiency_2024_format.csv` so it still exercises those headers. Historical `english_language_proficiency_2023.csv` and `english_language_proficiency_2022.csv` stay. `english_learner_proficiency_2021.csv` is a 0-byte 200, and `english_learner_proficiency_2020.csv` is a 121,925,616-byte domain file, not the value table. Neither is a 404. Both stay.
+
+Follow-up, not fixed here. `scripts/generate_report_drafts.py` selects state rows with `district == 'State'`. The EL progress metrics (`english_learner_score_60_80_elementary`, `_middle`, `_high`, and the combined proficiency report) use that lookup. That lookup now finds no EL state row in 2024, 2025, or 2026, the same `All Districts` gap as graduation. KYRC24 already stored `All Districts`, and the 2024-25 temporary file that used `State` is no longer registered. The 2022 and 2023 historical files still have district `State` (33 rows, school code `999`). `analysis/scripts/el_progress_elementary_analysis.py`, `el_progress_middle_analysis.py`, and `el_progress_high_analysis.py` keep year range `(2022, 2025)` and drop `---District Total---`. 2026 school rows will not enter those datasets until the year cap moves. School Type `A1` is already on the school rows (13,618 in KYRC26).
+
+Fixtures are real rows in `tests/fixtures/english_learner_progress/`: thirteen KYRC26 rows and twelve rows each from KYRC25 and KYRC24, including the Bryan Station American Indian pair, the KYRC24 space-blank row, and the Adair partial blank. `tests/test_fixture_sizes.py` passes.
+
+Lessons for later agents:
+
+1. "Leave the temporary file in place" was the checklist before the HEAD. `English_Language_Proficiency_2025.CSV` is 404. Switch that year to the permanent KYRC file and do not register both. The 2026 temporary file is still live. Do not register it next to `KYRC26_`.
+2. "Header changes: none" means the KYRC26 header matches KYRC25. It also means the uppercase temporary headers were already mapped, so a leftover `English_Language_Proficiency_2024.CSV`, `_2025.CSV`, or `_2026.CSV` emits a second copy of that year. The guard is case-insensitive. Historical `english_language_proficiency_2022.csv` and `_2023.csv` stay. Rename a unit-test file that used the skipped name.
+3. Before adding a filename guard, parse one sibling row. Attainment, the assessment proficiency file, and the overview English-learner counts emit nothing. The temporary proficiency extract does emit rows.
+4. Compare the suppression value set, then the counts. Here the codes are still `N`, `Y`, and blank. Blank emits nothing. `Y` emits four empty metrics. `N` emits one metric per filled score cell. A blank score on an `N` row is not a privacy suppression. KYRC24 already does this. About 97% of its empty score cells are one space (the blank-suppression rows). The rest are truly empty and sit on `N` rows. `to_numeric` already drops the space.
+5. Prior-year identity is a diff of the files the base parser already emitted. This module's KYRC24 file matches that output (31,196 KPI rows). KYRC25 was not registered. Its 2024-25 rates already came from `English_Language_Proficiency_2025.CSV`. Replacing that dead file is a source swap.
+6. Do not add a shared helper for a header or token only this file uses. The level names were already mapped. Do not add a space to the shared missing-value list.
+7. State district is `All Districts`. `scripts/generate_report_drafts.py` still selects `State`. That lookup now finds no EL state row in 2024, 2025, or 2026, the same gap as graduation. The 2022 and 2023 historical files still use `State`. The three EL analysis scripts still stop at 2025.
 
 ### `postsecondary_readiness` — S
 
