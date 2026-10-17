@@ -1,13 +1,20 @@
 """
 Postsecondary Readiness ETL Module
 
-Handles Kentucky postsecondary readiness data across years 2022-2024.
+Handles Kentucky postsecondary readiness data across years 2022-2026.
 Normalizes column names, handles schema variations, standardizes missing values, and
 applies demographic label standardization for consistent longitudinal reporting.
 
 Data includes two rate metrics:
 - Postsecondary Rate: Base readiness rate
 - Postsecondary Rate With Bonus: Enhanced rate including bonus indicators
+
+KYRC26 is ``KYRC26_ACCT_Postsecondary_Readiness.csv``. Its headers match
+the KYRC24 and KYRC25 files this module already maps.
+``Postsecondary_Readiness_2025.CSV`` is 404. The permanent KYRC25 file is
+the 2024-25 source. A leftover temporary extract for 2024, 2025, or 2026
+would emit a second copy of that year because those rate headers are
+already mapped.
 """
 from pathlib import Path
 import pandas as pd
@@ -54,11 +61,53 @@ def clean_readiness_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _rate_is_empty(value: Any) -> bool:
+    """True when a readiness rate was blank, not a published number."""
+    if isinstance(value, str):
+        return value.strip() == ''
+    return bool(pd.isna(value))
 
 
 class PostsecondaryReadinessETL(BaseETL):
-    """ETL module for processing postsecondary readiness data."""
-    
+    """ETL module for processing postsecondary readiness data.
+
+    KYRC26 uses the same rate headers as KYRC24 and KYRC25.
+    ``Postsecondary_Readiness_2025.CSV`` is 404. The permanent KYRC25
+    file is the 2024-25 source. A leftover temporary extract for 2024,
+    2025, or 2026 would emit a second copy of that year because
+    ``Postsecondary Rate`` and ``Postsecondary Rate With Bonus`` are
+    already mapped.
+    """
+
+    # Opt in here, in the same change that accepts the file. BaseETL skips
+    # every KYRC26_* CSV until this is True.
+    include_kyrc26 = True
+
+    def accepts_data_file(self, file_path: Path) -> bool:
+        """Skip a leftover temporary OAA readiness extract.
+
+        ``Postsecondary_Readiness_2024.CSV``,
+        ``Postsecondary_Readiness_2025.CSV``, and
+        ``Postsecondary_Readiness_2026.CSV`` use the rate headers this
+        module already maps. Permanent KYRC files are the source for
+        those years. The 2025 file is also 404 upstream. A leftover copy
+        would emit a second set of rows beside the KYRC file, under
+        3-digit district codes and district ``State``. The match is
+        case-insensitive. ``postsecondary_readiness_2023.csv`` and
+        ``postsecondary_readiness_2022.csv`` stay.
+        """
+        if file_path.name.lower() in {
+            "postsecondary_readiness_2024.csv",
+            "postsecondary_readiness_2025.csv",
+            "postsecondary_readiness_2026.csv",
+        }:
+            logger.info(
+                "Skipping %s; the permanent KYRC readiness file is the source",
+                file_path.name,
+            )
+            return False
+        return super().accepts_data_file(file_path)
+
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {
@@ -109,7 +158,13 @@ class PostsecondaryReadinessETL(BaseETL):
     
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
         """
-        Override to ensure both postsecondary metrics are always created together.
+        Override to keep the two postsecondary metrics together.
+
+        A ``Y`` row is a privacy suppression and emits both metrics empty.
+        A row that is not ``Y`` and has both rates empty was not reported.
+        notes/8 treats that as the absence of a row, the same rule chronic
+        absenteeism, graduation, and English learner progress use. Journal 75
+        emitted those rows as ``suppressed`` ``N`` with an empty value.
         """
         kpi_rows = []
         
@@ -127,6 +182,14 @@ class PostsecondaryReadinessETL(BaseETL):
             # Special handling for postsecondary readiness: always create both metrics
             base_value = metrics.get('postsecondary_readiness_rate')
             bonus_value = metrics.get('postsecondary_readiness_rate_with_bonus')
+
+            # Not offered / not reported. Do not store it as an unsuppressed NaN.
+            if (
+                kpi_template['suppressed'] != 'Y'
+                and _rate_is_empty(base_value)
+                and _rate_is_empty(bonus_value)
+            ):
+                continue
             
             # Create base rate record
             base_record = kpi_template.copy()

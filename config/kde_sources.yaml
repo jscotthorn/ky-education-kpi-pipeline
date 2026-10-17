@@ -133,10 +133,12 @@ raw_directories:
 
   postsecondary_readiness:
     - "KYRC24_ACCT_Postsecondary_Readiness.csv"
+    # Postsecondary_Readiness_2025.CSV on the OAA temporary URL is 404.
+    # This permanent file is the 2024-25 source. Do not register both.
+    - url: "kyrc25"
+      file: "KYRC25_ACCT_Postsecondary_Readiness.csv"
     - url: "kyrc26"
       file: "KYRC26_ACCT_Postsecondary_Readiness.csv"
-    - url: "2025"
-      file: "Postsecondary_Readiness_2025.CSV"
     - "postsecondary_readiness_2023.csv"
     - "postsecondary_readiness_2022.csv"
     # Historical xlsx files (pre-2020)

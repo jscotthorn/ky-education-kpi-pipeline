@@ -5,9 +5,12 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
 from etl.postsecondary_readiness import transform, clean_readiness_data, PostsecondaryReadinessETL
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestPostsecondaryReadinessETL:
@@ -121,7 +124,7 @@ class TestPostsecondaryReadinessETL:
     def test_transform_2024_format(self):
         """Test transform with 2024 format data."""
         data = self.create_sample_2024_data()
-        data.to_csv(self.sample_dir / "postsecondary_readiness_2024.csv", index=False)
+        data.to_csv(self.sample_dir / "postsecondary_readiness_2024_format.csv", index=False)
         
         config = {
             "derive": {
@@ -193,7 +196,7 @@ class TestPostsecondaryReadinessETL:
         data_2024 = self.create_sample_2024_data()
         data_2022 = self.create_sample_2022_data()
         
-        data_2024.to_csv(self.sample_dir / "postsecondary_readiness_2024.csv", index=False)
+        data_2024.to_csv(self.sample_dir / "postsecondary_readiness_2024_format.csv", index=False)
         data_2022.to_csv(self.sample_dir / "postsecondary_readiness_2022.csv", index=False)
         
         config = {
@@ -248,7 +251,7 @@ class TestPostsecondaryReadinessETL:
     def test_dtype_conversion(self):
         """Test data type conversions."""
         data = self.create_sample_2024_data()
-        data.to_csv(self.sample_dir / "postsecondary_readiness_2024.csv", index=False)
+        data.to_csv(self.sample_dir / "postsecondary_readiness_2024_format.csv", index=False)
         
         config = {
             "dtype": {
@@ -323,3 +326,63 @@ class TestPostsecondaryReadinessHelpers:
         assert pd.isna(result.loc[1, 'postsecondary_rate_with_bonus'])
         assert result.loc[2, 'postsecondary_rate_with_bonus'] == 80.0  # Converted to numeric
         assert result.loc[3, 'postsecondary_rate_with_bonus'] == 0.0   # Converted to numeric
+
+
+class TestKyrc26PostsecondaryReadiness:
+    """KYRC26 opt-in and the temporary-file skip."""
+
+    def setup_method(self):
+        self.test_dir = Path(tempfile.mkdtemp())
+        self.sample_dir = self.test_dir / "postsecondary_readiness"
+        self.sample_dir.mkdir(parents=True)
+        self.etl = PostsecondaryReadinessETL("postsecondary_readiness")
+
+    def teardown_method(self):
+        shutil.rmtree(self.test_dir)
+
+    def test_kyrc26_file_is_accepted_and_temporary_extracts_are_not(self):
+        """KYRC readiness files are in scope. A leftover temporary extract is not."""
+        assert self.etl.include_kyrc26 is True
+        assert self.etl.module_column_mappings["Postsecondary Rate"] == "postsecondary_rate"
+        assert (
+            self.etl.module_column_mappings["POSTSECONDARY RATE WITH BONUS"]
+            == "postsecondary_rate_with_bonus"
+        )
+
+        accepted = [
+            "KYRC26_ACCT_Postsecondary_Readiness.csv",
+            "KYRC25_ACCT_Postsecondary_Readiness.csv",
+            "KYRC24_ACCT_Postsecondary_Readiness.csv",
+            "postsecondary_readiness_2023.csv",
+            "postsecondary_readiness_2022.csv",
+            "postsecondary_readiness_2024_format.csv",
+        ]
+        rejected = [
+            "Postsecondary_Readiness_2024.CSV",
+            "Postsecondary_Readiness_2025.CSV",
+            "Postsecondary_Readiness_2026.CSV",
+        ]
+        for name in accepted + rejected:
+            (self.sample_dir / name).write_text("School Year\n20252026\n")
+
+        found = sorted(path.name for path, _sheet in self.etl._find_data_files(self.sample_dir))
+        assert found == sorted(accepted)
+
+
+def test_kyrc25_file_replaces_the_temporary_2025_source():
+    """2024-25 comes from the permanent KYRC25 file. The dead temporary file is not registered."""
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["postsecondary_readiness"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert "KYRC25_ACCT_Postsecondary_Readiness.csv" in names
+    assert "KYRC26_ACCT_Postsecondary_Readiness.csv" in names
+    assert "KYRC24_ACCT_Postsecondary_Readiness.csv" in names
+    assert "postsecondary_readiness_2023.csv" in names
+    assert "postsecondary_readiness_2022.csv" in names
+    assert "Postsecondary_Readiness_2024.CSV" not in names
+    assert "Postsecondary_Readiness_2025.CSV" not in names
+    assert "Postsecondary_Readiness_2026.CSV" not in names
+    assert names.count("KYRC25_ACCT_Postsecondary_Readiness.csv") == 1
+    assert names.count("KYRC26_ACCT_Postsecondary_Readiness.csv") == 1

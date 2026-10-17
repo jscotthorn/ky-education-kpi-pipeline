@@ -1,0 +1,12 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,Suppressed,Postsecondary Rate,Postsecondary Rate With Bonus
+20252026,,,999,All Districts,,All Schools,999000,,,,,,All Students,N,85.3,93.9
+20252026,,,999,All Districts,,All Schools,999000,,,,,,Asian,N,92.8,101.3
+20252026,,,999,All Districts,,All Schools,999000,,,,,,Alternate Assessment,,,
+20252026,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,All Students,N,97.5,109.9
+20252026,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,Female,N,99.1,112.1
+20252026,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,Male,N,95.7,107.3
+20252026,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,All Students,N,97.5,110.0
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,All Students,N,86.4,96.0
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,All Students,N,80.7,90.9
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,American Indian or Alaska Native,,,
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,Asian,Y,*,*
