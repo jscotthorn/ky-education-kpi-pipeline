@@ -5,9 +5,12 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
 from etl.secondary_enrollment import transform, clean_enrollment_data, SecondaryEnrollmentETL
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestSecondaryEnrollmentETL:
@@ -416,3 +419,102 @@ class TestCleanEnrollmentData:
         assert pd.isna(result['all_grades'].iloc[1])
         assert result['all_grades'].iloc[2] == 500
         assert pd.isna(result['grade_9'].iloc[1])
+
+    def test_comma_removal_string_dtype(self):
+        """pandas 3 StringDtype keeps a thousands separator until it is stripped.
+
+        ``read_csv(..., dtype=str)`` returns StringDtype on pandas 3 and
+        object on pandas 2.3.3. The state total ``29,360`` has to survive
+        both. ``bool(pd.NA)`` is not used to detect that dtype.
+        """
+        df = pd.DataFrame({
+            'all_grades': pd.Series(['29,360', '1,300', pd.NA], dtype='string'),
+            'grade_9': pd.Series(['6,287', '100', ''], dtype='string'),
+        })
+        result = clean_enrollment_data(df)
+        assert result['all_grades'].iloc[0] == 29360
+        assert result['all_grades'].iloc[1] == 1300
+        assert pd.isna(result['all_grades'].iloc[2])
+        assert result['grade_9'].iloc[0] == 6287
+        assert result['grade_9'].iloc[1] == 100
+        assert pd.isna(result['grade_9'].iloc[2])
+
+
+class TestKyrc26SecondaryEnrollment:
+    """KYRC26 opt-in. There is no temporary extract to skip."""
+
+    def setup_method(self):
+        self.test_dir = Path(tempfile.mkdtemp())
+        self.sample_dir = self.test_dir / "secondary_enrollment"
+        self.sample_dir.mkdir(parents=True)
+        self.etl = SecondaryEnrollmentETL("secondary_enrollment")
+
+    def teardown_method(self):
+        shutil.rmtree(self.test_dir)
+
+    def test_kyrc26_file_is_accepted(self):
+        """The permanent KYRC files and the historical names stay in scope."""
+        assert self.etl.include_kyrc26 is True
+        assert self.etl.module_column_mappings["All Grades"] == "all_grades"
+        assert self.etl.module_column_mappings["Grade 9"] == "grade_9"
+        assert self.etl.module_column_mappings["TOTAL STUDENT COUNT"] == "total_student_count"
+
+        accepted = [
+            "KYRC26_OVW_Secondary_Enrollment.csv",
+            "KYRC25_OVW_Secondary_Enrollment.csv",
+            "secondary_enrollment_2023.csv",
+            "secondary_enrollment_2022.csv",
+            "secondary_enrollment_2021.csv",
+            "secondary_enrollment_2020.csv",
+        ]
+        for name in accepted:
+            (self.sample_dir / name).write_text("School Year\n20252026\n")
+
+        found = sorted(path.name for path, _sheet in self.etl._find_data_files(self.sample_dir))
+        assert found == sorted(accepted)
+
+    def test_blank_row_emits_nothing(self):
+        """An empty row is not offered and emits no KPI row.
+
+        notes/8: a row that is not suppressed and has every value empty is
+        the absence of a row. These files have no Suppressed column. The
+        configured Int64 cast stores the empty total as pd.NA. ``or`` raises
+        ``boolean value of NA is ambiguous`` on that value. The lookup treats
+        NA as blank.
+        """
+        blank = pd.DataFrame({
+            "School Year": ["20252026"],
+            "District Name": ["All Districts"],
+            "School Name": ["All Schools"],
+            "School Code": ["999000"],
+            "Demographic": ["All Students"],
+            "All Grades": [""],
+            "Grade 6": [""],
+            "Grade 9": [""],
+            "Grade 12": [""],
+            "Grade 14": [""],
+        })
+        normalized = self.etl.standardize_missing_values(self.etl.normalize_column_names(blank))
+        for column in ("all_grades", "grade_6", "grade_9", "grade_12", "grade_14"):
+            normalized[column] = pd.to_numeric(normalized[column], errors="coerce").astype("Int64")
+        kpi = self.etl.convert_to_kpi_format(normalized, "blank.csv")
+        assert kpi.empty
+
+
+def test_registered_sources_are_the_permanent_files():
+    """2024-25 is already the permanent KYRC25 file. No temporary name is registered."""
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["secondary_enrollment"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert names == [
+        "KYRC25_OVW_Secondary_Enrollment.csv",
+        "KYRC26_OVW_Secondary_Enrollment.csv",
+        "secondary_enrollment_2023.csv",
+        "secondary_enrollment_2022.csv",
+        "secondary_enrollment_2021.csv",
+        "secondary_enrollment_2020.csv",
+        "STUDENT_SECONDARY_ENROLLMENT_18-19.xlsx",
+    ]
+    assert not any("Secondary_Enrollment_20" in name for name in names)

@@ -280,6 +280,33 @@ All above metrics are also available with `_by_demo` suffix for demographic grou
 **Unit**: Student count (non-negative integers)
 
 ---
+## Secondary Enrollment
+**Source**: `etl/secondary_enrollment.py`
+
+Secondary-program enrollment (grades 6-12), separate from the all-grades student enrollment file.
+
+### Total Enrollment Metrics
+- `secondary_enrollment_total` - Total students in the secondary-enrollment extract
+
+### Grade-Level Enrollment Metrics
+- `secondary_enrollment_grade_6` - Number of students enrolled in Grade 6
+- `secondary_enrollment_grade_7` - Number of students enrolled in Grade 7
+- `secondary_enrollment_grade_8` - Number of students enrolled in Grade 8
+- `secondary_enrollment_grade_9` - Number of students enrolled in Grade 9
+- `secondary_enrollment_grade_10` - Number of students enrolled in Grade 10
+- `secondary_enrollment_grade_11` - Number of students enrolled in Grade 11
+- `secondary_enrollment_grade_12` - Number of students enrolled in Grade 12
+- `secondary_enrollment_grade_14` - Number of students enrolled in Grade 14
+
+### School-Level Aggregations
+- `secondary_enrollment_middle` - Combined enrollment for Grades 6-8
+- `secondary_enrollment_high_school` - Combined enrollment for Grades 9-12
+
+**Data Sources**: KYRC26_OVW_Secondary_Enrollment.csv, KYRC25_OVW_Secondary_Enrollment.csv, secondary_enrollment_{year}.csv, STUDENT_SECONDARY_ENROLLMENT_18-19.xlsx  
+**Years Available**: 2020-2026 (2019 when the workbook can be read)  
+**Unit**: Student count (non-negative integers)
+
+---
 ## Teacher Experience
 **Source**: `etl/teacher_experience.py`
 - `teacher_average_years_experience` - Average years of professional experience for teachers at the school
