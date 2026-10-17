@@ -18,7 +18,7 @@ The node ids are in journal 105 (census live API, pandas `StringDtype` versus `o
 
 | Module | Status |
 | --- | --- |
-| `chronic_absenteeism` | Done. Opt-in only, plus a filename guard for the CRDC extract. One shared change: `.gitignore` now keeps `tests/fixtures/**/*.csv`. Details are under that module |
+| `chronic_absenteeism` | Done in PR #38 (`cursor/chronic-absenteeism-kyrc26-1b59`). Opt-in only, plus a filename guard for the CRDC extract. One shared change: `.gitignore` now keeps `tests/fixtures/**/*.csv`. Details are under that module |
 
 `chronic_absenteeism` was re-tested on this branch after the opt-in: `42 failed, 392 passed, 104 skipped`. The 42 failures are the same node ids as the develop baseline above. The extra passes are the shared-prep tests already on `feature/2025-26-kyrc26` plus the two new chronic-absenteeism tests. Do not treat 375 passed as the number to match once shared prep is in the base.
 
