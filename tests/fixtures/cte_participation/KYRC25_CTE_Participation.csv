@@ -1,0 +1,8 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,All High School CTE Participants,All High School Enrollments,12th Grade Completers,12th Grade Participants
+20242025,,,999,All Districts,,All Schools,999000,,,,,,All Students,"145,369","206,733","19,096","42,834"
+20242025,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,All Students,"9,658","13,652","1,281","2,937"
+20242025,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,American Indian or Alaska Native,13,21,*,4
+20242025,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000000,CKEC,901,A1,All Students,"1,483","2,262",152,504
+20242025,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000000,CKEC,901,A1,Military Dependent,*,3,*,*
+20242025,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000000,GRREC,902,A1,All Students,509,860,40,172
+20242025,002,ALLEN,005,Allen County,901,Allen County Career and Technical Center,005901,002005901,210007000000,GRREC,902,A2,All Students,725,N/A,107,233
