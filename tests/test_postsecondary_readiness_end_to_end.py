@@ -589,13 +589,13 @@ def test_leftover_temporary_file_does_not_duplicate_a_year(tmp_path):
     )["value"] == "85.3"
 
 
-def test_blank_row_stays_unsuppressed_and_star_row_is_suppressed(tmp_path):
-    """A blank Suppressed cell is kept with an empty value. A Y cell stays suppressed.
+def test_blank_row_is_skipped_and_star_row_is_suppressed(tmp_path):
+    """A blank Suppressed cell is not a row. A Y cell stays suppressed.
 
     Bryan Station American Indian is blank in KYRC24, KYRC25, and KYRC26.
-    Both metrics are still emitted, with suppressed N, which is what KYRC24
-    already did. Bryan Station Asian is Y. KYRC24 stores that star as a
-    leading space plus an asterisk. The value is empty either way.
+    State Alternate Assessment is blank in all three years. None of those
+    rows are emitted. Bryan Station Asian is Y and still emits two empty
+    metrics. KYRC24 stores that star as a leading space plus an asterisk.
     """
     output = _run_fixtures(
         tmp_path,
@@ -608,21 +608,19 @@ def test_blank_row_stays_unsuppressed_and_star_row_is_suppressed(tmp_path):
     absent = "American Indian or Alaska Native"
     for year in ("2024", "2025", "2026"):
         for metric in RATE_METRICS:
-            row = _metric_value(output, year, "165170", metric, absent)
-            assert row["suppressed"] == "N"
-            assert pd.isna(row["value"])
-        state_blank = _metric_value(
-            output, year, "999000", "postsecondary_readiness_rate", "Alternate Assessment"
-        )
-        assert state_blank["suppressed"] == "N"
-        assert pd.isna(state_blank["value"])
-        assert state_blank["district"] == "All Districts"
+            assert _metric_rows(output, year, "165170", metric, absent).empty
+            assert _metric_rows(
+                output, year, "999000", metric, "Alternate Assessment"
+            ).empty
 
     for year in ("2024", "2025", "2026"):
         for metric in RATE_METRICS:
             row = _metric_value(output, year, "165170", metric, "Asian")
             assert row["suppressed"] == "Y"
             assert pd.isna(row["value"])
+
+    empty_unsuppressed = output[output["value"].isna() & (output["suppressed"] == "N")]
+    assert empty_unsuppressed.empty
 
 
 def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):

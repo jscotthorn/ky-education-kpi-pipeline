@@ -61,6 +61,11 @@ def clean_readiness_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _rate_is_empty(value: Any) -> bool:
+    """True when a readiness rate was blank, not a published number."""
+    if isinstance(value, str):
+        return value.strip() == ''
+    return bool(pd.isna(value))
 
 
 class PostsecondaryReadinessETL(BaseETL):
@@ -153,7 +158,13 @@ class PostsecondaryReadinessETL(BaseETL):
     
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
         """
-        Override to ensure both postsecondary metrics are always created together.
+        Override to keep the two postsecondary metrics together.
+
+        A ``Y`` row is a privacy suppression and emits both metrics empty.
+        A row that is not ``Y`` and has both rates empty was not reported.
+        notes/8 treats that as the absence of a row, the same rule chronic
+        absenteeism, graduation, and English learner progress use. Journal 75
+        emitted those rows as ``suppressed`` ``N`` with an empty value.
         """
         kpi_rows = []
         
@@ -171,6 +182,14 @@ class PostsecondaryReadinessETL(BaseETL):
             # Special handling for postsecondary readiness: always create both metrics
             base_value = metrics.get('postsecondary_readiness_rate')
             bonus_value = metrics.get('postsecondary_readiness_rate_with_bonus')
+
+            # Not offered / not reported. Do not store it as an unsuppressed NaN.
+            if (
+                kpi_template['suppressed'] != 'Y'
+                and _rate_is_empty(base_value)
+                and _rate_is_empty(bonus_value)
+            ):
+                continue
             
             # Create base rate record
             base_record = kpi_template.copy()

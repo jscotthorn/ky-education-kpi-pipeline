@@ -132,10 +132,15 @@ district row:
 
 The revised figures match Amanda's and Brooke's numbers **exactly** on both the base and
 with-bonus rates. The leading hypothesis in this note — that KDE reposts postsecondary readiness
-data after the accountability appeals window closes — is confirmed. Every demographic group and
-every FCPS high school shifted upward by 2–7 points in the revision (e.g., Henry Clay's base rate
-moved from 67.3% to 72.1%), consistent with a district-wide data correction rather than an
-isolated fix.
+data after the accountability appeals window closes — is confirmed. The revision is not a 2–7
+point rise at every FCPS high school. Against the 19 November 2025 temporary file, Henry Clay
+moved from 67.3 / 68.7 to 72.1 / 73.5, Lafayette from 84.9 / 90.1 to 88.6 / 93.8, and Paul
+Laurence Dunbar from 79.8 / 86.9 to 83.6 / 90.6. Tates Creek (87.0 / 97.4), Frederick Douglass
+(88.7 / 97.4), and Bryan Station (87.9 / 98.5) are unchanged in KYRC25. Those revised rates are
+already in the historical KYRC25 file dated 10 February 2026, so the revision happened between
+19 November 2025 and 10 February 2026. The 9 October 2026 datasets copy matches the same
+published rates. The district cells (84.2 / 91.3) and the state cells (83.3 / 89.1) match the
+3 August 2026 snapshot above.
 
 The ETL was re-run (`etl/postsecondary_readiness.py` standalone, then `etl_runner.py --skip-etl`
 to recombine `kpi_master.csv`), and the report, draft, and this note have been updated to the
