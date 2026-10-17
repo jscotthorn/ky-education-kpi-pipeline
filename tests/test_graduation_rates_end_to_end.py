@@ -439,6 +439,45 @@ def _metric_value(
     return matches.iloc[0]
 
 
+def test_leftover_temporary_file_does_not_duplicate_2024(tmp_path):
+    """A leftover Graduation_Rate_2024.CSV must not add a second 2024 row.
+
+    KYRC24 cohort files are the 2023-24 source. The temporary row uses
+    different rates so a duplicate would be visible. State anchors stay
+    92.3 (4-year) and 93.4 (5-year).
+    """
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "graduation_rates"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    for name in (
+        "KYRC24_ACCT_4_Year_High_School_Graduation.csv",
+        "KYRC24_ACCT_5_Year_High_School_Graduation.csv",
+    ):
+        (source_dir / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+    (source_dir / "Graduation_Rate_2024.CSV").write_text(
+        "School Year,School Code,District Name,School Name,Demographic,"
+        "Suppressed 4-Year,4-Year Graduation Rate,Suppressed 5-Year,5-Year Graduation Rate\n"
+        "20232024,999000,All Districts,All Schools,All Students,N,50.0,N,51.0\n"
+    )
+    transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-10-17"}})
+    output = pd.read_csv(proc_dir / "graduation_rates.csv", dtype=str)
+
+    assert set(output["source_file"]) == {
+        "KYRC24_ACCT_4_Year_High_School_Graduation.csv",
+        "KYRC24_ACCT_5_Year_High_School_Graduation.csv",
+    }
+    assert "50.0" not in set(output["value"].dropna())
+    assert "51.0" not in set(output["value"].dropna())
+    assert _metric_value(
+        output, "2024", "999000", "graduation_rate_4_year", "All Students"
+    )["value"] == "92.3"
+    assert _metric_value(
+        output, "2024", "999000", "graduation_rate_5_year", "All Students"
+    )["value"] == "93.4"
+
+
 def test_leftover_temporary_file_does_not_duplicate_2025(tmp_path):
     """A leftover Graduation_Rate_2025.CSV must not add a second 2025 row.
 

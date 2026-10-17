@@ -95,13 +95,17 @@ class GraduationRatesETL(BaseETL):
     def accepts_data_file(self, file_path: Path) -> bool:
         """Skip a leftover temporary OAA graduation extract.
 
-        ``Graduation_Rate_2025.CSV`` used the hyphenated rate headers this
-        module already maps, and it is 404 upstream. The permanent KYRC25
-        cohort files replace it. A copy left in the raw directory would emit
-        a second set of 2025 rows. ``Graduation_Rate_2026.CSV`` would do the
-        same beside the KYRC26 cohort files.
+        ``Graduation_Rate_2024.CSV``, ``Graduation_Rate_2025.CSV``, and
+        ``Graduation_Rate_2026.CSV`` use the hyphenated rate headers this
+        module already maps. Permanent KYRC cohort files are the source for
+        those years. ``Graduation_Rate_2025.CSV`` is also 404 upstream. A
+        leftover copy would emit a second set of rows beside the cohort
+        files. The match is case-insensitive, so ``graduation_rate_2024.csv``
+        is the same skip. Historical ``graduation_rate_2023.csv`` and earlier
+        names stay.
         """
         if file_path.name.lower() in {
+            "graduation_rate_2024.csv",
             "graduation_rate_2025.csv",
             "graduation_rate_2026.csv",
         }:

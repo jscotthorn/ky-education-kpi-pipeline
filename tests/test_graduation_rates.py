@@ -126,7 +126,7 @@ class TestGraduationRatesETL:
     def test_transform_2024_format(self):
         """Test transform with 2024 format data."""
         data = self.create_sample_2024_data()
-        data.to_csv(self.sample_dir / "graduation_rate_2024.csv", index=False)
+        data.to_csv(self.sample_dir / "graduation_rate_2024_format.csv", index=False)
         
         config = {
             "derive": {
@@ -167,7 +167,7 @@ class TestGraduationRatesETL:
         data_2024 = self.create_sample_2024_data()
         data_2021 = self.create_sample_2021_data()
         
-        data_2024.to_csv(self.sample_dir / "graduation_rate_2024.csv", index=False)
+        data_2024.to_csv(self.sample_dir / "graduation_rate_2024_format.csv", index=False)
         data_2021.to_csv(self.sample_dir / "graduation_rate_2021.csv", index=False)
         
         config = {
@@ -230,7 +230,7 @@ class TestGraduationRatesETL:
     def test_dtype_conversion(self):
         """Test data type conversions."""
         data = self.create_sample_2024_data()
-        data.to_csv(self.sample_dir / "graduation_rate_2024.csv", index=False)
+        data.to_csv(self.sample_dir / "graduation_rate_2024_format.csv", index=False)
         
         config = {
             "dtype": {
@@ -284,6 +284,7 @@ class TestGraduationRatesETL:
             "KYRC24_ACCT_5_Year_High_School_Graduation.csv",
         ]
         rejected = [
+            "Graduation_Rate_2024.CSV",
             "Graduation_Rate_2025.CSV",
             "Graduation_Rate_2026.CSV",
         ]
@@ -305,6 +306,7 @@ def test_kyrc25_cohort_files_replace_the_temporary_2025_source():
     assert "KYRC25_ACCT_5_Year_High_School_Graduation.csv" in names
     assert "KYRC26_ACCT_4_Year_High_School_Graduation.csv" in names
     assert "KYRC26_ACCT_5_Year_High_School_Graduation.csv" in names
+    assert "Graduation_Rate_2024.CSV" not in names
     assert "Graduation_Rate_2025.CSV" not in names
     assert "Graduation_Rate_2026.CSV" not in names
     assert names.count("KYRC25_ACCT_4_Year_High_School_Graduation.csv") == 1
