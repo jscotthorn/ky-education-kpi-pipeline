@@ -1,0 +1,394 @@
+# 104 - KYRC26 file-to-ETL mapping
+
+Verified 17 October 2026 against `https://kdeschoolreportcard.blob.core.windows.net/datasets/` and the download-page container `https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/`. The plan is journal 103. The completeness audit is journal 105. The uncapped school and district code diff is `notes/kyrc26-code-domain-diff.md`.
+
+This note is the source of truth for later per-script agents. Follow the module checklist below. Do not invent a different file list, and do not treat a develop test failure on the journal 105 list as a regression.
+
+Shared prep is on `cursor/kyrc26-shared-prep-61fb` (PR #36), which targets `feature/2025-26-kyrc26`. Parser changes stay in the per-script pull requests that target that integration branch. Do not push to `develop`, `master`, or `feature/2025-26-kyrc26` from a script PR's work branch.
+
+## Test baseline
+
+Unchanged `origin/develop` at `b14ec3c`, this environment, pandas 3.0.6, 17 October 2026:
+
+`42 failed, 375 passed, 104 skipped`
+
+The node ids are in journal 105 (census live API, pandas `StringDtype` versus `object`, climate `test_get_files_to_process` expects 4 files and finds 6, discipline rates, financial metric counts, and the rest of that list). A later script pull request should treat a failure on that list as pre-existing unless the assertion changed.
+
+## What was checked
+
+- The report-card with-tree API for 2025-26 has 106 active items: 99 CSVs and 7 package zips. Finance (`FT_`) is absent. 2024-25 through 2021-22 have 121 items, the same tree plus `FT_`.
+- All 99 KYRC26 CSVs exist on both containers. Content-MD5 matches. Zip lengths match. `datasets` Last-Modified is `Thu, 15 Oct 2026 10:00:09 GMT` through `10:00:11 GMT`. The UAT container is earlier (6–15 October) because the objects were written twice.
+- 73 KYRC26 headers match the KYRC25 twin exactly. 12 change only `Co-Op` / `Co-Op Code` to `CO-OP` / `CO-OP Code`. One changes `Expelled, Not Receiving Services (Ssp2)` to `(SSP2)`. The other 13 change measure columns. The schema table is `notes/kyrc26-schema-diff-report.md`.
+- School code, school number, and district number were compared in full, without the 80-value cap. See `notes/kyrc26-code-domain-diff.md`.
+- `https://openhouse.education.ky.gov/Home/SRCData` was not read. TLS verification fails because the server sends only the leaf certificate (`SSLCertVerificationError`, unable to get local issuer certificate). That is not evidence of a missing file.
+
+## How a script turns 2026 on
+
+`data/prepare_kde_data.py` downloads a `url: kyrc26` entry. For `KYRC25_` and `KYRC26_` names it HEADs `base_url_kyrc26` (`datasets`) and `base_url_kyrc_uat` (`datasetsuat6051276`).
+
+- Matching or missing Content-MD5 keeps `datasets`.
+- Differing Content-MD5 keeps the newer Last-Modified and stores that URL.
+- A 404 on `datasets` uses the UAT container.
+- A local file is replaced when Last-Modified, ETag (when both sides have one), or Content-MD5 (when both sides have one) differs, and when the file has no `.kde-source.yaml` stamp.
+
+Re-HEAD both containers after 26 October 2026 before a production download. If the hashes diverge, take the newer stamp and record which container it came from.
+
+`BaseETL.accepts_data_file` skips `KYRC26_*` until the module sets `include_kyrc26 = True`. Set that flag in the same pull request that accepts the file. Two modules do not use the flag:
+
+- `etl/safe_schools_events.py` reads a hardcoded filename list under `data/raw/safe_schools`.
+- `etl/safe_schools_climate.py` reads the patterns in `get_files_to_process`.
+
+`etl/kyrc.py` has `release_year_from_filename` (already used by `BaseETL.extract_year`) and `normalize_kyrc_grade_token` (`PS` → `Preschool`, `1st` → `Grade 1`). The grade helper is not applied inside any ETL. Chronic absenteeism already lowercases `PS` / `1st` for KYRC25, and those tokens are the same in KYRC26, so do not remap that metric family.
+
+`tests/fixtures/kyrc26_files.yaml` holds the probed inventory. `tests/fixtures/kyrc26_state_rows.yaml` holds one statewide `All Students` row where one exists. `student_teacher_ratio` cannot use a `999000` row from that fixture.
+
+Do not register `KYRC26_ACCT_Survey_Results.csv` (297,011,485 bytes) unless question-level climate KPIs are wanted. Do not load temporary 2026 OAA files. Do not point `KYRC26_ASMT_CAE.csv` at `act_scores`.
+
+## Renames and files that are not the next script
+
+| KYRC25 name | KYRC26 name | Decision |
+| --- | --- | --- |
+| `ASMT_The_ACT` | `ASMT_CAE` | SAT, not ACT. State All Students mathematics 437.0, science 59.3, reading and writing 470.9, total score 908.0. Headers replace `Reading`, `English`, and `Composite Score` with `Reading and Writing` and `Total Score`. `KYRC26_ASMT_The_ACT.csv` and `KYRC26_ASMT_SAT.csv` are 404. For KYRC25 the two names are the same ACT file. Keep SAT out of `act_scores`. A separate SAT decision, not the next S script |
+| `CRDC_Chronic_Absenteeism` | `OVW_Chronic_Absenteeism_CRDC` | Unconsumed. `KYRC26_CRDC_Chronic_Absenteeism.csv` is 404 because of the rename. School year `20252026`. Collected school year `20242025` on every row (KYRC25 collected year was `20202021`). Overview `KYRC26_OVW_Chronic_Absenteeism.csv` remains the KPI source |
+
+The ACCT group is exactly 19 CSVs: Summary, Profile, Assessment_Participation, Kentucky_Summative_Assessment, School_Improvement, Crosstab_Reading, Crosstab_Mathematics, Crosstab_Science, Crosstab_SocialStudies, Crosstab_EditingMechanics, Crosstab_OnDemandWriting, Survey_Results, Index_Scores, English_Learners_Progress_Proficiency_Rate, 4_Year_High_School_Graduation, 5_Year_High_School_Graduation, Crosstab_Cohort_4_Year, Crosstab_Cohort_5_Year, Postsecondary_Readiness. A DOM count of 22 is those 19 files plus the package zip and two non-dataset anchors.
+
+The four EDOP files (advanced courses offered, advanced courses participation and performance, dual credit courses offered, dual credit participation and performance) are in the 2025-26 tree and in `KYRC26_EDOP_Datasets.zip`. They are 2025-26 data. Dual-credit courses offered, state `All Enrollments`: enrollment 143,848 / completers 132,208 / qualifying 124,596, against KYRC25 136,572 / 124,028 / 117,355. School year `20252026`. Keep `dual_credit` and `advanced_coursework` as S. Do not hold them for a missing file.
+
+These KYRC25 finance names are 404 as KYRC26. Only the first two have modules. Wait until those two names return 200. The other thirteen do not change that wait:
+
+- Consumed: `FT_Spending_per_Student`, `FT_Financial_Summary`
+- Already noted, not consumed: `FT_Facilities_Debt_Services`, `FT_Grants`, `FT_Learning_Environment`, `FT_Operations`, `FT_State_Funding_SEEK`, `FT_Statewide_Funding_Sources`, `FT_Taxes`
+- Additional spending variants with no KYRC26 twin: `FT_Personnel_Spending_per_Student_Federal_Funds`, `FT_Personnel_Spending_per_Student_State_Local_Funds`, `FT_Total_Spending_per_Student_All_Fund_Sources`, `FT_Total_Spending_per_Student_Federal_Funds`, `FT_Total_Spending_per_Student_State_Local_Funds`
+
+## Codes that are not schools
+
+On `ACCT_Crosstab_Reading`, `ACCT_Crosstab_Mathematics`, `ACCT_Crosstab_Science`, and `ACCT_Crosstab_SocialStudies`, school codes `901` through `909` are educational-cooperative totals. `District Number` equals the code, `School Name` is blank, and level is elementary, middle, or high school.
+
+| Code | Cooperative |
+| --- | --- |
+| `901` | CKEC |
+| `902` | GRREC |
+| `903` | KEDC |
+| `904` | KVEC |
+| `905` | NKCES |
+| `906` | OVEC |
+| `907` | SESC |
+| `908` | WKEC |
+| `909` | GLEC |
+
+KYRC25 leaves the GLEC co-op cell blank. KYRC26 fills it with `GLEC`. Editing-and-mechanics and on-demand-writing crosstabs do not have these codes. No ETL reads the crosstabs. Do not pad `901` to `901000`.
+
+## Module checklist
+
+State checks use `School Code` `999000`, `Demographic` `All Students`, and school year `20252026` (pipeline year `2026`) unless the gotcha says that row is absent. Set `include_kyrc26 = True` in the same pull request, except events and climate, which edit their own filename lists.
+
+### `chronic_absenteeism` — S — pilot
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Chronic_Absenteeism.csv` |
+| Header changes | None. Same as the KYRC25 file develop already parses |
+| Fixtures / assertions | State rate 23.5, suppression `No`, year `2026`. Grade tokens `All Grades`, `PS`, `K`, `1st` stay as they are for KYRC25 |
+| Gotchas | One file. Nothing else depends on it. Do not remap `PS` / `1st` in shared code |
+
+### `graduation_rates` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_ACCT_4_Year_High_School_Graduation.csv`, `KYRC26_ACCT_5_Year_High_School_Graduation.csv` |
+| Header changes | None. `4 Year Cohort Graduation Rate` is already mapped. School-code sets are identical to KYRC25 |
+| Fixtures / assertions | State 94.1 and 94.5, year `2026` |
+| Gotchas | Leave `Graduation_Rate_2025.CSV` in place for 2024-25. Do not add a temporary 2026 file |
+
+### `english_learner_progress` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv` |
+| Header changes | None. Value-table headers already mapped |
+| Fixtures / assertions | Level values `Elementary School`, `Middle School`, `High School`. One state row |
+| Gotchas | Leave the temporary 2025 English-learner file in place. `KYRC26_ACCT_English_Learners_Attainment.csv` is 404 and is not this module |
+
+### `postsecondary_readiness` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_ACCT_Postsecondary_Readiness.csv` |
+| Header changes | None. School-code set is identical to KYRC25 |
+| Fixtures / assertions | State base rate 85.3, rate with bonus 93.9, year `2026` |
+| Gotchas | Leave `Postsecondary_Readiness_2025.CSV` in place |
+
+### `postsecondary_enrollment` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_ADLF_Transition_to_In_State_Postsecondary_Education.csv` |
+| Header changes | None |
+| Fixtures / assertions | State `999000` row, year `2026` |
+| Gotchas | District `602` is new versus KYRC25. That is a code-domain change, not a header change |
+
+### `cte_participation` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_CTE_Participation.csv` |
+| Header changes | None |
+| Fixtures / assertions | State participants 144,661 / enrollments 201,255. Counts already go through `clean_numeric_with_commas` |
+| Gotchas | None beyond the usual opt-in |
+
+### `student_enrollment` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Student_Enrollment.csv` |
+| Header changes | None |
+| Fixtures / assertions | State `999000` row, year `2026` |
+| Gotchas | Preschool membership lives on `OVW_Student_Membership`, which is not this file and has no ETL |
+
+### `secondary_enrollment` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Secondary_Enrollment.csv` |
+| Header changes | None |
+| Fixtures / assertions | State `999000` row, year `2026` |
+| Gotchas | None beyond the usual opt-in |
+
+### `out_of_school_suspension` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Student_Suspensions.csv` |
+| Header changes | None versus KYRC25. Count columns are already in `module_column_mappings` |
+| Fixtures / assertions | KPI year `2026` from `School Year`. `collected_school_year` is `20212022` on every row |
+| Gotchas | KYRC25 collected year was `20202021`. Do not file the KPI under the collected year. Neither year has a `999000` row. The module currently consumes only the KYRC24 file; the KYRC25 twin exists and was not configured |
+
+### `teacher_experience` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Average_Years_School_Experience.csv` |
+| Header changes | None |
+| Fixtures / assertions | State `999000` row, year `2026` |
+| Gotchas | None beyond the usual opt-in |
+
+### `student_teacher_ratio` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Student_to_Teacher_Ratio.csv` |
+| Header changes | None |
+| Fixtures / assertions | One school row. School code is 6 digits and does not end in `000`. Do not assert `999000` or `School Name` `All Schools` |
+| Gotchas | KYRC26 has 1,432 school rows. District number `999` and the KYRC25 district-total codes that end in `000` are gone (KYRC25 had the state row, ratio `15:01`, and 173 `All Schools` district rows). Stays S only if the pull request does not rebuild district or state totals |
+
+### `novice_teachers` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Inexperienced_Teachers.csv`, `KYRC26_OVW_Students_Taught_by_Inexperienced_Teachers.csv` |
+| Header changes | None |
+| Fixtures / assertions | State `999000` row on each file, year `2026` |
+| Gotchas | The same inexperienced-teachers student file is also registered under `students_taught_by_inexperienced_teachers` for download only. This ETL reads the `novice_teachers` copy |
+
+### `teacher_working_conditions` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Teacher_Working_Conditions.csv` |
+| Header changes | None. No `Demographic` column |
+| Fixtures / assertions | State `999000` row, year `2026` |
+| Gotchas | Do not require a demographic value |
+
+### `students_taught_by_ineffective_teachers` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv` |
+| Header changes | None |
+| Fixtures / assertions | State `999000` row, year `2026` |
+| Gotchas | None beyond the usual opt-in |
+
+### `students_taught_by_out_of_field_teachers` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv` |
+| Header changes | None |
+| Fixtures / assertions | State `999000` row, year `2026` |
+| Gotchas | None beyond the usual opt-in |
+
+### `teacher_turnover` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Teacher_Turnover.csv` |
+| Header changes | Added `Instructional Staff Count`, `Instructional Staff Turnover Count`, `Instructional Staff Turnover Percent`. Existing turnover columns are unchanged |
+| Fixtures / assertions | State `999000` row on an existing turnover column, year `2026` |
+| Gotchas | New columns are optional. Do not require them unless the owner asks for those KPIs |
+
+### `teacher_certification` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Teacher_Certification_Data.csv` |
+| Header changes | Added Rank I and Rank II count and percent. Existing columns are unchanged |
+| Fixtures / assertions | State `999000` row on an existing certification column, year `2026` |
+| Gotchas | New columns are optional |
+
+### `dual_credit` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_EDOP_Dual_Credit_Courses_Offered.csv`, `KYRC26_EDOP_Dual_Credit_Participation_and_Performance.csv` |
+| Header changes | Courses offered: `Couse Completers` became `Course Completers`, already mapped. Participation headers are identical. State `999000` rows remain |
+| Fixtures / assertions | State `All Enrollments` on courses offered: enrollment 143,848, completers 132,208, qualifying 124,596. School year `20252026` |
+| Gotchas | These are real 2025-26 extracts. Do not hold the module for a missing file. `etl/dual_credit.py` also aliases `'Couse Completers '` and `'COUSE COMPLETERS '` with a trailing space. The live KYRC25 header has no trailing space. That is a develop mismatch for the old file, not a KYRC26 requirement. Do not treat the stray alias as required |
+
+### `gifted_talented` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_EDOP_Gifted_Participation_by_Grade_Level.csv`, `KYRC26_EDOP_Gifted_Participation_by_Category.csv` |
+| Header changes | By-grade dropped `Grade 14`. Category file is identical |
+| Fixtures / assertions | State row, year `2026`. Grade 14 is absent |
+| Gotchas | Do not fail the test because Grade 14 is missing |
+
+### `advanced_coursework` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_Advanced_Coursework.csv`, `KYRC26_EDOP_Advanced_Courses_Offered.csv`, `KYRC26_EDOP_Advanced_Courses_Participation_and_Performance.csv` |
+| Header changes | None on all three. EDOP files still have state `999000` rows |
+| Fixtures / assertions | Overview: 4,077 rows, 257 school codes, `Collected School Year` `20212022` on every row, `School Year` `20252026`, no `999000`. EDOP: state `999000` still present |
+| Gotchas | KYRC25 overview was 36,612 rows and 1,356 schools, collected year `20202021`, and also had no `999000`. Do not copy the KYRC25 overview total into the fixture. The smaller set is the file, not a truncated download |
+
+### `school_courses` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_EDOP_School_Courses_Summary.csv` |
+| Header changes | None |
+| Fixtures / assertions | State `999000` row, year `2026` |
+| Gotchas | None beyond the usual opt-in |
+
+### `cte_pathways` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_CTE_Career_Pathways.csv` |
+| Header changes | None |
+| Fixtures / assertions | State `999000` row, year `2026` |
+| Gotchas | District `606` is new versus KYRC25. Not a header change |
+
+### `career_readiness_indicators` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_CTE_Career_Readiness_Indicators.csv` |
+| Header changes | None |
+| Fixtures / assertions | State `999000` row, year `2026` |
+| Gotchas | District `880` / school `880000` is in KYRC25 and absent in KYRC26. Not a header change |
+
+### `district_school_list` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_OVW_District_School_List.csv` |
+| Header changes | `Co-Op` / `Co-Op Code` became `CO-OP` / `CO-OP Code`. `BaseETL` maps both |
+| Fixtures / assertions | A school row and a district row resolve `co_op`. Co-op value `GREC` is now `GLEC` |
+| Gotchas | 1,669 school codes in KYRC25, 1,663 in KYRC26. Measure columns are unchanged. Duplicate `co_op` columns are allowed when both spellings are present |
+
+### `kindergarten_readiness` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_ASMT_Kindergarten_Screen_Composite.csv` |
+| Header changes | None versus the KYRC25 composite |
+| Fixtures / assertions | State `All Students` / prior setting `All Students`: 55 / 38 / 7 / 45. Year `2026`. Readiness rate 45 |
+| Gotchas | Those columns are named like counts and the values are percents, which is how the KYRC24 composite already behaves. Do not divide them again. Do not also register `Kindergarten_Screen_2026`. Leave the temporary 2025 file in place for 2024-25 |
+
+### `kentucky_summative_assessment` — M
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_ACCT_Kentucky_Summative_Assessment.csv`, `KYRC26_ASMT_Kentucky_Summative_Assessment.csv` |
+| Header changes | Accountability file identical. By-grade file is co-op spelling only. `Proficient / Distinguished` and grades such as `10th` are already mapped |
+| Fixtures / assertions | Reading proficient/distinguished 50 / 48 / 49 and combined writing 41 / 47 / 45 by level. One grade row from the by-grade file. Subject slug for combined writing stays `combined_writing` |
+| Gotchas | Size M because the pull request has to show level rates and one grade, not because a new header is expected. Do not also load `Assessment_Performance_by_Grade_2026`. After one opt-in pull request has landed |
+
+### `safe_schools_discipline` — S
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_SAFE_Discipline_Resolutions.csv`, `KYRC26_SAFE_Legal_Sanctions.csv` |
+| Header changes | Resolutions: `(Ssp2)` became `(SSP2)`. Legal-sanction headers already match (`Arrests`, `Charges`, `Civil Proceedings`, `Court Designated Worker Involvement`, `School Resource Officer Involvement`) |
+| Fixtures / assertions | One resolution row and one legal-sanction row for year `2026`, including out-of-school suspensions |
+| Gotchas | Add aliases next to the KYRC24 titles: `Out-of-School Suspensions (SSP3)`, `Removal by Hearing Officer (IAES2)`, `Unilateral Removal by School Personnel (IAES1)`, `In-School Removal (INSR) or In-District Removal (INDR) >=.5`. `(SSP2)` already matches KYRC26. Keep `(Ssp2)` if KYRC25 is loaded in the same change. `include_kyrc26` does apply. The same two files are also registered under `safe_schools` |
+
+### `safe_schools_events` — M
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_SAFE_Behavior_Events_by_Type.csv`, `KYRC26_SAFE_Behavior_Events_by_Grade_Level.csv`, `KYRC26_SAFE_Behavior_Events_by_Location.csv`, `KYRC26_SAFE_Behavior_Events_by_Context.csv` |
+| Header changes | Type, location, and context headers match the KYRC24 strings in code. Grade headers are `All Grades`, `PS`, `K`, `1st` through `12th`, and `14th`. There is no `13th` |
+| Fixtures / assertions | One event from each file, year `2026`. A `PS` row and a `1st` row land on the preschool and grade-1 metrics |
+| Gotchas | `include_kyrc26` does not apply. Add the four names to the hardcoded list in `transform`. Use `normalize_kyrc_grade_token`. The module will ignore the files until that list names them |
+
+### `safe_schools_climate` — M
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_ACCT_Index_Scores.csv`, `KYRC26_SAFE_Precautionary_Measures.csv` |
+| Header changes | Index headers already map (`Climate Index`, `Safety Index`). Precautionary dropped `All classroom doors lock from the inside`. `All outside doors are locked during school hours` was already on the KYRC25 file |
+| Fixtures / assertions | Elementary, middle, and high index rows that share `All Schools` all survive. One precautionary question stores, including outside doors |
+| Gotchas | `include_kyrc26` does not apply. `get_files_to_process` will not see `KYRC26_ACCT_Index_Scores.csv` until the filename list names it. Dedup omits level, so those three `All Schools` rows collapse; put level on the dedupe key or the metric name. Precautionary code maps shortened questions (`Visitors required to sign-in`), not `Visitors are required to sign-in to the building`. Outside doors has no mapping; store the question. Leave the compliance-rate item list until the owner decides. Do not register the 297 MB survey unless question-level KPIs are wanted. `test_get_files_to_process` already fails on develop (expects 4 files, finds 6); that failure is pre-existing |
+
+### `spending_per_student` — S, blocked
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_FT_Spending_per_Student.csv` |
+| Header changes | Unknown until the name returns 200 |
+| Fixtures / assertions | Add them after a header check against the KYRC25 file |
+| Gotchas | 404 on both containers. Do not register it. Five other KYRC25 spending variants are also 404 and are not this module. Wait does not change because of those variants |
+
+### `financial_summary` — S, blocked
+
+| | |
+| --- | --- |
+| KYRC26 files | `KYRC26_FT_Financial_Summary.csv` |
+| Header changes | Unknown until the name returns 200 |
+| Fixtures / assertions | Add them after a header check against the KYRC25 file |
+| Gotchas | 404 on both containers. Do not register it |
+
+### `act_scores` — do not implement in this round
+
+| | |
+| --- | --- |
+| KYRC26 files | None for ACT. `KYRC26_ASMT_CAE.csv` is SAT |
+| Header changes | SAT replaces `Reading`, `English`, and `Composite Score` with `Reading and Writing` and `Total Score` |
+| Fixtures / assertions | None in `act_scores` |
+| Gotchas | The configured download is still `KYRC24_ASMT_The_ACT.csv`. Do not append SAT scale scores to the ACT series. SAT is a separate decision, not the next S script |
+
+### No KYRC26 parser work
+
+| Module | What to do |
+| --- | --- |
+| `census_acs`, `census_saipe` | Census APIs. No KYRC parser work. Their live-API tests are on the develop failure list |
+| `school_tract_geocoding` | No KYRC extract. Rerun after `district_school_list` has 2026 rows if new schools need coordinates |
+
+These configured directories have a KYRC26 file registered and no module in `config/mappings.yaml`: `benchmark_assessment` (`Reading` and `English` became `Reading and Writing`), `student_retention`, `dropout_rate`, `homeless_students`, `migrant_students`, `students_with_disabilities`, `educator_qualifications`, and `students_taught_by_inexperienced_teachers`. No script pull request.
+
+On the blob, not registered, no ETL, do not add unless a module is in scope: `ASMT_CAE`, `OVW_Chronic_Absenteeism_CRDC`, ACCT Profile / Summary / School_Improvement / Assessment_Participation, the eight ACCT crosstabs, Survey_Results, the seven `*_Datasets.zip` packages, and the other overview and assessment files named in journal 105.
+
+## Suggested order
+
+1. `chronic_absenteeism`. Unchanged headers, state rate 23.5.
+2. The other opt-in modules above, in the order listed, through `kindergarten_readiness`. `student_teacher_ratio` fixtures a school row. `advanced_coursework` expects 257 overview schools and collected year `20212022`.
+3. `kentucky_summative_assessment` after one opt-in has landed.
+4. `safe_schools_discipline`, then `safe_schools_events`, then `safe_schools_climate`.
+5. `spending_per_student` and `financial_summary` when those KYRC26 names return 200.
+6. SAT (`ASMT_CAE`) only if a separate series is in scope. No script for the CRDC rename unless a CRDC KPI is in scope.
+
+No S module needs to become M because of a new header.

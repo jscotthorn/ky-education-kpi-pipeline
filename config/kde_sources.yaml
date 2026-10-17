@@ -4,8 +4,17 @@
 base_url: "https://www.education.ky.gov/Open-House/data/HistoricalDatasets/"
 # 2024-2025 school year files are in a different location
 base_url_2025: "https://www.education.ky.gov/Open-House/data/OAA%20Temporary%20Datasets/"
-# Complete KYRC25 dataset from Azure Blob Storage (comprehensive source)
-base_url_kyrc25: "https://kdeschoolreportcard.blob.core.windows.net/datasetsdev/"
+# Live public container. The old datasetsdev host returns 404.
+# kyrc25 and kyrc26 files are both served from here.
+# BaseETL does not read KYRC26 files until that module sets include_kyrc26.
+base_url_kyrc25: "https://kdeschoolreportcard.blob.core.windows.net/datasets/"
+base_url_kyrc26: "https://kdeschoolreportcard.blob.core.windows.net/datasets/"
+# The report-card download page links this container. On 17 October 2026 its
+# KYRC26 bytes matched datasets (Content-MD5) while Last-Modified and ETag
+# differed. The downloader HEADs both for KYRC25_/KYRC26_ names, keeps datasets
+# when the hashes match or are missing, takes the newer Last-Modified when they
+# differ, and uses this URL when datasets returns 404.
+base_url_kyrc_uat: "https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/"
 
 headers:
   Referer: "https://www.education.ky.gov/Open-House/data/Pages/Historical-SRC-Datasets.aspx"
@@ -20,6 +29,8 @@ raw_directories:
     - "KYRC24_OVW_Chronic_Absenteeism.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Chronic_Absenteeism.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Chronic_Absenteeism.csv"
     - "chronic_absenteeism_2023.csv"
     # Note: 2020-2022 files don't exist on KDE server (likely due to COVID attendance disruptions)
     # Historical xlsx files (pre-2020)
@@ -29,11 +40,15 @@ raw_directories:
     - "KYRC24_CTE_Participation.csv"
     - url: "kyrc25"
       file: "KYRC25_CTE_Participation.csv"
+    - url: "kyrc26"
+      file: "KYRC26_CTE_Participation.csv"
     - "cte_by_student_group_2023.csv"
     - "cte_by_student_group_2022.csv"
 
   english_learner_progress:
     - "KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv"
+    - url: "kyrc26"
+      file: "KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv"
     - url: "2025"
       file: "English_Language_Proficiency_2025.CSV"
     - "english_language_proficiency_2023.csv"
@@ -44,7 +59,11 @@ raw_directories:
 
   graduation_rates:
     - "KYRC24_ACCT_4_Year_High_School_Graduation.csv"
+    - url: "kyrc26"
+      file: "KYRC26_ACCT_4_Year_High_School_Graduation.csv"
     - "KYRC24_ACCT_5_Year_High_School_Graduation.csv"
+    - url: "kyrc26"
+      file: "KYRC26_ACCT_5_Year_High_School_Graduation.csv"
     - url: "2025"
       file: "Graduation_Rate_2025.CSV"
     - "graduation_rate_2023.csv"
@@ -56,7 +75,11 @@ raw_directories:
 
   kentucky_summative_assessment:
     - "KYRC24_ACCT_Kentucky_Summative_Assessment.csv"
+    - url: "kyrc26"
+      file: "KYRC26_ACCT_Kentucky_Summative_Assessment.csv"
     - "KYRC24_ASMT_Kentucky_Summative_Assessment.csv"
+    - url: "kyrc26"
+      file: "KYRC26_ASMT_Kentucky_Summative_Assessment.csv"
     - url: "2025"
       file: "Assessment_Performance_by_Grade_2025.CSV"
     - "accountable_assessment_performance_2023.csv"
@@ -71,6 +94,8 @@ raw_directories:
 
   kindergarten_readiness:
     - "KYRC24_ASMT_Kindergarten_Screen_Composite.csv"
+    - url: "kyrc26"
+      file: "KYRC26_ASMT_Kindergarten_Screen_Composite.csv"
     - url: "2025"
       file: "Kindergarten_Screen_2025.CSV"
     - "kindergarten_screen_2023.csv"
@@ -82,6 +107,8 @@ raw_directories:
 
   out_of_school_suspension:
     - "KYRC24_OVW_Student_Suspensions.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Student_Suspensions.csv"
     - "safe_schools_discipline_2023.csv"
     - "safe_schools_discipline_2022.csv"
     - "safe_schools_discipline_2021.csv"
@@ -91,6 +118,8 @@ raw_directories:
     - "KYRC24_ADLF_Transition_to_In_State_Postsecondary_Education.csv"
     - url: "kyrc25"
       file: "KYRC25_ADLF_Transition_to_In_State_Postsecondary_Education.csv"
+    - url: "kyrc26"
+      file: "KYRC26_ADLF_Transition_to_In_State_Postsecondary_Education.csv"
     - "transition_in_state_postsecondary_education_2023.csv"
     - "transition_in_state_postsecondary_education_2022.csv"
     - "transition_in_state_postsecondary_education_2021.csv"
@@ -98,6 +127,8 @@ raw_directories:
 
   postsecondary_readiness:
     - "KYRC24_ACCT_Postsecondary_Readiness.csv"
+    - url: "kyrc26"
+      file: "KYRC26_ACCT_Postsecondary_Readiness.csv"
     - url: "2025"
       file: "Postsecondary_Readiness_2025.CSV"
     - "postsecondary_readiness_2023.csv"
@@ -107,12 +138,26 @@ raw_directories:
 
   safe_schools:
     - "KYRC24_SAFE_Behavior_Events_by_Context.csv"
+    - url: "kyrc26"
+      file: "KYRC26_SAFE_Behavior_Events_by_Context.csv"
     - "KYRC24_SAFE_Behavior_Events_by_Grade_Level.csv"
+    - url: "kyrc26"
+      file: "KYRC26_SAFE_Behavior_Events_by_Grade_Level.csv"
     - "KYRC24_SAFE_Behavior_Events_by_Location.csv"
+    - url: "kyrc26"
+      file: "KYRC26_SAFE_Behavior_Events_by_Location.csv"
     - "KYRC24_SAFE_Behavior_Events_by_Type.csv"
+    - url: "kyrc26"
+      file: "KYRC26_SAFE_Behavior_Events_by_Type.csv"
     - "KYRC24_SAFE_Discipline_Resolutions.csv"
+    - url: "kyrc26"
+      file: "KYRC26_SAFE_Discipline_Resolutions.csv"
     - "KYRC24_SAFE_Legal_Sanctions.csv"
+    - url: "kyrc26"
+      file: "KYRC26_SAFE_Legal_Sanctions.csv"
     - "KYRC24_SAFE_Precautionary_Measures.csv"
+    - url: "kyrc26"
+      file: "KYRC26_SAFE_Precautionary_Measures.csv"
     - "safe_schools_discipline_2023.csv"
     - "safe_schools_discipline_2022.csv"
     - "safe_schools_discipline_2021.csv"
@@ -128,7 +173,11 @@ raw_directories:
 
   safe_schools_climate:
     - "KYRC24_ACCT_Index_Scores.csv"
+    - url: "kyrc26"
+      file: "KYRC26_ACCT_Index_Scores.csv"
     - "KYRC24_SAFE_Precautionary_Measures.csv"
+    - url: "kyrc26"
+      file: "KYRC26_SAFE_Precautionary_Measures.csv"
     - "accountability_profile_2023.csv"
     - "accountability_profile_2022.csv"
     - "accountability_profile_2021.csv"
@@ -142,7 +191,11 @@ raw_directories:
 
   safe_schools_discipline:
     - "KYRC24_SAFE_Discipline_Resolutions.csv"
+    - url: "kyrc26"
+      file: "KYRC26_SAFE_Discipline_Resolutions.csv"
     - "KYRC24_SAFE_Legal_Sanctions.csv"
+    - url: "kyrc26"
+      file: "KYRC26_SAFE_Legal_Sanctions.csv"
     - "safe_schools_discipline_2023.csv"
     - "safe_schools_discipline_2022.csv"
     - "safe_schools_discipline_2021.csv"
@@ -152,6 +205,8 @@ raw_directories:
 
   benchmark_assessment:
     - "KYRC24_ASMT_Benchmark.csv"
+    - url: "kyrc26"
+      file: "KYRC26_ASMT_Benchmark.csv"
 
   act_scores:
     - "KYRC24_ASMT_The_ACT.csv"
@@ -161,6 +216,8 @@ raw_directories:
 
   students_taught_by_inexperienced_teachers:
     - "KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
     - "students_taught_by_inexperienced_teachers_2023.csv"
     - "students_taught_by_inexperienced_teachers_2022.csv"
     - "students_taught_by_inexperienced_teachers_2021.csv"
@@ -168,6 +225,8 @@ raw_directories:
 
   student_retention:
     - "KYRC24_OVW_Student_Retention_Grades_4_12.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Student_Retention_Grades_4_12.csv"
     - "retention_2023.csv"
     - "retention_2022.csv"
     - "retention_2021.csv"
@@ -175,6 +234,8 @@ raw_directories:
 
   dropout_rate:
     - "KYRC24_OVW_Dropout_Rate.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Dropout_Rate.csv"
     - "dropout_2023.csv"
     - "dropout_2022.csv"
     - "dropout_2021.csv"
@@ -182,6 +243,8 @@ raw_directories:
 
   homeless_students:
     - "KYRC24_OVW_Homeless.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Homeless.csv"
     - "homeless_2023.csv"
     - "homeless_2022.csv"
     - "homeless_2021.csv"
@@ -189,6 +252,8 @@ raw_directories:
 
   migrant_students:
     - "KYRC24_OVW_Migrant.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Migrant.csv"
     - "migrant_2023.csv"
     - "migrant_2022.csv"
     - "migrant_2021.csv"
@@ -196,6 +261,8 @@ raw_directories:
 
   students_with_disabilities:
     - "KYRC24_OVW_Students_with_Disabilities_IEP.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Students_with_Disabilities_IEP.csv"
     - "students_with_disabilities_2023.csv"
     - "students_with_disabilities_2022.csv"
     - "students_with_disabilities_2021.csv"
@@ -205,6 +272,8 @@ raw_directories:
     - "KYRC24_OVW_District_School_List.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_District_School_List.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_District_School_List.csv"
     - "district_school_list_2023.csv"
     - "district_school_list_2022.csv"
     - "district_school_list_2021.csv"
@@ -218,6 +287,8 @@ raw_directories:
     - "KYRC24_OVW_Student_Enrollment.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Student_Enrollment.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Student_Enrollment.csv"
     - "primary_enrollment_2023.csv"
     - "primary_enrollment_2022.csv"
     - "primary_enrollment_2021.csv"
@@ -229,6 +300,8 @@ raw_directories:
     # Secondary enrollment (grades 6-12) - separate from primary enrollment
     - url: "kyrc25"
       file: "KYRC25_OVW_Secondary_Enrollment.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Secondary_Enrollment.csv"
     - "secondary_enrollment_2023.csv"
     - "secondary_enrollment_2022.csv"
     - "secondary_enrollment_2021.csv"
@@ -240,6 +313,8 @@ raw_directories:
     - "KYRC24_OVW_Average_Years_School_Experience.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Average_Years_School_Experience.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Average_Years_School_Experience.csv"
     - "average_years_school_experience_2023.csv"
     - "average_years_school_experience_2022.csv"
     - "average_years_school_experience_2021.csv"
@@ -251,6 +326,8 @@ raw_directories:
     - "KYRC24_OVW_Student_to_Teacher_Ratio.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Student_to_Teacher_Ratio.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Student_to_Teacher_Ratio.csv"
     - "student_teacher_ratio_2023.csv"
     - "student_teacher_ratio_2022.csv"
     - "student_teacher_ratio_2021.csv"
@@ -263,6 +340,8 @@ raw_directories:
     - "KYRC24_OVW_Inexperienced_Teachers.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Inexperienced_Teachers.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Inexperienced_Teachers.csv"
     - "inexperienced_teachers_2023.csv"
     - "inexperienced_teachers_2022.csv"
     - "inexperienced_teachers_2021.csv"
@@ -271,6 +350,8 @@ raw_directories:
     - "KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
     - "students_taught_by_inexperienced_teachers_2023.csv"
     - "students_taught_by_inexperienced_teachers_2022.csv"
     - "students_taught_by_inexperienced_teachers_2021.csv"
@@ -292,6 +373,8 @@ raw_directories:
     - "KYRC24_OVW_Teacher_Turnover.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Teacher_Turnover.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Teacher_Turnover.csv"
     - "teacher_turnover_2023.csv"
     - "teacher_turnover_2022.csv"
     - "teacher_turnover_2021.csv"
@@ -302,6 +385,8 @@ raw_directories:
     - "KYRC24_OVW_Teacher_Certification_Data.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Teacher_Certification_Data.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Teacher_Certification_Data.csv"
     - "teacher_certifications_2023.csv"
     - "teacher_certifications_2022.csv"
     - "teacher_certifications_2021.csv"
@@ -310,6 +395,8 @@ raw_directories:
     - "KYRC24_OVW_Educator_Qualifications.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Educator_Qualifications.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Educator_Qualifications.csv"
     - "educator_qualifications_2023.csv"
     - "educator_qualifications_2022.csv"
     - "educator_qualifications_2021.csv"
@@ -318,6 +405,8 @@ raw_directories:
     - "KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv"
     - "students_taught_by_ineffective_teachers_2023.csv"
     - "students_taught_by_ineffective_teachers_2022.csv"
     - "students_taught_by_ineffective_teachers_2021.csv"
@@ -326,6 +415,8 @@ raw_directories:
     - "KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"
     - "students_taught_by_out_of_field_teachers_2023.csv"
     - "students_taught_by_out_of_field_teachers_2022.csv"
     - "students_taught_by_out_of_field_teachers_2021.csv"
@@ -334,6 +425,8 @@ raw_directories:
     - "KYRC24_OVW_Teacher_Working_Conditions.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Teacher_Working_Conditions.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Teacher_Working_Conditions.csv"
     - "teacher_working_conditions_2023.csv"
     - "teacher_working_conditions_2022.csv"
     - "teacher_working_conditions_2021.csv"
@@ -345,10 +438,16 @@ raw_directories:
     - "KYRC24_OVW_Advanced_Coursework.csv"
     - url: "kyrc25"
       file: "KYRC25_EDOP_Advanced_Courses_Offered.csv"
+    - url: "kyrc26"
+      file: "KYRC26_EDOP_Advanced_Courses_Offered.csv"
     - url: "kyrc25"
       file: "KYRC25_EDOP_Advanced_Courses_Participation_and_Performance.csv"
+    - url: "kyrc26"
+      file: "KYRC26_EDOP_Advanced_Courses_Participation_and_Performance.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Advanced_Coursework.csv"
+    - url: "kyrc26"
+      file: "KYRC26_OVW_Advanced_Coursework.csv"
     - "advanced_courses_offered_2023.csv"
     - "advanced_courses_participation_and_performance_2023.csv"
     - "advanced_courses_offered_2022.csv"
@@ -363,13 +462,19 @@ raw_directories:
     - "KYRC24_EDOP_Dual_Credit_Participation_and_Performance.csv"
     - url: "kyrc25"
       file: "KYRC25_EDOP_Dual_Credit_Courses_Offered.csv"
+    - url: "kyrc26"
+      file: "KYRC26_EDOP_Dual_Credit_Courses_Offered.csv"
     - url: "kyrc25"
       file: "KYRC25_EDOP_Dual_Credit_Participation_and_Performance.csv"
+    - url: "kyrc26"
+      file: "KYRC26_EDOP_Dual_Credit_Participation_and_Performance.csv"
 
   cte_pathways:
     - "KYRC24_CTE_Career_Pathways.csv"
     - url: "kyrc25"
       file: "KYRC25_CTE_Career_Pathways.csv"
+    - url: "kyrc26"
+      file: "KYRC26_CTE_Career_Pathways.csv"
     - "career_pathways_2023.csv"
     - "career_pathways_2021.csv"
     # Note: CAREER_PATHWAYS_18-19.xlsx has pathway names not counts, incompatible schema
@@ -378,12 +483,16 @@ raw_directories:
     - "KYRC24_CTE_Career_Readiness_Indicators.csv"
     - url: "kyrc25"
       file: "KYRC25_CTE_Career_Readiness_Indicators.csv"
+    - url: "kyrc26"
+      file: "KYRC26_CTE_Career_Readiness_Indicators.csv"
     - "career_readiness_indicators_2023.csv"
 
   school_courses:
     - "KYRC24_EDOP_School_Courses_Summary.csv"
     - url: "kyrc25"
       file: "KYRC25_EDOP_School_Courses_Summary.csv"
+    - url: "kyrc26"
+      file: "KYRC26_EDOP_School_Courses_Summary.csv"
     - "school_courses_summary_2023.csv"
     - "school_courses_summary_2021.csv"
     # Historical xlsx files (pre-2020)
@@ -394,8 +503,12 @@ raw_directories:
     - "KYRC24_EDOP_Gifted_Participation_by_Grade_Level.csv"
     - url: "kyrc25"
       file: "KYRC25_EDOP_Gifted_Participation_by_Grade_Level.csv"
+    - url: "kyrc26"
+      file: "KYRC26_EDOP_Gifted_Participation_by_Grade_Level.csv"
     - url: "kyrc25"
       file: "KYRC25_EDOP_Gifted_Participation_by_Category.csv"
+    - url: "kyrc26"
+      file: "KYRC26_EDOP_Gifted_Participation_by_Category.csv"
     - "gifted_and_talented_2023.csv"
     - "gifted_and_talented_2022.csv"
     - "gifted_and_talented_2021.csv"

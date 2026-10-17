@@ -1,0 +1,623 @@
+KYRC26_ACCT_4_Year_High_School_Graduation.csv:
+  rows: 9528
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Foster Care
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Non Economically Disadvantaged
+  - Non English Learner
+  - Non-Foster
+  - Non-Homeless
+  - Non-Migrant
+  - Non-Military
+  - Student without Disabilities (IEP)
+  - Students with Disabilities (IEP)
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    Suppressed: N
+    4 Year Cohort Graduation Rate: '94.1'
+KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv:
+  rows: 19316
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner including Monitored
+  - Hispanic or Latino
+  - Native Hawaiian or Pacific Islander
+  - Students with Disabilities (IEP)
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    Level: Elementary School
+    Suppressed: N
+    Percentage Of Value Table Score Of 0: '28'
+    Percentage Of Value Table Score Of 60 And 80: '33'
+    Percentage Of Value Table Score Of 100: '24'
+    Percentage Of Value Table Score Of 140: '15'
+KYRC26_ACCT_Postsecondary_Readiness.csv:
+  rows: 10719
+  demographics:
+  - African American
+  - All Students
+  - Alternate Assessment
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - English Learner including Monitored
+  - Female
+  - Foster Care
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Non Economically Disadvantaged
+  - Non English Learner
+  - Non-English Learner or monitored
+  - Non-Foster
+  - Non-Homeless
+  - Non-Migrant
+  - Non-Military
+  - Student without Disabilities (IEP)
+  - Students with Disabilities (IEP)
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    Suppressed: N
+    Postsecondary Rate: '85.3'
+    Postsecondary Rate With Bonus: '93.9'
+KYRC26_ASMT_Kindergarten_Screen_Composite.csv:
+  rows: 82864
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Hispanic or Latino
+  - Male
+  - Native Hawaiian or Pacific Islander
+  - Non Economically Disadvantaged
+  - Non English Learner
+  - Student without Disabilities (IEP)
+  - Students with Disabilities (IEP)
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Prior Setting: All Students
+    Suppressed: N
+    Demographic: All Students
+    Ready With Interventions: '55'
+    Ready: '38'
+    Ready With Enrichments: '7'
+    Total Ready: '45'
+KYRC26_CTE_Participation.csv:
+  rows: 8245
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Foster Care
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Students with Disabilities (IEP)
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    All High School CTE Participants: 144,661
+    All High School Enrollments: 201,255
+    12th Grade Completers: 19,990
+    12th Grade Participants: 44,038
+KYRC26_OVW_Student_Enrollment.csv:
+  rows: 22923
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Foster Care
+  - Gifted and Talented
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Students with Disabilities (IEP)
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    All Grades: 669,865
+    Preschool: 29,782
+    K: 46,806
+    Grade 1: 47,786
+    Grade 2: 48,763
+    Grade 3: 49,738
+    Grade 4: 51,722
+    Grade 5: 48,778
+    Grade 6: 49,364
+    Grade 7: 49,520
+    Grade 8: 46,351
+    Grade 9: 51,830
+    Grade 10: 50,400
+    Grade 11: 49,276
+    Grade 12: 49,115
+    Grade 14: '634'
+KYRC26_OVW_Secondary_Enrollment.csv:
+  rows: 1235
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Foster Care
+  - Gifted and Talented
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Students with Disabilities (IEP)
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    All Grades: 30,193
+    Grade 6: '9'
+    Grade 7: '95'
+    Grade 8: '829'
+    Grade 9: 6,287
+    Grade 10: 7,707
+    Grade 11: 8,192
+    Grade 12: 6,985
+    Grade 14: '26'
+KYRC26_ADLF_Transition_to_In_State_Postsecondary_Education.csv:
+  rows: 6512
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Foster Care
+  - Gifted and Talented
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Students with Disabilities (IEP)
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    Total In Group: 48,798
+    Public College Enrolled In State: 18,769
+    Private College Enrolled In State: 3,563
+    College Enrolled In State: 22,332
+    Percentage Public College Enrolled In State: '38.5'
+    Percentage Private College Enrolled In State: '7.3'
+    Percentage College Enrolled In State Table: '45.8'
+KYRC26_OVW_Student_Suspensions.csv:
+  rows: 14949
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - English Learner
+  - Female
+  - Hispanic or Latino
+  - Male
+  - Native Hawaiian or Pacific Islander
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students: null
+KYRC26_SAFE_Behavior_Events_by_Type.csv:
+  rows: 31597
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Foster Care
+  - Gifted and Talented
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Students with Disabilities (IEP)
+  - Total Events
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    Total: 86,009
+    Alcohol: '450'
+    Assault, 1st Degree: '41'
+    Drugs: 5,677
+    Harassment (Includes Bullying): 11,455
+    Other Assault or Violence: 4,407
+    Other Events Resulting in State Resolutions: 73,608
+    Tobacco: 9,515
+    Weapons: '703'
+KYRC26_SAFE_Behavior_Events_by_Grade_Level.csv:
+  rows: 31597
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Foster Care
+  - Gifted and Talented
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Students with Disabilities (IEP)
+  - Total Events
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    All Grades: 86,009
+    PS: '108'
+    K: 1,786
+    1st: 2,078
+    2nd: 2,389
+    3rd: 2,859
+    4th: 3,619
+    5th: 4,225
+    6th: 9,404
+    7th: 11,070
+    8th: 9,983
+    9th: 13,026
+    10th: 11,306
+    11th: 8,873
+    12th: 5,963
+    14th: '32'
+KYRC26_SAFE_Discipline_Resolutions.csv:
+  rows: 31597
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Foster Care
+  - Gifted and Talented
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Students with Disabilities (IEP)
+  - Total Events
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    Total: 67,284
+    In-School Removal (INSR) or In-District Removal (INDR) >=.5: 46,101
+    Restraint (SSP7): 1,988
+    Seclusion (SSP8): '413'
+    Unilateral Removal by School Personnel (IAES1): '18'
+    Removal by Hearing Officer (IAES2): '0'
+    Expelled, Not Receiving Services (SSP2): '13'
+    Expelled, Receiving Services (SSP1): '100'
+    Corporal Punishment (SSP5): '0'
+    Out-of-School Suspensions (SSP3): 35,818
+KYRC26_EDOP_Gifted_Participation_by_Grade_Level.csv:
+  rows: 13711
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Foster Care
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Students with Disabilities (IEP)
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    All Grades: 90,464
+    K: 2,616
+    Grade 1: 5,727
+    Grade 2: 7,945
+    Grade 3: 8,964
+    Grade 4: 5,486
+    Grade 5: 6,864
+    Grade 6: 7,735
+    Grade 7: 7,848
+    Grade 8: 7,322
+    Grade 9: 7,499
+    Grade 10: 7,332
+    Grade 11: 7,746
+    Grade 12: 7,380
+KYRC26_EDOP_Advanced_Courses_Participation_and_Performance.csv:
+  rows: 5958
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Foster Care
+  - Gifted and Talented
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Students with Disabilities (IEP)
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    Advanced Course Type: Advanced Placement
+    Course Enrollment: 37,212
+    Course Completers: 35,693
+    Number Tested: 31,135
+    Earned Qualifying Score: 20,415
+KYRC26_OVW_Chronic_Absenteeism.csv:
+  rows: 430848
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Foster Care
+  - Gifted and Talented
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Students with Disabilities (IEP)
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Grade: All Grades
+    Demographic: All Students
+    Suppressed: 'No'
+    Chronically Absent Students: 149,637
+    Students Enrolled 10 or More Days: 635,917
+    Chronic Absenteeism Rate: '23.5'
+KYRC26_ACCT_Kentucky_Summative_Assessment.csv:
+  rows: 278848
+  demographics:
+  - African American
+  - All Students
+  - Alternate Assessment
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - English Learner including Monitored
+  - Female
+  - Foster Care
+  - Gifted and Talented
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Non Economically Disadvantaged
+  - Non English Learner
+  - Non-English Learner or monitored
+  - Non-Foster
+  - Non-Gifted and Talented
+  - Non-Homeless
+  - Non-Migrant
+  - Non-Military
+  - Student without Disabilities (IEP)
+  - Students With Disabilities with No Accommodations
+  - Students with Disabilities (IEP)
+  - Students with Disabilities/IEP Regular Assessment
+  - Students with Disabilities/IEP with Accommodations
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Level: Elementary School
+    Subject: Reading
+    Demographic: All Students
+    Suppressed: N
+    Novice: '23'
+    Apprentice: '27'
+    Proficient: '31'
+    Distinguished: '20'
+    Proficient / Distinguished: '50'
+    Content Index: '68.7'
+KYRC26_OVW_Teacher_Working_Conditions.csv:
+  rows: 3282
+  demographics: []
+  state_all_students: null
+KYRC26_OVW_Students_with_Disabilities_IEP.csv:
+  rows: 28125
+  demographics:
+  - African American
+  - All Students
+  - American Indian or Alaska Native
+  - Asian
+  - Economically Disadvantaged
+  - English Learner
+  - Female
+  - Foster Care
+  - Gifted and Talented
+  - Hispanic or Latino
+  - Homeless
+  - Male
+  - Migrant
+  - Military Dependent
+  - Native Hawaiian or Pacific Islander
+  - Two or More Races
+  - White (non-Hispanic)
+  state_all_students:
+    School Year: '20252026'
+    District Name: All Districts
+    School Name: All Schools
+    School Code: '999000'
+    Demographic: All Students
+    All Grades: 118,938
+    PS: 13,884
+    K: 11,398
+    1st: 11,196
+    2nd: 10,281
+    3rd: 9,752
+    4th: 9,536
+    5th: 8,438
+    6th: 7,873
+    7th: 7,187
+    8th: 6,135
+    9th: 6,414
+    10th: 5,982
+    11th: 5,237
+    12th: 5,118
+    14th: '559'
+    All Students: 118,938
+    Autism: 16,453
+    Developmentally Delayed: 13,584
+    Emotional Behavioral: 4,034
+    Functional Mental: 2,743
+    Hearing Impaired: '720'
+    Mild Mental: 10,849
+    Multiple Disabilities: 2,216
+    Orthopedically Impaired: '303'
+    Other Health Impaired: 19,980
+    Specific Learning Disability: 20,368
+    Speech Language: 26,957
+    Visually Impaired: '601'
+    Deaf Blind: '28'
+    Traumatic Brain Injury: '157'

@@ -28,6 +28,7 @@ etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
 from demographic_mapper import DemographicMapper
+from kyrc import release_year_from_filename
 
 logger = logging.getLogger(__name__)
 
@@ -80,10 +81,13 @@ class BaseETL(ABC):
         'STATE SCHOOL ID': 'state_school_id',
         'NCES ID': 'nces_id',
         
-        # Co-op identification
+        # Co-op identification.
+        # KYRC26 spells these "CO-OP". KYRC25 spells them "Co-Op".
         'CO-OP': 'co_op',
         'CO-OP Code': 'co_op_code',
         'CO-OP CODE': 'co_op_code',
+        'Co-Op': 'co_op',
+        'Co-Op Code': 'co_op_code',
         
         # School type
         'School Type': 'school_type',
@@ -117,6 +121,23 @@ class BaseETL(ABC):
         """
         self.source_name = source_name or self.__class__.__module__.split('.')[-1]
         self.demographic_mapper = DemographicMapper()
+
+    # KYRC26 files are registered in kde_sources.yaml so they can be downloaded
+    # before each parser is ready. Subclasses set this to True in the PR that
+    # teaches the parser the KYRC26 headers. Until then process() leaves the
+    # files on disk.
+    include_kyrc26: bool = False
+
+    def accepts_data_file(self, file_path: Path) -> bool:
+        """Return False for a KYRC26 file this module has not opted into."""
+        if file_path.name.upper().startswith("KYRC26_") and not self.include_kyrc26:
+            logger.info(
+                "Skipping %s; %s has not set include_kyrc26",
+                file_path.name,
+                self.source_name,
+            )
+            return False
+        return True
     
     @property
     @abstractmethod
@@ -193,11 +214,14 @@ class BaseETL(ABC):
         # CSV files (no sheet needed) - case insensitive
         for pattern in ["*.csv", "*.CSV"]:
             for f in source_dir.glob(pattern):
-                files.append((f, None))
+                if self.accepts_data_file(f):
+                    files.append((f, None))
 
         # XLSX files (with sheet from config) - case insensitive
         for pattern in ["*.xlsx", "*.XLSX"]:
             for xlsx_file in source_dir.glob(pattern):
+                if not self.accepts_data_file(xlsx_file):
+                    continue
                 sheet = self._get_xlsx_sheet(xlsx_file)
                 files.append((xlsx_file, sheet))
 
@@ -387,13 +411,8 @@ class BaseETL(ABC):
         elif len(str(year)) == 4:  # Already 4 digits
             year = str(year)
         else:
-            # Fallback: Extract year from filename (e.g., "file_2025.CSV" → "2025")
-            import re
-            filename_match = re.search(r'_(\d{4})\.', source_file)
-            if filename_match:
-                year = filename_match.group(1)
-            else:
-                year = '2024'  # Default
+            # "file_2025.CSV" and "KYRC26_*.csv" both encode the ending year.
+            year = release_year_from_filename(source_file) or "2024"
 
         return year
     
@@ -646,6 +665,8 @@ class BaseETL(ABC):
             header_written = False
             
             for csv_file in csv_files:
+                if not self.accepts_data_file(csv_file):
+                    continue
                 files_processed += 1
                 logger.info(f"Streaming {csv_file.name} ({files_processed}/{len(csv_files)})")
                 

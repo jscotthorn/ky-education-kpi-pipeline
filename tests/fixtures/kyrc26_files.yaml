@@ -1,0 +1,1270 @@
+container: https://kdeschoolreportcard.blob.core.windows.net/datasets/
+probed_on: '2026-10-17'
+source_page: https://www.education.ky.gov/Open-House/data/Pages/Historical-SRC-Datasets.aspx
+last_modified:
+- Thu, 15 Oct 2026 10:00:09 GMT
+- Thu, 15 Oct 2026 10:00:10 GMT
+- Thu, 15 Oct 2026 10:00:11 GMT
+available_kyrc26:
+- KYRC26_ACCT_4_Year_High_School_Graduation.csv
+- KYRC26_ACCT_5_Year_High_School_Graduation.csv
+- KYRC26_ACCT_Assessment_Participation.csv
+- KYRC26_ACCT_Crosstab_Cohort_4_Year.csv
+- KYRC26_ACCT_Crosstab_Cohort_5_Year.csv
+- KYRC26_ACCT_Crosstab_EditingMechanics.csv
+- KYRC26_ACCT_Crosstab_Mathematics.csv
+- KYRC26_ACCT_Crosstab_OnDemandWriting.csv
+- KYRC26_ACCT_Crosstab_Reading.csv
+- KYRC26_ACCT_Crosstab_Science.csv
+- KYRC26_ACCT_Crosstab_SocialStudies.csv
+- KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv
+- KYRC26_ACCT_Index_Scores.csv
+- KYRC26_ACCT_Kentucky_Summative_Assessment.csv
+- KYRC26_ACCT_Postsecondary_Readiness.csv
+- KYRC26_ACCT_Profile.csv
+- KYRC26_ACCT_School_Improvement.csv
+- KYRC26_ACCT_Summary.csv
+- KYRC26_ACCT_Survey_Results.csv
+- KYRC26_ADLF_Current_Year_Graduates.csv
+- KYRC26_ADLF_Graduate_Outcomes.csv
+- KYRC26_ADLF_Transition_to_In_State_Postsecondary_Education.csv
+- KYRC26_ASMT_Alternate_Assessment_Participation.csv
+- KYRC26_ASMT_Benchmark.csv
+- KYRC26_ASMT_English_Language_Proficiency.csv
+- KYRC26_ASMT_Kentucky_Summative_Assessment.csv
+- KYRC26_ASMT_Kindergarten_Screen_Composite.csv
+- KYRC26_ASMT_Kindergarten_Screen_Developmental_Domains.csv
+- KYRC26_ASMT_Measurements_of_Interim_Progress_English_Language_Proficiency.csv
+- KYRC26_ASMT_Measurements_of_Interim_Progress_Graduation_Rate.csv
+- KYRC26_ASMT_Measurements_of_Interim_Progress_Proficiency.csv
+- KYRC26_ASMT_National_Assessment_of_Educational_Progress.csv
+- KYRC26_CTE_Career_Pathways.csv
+- KYRC26_CTE_Career_Readiness_Indicators.csv
+- KYRC26_CTE_Participation.csv
+- KYRC26_CTE_Perkins_Report.csv
+- KYRC26_CTE_Postsecondary_Opportunities.csv
+- KYRC26_CTE_Student_Objectives.csv
+- KYRC26_EDOP_Advanced_Courses_Offered.csv
+- KYRC26_EDOP_Advanced_Courses_Participation_and_Performance.csv
+- KYRC26_EDOP_Career_Studies.csv
+- KYRC26_EDOP_Dual_Credit_Courses_Offered.csv
+- KYRC26_EDOP_Dual_Credit_Participation_and_Performance.csv
+- KYRC26_EDOP_Gifted_Participation_by_Category.csv
+- KYRC26_EDOP_Gifted_Participation_by_Grade_Level.csv
+- KYRC26_EDOP_Health_Education_and_Physical_Education.csv
+- KYRC26_EDOP_School_Courses_Summary.csv
+- KYRC26_EDOP_Visual_and_Performing_Arts.csv
+- KYRC26_EDOP_World_Languages.csv
+- KYRC26_OVW_Access_to_Technology.csv
+- KYRC26_OVW_Adjusted_Average_Daily_Attendance_AADA.csv
+- KYRC26_OVW_Advanced_Coursework.csv
+- KYRC26_OVW_Arrests_and_Referrals_to_Law_Enforcement.csv
+- KYRC26_OVW_Attendance_Rate.csv
+- KYRC26_OVW_Average_Years_School_Experience.csv
+- KYRC26_OVW_Board_Members_SBDM.csv
+- KYRC26_OVW_Chronic_Absenteeism.csv
+- KYRC26_OVW_District_School_List.csv
+- KYRC26_OVW_Dropout_Rate.csv
+- KYRC26_OVW_Economically_Disadvantaged.csv
+- KYRC26_OVW_Educator_Qualifications.csv
+- KYRC26_OVW_English_Learners.csv
+- KYRC26_OVW_Extra_Year_in_Primary.csv
+- KYRC26_OVW_Harassment_and_Bullying.csv
+- KYRC26_OVW_Homeless.csv
+- KYRC26_OVW_Inexperienced_Staff.csv
+- KYRC26_OVW_Inexperienced_Teachers.csv
+- KYRC26_OVW_Migrant.csv
+- KYRC26_OVW_Parental_Involvement.csv
+- KYRC26_OVW_Preschool_Enrollment.csv
+- KYRC26_OVW_Preschool_Suspensions_and_Expulsions.csv
+- KYRC26_OVW_Secondary_Enrollment.csv
+- KYRC26_OVW_Student_Enrollment.csv
+- KYRC26_OVW_Student_Expulsions.csv
+- KYRC26_OVW_Student_Membership.csv
+- KYRC26_OVW_Student_Retention_Grades_4_12.csv
+- KYRC26_OVW_Student_Suspensions.csv
+- KYRC26_OVW_Student_to_Teacher_Ratio.csv
+- KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv
+- KYRC26_OVW_Students_Taught_by_Inexperienced_Teachers.csv
+- KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv
+- KYRC26_OVW_Students_with_Disabilities_IEP.csv
+- KYRC26_OVW_Teacher_Certification_Data.csv
+- KYRC26_OVW_Teacher_Turnover.csv
+- KYRC26_OVW_Teacher_Working_Conditions.csv
+- KYRC26_OVW_Teachers_Full_Time_Equivalent_FTE.csv
+- KYRC26_OVW_Teachers_by_Gender.csv
+- KYRC26_OVW_Teachers_by_Race_Ethnicity.csv
+- KYRC26_OVW_Violent_Offenses.csv
+- KYRC26_SAFE_Approaches_that_are_actively_implemented_school_wide.csv
+- KYRC26_SAFE_Behavior_Events_by_Context.csv
+- KYRC26_SAFE_Behavior_Events_by_Grade_Level.csv
+- KYRC26_SAFE_Behavior_Events_by_Location.csv
+- KYRC26_SAFE_Behavior_Events_by_Type.csv
+- KYRC26_SAFE_Discipline_Resolutions.csv
+- KYRC26_SAFE_Legal_Sanctions.csv
+- KYRC26_SAFE_Precautionary_Measures.csv
+unavailable_kyrc26:
+- KYRC26_ASMT_The_ACT.csv
+- KYRC26_CRDC_Chronic_Absenteeism.csv
+- KYRC26_FT_Financial_Summary.csv
+- KYRC26_FT_Spending_per_Student.csv
+identical_to_kyrc25:
+- KYRC26_ACCT_4_Year_High_School_Graduation.csv
+- KYRC26_ACCT_5_Year_High_School_Graduation.csv
+- KYRC26_ACCT_Assessment_Participation.csv
+- KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv
+- KYRC26_ACCT_Index_Scores.csv
+- KYRC26_ACCT_Kentucky_Summative_Assessment.csv
+- KYRC26_ACCT_Postsecondary_Readiness.csv
+- KYRC26_ACCT_School_Improvement.csv
+- KYRC26_ACCT_Survey_Results.csv
+- KYRC26_ADLF_Current_Year_Graduates.csv
+- KYRC26_ADLF_Graduate_Outcomes.csv
+- KYRC26_ADLF_Transition_to_In_State_Postsecondary_Education.csv
+- KYRC26_ASMT_Alternate_Assessment_Participation.csv
+- KYRC26_ASMT_English_Language_Proficiency.csv
+- KYRC26_ASMT_Kindergarten_Screen_Composite.csv
+- KYRC26_ASMT_Kindergarten_Screen_Developmental_Domains.csv
+- KYRC26_ASMT_Measurements_of_Interim_Progress_English_Language_Proficiency.csv
+- KYRC26_ASMT_Measurements_of_Interim_Progress_Graduation_Rate.csv
+- KYRC26_ASMT_Measurements_of_Interim_Progress_Proficiency.csv
+- KYRC26_ASMT_National_Assessment_of_Educational_Progress.csv
+- KYRC26_CTE_Career_Pathways.csv
+- KYRC26_CTE_Career_Readiness_Indicators.csv
+- KYRC26_CTE_Participation.csv
+- KYRC26_CTE_Perkins_Report.csv
+- KYRC26_CTE_Postsecondary_Opportunities.csv
+- KYRC26_CTE_Student_Objectives.csv
+- KYRC26_EDOP_Advanced_Courses_Offered.csv
+- KYRC26_EDOP_Advanced_Courses_Participation_and_Performance.csv
+- KYRC26_EDOP_Dual_Credit_Participation_and_Performance.csv
+- KYRC26_EDOP_Gifted_Participation_by_Category.csv
+- KYRC26_EDOP_School_Courses_Summary.csv
+- KYRC26_OVW_Adjusted_Average_Daily_Attendance_AADA.csv
+- KYRC26_OVW_Advanced_Coursework.csv
+- KYRC26_OVW_Arrests_and_Referrals_to_Law_Enforcement.csv
+- KYRC26_OVW_Attendance_Rate.csv
+- KYRC26_OVW_Average_Years_School_Experience.csv
+- KYRC26_OVW_Board_Members_SBDM.csv
+- KYRC26_OVW_Chronic_Absenteeism.csv
+- KYRC26_OVW_Dropout_Rate.csv
+- KYRC26_OVW_Economically_Disadvantaged.csv
+- KYRC26_OVW_Educator_Qualifications.csv
+- KYRC26_OVW_English_Learners.csv
+- KYRC26_OVW_Extra_Year_in_Primary.csv
+- KYRC26_OVW_Harassment_and_Bullying.csv
+- KYRC26_OVW_Homeless.csv
+- KYRC26_OVW_Inexperienced_Staff.csv
+- KYRC26_OVW_Inexperienced_Teachers.csv
+- KYRC26_OVW_Migrant.csv
+- KYRC26_OVW_Parental_Involvement.csv
+- KYRC26_OVW_Preschool_Enrollment.csv
+- KYRC26_OVW_Preschool_Suspensions_and_Expulsions.csv
+- KYRC26_OVW_Secondary_Enrollment.csv
+- KYRC26_OVW_Student_Enrollment.csv
+- KYRC26_OVW_Student_Expulsions.csv
+- KYRC26_OVW_Student_Retention_Grades_4_12.csv
+- KYRC26_OVW_Student_Suspensions.csv
+- KYRC26_OVW_Student_to_Teacher_Ratio.csv
+- KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv
+- KYRC26_OVW_Students_Taught_by_Inexperienced_Teachers.csv
+- KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv
+- KYRC26_OVW_Students_with_Disabilities_IEP.csv
+- KYRC26_OVW_Teacher_Working_Conditions.csv
+- KYRC26_OVW_Teachers_Full_Time_Equivalent_FTE.csv
+- KYRC26_OVW_Teachers_by_Gender.csv
+- KYRC26_OVW_Teachers_by_Race_Ethnicity.csv
+- KYRC26_OVW_Violent_Offenses.csv
+- KYRC26_SAFE_Approaches_that_are_actively_implemented_school_wide.csv
+- KYRC26_SAFE_Behavior_Events_by_Context.csv
+- KYRC26_SAFE_Behavior_Events_by_Grade_Level.csv
+- KYRC26_SAFE_Behavior_Events_by_Location.csv
+- KYRC26_SAFE_Behavior_Events_by_Type.csv
+- KYRC26_SAFE_Legal_Sanctions.csv
+header_changes_for_registered_files:
+  KYRC26_ASMT_Benchmark.csv:
+    added:
+    - Reading and Writing
+    removed:
+    - Reading
+    - English
+  KYRC26_EDOP_Dual_Credit_Courses_Offered.csv:
+    added:
+    - Course Completers
+    removed:
+    - Couse Completers
+  KYRC26_EDOP_Gifted_Participation_by_Grade_Level.csv:
+    added: []
+    removed:
+    - Grade 14
+  KYRC26_OVW_Teacher_Certification_Data.csv:
+    added:
+    - Rank I Teacher Count
+    - Percent Rank I Teachers
+    - Rank II Teacher Count
+    - Percent Rank II Teachers
+    removed: []
+  KYRC26_OVW_Teacher_Turnover.csv:
+    added:
+    - Instructional Staff Count
+    - Instructional Staff Turnover Count
+    - Instructional Staff Turnover Percent
+    removed: []
+  KYRC26_SAFE_Discipline_Resolutions.csv:
+    added:
+    - Expelled, Not Receiving Services (SSP2)
+    removed:
+    - Expelled, Not Receiving Services (Ssp2)
+  KYRC26_SAFE_Precautionary_Measures.csv:
+    added: []
+    removed:
+    - All classroom doors lock from the inside
+registered_columns:
+  KYRC26_ACCT_4_Year_High_School_Graduation.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Suppressed
+  - 4 Year Cohort Graduation Rate
+  KYRC26_ACCT_5_Year_High_School_Graduation.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Suppressed
+  - 5 Year Cohort Graduation Rate
+  KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Level
+  - Suppressed
+  - Percentage Of Value Table Score Of 0
+  - Percentage Of Value Table Score Of 60 And 80
+  - Percentage Of Value Table Score Of 100
+  - Percentage Of Value Table Score Of 140
+  KYRC26_ACCT_Index_Scores.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Level
+  - Suppressed
+  - Climate Index
+  - Safety Index
+  KYRC26_ACCT_Kentucky_Summative_Assessment.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Level
+  - Subject
+  - Demographic
+  - Suppressed
+  - Novice
+  - Apprentice
+  - Proficient
+  - Distinguished
+  - Proficient / Distinguished
+  - Content Index
+  KYRC26_ACCT_Postsecondary_Readiness.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Suppressed
+  - Postsecondary Rate
+  - Postsecondary Rate With Bonus
+  KYRC26_ADLF_Transition_to_In_State_Postsecondary_Education.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Total In Group
+  - Public College Enrolled In State
+  - Private College Enrolled In State
+  - College Enrolled In State
+  - Percentage Public College Enrolled In State
+  - Percentage Private College Enrolled In State
+  - Percentage College Enrolled In State Table
+  KYRC26_ASMT_Benchmark.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Suppressed
+  - Mathematics
+  - Reading and Writing
+  KYRC26_ASMT_Kentucky_Summative_Assessment.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Grade
+  - Subject
+  - Demographic
+  - Suppressed
+  - Novice
+  - Apprentice
+  - Proficient
+  - Distinguished
+  - Proficient / Distinguished
+  KYRC26_ASMT_Kindergarten_Screen_Composite.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Prior Setting
+  - Suppressed
+  - Demographic
+  - Ready With Interventions
+  - Ready
+  - Ready With Enrichments
+  - Total Ready
+  KYRC26_CTE_Career_Pathways.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Program Area
+  - Pathways Available
+  - Active Enrollment
+  - Concentrator Students
+  - Pathway Completers
+  KYRC26_CTE_Career_Readiness_Indicators.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Total Graduates
+  - Industry Certification
+  - CTE End-of-Program Assessment
+  - Apprenticeship
+  - Dual Credit
+  - More Than One Indicator
+  - No Indicator
+  - Work-Based Learning
+  KYRC26_CTE_Participation.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - All High School CTE Participants
+  - All High School Enrollments
+  - 12th Grade Completers
+  - 12th Grade Participants
+  KYRC26_EDOP_Advanced_Courses_Offered.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - State Course Code
+  - State Course Name
+  - Advanced Course Type
+  - Subject
+  - Course Enrollment
+  - Course Completers
+  - Number Tested
+  - Students With Qualifying Score
+  KYRC26_EDOP_Advanced_Courses_Participation_and_Performance.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Advanced Course Type
+  - Course Enrollment
+  - Course Completers
+  - Number Tested
+  - Earned Qualifying Score
+  KYRC26_EDOP_Dual_Credit_Courses_Offered.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Advanced Course Type
+  - Subject
+  - Course Enrollment
+  - Course Completers
+  - Students With Qualifying Score
+  KYRC26_EDOP_Dual_Credit_Participation_and_Performance.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Advanced Course Type
+  - Demographic
+  - Course Enrollment
+  - Course Completers
+  - Students With Qualifying Score
+  KYRC26_EDOP_Gifted_Participation_by_Category.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Category
+  - Students
+  KYRC26_EDOP_Gifted_Participation_by_Grade_Level.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - All Grades
+  - K
+  - Grade 1
+  - Grade 2
+  - Grade 3
+  - Grade 4
+  - Grade 5
+  - Grade 6
+  - Grade 7
+  - Grade 8
+  - Grade 9
+  - Grade 10
+  - Grade 11
+  - Grade 12
+  KYRC26_EDOP_School_Courses_Summary.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Course Category
+  - State Course Code
+  - State Course Name
+  - All Students
+  - Preschool
+  - Kindergarten
+  - Grade 1
+  - Grade 2
+  - Grade 3
+  - Grade 4
+  - Grade 5
+  - Grade 6
+  - Grade 7
+  - Grade 8
+  - Grade 9
+  - Grade 10
+  - Grade 11
+  - Grade 12
+  - Grade 14
+  KYRC26_OVW_Advanced_Coursework.csv:
+  - School Year
+  - Collected School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Course Type
+  - Demographic
+  - Total
+  - Female
+  - Male
+  - Total %
+  - Female %
+  - Male %
+  KYRC26_OVW_Average_Years_School_Experience.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Educator Count
+  - Average Years of Experience
+  KYRC26_OVW_Chronic_Absenteeism.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Grade
+  - Demographic
+  - Suppressed
+  - Chronically Absent Students
+  - Students Enrolled 10 or More Days
+  - Chronic Absenteeism Rate
+  KYRC26_OVW_District_School_List.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES Id
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Low Grade
+  - High Grade
+  - Title I Status
+  - Contact Name
+  - Address
+  - Address2
+  - PO Box
+  - City
+  - State
+  - Zipcode
+  - Phone
+  - Fax
+  - Latitude
+  - Longitude
+  KYRC26_OVW_Dropout_Rate.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Suppressed
+  - Dropout Rate
+  KYRC26_OVW_Educator_Qualifications.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Educator Qualification
+  - Percent Of Qualification
+  KYRC26_OVW_Homeless.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Homeless Students
+  - Total Student Count
+  - Percent Homeless
+  KYRC26_OVW_Inexperienced_Teachers.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Teacher Count
+  - Total New Teachers With 1 3 Years Experience
+  - Percent Of Teachers With 1 3 Years Experience
+  - Total New Teachers With Less Than 1 Year Experience
+  - Percent Of Teachers With Less Than 1 Year Experience
+  KYRC26_OVW_Migrant.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Migrant Students
+  - Total Student Count
+  - Percent Migrant
+  KYRC26_OVW_Secondary_Enrollment.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - All Grades
+  - Grade 6
+  - Grade 7
+  - Grade 8
+  - Grade 9
+  - Grade 10
+  - Grade 11
+  - Grade 12
+  - Grade 14
+  KYRC26_OVW_Student_Enrollment.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - All Grades
+  - Preschool
+  - K
+  - Grade 1
+  - Grade 2
+  - Grade 3
+  - Grade 4
+  - Grade 5
+  - Grade 6
+  - Grade 7
+  - Grade 8
+  - Grade 9
+  - Grade 10
+  - Grade 11
+  - Grade 12
+  - Grade 14
+  KYRC26_OVW_Student_Retention_Grades_4_12.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Total Retained
+  - Total Membership
+  - Percent Retained Grades 4-12
+  KYRC26_OVW_Student_Suspensions.csv:
+  - School Year
+  - Collected School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - In-School With Disabilities
+  - In-School Without Disabilities
+  - Single Out-of-School With Disabilities
+  - Single Out-of-School Without Disabilities
+  - Multiple Out-of-School With Disabilities
+  - Multiple Out-of-School Without Disabilities
+  KYRC26_OVW_Student_to_Teacher_Ratio.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Student Teacher Ratio
+  KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Title I Status
+  - All Students
+  - Non-White
+  - White (non-Hispanic)
+  - Economically Disadvantaged
+  - Non Economically Disadvantaged
+  - Students with Disabilities (IEP)
+  - Student without Disabilities (IEP)
+  - English Learner
+  - Non English Learner
+  KYRC26_OVW_Students_Taught_by_Inexperienced_Teachers.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Title_I_Status
+  - All Students
+  - Non-White
+  - White
+  - Economically Disadvantaged
+  - Non-Economically Disadvantaged
+  - Students with Disabilities (IEP)
+  - Student without Disabilities (IEP)
+  - English Learner
+  - Non-English Learner
+  KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Title_I_Status
+  - All Students
+  - Non-White
+  - White
+  - Economically Disadvantaged
+  - Non-Economically Disadvantaged
+  - Students with Disabilities (IEP)
+  - Student without Disabilities (IEP)
+  - English Learner
+  - Non-English Learner
+  KYRC26_OVW_Students_with_Disabilities_IEP.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - All Grades
+  - PS
+  - K
+  - 1st
+  - 2nd
+  - 3rd
+  - 4th
+  - 5th
+  - 6th
+  - 7th
+  - 8th
+  - 9th
+  - 10th
+  - 11th
+  - 12th
+  - 14th
+  - All Students
+  - Autism
+  - Developmentally Delayed
+  - Emotional Behavioral
+  - Functional Mental
+  - Hearing Impaired
+  - Mild Mental
+  - Multiple Disabilities
+  - Orthopedically Impaired
+  - Other Health Impaired
+  - Specific Learning Disability
+  - Speech Language
+  - Visually Impaired
+  - Deaf Blind
+  - Traumatic Brain Injury
+  KYRC26_OVW_Teacher_Certification_Data.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Teacher Count
+  - Emergency Provisional Teacher Count
+  - Percent Emergency Provisional Teachers
+  - National Board Certified Count
+  - Percent National Board Certified Teacher
+  - Rank I Teacher Count
+  - Percent Rank I Teachers
+  - Rank II Teacher Count
+  - Percent Rank II Teachers
+  KYRC26_OVW_Teacher_Turnover.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Teacher Count
+  - Teacher Turnover Count
+  - Turnover Percent
+  - Instructional Staff Count
+  - Instructional Staff Turnover Count
+  - Instructional Staff Turnover Percent
+  KYRC26_OVW_Teacher_Working_Conditions.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Impact Measure
+  - Impact Value
+  KYRC26_SAFE_Behavior_Events_by_Context.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Total
+  - School Sponsored Event; During School Hours
+  - School Sponsored Event; Not During School Hours
+  - Non School Sponsored Event; During School Hours
+  - Non School Sponsored Event; Not During School Hours
+  KYRC26_SAFE_Behavior_Events_by_Grade_Level.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - All Grades
+  - PS
+  - K
+  - 1st
+  - 2nd
+  - 3rd
+  - 4th
+  - 5th
+  - 6th
+  - 7th
+  - 8th
+  - 9th
+  - 10th
+  - 11th
+  - 12th
+  - 14th
+  KYRC26_SAFE_Behavior_Events_by_Location.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Total
+  - Classroom
+  - Bus
+  - Hallway/Stairwell
+  - Cafeteria
+  - Restroom
+  - Gymnasium
+  - Playground
+  - Other
+  - Campus Grounds
+  KYRC26_SAFE_Behavior_Events_by_Type.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Total
+  - Alcohol
+  - Assault, 1st Degree
+  - Drugs
+  - Harassment (Includes Bullying)
+  - Other Assault or Violence
+  - Other Events Resulting in State Resolutions
+  - Tobacco
+  - Weapons
+  KYRC26_SAFE_Discipline_Resolutions.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Total
+  - In-School Removal (INSR) or In-District Removal (INDR) >=.5
+  - Restraint (SSP7)
+  - Seclusion (SSP8)
+  - Unilateral Removal by School Personnel (IAES1)
+  - Removal by Hearing Officer (IAES2)
+  - Expelled, Not Receiving Services (SSP2)
+  - Expelled, Receiving Services (SSP1)
+  - Corporal Punishment (SSP5)
+  - Out-of-School Suspensions (SSP3)
+  KYRC26_SAFE_Legal_Sanctions.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - Demographic
+  - Total
+  - Arrests
+  - Charges
+  - Civil Proceedings
+  - Court Designated Worker Involvement
+  - School Resource Officer Involvement
+  KYRC26_SAFE_Precautionary_Measures.csv:
+  - School Year
+  - County Number
+  - County Name
+  - District Number
+  - District Name
+  - School Number
+  - School Name
+  - School Code
+  - State School Id
+  - NCES ID
+  - CO-OP
+  - CO-OP Code
+  - School Type
+  - The district discipline code is distributed to parents
+  - Visitors are required to sign-in to the building
+  - All classrooms have access to a telephone accessing outside lines
+  - The school has a full-time School Resource Officer
+  - The school has a process in place to provide mental health referrals for students
+  - The school collects and uses student survey data
+  - The school administers a school climate survey annually
+  - All outside doors are locked during school hours
