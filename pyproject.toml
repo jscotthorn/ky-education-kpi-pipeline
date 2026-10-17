@@ -8,6 +8,7 @@ authors = [{name="Scott Horn", email="scott@kyopengov.org"}]
 dependencies = [
     "pandas",
     "pydantic",
+    "PyYAML",
     "ruamel-yaml",
     "pytest",
     "tabulate",

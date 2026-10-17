@@ -475,3 +475,231 @@ class TestChronicAbsenteeismEndToEnd:
         assert output_df['district'].notna().all()
         assert output_df['year'].notna().all()
         assert len(output_df['school_name'].unique()) >= 15, "Should have many unique schools"
+
+
+FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures" / "chronic_absenteeism"
+
+
+def _run_fixtures(tmp_path: Path, filenames: list[str]) -> pd.DataFrame:
+    """Copy committed real-row excerpts into a raw directory and transform them."""
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "chronic_absenteeism"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    for name in filenames:
+        (source_dir / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+    transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-10-17"}})
+    return pd.read_csv(proc_dir / "chronic_absenteeism.csv", dtype=str)
+
+
+def _comparable(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop the processing timestamp and sort so two runs can be compared."""
+    columns = [column for column in df.columns if column != "last_updated"]
+    return df[columns].sort_values(columns).reset_index(drop=True)
+
+
+def _metric_value(df: pd.DataFrame, year: str, school_id: str, metric: str, student_group: str) -> pd.Series:
+    matches = df[
+        (df["year"] == year)
+        & (df["school_id"] == school_id)
+        & (df["metric"] == metric)
+        & (df["student_group"] == student_group)
+    ]
+    assert len(matches) == 1, (year, school_id, metric, student_group, len(matches))
+    return matches.iloc[0]
+
+
+# Fixed KYRC25 All Students / All Grades values from the blob file.
+# These are the prior-year lock. Comparing two runs of this branch only
+# shows that the files do not clobber each other.
+PRIOR_YEAR_ANCHORS = {
+    ("999000", "chronic_absenteeism_rate_all_grades"): "25.0",
+    ("999000", "chronic_absenteeism_count_all_grades"): "163177.0",
+    ("999000", "chronic_absenteeism_enrollment_all_grades"): "651776.0",
+    ("165000", "chronic_absenteeism_rate_all_grades"): "27.0",
+    ("165000", "chronic_absenteeism_count_all_grades"): "11575.0",
+    ("165000", "chronic_absenteeism_enrollment_all_grades"): "42878.0",
+    ("165170", "chronic_absenteeism_rate_all_grades"): "43.0",
+    ("165170", "chronic_absenteeism_count_all_grades"): "925.0",
+    ("165170", "chronic_absenteeism_enrollment_all_grades"): "2153.0",
+}
+
+
+def test_blank_unsuppressed_grade_is_skipped(tmp_path):
+    """A blank Suppressed=No grade is missing. A Suppressed=Yes grade is kept.
+
+    Bryan Station High School does not offer kindergarten. KYRC26 stores that
+    as blank measures and Suppressed=No, so no ``_k`` row is emitted. The
+    KYRC25 twin is ``*`` / Yes and emits the three suppressed placeholders.
+    Emitting the blank row as suppressed would call a grade the school does
+    not offer a privacy suppression (notes/8).
+    """
+    output = _run_fixtures(
+        tmp_path,
+        [
+            "KYRC25_OVW_Chronic_Absenteeism.csv",
+            "KYRC26_OVW_Chronic_Absenteeism.csv",
+        ],
+    )
+    school = "165170"
+    group = "All Students"
+    current = output[
+        (output["year"] == "2026")
+        & (output["school_id"] == school)
+        & (output["student_group"] == group)
+        & output["metric"].str.endswith("_k")
+    ]
+    assert current.empty
+
+    prior_metrics = (
+        "chronic_absenteeism_rate_k",
+        "chronic_absenteeism_count_k",
+        "chronic_absenteeism_enrollment_k",
+    )
+    for metric in prior_metrics:
+        row = _metric_value(output, "2025", school, metric, group)
+        assert row["suppressed"] == "Y"
+        assert pd.isna(row["value"])
+        assert row["source_file"] == "KYRC25_OVW_Chronic_Absenteeism.csv"
+
+
+def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
+    """2025-26 KPIs from real overview rows, with fixed 2024-25 anchors.
+
+    The fixtures are excerpts of the overview files on the public datasets
+    container. Grade tokens stay lowercased (``k``, ``1st``, ``ps``). A
+    suppressed grade row still emits a rate placeholder; an unsuppressed
+    blank grade row does not. The CRDC name check is hygiene.
+    """
+    prior_only = _run_fixtures(tmp_path / "prior", ["KYRC25_OVW_Chronic_Absenteeism.csv"])
+
+    crdc_text = (
+        "School Year,Collected School Year,Demographic,Total\n"
+        "20252026,20242025,Total Student Count,999999\n"
+    )
+    combined_dir = tmp_path / "combined"
+    raw_dir = combined_dir / "raw"
+    source_dir = raw_dir / "chronic_absenteeism"
+    source_dir.mkdir(parents=True)
+    proc_dir = combined_dir / "processed"
+    proc_dir.mkdir()
+    for name in (
+        "KYRC25_OVW_Chronic_Absenteeism.csv",
+        "KYRC26_OVW_Chronic_Absenteeism.csv",
+    ):
+        (source_dir / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+    (source_dir / "KYRC26_OVW_Chronic_Absenteeism_CRDC.csv").write_text(crdc_text)
+    transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-10-17"}})
+    combined = pd.read_csv(proc_dir / "chronic_absenteeism.csv", dtype=str)
+
+    # Same-branch check only: adding the 2026 excerpt does not rewrite 2025 rows.
+    # The fixed anchors below are the prior-year regression.
+    prior_slice = combined[combined["year"] == "2025"]
+    assert _comparable(prior_slice).equals(_comparable(prior_only))
+
+    assert set(combined["source_file"]) == {
+        "KYRC25_OVW_Chronic_Absenteeism.csv",
+        "KYRC26_OVW_Chronic_Absenteeism.csv",
+    }
+    assert "Total Student Count" not in set(combined["student_group"])
+
+    current = combined[combined["year"] == "2026"]
+    assert set(current["year"]) == {"2026"}
+    assert "20252026" not in set(combined["year"])
+
+    state_rate = _metric_value(
+        current, "2026", "999000", "chronic_absenteeism_rate_all_grades", "All Students"
+    )
+    assert state_rate["value"] == "23.5"
+    assert state_rate["suppressed"] == "N"
+    assert state_rate["district"] == "All Districts"
+    assert state_rate["school_name"] == "---District Total---"
+    assert state_rate["source_file"] == "KYRC26_OVW_Chronic_Absenteeism.csv"
+    assert _metric_value(
+        current, "2026", "999000", "chronic_absenteeism_count_all_grades", "All Students"
+    )["value"] == "149637.0"
+    assert _metric_value(
+        current, "2026", "999000", "chronic_absenteeism_enrollment_all_grades", "All Students"
+    )["value"] == "635917.0"
+
+    district_rate = _metric_value(
+        current, "2026", "165000", "chronic_absenteeism_rate_all_grades", "All Students"
+    )
+    assert district_rate["value"] == "25.3"
+    assert district_rate["district"] == "Fayette County"
+    assert district_rate["school_name"] == "---District Total---"
+    assert district_rate["suppressed"] == "N"
+    assert _metric_value(
+        current, "2026", "165000", "chronic_absenteeism_count_all_grades", "All Students"
+    )["value"] == "10561.0"
+    assert _metric_value(
+        current, "2026", "165000", "chronic_absenteeism_enrollment_all_grades", "All Students"
+    )["value"] == "41708.0"
+
+    school_rate = _metric_value(
+        current, "2026", "165170", "chronic_absenteeism_rate_all_grades", "All Students"
+    )
+    assert school_rate["value"] == "43.2"
+    assert school_rate["district"] == "Fayette County"
+    assert school_rate["school_name"] == "Bryan Station High School"
+    assert school_rate["state_school_id"] == "034165170"
+    assert school_rate["nces_id"] == "210186000388"
+    assert school_rate["suppressed"] == "N"
+    assert _metric_value(
+        current, "2026", "165170", "chronic_absenteeism_count_all_grades", "All Students"
+    )["value"] == "902.0"
+    assert _metric_value(
+        current, "2026", "165170", "chronic_absenteeism_enrollment_all_grades", "All Students"
+    )["value"] == "2088.0"
+
+    # Suppression stays Y with an empty value. State preschool and military
+    # dependent, plus one school group, are the real suppressed rows.
+    for school_id, metric, student_group in (
+        ("999000", "chronic_absenteeism_rate_all_grades", "Military Dependent"),
+        ("999000", "chronic_absenteeism_count_all_grades", "Military Dependent"),
+        ("999000", "chronic_absenteeism_enrollment_all_grades", "Military Dependent"),
+        ("999000", "chronic_absenteeism_rate_ps", "All Students"),
+        ("999000", "chronic_absenteeism_count_ps", "All Students"),
+        ("999000", "chronic_absenteeism_enrollment_ps", "All Students"),
+        ("001010", "chronic_absenteeism_rate_all_grades", "American Indian or Alaska Native"),
+        ("001010", "chronic_absenteeism_count_all_grades", "American Indian or Alaska Native"),
+        ("001010", "chronic_absenteeism_enrollment_all_grades", "American Indian or Alaska Native"),
+    ):
+        row = _metric_value(current, "2026", school_id, metric, student_group)
+        assert row["suppressed"] == "Y"
+        assert pd.isna(row["value"])
+
+    # State kindergarten has a count and a blank rate, so only the count is emitted.
+    # That is this row. Suppressed grade rows still emit rate_k / rate_1st
+    # placeholders (the 2025 Bryan Station kindergarten row is one). Do not
+    # assert that those metric names are absent from a full-file run.
+    assert _metric_value(
+        current, "2026", "999000", "chronic_absenteeism_count_k", "All Students"
+    )["value"] == "11051.0"
+    assert _metric_value(
+        current, "2026", "999000", "chronic_absenteeism_count_1st", "All Students"
+    )["value"] == "9229.0"
+    state_k = current[
+        (current["school_id"] == "999000")
+        & (current["student_group"] == "All Students")
+        & current["metric"].str.endswith("_k")
+    ]
+    assert set(state_k["metric"]) == {"chronic_absenteeism_count_k"}
+    metrics = set(current["metric"])
+    assert not any(
+        metric.endswith(("_kindergarten", "_preschool", "_grade_1")) for metric in metrics
+    )
+
+    # Fixed 2024-25 anchors from the blob file, not from a second run of this branch.
+    for (school_id, metric), expected in PRIOR_YEAR_ANCHORS.items():
+        row = _metric_value(prior_only, "2025", school_id, metric, "All Students")
+        assert row["value"] == expected
+        assert row["suppressed"] == "N"
+        assert row["source_file"] == "KYRC25_OVW_Chronic_Absenteeism.csv"
+    assert _metric_value(
+        prior_only, "2025", "999000", "chronic_absenteeism_count_k", "All Students"
+    )["value"] == "12402.0"
+    assert _metric_value(
+        prior_only, "2025", "999000", "chronic_absenteeism_count_1st", "All Students"
+    )["value"] == "10298.0"

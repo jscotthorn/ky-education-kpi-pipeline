@@ -83,7 +83,7 @@ Column changes, all confirmed:
 | `SAFE_Precautionary_Measures.csv` | `All classroom doors lock from the inside` removed |
 | `EDOP_Career_Studies.csv`, `EDOP_Health_Education_and_Physical_Education.csv`, `EDOP_Visual_and_Performing_Arts.csv`, `EDOP_World_Languages.csv`, `OVW_Access_to_Technology.csv` | Question columns rewritten. World languages immersion columns gained a `WL_` prefix |
 
-`BaseETL` maps both co-op spellings. Demographic labels on the coded `Demographic` column did not gain a new value between KYRC25 and KYRC26. Suppression codes did not gain a new value. `School Year` moves from `20242025` to `20252026` on the files that use that column.
+`BaseETL` maps both co-op spellings. Demographic labels on the coded `Demographic` column did not gain a new value between KYRC25 and KYRC26. Suppression codes did not gain a new value (`Yes` / `No` are unchanged). The chronic-absenteeism overview file does change how an unoffered grade is stored. KYRC25 put `*` in the measure cells and `Suppressed` `Yes`. KYRC26 leaves the three measure cells blank and sets `Suppressed` `No`. That is grade-not-offered, not a new suppression code and not a privacy suppression. Journal 104 has the grade-span counts. `School Year` moves from `20242025` to `20252026` on the files that use that column.
 
 Collected year does not follow that roll on the lagging files:
 
@@ -116,7 +116,7 @@ Other S-list files that were counted still have `999000` rows: chronic absenteei
 
 | Module | KYRC26 file | Status |
 | --- | --- | --- |
-| `chronic_absenteeism` | `OVW_Chronic_Absenteeism` | S. Headers identical. State row present. Suppression unchanged |
+| `chronic_absenteeism` | `OVW_Chronic_Absenteeism` | S. Headers identical. State row present. Suppression codes unchanged. New blank `Suppressed=No` grade rows are grade-not-offered, not suppression. See journal 104 |
 | `graduation_rates` | both `ACCT_*_High_School_Graduation` | S. Headers identical. State rows present |
 | `english_learner_progress` | `ACCT_English_Learners_Progress_Proficiency_Rate` | S. Headers identical |
 | `postsecondary_readiness` | `ACCT_Postsecondary_Readiness` | S. Headers identical. State rows present |
