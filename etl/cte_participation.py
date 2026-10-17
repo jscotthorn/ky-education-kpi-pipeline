@@ -12,15 +12,19 @@ and the participation rate is participants divided by enrollments.
 There is no Suppressed column. Known deviation from notes/8: a ``*`` cell is
 dropped and a fully starred group emits no row, instead of ``suppressed=Y``.
 That behavior predates KYRC26. It needs a design call, because KYRC26 fills
-in all-star demographic rows that KYRC25 left out, and career centers mix a
-blank enrollment with starred counts. A follow-up issue should decide it.
+in all-star demographic rows that KYRC25 left out, and career centers mix an
+``N/A`` enrollment with starred counts. ``N/A`` means not applicable, because
+those students are counted at their home school. pandas reads it as missing,
+so the parser treats it as an empty denominator. Tracked in issue #46
+(https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/46).
 Do not treat the drop as the intended design.
 
-The 2022 and 2023 files store many counts above 100 in the columns this
-module reads as rates. ``clean_cte_data`` nulls those values. State
-participation and completion counts are dropped; a school rate of 100 or
-below is kept. That also predates KYRC26 and needs its own design call,
-because the same column mixes rates and counts.
+The four 2022 and 2023 columns named like rates hold counts in every row.
+The base parser publishes a count of 100 or below as the rate and nulls a
+count above 100. That loses data. It is pre-existing, tracked in issue #47
+(https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/47), and not
+changed here. KYRC24 has 42 genuine participation rates above 100 that the
+same cleaner nulls.
 """
 from pathlib import Path
 import pandas as pd

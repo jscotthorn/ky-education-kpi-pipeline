@@ -242,10 +242,13 @@ PRIOR_GRADE12_ANCHORS = {
     ("2025", "001010"): (23.3, 40, 172),
 }
 
-# 2022 and 2023 keep a rate of 100 or below and the eligible-completer count.
-# The participant column on these rows is a count above 100. The current
-# cleaner nulls it, so there is no participation rate. That predates KYRC26
-# and needs a design call. The assertions below are the published values.
+# 2022 and 2023 columns named like rates hold counts in every row. The base
+# parser publishes a count of 100 or below as the rate and nulls a count
+# above 100. Bryan Station 2022 stores completers 77 of 413 eligible (18.6%)
+# and the published completion-rate metric is 77. Participants above 100 are
+# nulled, so there is no participation rate. Pre-existing data loss, issue
+# #47 (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/47).
+# Not changed here. The assertions below are the published values.
 OLDER_ANCHORS = {
     ("2022", "999"): {"cte_eligible_completer_count_grade_12": 43229},
     ("2022", "165170"): {
@@ -408,9 +411,11 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     # Partial suppression. Participants 15 and enrollments 18 are published.
     # The two 12th-grade cells are *. The published rate stays required.
     # Current parser drops the starred cells instead of emitting suppressed=Y.
-    # That deviates from notes/8 and needs a follow-up issue, the same kind
-    # of design call as issue #44. Update the absence below when that issue
-    # starts emitting Y. Do not treat the absence as the intended design.
+    # That deviates from notes/8. Tracked in issue #46
+    # (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/46).
+    # Issue #44 is the same kind of call for postsecondary enrollment and
+    # does not cover this file. Update the absence below if #46 starts
+    # emitting Y. Do not treat the absence as the intended design.
     partial = _rows(combined, "2026", "165000", "American Indian or Alaska Native")
     assert set(partial["metric"]) == {"cte_participation_rate"}
     assert float(partial.iloc[0]["value"]) == 83.3
@@ -428,13 +433,14 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert foster.iloc[0]["school_name"] == "Bryan Station High School"
 
     # Fully starred in KYRC24 and KYRC26. KYRC25 omitted the row. The current
-    # parser emits nothing. Follow-up recommended; see the note above.
+    # parser emits nothing. See issue #46; do not treat the drop as the design.
     assert _rows(combined, "2024", "165170", "Native Hawaiian or Pacific Islander").empty
     assert _rows(combined, "2026", "165170", "Native Hawaiian or Pacific Islander").empty
 
-    # Career center: enrollment is blank, so there is no participation rate.
-    # Grade 12 is published (122 / 241). A blank measure is skipped. That is
-    # the notes/8 empty-value rule, and the published counts stay required.
+    # Career center: enrollment is the text N/A (not applicable; students count
+    # at their home school). pandas reads N/A as missing, so there is no
+    # participation rate. Grade 12 is published (122 / 241). Treating N/A as
+    # an empty denominator stays correct, and the published counts stay required.
     allen = _rows(combined, "2026", "005901", "All Students")
     assert set(allen["metric"]) == {
         "cte_completion_rate_grade_12",
@@ -449,12 +455,12 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert allen.iloc[0]["nces_id"] == "210007002061"
     assert (allen["suppressed"] == "N").all()
 
-    # Star beside a blank enrollment. Every measure is * or empty, so the
-    # current parser emits nothing. The blank cell is not offered. The stars
-    # are the notes/8 deviation above, not a locked design.
+    # Star beside an N/A enrollment. Every measure is * or N/A, so the current
+    # parser emits nothing. N/A is an empty denominator. The stars are the
+    # notes/8 deviation in issue #46, not a locked design.
     assert _rows(combined, "2026", "005901", "American Indian or Alaska Native").empty
 
-    # The 2025 career-center row has the same blank enrollment. Published
+    # The 2025 career-center row has the same N/A enrollment. Published
     # grade-12 values stay what the base parser wrote. NCES id differs.
     allen_2025 = _rows(combined, "2025", "005901", "All Students")
     assert "cte_participation_rate" not in set(allen_2025["metric"])
