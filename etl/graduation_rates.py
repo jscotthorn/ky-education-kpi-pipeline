@@ -92,6 +92,26 @@ class GraduationRatesETL(BaseETL):
     # every KYRC26_* CSV until this is True.
     include_kyrc26 = True
 
+    def accepts_data_file(self, file_path: Path) -> bool:
+        """Skip a leftover temporary OAA graduation extract.
+
+        ``Graduation_Rate_2025.CSV`` used the hyphenated rate headers this
+        module already maps, and it is 404 upstream. The permanent KYRC25
+        cohort files replace it. A copy left in the raw directory would emit
+        a second set of 2025 rows. ``Graduation_Rate_2026.CSV`` would do the
+        same beside the KYRC26 cohort files.
+        """
+        if file_path.name.lower() in {
+            "graduation_rate_2025.csv",
+            "graduation_rate_2026.csv",
+        }:
+            logger.info(
+                "Skipping %s; the permanent KYRC cohort files are the source",
+                file_path.name,
+            )
+            return False
+        return super().accepts_data_file(file_path)
+
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {

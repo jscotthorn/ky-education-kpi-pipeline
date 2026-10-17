@@ -59,13 +59,17 @@ raw_directories:
 
   graduation_rates:
     - "KYRC24_ACCT_4_Year_High_School_Graduation.csv"
+    # Graduation_Rate_2025.CSV on the OAA temporary URL is 404. These
+    # permanent cohort files are the 2024-25 source. Do not register both.
+    - url: "kyrc25"
+      file: "KYRC25_ACCT_4_Year_High_School_Graduation.csv"
     - url: "kyrc26"
       file: "KYRC26_ACCT_4_Year_High_School_Graduation.csv"
     - "KYRC24_ACCT_5_Year_High_School_Graduation.csv"
+    - url: "kyrc25"
+      file: "KYRC25_ACCT_5_Year_High_School_Graduation.csv"
     - url: "kyrc26"
       file: "KYRC26_ACCT_5_Year_High_School_Graduation.csv"
-    - url: "2025"
-      file: "Graduation_Rate_2025.CSV"
     - "graduation_rate_2023.csv"
     - "graduation_rate_2022.csv"
     - "graduation_rate_2021.csv"
