@@ -32,7 +32,7 @@ The node ids are in journal 105 (census live API, pandas `StringDtype` versus `o
 
 `postsecondary_readiness` compare run, pandas 3.0.6: `42 failed, 411 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The five passes beyond the english-learner total are the KYRC26 acceptance test, the KYRC25 source-swap test, the leftover-temporary-file test, the blank-row skip test, and the real-row fixture test. Do not treat 406 passed as the number to match once this module merges.
 
-`postsecondary_enrollment` compare report is in that pull request and is not committed here. The passes beyond the readiness total are the KYRC26 acceptance test, the registered-source test, the blank-row and sibling-file test, and the real-row fixture test. Do not treat 411 passed as the number to match once this module merges.
+`postsecondary_enrollment` compare run, pandas 3.0.6: `42 failed, 415 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The four passes beyond the readiness total are the KYRC26 acceptance test, the registered-source test, the blank-row and sibling-file test, and the real-row fixture test. Do not treat 411 passed as the number to match once this module merges.
 
 ## What was checked
 
