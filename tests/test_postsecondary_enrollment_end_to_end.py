@@ -151,6 +151,9 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert set(combined["source_file"]) == set(current_names)
     assert "20252026" not in set(combined["year"])
     assert set(combined.loc[combined["source_file"].str.startswith("KYRC26_"), "year"]) == {"2026"}
+    # Known deviation from notes/8, tracked in issue #44. The current parser
+    # drops every starred cell, so emitted rows are suppressed N with a value.
+    # Published values below stay required. Update this when #44 emits Y.
     assert set(combined["suppressed"]) == {"N"}
     assert combined["value"].notna().all()
 
@@ -219,7 +222,10 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert adair["co_op_code"] == "902"
     _assert_metrics(combined, "2026", "001000", (215, 36, 47, 83, 16.7, 21.9, 38.6))
 
-    # Fully starred groups are not emitted. There is no Suppressed column.
+    # Known deviation from notes/8, tracked in issue #44. These groups are
+    # fully starred in the source, and the current parser emits no row.
+    # Published values above stay required. Update these absences when #44
+    # starts emitting suppressed=Y.
     for year in ("2024", "2025", "2026"):
         assert _rows(combined, year, "165170", "Asian").empty
     for year in ("2025", "2026"):
@@ -227,7 +233,9 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     for year in ("2024", "2025"):
         assert _rows(combined, year, "001010", "All Students").empty
 
-    # Adair County High School publishes the cohort and stars the enrollment cells.
+    # Adair County High School publishes the cohort. The six starred enrollment
+    # cells are absent under the current parser (issue #44). The published
+    # cohort value stays required.
     adair_school = _rows(combined, "2026", "001010", "All Students")
     assert set(adair_school["metric"]) == {"postsecondary_enrollment_total_in_cohort"}
     assert float(adair_school.iloc[0]["value"]) == 201
@@ -235,7 +243,9 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert adair_school.iloc[0]["school_name"] == "Adair County High School"
     assert adair_school.iloc[0]["nces_id"] == "210003000001"
 
-    # New KYRC26 pattern: private enrollment is starred and the other five cells are published.
+    # Private enrollment is starred and the other five cells are published.
+    # The absent private metrics are the issue #44 deviation. The five
+    # published values stay required.
     bowling = _rows(combined, "2026", "042070", "All Students")
     assert set(bowling["metric"]) == set(METRICS) - set(PRIVATE_METRICS)
     assert (bowling["suppressed"] == "N").all()
@@ -251,7 +261,8 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert bowling.iloc[0]["school_name"] == "Bowling Green High School"
     assert bowling.iloc[0]["district"] == "Bowling Green Independent"
 
-    # District 602 is new versus KYRC25. Both of its rows are fully starred.
+    # District 602 is new versus KYRC25. Both All Students rows are fully
+    # starred, so the current parser emits nothing (issue #44).
     assert _rows(combined, "2026", "602000", "All Students").empty
     assert _rows(combined, "2026", "602176", "All Students").empty
     assert "602000" not in set(combined["school_id"])

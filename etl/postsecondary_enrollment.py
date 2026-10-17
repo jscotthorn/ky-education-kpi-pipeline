@@ -5,11 +5,12 @@ Refactored to use BaseETL for standardized processing.
 
 KYRC26 is ``KYRC26_ADLF_Transition_to_In_State_Postsecondary_Education.csv``.
 Its headers match the KYRC24 and KYRC25 files this module already maps.
-There is no Suppressed column. A ``*`` cell is a privacy suppression and is
-already in the shared missing-value list, so that metric is not emitted.
-A row that is not ``Y`` and has every measure empty is not offered. The
-base converter already skips those empty metrics. None of the 2021-2026
-files contain a blank measure cell.
+There is no Suppressed column. Known deviation from notes/8, tracked in
+issue #44: a ``*`` cell is dropped and a fully starred group emits no row,
+instead of ``suppressed=Y``. That behavior predates KYRC26. KYRC25 pads
+non-existent cohorts with stars, while KYRC24 and KYRC26 omit fully starred
+groups, so the correction needs a design call. None of the 2021-2026 files
+contain a blank measure cell.
 """
 from pathlib import Path
 from typing import Dict, Any
