@@ -63,9 +63,17 @@ CODED_HEADERS = {
     "prior setting",
 }
 
-# Full-file grain checks from the 17 October 2026 audit. The domain sample
-# cannot see these: school code is above the 80-value cap, and row loss is
-# not a header change. A later run should re-verify them against the blobs.
+# Identity columns are stored in full. Other coded columns still stop at 80
+# distinct values, which is enough for demographic and suppression labels.
+UNCAPPED_CODED_HEADERS = {
+    "district number",
+    "district code",
+    "school code",
+    "school number",
+}
+
+# Full-file grain checks from the 17 October 2026 audit. Row loss is not a
+# header change. Re-count these if the blobs are replaced.
 AUDIT_GRAIN_NOTES = (
     "`KYRC26_OVW_Student_to_Teacher_Ratio.csv` has 1,432 school rows and zero `School Code` `999000` or `School Name` `All Schools` rows. The KYRC25 file has the state row (`999000`, ratio `15:01`) and 173 `All Schools` district rows.",
     "`KYRC26_OVW_Advanced_Coursework.csv` has 4,077 rows and 257 school codes. KYRC25 has 36,612 rows and 1,356 school codes. Neither year has a `999000` row. `Collected School Year` is `20212022` on every KYRC26 row and `20202021` on every KYRC25 row. `School Year` is the release year.",
@@ -289,8 +297,8 @@ def classify_header_change(left: Sequence[str], right: Sequence[str]) -> Dict[st
     }
 
 
-def _empty_domain() -> Dict[str, object]:
-    return {"values": [], "truncated": False, "rows_seen": 0}
+def _empty_domain(uncapped: bool = False) -> Dict[str, object]:
+    return {"values": [], "truncated": False, "rows_seen": 0, "uncapped": uncapped}
 
 
 class _HashingRaw(io.RawIOBase):
@@ -327,6 +335,8 @@ def stream_csv(url: str) -> Dict[str, object]:
     coop_rows = 0
     six_digit_codes = 0
     code_samples_bad: List[str] = []
+    context_indexes: Dict[str, int] = {}
+    odd_contexts: Dict[str, List[Dict[str, str]]] = {}
     try:
         with urllib.request.urlopen(request, timeout=180) as response:
             status = response.status
@@ -342,13 +352,30 @@ def stream_csv(url: str) -> Dict[str, object]:
                         key = column.strip().casefold()
                         if key in CODED_HEADERS:
                             coded_indexes.append((index, column))
-                            domains[column] = _empty_domain()
+                            domains[column] = _empty_domain(key in UNCAPPED_CODED_HEADERS)
                         if key == "school code":
                             school_code_index = index
                         elif key == "school name":
                             school_name_index = index
                         elif key == "school type":
                             school_type_index = index
+                    context_indexes = {
+                        column.strip().casefold(): index
+                        for index, column in enumerate(header)
+                        if column.strip().casefold()
+                        in {
+                            "district number",
+                            "district name",
+                            "school number",
+                            "school name",
+                            "school type",
+                            "level",
+                            "grade",
+                            "demographic",
+                            "co-op",
+                            "subject",
+                        }
+                    }
                     continue
                 if not any(cell.strip() for cell in raw):
                     continue
@@ -359,20 +386,34 @@ def stream_csv(url: str) -> Dict[str, object]:
                     value = raw[index].strip()
                     bucket = domains[column]
                     bucket["rows_seen"] = int(bucket["rows_seen"]) + 1
-                    values: List[str] = bucket["values"]  # type: ignore[assignment]
-                    if value not in values:
-                        if len(values) < 80:
-                            values.append(value)
-                        else:
-                            bucket["truncated"] = True
+                    if bucket.get("uncapped"):
+                        seen = bucket.setdefault("_set", set())
+                        seen.add(value)  # type: ignore[union-attr]
+                    else:
+                        values: List[str] = bucket["values"]  # type: ignore[assignment]
+                        if value not in values:
+                            if len(values) < 80:
+                                values.append(value)
+                            else:
+                                bucket["truncated"] = True
                 code = ""
                 if school_code_index is not None and school_code_index < len(raw):
                     code = raw[school_code_index].strip()
                     code_lengths[len(code)] += 1
                     if re.fullmatch(r"\d{6}", code):
                         six_digit_codes += 1
-                    elif code and len(code_samples_bad) < 8:
-                        code_samples_bad.append(code)
+                    elif code:
+                        if len(code_samples_bad) < 8 and code not in code_samples_bad:
+                            code_samples_bad.append(code)
+                        contexts = odd_contexts.setdefault(code, [])
+                        if len(contexts) < 12:
+                            context = {
+                                label: raw[index].strip()
+                                for label, index in context_indexes.items()
+                                if index < len(raw)
+                            }
+                            if context not in contexts:
+                                contexts.append(context)
                 name = raw[school_name_index].strip() if school_name_index is not None and school_name_index < len(raw) else ""
                 school_type = raw[school_type_index].strip() if school_type_index is not None and school_type_index < len(raw) else ""
                 if school_type.upper() == "SP" or name.upper().startswith("ED COOP"):
@@ -387,6 +428,11 @@ def stream_csv(url: str) -> Dict[str, object]:
                         for index in range(min(len(header), len(raw)))
                         if index < 24
                     }
+        for bucket in domains.values():
+            if bucket.get("uncapped"):
+                bucket["values"] = sorted(bucket.pop("_set", set()))
+                bucket["truncated"] = False
+            bucket.pop("_set", None)
         content_md5 = base64.b64encode(hashing.digest.digest()).decode("ascii")
         return {
             "status": 200,
@@ -400,6 +446,7 @@ def stream_csv(url: str) -> Dict[str, object]:
                 "lengths": dict(code_lengths),
                 "six_digit": six_digit_codes,
                 "non_six_digit_samples": code_samples_bad,
+                "odd_contexts": odd_contexts,
                 "rows": row_count,
             },
             "coop_rows": coop_rows,
@@ -408,6 +455,309 @@ def stream_csv(url: str) -> Dict[str, object]:
         return {"status": exc.code, "blocked": exc.code in BLOCKED_STATUSES, "error": str(exc.reason)}
     except Exception as exc:  # noqa: BLE001
         return {"status": "error", "blocked": False, "error": f"{type(exc).__name__}: {exc}"}
+
+
+CONTEXT_FIELDS = (
+    "district number",
+    "district name",
+    "district code",
+    "school number",
+    "school name",
+    "school code",
+    "school type",
+    "level",
+    "grade",
+    "demographic",
+    "co-op",
+    "co-op code",
+    "subject",
+    "collected school year",
+    "school year",
+)
+
+
+def stream_identity(url: str) -> Dict[str, object]:
+    """Stream school and district codes in full.
+
+    Stops after the header when the file has none of those columns.
+    Non-6-digit school codes keep the distinct values of the context
+    columns, capped per field so a stray code cannot retain every row.
+    """
+    request = urllib.request.Request(url, headers=browser_headers("text/csv,*/*"))
+    try:
+        with urllib.request.urlopen(request, timeout=300) as response:
+            if response.status != 200:
+                return {"status": response.status, "blocked": response.status in BLOCKED_STATUSES}
+            wrapper = io.TextIOWrapper(response, encoding="utf-8-sig", newline="")
+            reader = csv.reader(wrapper)
+            header: Optional[List[str]] = None
+            indexes: Dict[str, int] = {}
+            identity_indexes: List[Tuple[int, str]] = []
+            school_code_index = None
+            row_count = 0
+            domains: Dict[str, set] = {}
+            odd: Dict[str, Dict[str, object]] = {}
+            lengths: Counter = Counter()
+            for raw in reader:
+                if header is None:
+                    header = [column.lstrip("\ufeff") for column in raw]
+                    for index, column in enumerate(header):
+                        key = column.strip().casefold()
+                        if key not in indexes:
+                            indexes[key] = index
+                        if key in UNCAPPED_CODED_HEADERS:
+                            identity_indexes.append((index, column))
+                            domains[column] = set()
+                        if key == "school code":
+                            school_code_index = index
+                    if not identity_indexes:
+                        return {
+                            "status": 200,
+                            "blocked": False,
+                            "has_identity": False,
+                            "row_count": 0,
+                            "domains": {},
+                            "lengths": {},
+                            "odd": {},
+                        }
+                    continue
+                if not any(cell.strip() for cell in raw):
+                    continue
+                row_count += 1
+                for index, column in identity_indexes:
+                    if index < len(raw):
+                        domains[column].add(raw[index].strip())
+                if school_code_index is None or school_code_index >= len(raw):
+                    continue
+                code = raw[school_code_index].strip()
+                lengths[len(code)] += 1
+                if not code or re.fullmatch(r"\d{6}", code):
+                    continue
+                bucket = odd.setdefault(code, {"rows": 0, "fields": {}, "capped": []})
+                bucket["rows"] = int(bucket["rows"]) + 1
+                fields: Dict[str, set] = bucket["fields"]  # type: ignore[assignment]
+                capped: List[str] = bucket["capped"]  # type: ignore[assignment]
+                for label, index in indexes.items():
+                    if label not in CONTEXT_FIELDS or index >= len(raw):
+                        continue
+                    values = fields.setdefault(label, set())
+                    if len(values) >= 40:
+                        if label not in capped:
+                            capped.append(label)
+                        continue
+                    values.add(raw[index].strip())
+            return {
+                "status": 200,
+                "blocked": False,
+                "has_identity": True,
+                "row_count": row_count,
+                "domains": {column: sorted(values) for column, values in domains.items()},
+                "lengths": {str(length): count for length, count in sorted(lengths.items())},
+                "odd": {
+                    code: {
+                        "rows": info["rows"],
+                        "fields": {
+                            label: sorted(values)
+                            for label, values in info["fields"].items()  # type: ignore[union-attr]
+                        },
+                        "capped": list(info["capped"]),  # type: ignore[arg-type]
+                    }
+                    for code, info in sorted(odd.items())
+                },
+            }
+    except urllib.error.HTTPError as exc:
+        return {"status": exc.code, "blocked": exc.code in BLOCKED_STATUSES, "error": str(exc.reason)}
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "error", "blocked": False, "error": f"{type(exc).__name__}: {exc}"}
+
+
+def _pair_names() -> List[Tuple[str, str, str]]:
+    """(label, kyrc25 filename, kyrc26 filename) for every comparable pair."""
+    payload = json.loads(Path("notes/kyrc26-schema-diff-report.json").read_text(encoding="utf-8"))
+    pairs: List[Tuple[str, str, str]] = []
+    for row in payload["header_rows"]:
+        stem = row["stem"]
+        kind = row["kind"]
+        if kind.startswith("no KYRC"):
+            continue
+        if not stem.endswith(".csv"):
+            continue
+        pairs.append((stem, f"KYRC25_{stem}", f"KYRC26_{stem}"))
+    pairs.append(
+        (
+            "ASMT_The_ACT.csv -> ASMT_CAE.csv",
+            "KYRC25_ASMT_The_ACT.csv",
+            "KYRC26_ASMT_CAE.csv",
+        )
+    )
+    pairs.append(
+        (
+            "CRDC_Chronic_Absenteeism.csv -> OVW_Chronic_Absenteeism_CRDC.csv",
+            "KYRC25_CRDC_Chronic_Absenteeism.csv",
+            "KYRC26_OVW_Chronic_Absenteeism_CRDC.csv",
+        )
+    )
+    return pairs
+
+
+def _domain_delta(label: str, column: str, left: Sequence[str], right: Sequence[str]) -> str:
+    left_set = set(left)
+    right_set = set(right)
+    added = sorted(right_set - left_set)
+    removed = sorted(left_set - right_set)
+    if not added and not removed:
+        return ""
+    return (
+        f"`{label}` `{column}`: {len(left_set)} distinct in KYRC25, {len(right_set)} in KYRC26; "
+        f"added {len(added)} ({fmt_list(added, 12) or '[]'}); "
+        f"removed {len(removed)} ({fmt_list(removed, 12) or '[]'})"
+    )
+
+
+def _odd_lines(label: str, year: str, odd: Dict[str, dict]) -> List[str]:
+    lines: List[str] = []
+    if not odd:
+        return lines
+    lines.append(f"`{year}` `{label}` non-6-digit school codes: {', '.join(odd)}")
+    for code, info in odd.items():
+        fields = info.get("fields") or {}
+        parts = [f"{info.get('rows')} rows"]
+        for key in (
+            "district number",
+            "district name",
+            "school name",
+            "school type",
+            "level",
+            "subject",
+            "demographic",
+            "co-op",
+            "grade",
+            "collected school year",
+            "school year",
+        ):
+            values = fields.get(key) or []
+            if not values:
+                continue
+            shown = "; ".join(values[:8])
+            if len(values) > 8:
+                shown += f"; +{len(values) - 8} more"
+            parts.append(f"{key}={shown}")
+        capped = info.get("capped") or []
+        if capped:
+            parts.append("capped fields: " + ", ".join(capped))
+        lines.append(f"- `{code}`: " + "; ".join(parts))
+    return lines
+
+
+def codes_only(workers: int = 6) -> int:
+    """Diff identity columns for every paired CSV without the 80-value cap."""
+    pairs = _pair_names()
+    primary = DEFAULT_CONTAINERS[0]
+    jobs: List[str] = []
+    for _label, name25, name26 in pairs:
+        jobs.extend([name25, name26])
+    # Renamed files are extra; drop duplicates while keeping order.
+    seen = set()
+    unique_jobs = []
+    for name in jobs:
+        if name not in seen:
+            seen.add(name)
+            unique_jobs.append(name)
+    print(f"Streaming identity columns for {len(unique_jobs)} CSVs from {primary}", flush=True)
+    streams: Dict[str, dict] = {}
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(stream_identity, blob_url(primary, name)): name for name in unique_jobs}
+        done = 0
+        for future in as_completed(futures):
+            name = futures[future]
+            streams[name] = future.result()
+            done += 1
+            status = streams[name].get("status")
+            rows = streams[name].get("row_count")
+            print(f"  {done}/{len(unique_jobs)} {name} status={status} rows={rows}", flush=True)
+
+    notes: List[str] = []
+    unchanged = 0
+    no_identity = 0
+    odd_sections: List[str] = []
+    for label, name25, name26 in pairs:
+        left = streams.get(name25) or {}
+        right = streams.get(name26) or {}
+        if left.get("status") != 200 or right.get("status") != 200:
+            notes.append(
+                f"`{label}`: KYRC25 status {left.get('status')} {left.get('error', '')}; "
+                f"KYRC26 status {right.get('status')} {right.get('error', '')}".strip()
+            )
+            continue
+        if not left.get("has_identity") and not right.get("has_identity"):
+            no_identity += 1
+            continue
+        file_notes = []
+        columns = []
+        for source in (left.get("domains") or {}, right.get("domains") or {}):
+            for column in source:
+                if column not in columns:
+                    columns.append(column)
+        for column in columns:
+            left_values = (left.get("domains") or {}).get(column) or []
+            right_values = (right.get("domains") or {}).get(column) or []
+            line = _domain_delta(label, column, left_values, right_values)
+            if line:
+                file_notes.append(line)
+        if file_notes:
+            notes.extend(file_notes)
+        else:
+            unchanged += 1
+        for year, info in (("KYRC25", left), ("KYRC26", right)):
+            odd = info.get("odd") or {}
+            if odd:
+                odd_sections.extend(_odd_lines(label, year, odd))
+
+    generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    lines = [
+        "# KYRC25 / KYRC26 school and district code domains",
+        "",
+        f"Generated {generated_at} by `python3 scripts/kyrc_schema_diff.py --codes-only`.",
+        "",
+        "Identity columns (`school code`, `school number`, `district number`, `district code`) are compared in full. "
+        "The 80-value cap used for demographic and suppression labels does not apply here. "
+        f"Source container is `{primary}`. Pairs are the stems in `notes/kyrc26-schema-diff-report.json` that exist in both years, "
+        "plus the two renames `ASMT_The_ACT` → `ASMT_CAE` and `CRDC_Chronic_Absenteeism` → `OVW_Chronic_Absenteeism_CRDC`.",
+        "",
+        f"Pairs with identical identity-column sets: {unchanged}. Pairs with no identity columns: {no_identity}.",
+        "",
+        "## Domain changes",
+        "",
+    ]
+    if notes:
+        lines.extend(f"- {note}" for note in notes)
+    else:
+        lines.append("No identity-column set changed.")
+    lines.extend(["", "## Non-6-digit school codes", ""])
+    if odd_sections:
+        lines.extend(odd_sections)
+    else:
+        lines.append("No streamed file contained a school code that was not six digits.")
+    lines.append("")
+    path = Path("notes/kyrc26-code-domain-diff.md")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"Wrote {path}", flush=True)
+
+    report = Path("notes/kyrc26-schema-diff-report.md")
+    if report.exists():
+        text = report.read_text(encoding="utf-8")
+        old_sentences = (
+            "School code, school number, and district number are not domain-diffed: the distinct-value cap is 80, and those columns exceed it. Grain checks for state rows are in the audit note.",
+            "Coded columns were compared in full only when the distinct-value set stayed under 80. School code, school number, and district number exceed that cap, so those diffs are not listed. They record which codes appeared first in each file, not codes that were added or removed.",
+        )
+        replacement = (
+            "School code, school number, and district number are compared in full in `notes/kyrc26-code-domain-diff.md`. "
+            "Other coded columns still stop at 80 distinct values. Grain checks for state rows are in the audit note."
+        )
+        for sentence in old_sentences:
+            text = text.replace(sentence, replacement)
+        report.write_text(text, encoding="utf-8")
+    return 0
 
 
 def md5_only(url: str) -> Dict[str, object]:
@@ -480,7 +830,7 @@ def render_report(path: Path, payload: dict) -> None:
         + blocked_sentence
     )
     lines.append(
-        "School code, school number, and district number are not domain-diffed: the distinct-value cap is 80, and those columns exceed it. Grain checks for state rows are in the audit note."
+        "School code, school number, and district number are compared in full. Other coded columns still stop at 80 distinct values. The code-domain write-up is `notes/kyrc26-code-domain-diff.md`."
     )
     lines.append("")
     lines.append("## Containers")
@@ -546,7 +896,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--workers", type=int, default=6)
     parser.add_argument("--skip-domains", action="store_true", help="HEAD and header-only; do not stream bodies")
     parser.add_argument("--extra-name", action="append", default=[], help="Additional blob filename to probe")
+    parser.add_argument(
+        "--codes-only",
+        action="store_true",
+        help="Diff school and district codes in full and write notes/kyrc26-code-domain-diff.md",
+    )
     args = parser.parse_args(argv)
+    if args.codes_only:
+        return codes_only(workers=args.workers)
 
     print("Fetching report-card dataset tree...", flush=True)
     inventory, meta = load_report_card_inventory()
@@ -737,9 +1094,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 values26 = set(bucket26["values"])
                 if values25 == values26:
                     continue
-                if key in {"school code", "school number", "district number", "district code"}:
-                    # These sets are larger than the 80-value cap, so a diff of the
-                    # stored sample is not evidence that a code was added or removed.
+                if key in UNCAPPED_CODED_HEADERS:
+                    if bucket25.get("truncated") or bucket26.get("truncated"):
+                        domain_notes.append(
+                            f"`{stem}` `{column}`: domain was truncated, so added and removed codes were not compared."
+                        )
+                        continue
+                    added_codes = sorted(values26 - values25)
+                    removed_codes = sorted(values25 - values26)
+                    if added_codes or removed_codes:
+                        domain_notes.append(
+                            f"`{stem}` `{column}`: {len(values25)} distinct in KYRC25, {len(values26)} in KYRC26; "
+                            f"added {len(added_codes)} ({fmt_list(added_codes, 8) or '[]'}); "
+                            f"removed {len(removed_codes)} ({fmt_list(removed_codes, 8) or '[]'})"
+                        )
                     continue
                 if key in {"school year", "collected school year"}:
                     domain_notes.append(

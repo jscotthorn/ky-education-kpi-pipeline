@@ -1,0 +1,314 @@
+# KYRC25 / KYRC26 school and district code domains
+
+Generated 2026-10-17 19:10 UTC by `python3 scripts/kyrc_schema_diff.py --codes-only`.
+
+Identity columns (`school code`, `school number`, `district number`, `district code`) are compared in full. The 80-value cap used for demographic and suppression labels does not apply here. Source container is `datasets`. Pairs are the stems in `notes/kyrc26-schema-diff-report.json` that exist in both years, plus the two renames `ASMT_The_ACT` → `ASMT_CAE` and `CRDC_Chronic_Absenteeism` → `OVW_Chronic_Absenteeism_CRDC`.
+
+Pairs with identical identity-column sets: 7. Pairs with no identity columns: 0.
+
+Every difference in `District Number`, `District Code`, `School Number`, and `School Code` is listed below. A column that does not appear for a file was the same in both years or was not on that file. The seven identical pairs are `ACCT_4_Year_High_School_Graduation.csv`, `ACCT_5_Year_High_School_Graduation.csv`, `ACCT_Postsecondary_Readiness.csv`, `ASMT_Measurements_of_Interim_Progress_Graduation_Rate.csv`, `ASMT_National_Assessment_of_Educational_Progress.csv`, `OVW_Inexperienced_Staff.csv`, and `OVW_Teachers_Full_Time_Equivalent_FTE.csv`.
+
+Most other changes are schools and districts entering or leaving the file. Two are structural:
+
+- `OVW_Student_to_Teacher_Ratio.csv` drops district `999` and the school codes that end in `000` (KYRC25 state and district totals). KYRC26 has 1,432 school codes and no `999000` row.
+- `OVW_Advanced_Coursework.csv` drops from 1,356 school codes to 257.
+
+`901` is not a school. On the four subject crosstabs (`ACCT_Crosstab_Reading`, `Mathematics`, `Science`, `SocialStudies`) the only non-6-digit school codes are `901` through `909`. Each code equals `District Number`, `School Name` is blank, and the row is an educational-cooperative total at elementary, middle, and high school. `901` is CKEC. The rest are `902` GRREC, `903` KEDC, `904` KVEC, `905` NKCES, `906` OVEC, `907` SESC, `908` WKEC, and `909` GLEC. KYRC25 leaves the GLEC `CO-OP` cell blank; KYRC26 fills it with `GLEC`. `ACCT_Crosstab_EditingMechanics` and `ACCT_Crosstab_OnDemandWriting` do not contain these codes. No current ETL reads the crosstabs. Accountability, enrollment, and overview files used by the S scripts keep 6-digit codes.
+
+## Domain changes
+
+- `ACCT_Assessment_Participation.csv` `School Number`: 259 distinct in KYRC25, 257 in KYRC26; added 0 ([]); removed 2 (305; 374)
+- `ACCT_Assessment_Participation.csv` `School Code`: 1496 distinct in KYRC25, 1493 in KYRC26; added 6 (011030; 134011; 165220; 221015; 425015; 491020); removed 9 (121015; 221024; 221110; 275374; 331210; 551023; 571245; 571300; 571305)
+- `ACCT_English_Learners_Progress_Proficiency_Rate.csv` `School Number`: 232 distinct in KYRC25, 231 in KYRC26; added 0 ([]); removed 1 (374)
+- `ACCT_English_Learners_Progress_Proficiency_Rate.csv` `School Code`: 1296 distinct in KYRC25, 1294 in KYRC26; added 2 (165220; 221015); removed 4 (221024; 221110; 275374; 331210)
+- `ACCT_Index_Scores.csv` `School Number`: 232 distinct in KYRC25, 231 in KYRC26; added 0 ([]); removed 1 (374)
+- `ACCT_Index_Scores.csv` `School Code`: 1296 distinct in KYRC25, 1294 in KYRC26; added 2 (165220; 221015); removed 4 (221024; 221110; 275374; 331210)
+- `ACCT_Kentucky_Summative_Assessment.csv` `School Number`: 232 distinct in KYRC25, 231 in KYRC26; added 0 ([]); removed 1 (374)
+- `ACCT_Kentucky_Summative_Assessment.csv` `School Code`: 1296 distinct in KYRC25, 1294 in KYRC26; added 2 (165220; 221015); removed 4 (221024; 221110; 275374; 331210)
+- `ACCT_School_Improvement.csv` `District Number`: 57 distinct in KYRC25, 75 in KYRC26; added 28 (011; 075; 111; 134; 145; 152; 155; 156; 161; 171; 185; 241; +16 more); removed 10 (045; 065; 101; 113; 211; 225; 331; 485; 495; 561)
+- `ACCT_School_Improvement.csv` `School Number`: 115 distinct in KYRC25, 125 in KYRC26; added 19 (013; 017; 023; 043; 046; 071; 103; 105; 111; 115; 116; 145; +7 more); removed 9 (021; 024; 027; 029; 084; 095; 374; 425; 635)
+- `ACCT_School_Improvement.csv` `School Code`: 189 distinct in KYRC25, 208 in KYRC26; added 62 (011050; 021050; 035071; 041090; 071018; 075030; 111026; 121008; 121023; 121030; 134017; 145008; +50 more); removed 43 (021130; 035083; 045095; 065050; 071007; 071010; 071045; 071070; 071075; 101005; 101010; 113025; +31 more)
+- `ACCT_Survey_Results.csv` `School Number`: 232 distinct in KYRC25, 231 in KYRC26; added 0 ([]); removed 1 (374)
+- `ACCT_Survey_Results.csv` `School Code`: 1296 distinct in KYRC25, 1294 in KYRC26; added 2 (165220; 221015); removed 4 (221024; 221110; 275374; 331210)
+- `ADLF_Current_Year_Graduates.csv` `School Number`: 129 distinct in KYRC25, 126 in KYRC26; added 2 (221; 768); removed 5 (029; 032; 245; 769; 784)
+- `ADLF_Current_Year_Graduates.csv` `School Code`: 537 distinct in KYRC25, 529 in KYRC26; added 13 (011030; 025012; 145015; 275020; 275221; 275768; 281030; 365065; 405100; 425015; 426035; 451015; +1 more); removed 21 (061031; 061033; 075032; 115012; 121015; 132035; 152045; 231035; 271029; 275769; 275784; 311019; +9 more)
+- `ADLF_Graduate_Outcomes.csv` `District Number`: 170 distinct in KYRC25, 171 in KYRC26; added 1 (602); removed 0 ([])
+- `ADLF_Graduate_Outcomes.csv` `School Number`: 131 distinct in KYRC25, 128 in KYRC26; added 3 (026; 176; 191); removed 6 (164; 245; 305; 463; 620; 768)
+- `ADLF_Graduate_Outcomes.csv` `School Code`: 529 distinct in KYRC25, 535 in KYRC26; added 20 (016015; 061033; 075032; 121026; 132035; 134013; 152025; 231035; 271031; 275191; 311050; 452018; +8 more); removed 14 (071032; 092011; 181025; 275164; 275463; 275620; 275768; 281030; 301022; 451015; 515130; 551023; +2 more)
+- `ADLF_Transition_to_In_State_Postsecondary_Education.csv` `District Number`: 170 distinct in KYRC25, 171 in KYRC26; added 1 (602); removed 0 ([])
+- `ADLF_Transition_to_In_State_Postsecondary_Education.csv` `School Number`: 131 distinct in KYRC25, 128 in KYRC26; added 3 (026; 176; 191); removed 6 (164; 245; 305; 463; 620; 768)
+- `ADLF_Transition_to_In_State_Postsecondary_Education.csv` `School Code`: 529 distinct in KYRC25, 535 in KYRC26; added 20 (016015; 061033; 075032; 121026; 132035; 134013; 152025; 231035; 271031; 275191; 311050; 452018; +8 more); removed 14 (071032; 092011; 181025; 275164; 275463; 275620; 275768; 281030; 301022; 451015; 515130; 551023; +2 more)
+- `ASMT_Alternate_Assessment_Participation.csv` `School Number`: 259 distinct in KYRC25, 257 in KYRC26; added 0 ([]); removed 2 (305; 374)
+- `ASMT_Alternate_Assessment_Participation.csv` `School Code`: 1496 distinct in KYRC25, 1493 in KYRC26; added 6 (011030; 134011; 165220; 221015; 425015; 491020); removed 9 (121015; 221024; 221110; 275374; 331210; 551023; 571245; 571300; 571305)
+- `ASMT_English_Language_Proficiency.csv` `District Number`: 161 distinct in KYRC25, 167 in KYRC26; added 7 (055; 149; 155; 162; 295; 335; 385); removed 1 (371)
+- `ASMT_English_Language_Proficiency.csv` `School Number`: 238 distinct in KYRC25, 237 in KYRC26; added 4 (193; 221; 330; 640); removed 5 (042; 172; 370; 374; 979)
+- `ASMT_English_Language_Proficiency.csv` `School Code`: 1228 distinct in KYRC25, 1250 in KYRC26; added 68 (031390; 042013; 055000; 055010; 061031; 065010; 071120; 081070; 085096; 091016; 095040; 105040; +56 more); removed 46 (015010; 061033; 121015; 125500; 134011; 141080; 176020; 197015; 221105; 225015; 231035; 231979; +34 more)
+- `ASMT_Kindergarten_Screen_Composite.csv` `School Code`: 846 distinct in KYRC25, 846 in KYRC26; added 3 (101005; 221015; 281090); removed 3 (152015; 221110; 331210)
+- `ASMT_Kindergarten_Screen_Developmental_Domains.csv` `School Code`: 846 distinct in KYRC25, 846 in KYRC26; added 3 (101005; 221015; 281090); removed 3 (152015; 221110; 331210)
+- `ASMT_Measurements_of_Interim_Progress_English_Language_Proficiency.csv` `School Number`: 234 distinct in KYRC25, 233 in KYRC26; added 0 ([]); removed 1 (374)
+- `ASMT_Measurements_of_Interim_Progress_English_Language_Proficiency.csv` `School Code`: 1316 distinct in KYRC25, 1314 in KYRC26; added 2 (165220; 221015); removed 4 (221024; 221110; 275374; 331210)
+- `ASMT_Measurements_of_Interim_Progress_Proficiency.csv` `School Number`: 232 distinct in KYRC25, 231 in KYRC26; added 0 ([]); removed 1 (374)
+- `ASMT_Measurements_of_Interim_Progress_Proficiency.csv` `School Code`: 1296 distinct in KYRC25, 1294 in KYRC26; added 2 (165220; 221015); removed 4 (221024; 221110; 275374; 331210)
+- `CTE_Career_Pathways.csv` `District Number`: 166 distinct in KYRC25, 167 in KYRC26; added 1 (606); removed 0 ([])
+- `CTE_Career_Pathways.csv` `School Number`: 145 distinct in KYRC25, 147 in KYRC26; added 3 (068; 460; 951); removed 1 (904)
+- `CTE_Career_Pathways.csv` `School Code`: 476 distinct in KYRC25, 482 in KYRC26; added 9 (165068; 165137; 231035; 275951; 335120; 565065; 575021; 606000; 606460); removed 3 (165904; 165905; 295150)
+- `CTE_Career_Readiness_Indicators.csv` `District Number`: 170 distinct in KYRC25, 169 in KYRC26; added 0 ([]); removed 1 (880)
+- `CTE_Career_Readiness_Indicators.csv` `School Code`: 398 distinct in KYRC25, 397 in KYRC26; added 0 ([]); removed 1 (880000)
+- `CTE_Participation.csv` `District Number`: 166 distinct in KYRC25, 168 in KYRC26; added 2 (354; 606); removed 0 ([])
+- `CTE_Participation.csv` `School Number`: 145 distinct in KYRC25, 147 in KYRC26; added 3 (068; 460; 951); removed 1 (904)
+- `CTE_Participation.csv` `School Code`: 476 distinct in KYRC25, 485 in KYRC26; added 11 (165068; 165137; 231035; 275951; 335120; 354000; 354020; 565065; 575021; 606000; 606460); removed 2 (165904; 165905)
+- `CTE_Perkins_Report.csv` `District Number`: 171 distinct in KYRC25, 166 in KYRC26; added 0 ([]); removed 5 (157; 236; 272; 325; 354)
+- `CTE_Perkins_Report.csv` `School Number`: 165 distinct in KYRC25, 145 in KYRC26; added 1 (068); removed 21 (002; 004; 014; 017; 021; 022; 023; 037; 041; 072; 096; 098; +9 more)
+- `CTE_Perkins_Report.csv` `School Code`: 582 distinct in KYRC25, 477 in KYRC26; added 3 (165068; 165137; 231035); removed 108 (005025; 017005; 021011; 021012; 035135; 035170; 042013; 042098; 045045; 071120; 085096; 091016; +96 more)
+- `CTE_Postsecondary_Opportunities.csv` `District Number`: 164 distinct in KYRC25, 165 in KYRC26; added 1 (032); removed 0 ([])
+- `CTE_Postsecondary_Opportunities.csv` `School Number`: 143 distinct in KYRC25, 143 in KYRC26; added 2 (068; 800); removed 2 (898; 904)
+- `CTE_Postsecondary_Opportunities.csv` `School Code`: 467 distinct in KYRC25, 472 in KYRC26; added 8 (032000; 032010; 165068; 165137; 231035; 275800; 465012; 545075); removed 3 (165898; 165904; 165905)
+- `CTE_Student_Objectives.csv` `District Number`: 166 distinct in KYRC25, 167 in KYRC26; added 1 (606); removed 0 ([])
+- `CTE_Student_Objectives.csv` `School Number`: 143 distinct in KYRC25, 146 in KYRC26; added 4 (021; 068; 460; 951); removed 1 (904)
+- `CTE_Student_Objectives.csv` `School Code`: 474 distinct in KYRC25, 479 in KYRC26; added 7 (165068; 165137; 231035; 275951; 575021; 606000; 606460); removed 2 (165904; 165905)
+- `EDOP_Advanced_Courses_Offered.csv` `District Number`: 130 distinct in KYRC25, 127 in KYRC26; added 4 (072; 162; 271; 495); removed 7 (135; 147; 156; 301; 345; 505; 603)
+- `EDOP_Advanced_Courses_Offered.csv` `School Number`: 88 distinct in KYRC25, 88 in KYRC26; added 3 (004; 132; 202); removed 3 (055; 275; 390)
+- `EDOP_Advanced_Courses_Offered.csv` `School Code`: 326 distinct in KYRC25, 321 in KYRC26; added 17 (072000; 072030; 121013; 145170; 161090; 162000; 162020; 205012; 265004; 271000; 271020; 275202; +5 more); removed 22 (115012; 115100; 133100; 135000; 135020; 143015; 147000; 147010; 156000; 156010; 165275; 231025; +10 more)
+- `EDOP_Advanced_Courses_Participation_and_Performance.csv` `District Number`: 130 distinct in KYRC25, 127 in KYRC26; added 4 (072; 162; 271; 495); removed 7 (135; 147; 156; 301; 345; 505; 603)
+- `EDOP_Advanced_Courses_Participation_and_Performance.csv` `School Number`: 88 distinct in KYRC25, 88 in KYRC26; added 3 (004; 132; 202); removed 3 (055; 275; 390)
+- `EDOP_Advanced_Courses_Participation_and_Performance.csv` `School Code`: 326 distinct in KYRC25, 321 in KYRC26; added 17 (072000; 072030; 121013; 145170; 161090; 162000; 162020; 205012; 265004; 271000; 271020; 275202; +5 more); removed 22 (115012; 115100; 133100; 135000; 135020; 143015; 147000; 147010; 156000; 156010; 165275; 231025; +10 more)
+- `EDOP_Dual_Credit_Participation_and_Performance.csv` `District Number`: 170 distinct in KYRC25, 171 in KYRC26; added 1 (603); removed 0 ([])
+- `EDOP_Dual_Credit_Participation_and_Performance.csv` `School Number`: 115 distinct in KYRC25, 114 in KYRC26; added 5 (132; 186; 312; 390; 651); removed 6 (002; 004; 041; 042; 305; 769)
+- `EDOP_Dual_Credit_Participation_and_Performance.csv` `School Code`: 488 distinct in KYRC25, 484 in KYRC26; added 26 (005025; 011030; 016015; 017005; 071032; 165030; 165651; 265005; 275186; 311016; 311050; 365065; +14 more); removed 30 (092025; 105040; 115012; 121015; 125041; 132035; 134011; 143015; 181075; 197002; 197015; 231035; +18 more)
+- `EDOP_Gifted_Participation_by_Category.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `EDOP_Gifted_Participation_by_Category.csv` `School Code`: 1667 distinct in KYRC25, 1661 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `EDOP_School_Courses_Summary.csv` `School Number`: 278 distinct in KYRC25, 276 in KYRC26; added 1 (195); removed 3 (374; 485; 904)
+- `EDOP_School_Courses_Summary.csv` `School Code`: 1343 distinct in KYRC25, 1334 in KYRC26; added 13 (011030; 165137; 165180; 165220; 195220; 221015; 235195; 381011; 425015; 531025; 555025; 571016; +1 more); removed 22 (075120; 081070; 121015; 145175; 155270; 165904; 165905; 175021; 175485; 205150; 221024; 221110; +10 more)
+- `OVW_Adjusted_Average_Daily_Attendance_AADA.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_Adjusted_Average_Daily_Attendance_AADA.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `OVW_Advanced_Coursework.csv` `District Number`: 173 distinct in KYRC25, 165 in KYRC26; added 0 ([]); removed 8 (006; 149; 185; 186; 524; 537; 602; 603)
+- `OVW_Advanced_Coursework.csv` `School Number`: 267 distinct in KYRC25, 97 in KYRC26; added 1 (135); removed 171 (002; 004; 006; 008; 009; 014; 017; 022; 023; 024; 026; 028; +159 more)
+- `OVW_Advanced_Coursework.csv` `School Code`: 1356 distinct in KYRC25, 257 in KYRC26; added 2 (035135; 115012); removed 1101 (001012; 001014; 001016; 001020; 005010; 005015; 005060; 006010; 011022; 011025; 011050; 011110; +1089 more)
+- `OVW_Arrests_and_Referrals_to_Law_Enforcement.csv` `School Number`: 267 distinct in KYRC25, 266 in KYRC26; added 1 (135); removed 2 (305; 374)
+- `OVW_Arrests_and_Referrals_to_Law_Enforcement.csv` `School Code`: 1360 distinct in KYRC25, 1359 in KYRC26; added 15 (025012; 035018; 035135; 115012; 145015; 165270; 181012; 331050; 411013; 415010; 426035; 491020; +3 more); removed 16 (012005; 115017; 131016; 135022; 147120; 221024; 221110; 275374; 301140; 331210; 445045; 515133; +4 more)
+- `OVW_Attendance_Rate.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_Attendance_Rate.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `OVW_Average_Years_School_Experience.csv` `District Number`: 174 distinct in KYRC25, 175 in KYRC26; added 1 (602); removed 0 ([])
+- `OVW_Average_Years_School_Experience.csv` `School Number`: 280 distinct in KYRC25, 279 in KYRC26; added 3 (139; 153; 176); removed 4 (305; 374; 463; 465)
+- `OVW_Average_Years_School_Experience.csv` `School Code`: 1583 distinct in KYRC25, 1587 in KYRC26; added 19 (011030; 035160; 147120; 165220; 221015; 301155; 425015; 426023; 551023; 551025; 555025; 571006; +7 more); removed 15 (121015; 131016; 134011; 221024; 221110; 275374; 275463; 275465; 331210; 523022; 571245; 571300; +3 more)
+- `OVW_Board_Members_SBDM.csv` `School Number`: 233 distinct in KYRC25, 232 in KYRC26; added 0 ([]); removed 1 (374)
+- `OVW_Board_Members_SBDM.csv` `School Code`: 1322 distinct in KYRC25, 1320 in KYRC26; added 2 (165220; 221015); removed 4 (221024; 221110; 275374; 331210)
+- `OVW_Chronic_Absenteeism.csv` `School Number`: 261 distinct in KYRC25, 258 in KYRC26; added 0 ([]); removed 3 (305; 374; 463)
+- `OVW_Chronic_Absenteeism.csv` `School Code`: 1505 distinct in KYRC25, 1496 in KYRC26; added 6 (011030; 134011; 165220; 221015; 301155; 591010); removed 15 (115012; 221024; 221110; 231035; 275374; 275463; 315260; 331210; 501099; 531025; 551023; 571020; +3 more)
+- `OVW_Chronic_Absenteeism_CRDC.csv` `District Number`: 172 distinct in KYRC25, 174 in KYRC26; added 2 (132; 606); removed 0 ([])
+- `OVW_Chronic_Absenteeism_CRDC.csv` `School Number`: 255 distinct in KYRC25, 252 in KYRC26; added 3 (406; 460; 800); removed 6 (068; 374; 456; 768; 784; 951)
+- `OVW_Chronic_Absenteeism_CRDC.csv` `School Code`: 1259 distinct in KYRC25, 1277 in KYRC26; added 49 (001012; 005025; 025012; 026420; 035018; 061035; 065030; 075032; 115012; 115023; 132030; 132035; +37 more); removed 31 (071110; 085096; 131016; 134011; 145170; 145175; 165068; 177080; 181011; 181072; 197002; 221024; +19 more)
+- `OVW_Dropout_Rate.csv` `School Number`: 159 distinct in KYRC25, 159 in KYRC26; added 1 (406); removed 1 (024)
+- `OVW_Dropout_Rate.csv` `School Code`: 678 distinct in KYRC25, 678 in KYRC26; added 2 (275255; 275406); removed 2 (221024; 331210)
+- `OVW_Economically_Disadvantaged.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_Economically_Disadvantaged.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `OVW_Educator_Qualifications.csv` `School Number`: 290 distinct in KYRC25, 286 in KYRC26; added 0 ([]); removed 4 (305; 374; 463; 465)
+- `OVW_Educator_Qualifications.csv` `School Code`: 1632 distinct in KYRC25, 1629 in KYRC26; added 9 (011030; 035160; 115027; 165220; 221015; 425015; 435014; 555025; 571006); removed 12 (121015; 131016; 221024; 221110; 275374; 275463; 275465; 331210; 571245; 571300; 571305; 593040)
+- `OVW_English_Learners.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_English_Learners.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `OVW_Extra_Year_in_Primary.csv` `School Number`: 201 distinct in KYRC25, 197 in KYRC26; added 0 ([]); removed 4 (374; 463; 465; 951)
+- `OVW_Extra_Year_in_Primary.csv` `School Code`: 962 distinct in KYRC25, 930 in KYRC26; added 2 (221015; 451015); removed 34 (005060; 011120; 042013; 092025; 115012; 131020; 133012; 133019; 152025; 165018; 181016; 221110; +22 more)
+- `OVW_Harassment_and_Bullying.csv` `School Number`: 267 distinct in KYRC25, 266 in KYRC26; added 1 (135); removed 2 (305; 374)
+- `OVW_Harassment_and_Bullying.csv` `School Code`: 1360 distinct in KYRC25, 1359 in KYRC26; added 15 (025012; 035018; 035135; 115012; 145015; 165270; 181012; 331050; 411013; 415010; 426035; 491020; +3 more); removed 16 (012005; 115017; 131016; 135022; 147120; 221024; 221110; 275374; 301140; 331210; 445045; 515133; +4 more)
+- `OVW_Homeless.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_Homeless.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `OVW_Inexperienced_Teachers.csv` `District Number`: 174 distinct in KYRC25, 175 in KYRC26; added 1 (602); removed 0 ([])
+- `OVW_Inexperienced_Teachers.csv` `School Number`: 280 distinct in KYRC25, 279 in KYRC26; added 3 (139; 153; 176); removed 4 (305; 374; 463; 465)
+- `OVW_Inexperienced_Teachers.csv` `School Code`: 1583 distinct in KYRC25, 1587 in KYRC26; added 19 (011030; 035160; 147120; 165220; 221015; 301155; 425015; 426023; 551023; 551025; 555025; 571006; +7 more); removed 15 (121015; 131016; 134011; 221024; 221110; 275374; 275463; 275465; 331210; 523022; 571245; 571300; +3 more)
+- `OVW_Migrant.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_Migrant.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `OVW_Parental_Involvement.csv` `District Number`: 171 distinct in KYRC25, 170 in KYRC26; added 0 ([]); removed 1 (006)
+- `OVW_Parental_Involvement.csv` `School Number`: 232 distinct in KYRC25, 231 in KYRC26; added 0 ([]); removed 1 (374)
+- `OVW_Parental_Involvement.csv` `School Code`: 1143 distinct in KYRC25, 1144 in KYRC26; added 8 (041110; 165220; 195060; 195070; 221015; 491060; 491250; 491620); removed 7 (006010; 071016; 071070; 221024; 221110; 275374; 331210)
+- `OVW_Preschool_Enrollment.csv` `School Number`: 267 distinct in KYRC25, 266 in KYRC26; added 1 (135); removed 2 (305; 374)
+- `OVW_Preschool_Enrollment.csv` `School Code`: 1356 distinct in KYRC25, 1359 in KYRC26; added 15 (025012; 035018; 035135; 115012; 145015; 165270; 181012; 331050; 411013; 415010; 426035; 491020; +3 more); removed 12 (012005; 131016; 135022; 147120; 221024; 221110; 275374; 331210; 571245; 571300; 571305; 575071)
+- `OVW_Preschool_Suspensions_and_Expulsions.csv` `District Number`: 165 distinct in KYRC25, 168 in KYRC26; added 4 (155; 401; 415; 477); removed 1 (603)
+- `OVW_Preschool_Suspensions_and_Expulsions.csv` `School Number`: 220 distinct in KYRC25, 141 in KYRC26; added 2 (043; 330); removed 81 (004; 024; 028; 029; 033; 034; 041; 047; 049; 061; 063; 064; +69 more)
+- `OVW_Preschool_Suspensions_and_Expulsions.csv` `School Code`: 624 distinct in KYRC25, 508 in KYRC26; added 16 (035018; 155100; 171060; 176020; 231050; 261050; 291045; 295150; 375020; 401020; 401330; 411030; +4 more); removed 132 (176030; 221110; 235540; 275004; 275007; 275010; 275011; 275012; 275013; 275014; 275018; 275019; +120 more)
+- `OVW_Secondary_Enrollment.csv` `District Number`: 15 distinct in KYRC25, 16 in KYRC26; added 1 (035); removed 0 ([])
+- `OVW_Secondary_Enrollment.csv` `School Number`: 62 distinct in KYRC25, 63 in KYRC26; added 1 (160); removed 0 ([])
+- `OVW_Secondary_Enrollment.csv` `School Code`: 89 distinct in KYRC25, 91 in KYRC26; added 6 (035000; 035160; 165100; 281025; 465005; 555025); removed 4 (115130; 281060; 472110; 525005)
+- `OVW_Student_Enrollment.csv` `School Number`: 270 distinct in KYRC25, 267 in KYRC26; added 0 ([]); removed 3 (305; 374; 463)
+- `OVW_Student_Enrollment.csv` `School Code`: 1572 distinct in KYRC25, 1561 in KYRC26; added 5 (011030; 165220; 221015; 425015; 571006); removed 16 (115012; 121015; 221024; 221110; 231035; 275374; 275463; 331210; 465035; 531025; 551023; 571020; +4 more)
+- `OVW_Student_Expulsions.csv` `School Number`: 267 distinct in KYRC25, 266 in KYRC26; added 1 (135); removed 2 (305; 374)
+- `OVW_Student_Expulsions.csv` `School Code`: 1360 distinct in KYRC25, 1359 in KYRC26; added 15 (025012; 035018; 035135; 115012; 145015; 165270; 181012; 331050; 411013; 415010; 426035; 491020; +3 more); removed 16 (012005; 115017; 131016; 135022; 147120; 221024; 221110; 275374; 301140; 331210; 445045; 515133; +4 more)
+- `OVW_Student_Retention_Grades_4_12.csv` `School Number`: 287 distinct in KYRC25, 284 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_Student_Retention_Grades_4_12.csv` `School Code`: 1562 distinct in KYRC25, 1559 in KYRC26; added 13 (011030; 165137; 165220; 221015; 251025; 365025; 415000; 425015; 431130; 555025; 610000; 777000; +1 more); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `OVW_Student_Suspensions.csv` `School Number`: 267 distinct in KYRC25, 266 in KYRC26; added 1 (135); removed 2 (305; 374)
+- `OVW_Student_Suspensions.csv` `School Code`: 1360 distinct in KYRC25, 1359 in KYRC26; added 15 (025012; 035018; 035135; 115012; 145015; 165270; 181012; 331050; 411013; 415010; 426035; 491020; +3 more); removed 16 (012005; 115017; 131016; 135022; 147120; 221024; 221110; 275374; 301140; 331210; 445045; 515133; +4 more)
+- `OVW_Student_to_Teacher_Ratio.csv` `District Number`: 175 distinct in KYRC25, 174 in KYRC26; added 0 ([]); removed 1 (999)
+- `OVW_Student_to_Teacher_Ratio.csv` `School Number`: 283 distinct in KYRC25, 281 in KYRC26; added 1 (137); removed 3 (; 305; 374)
+- `OVW_Student_to_Teacher_Ratio.csv` `School Code`: 1608 distinct in KYRC25, 1432 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 186 (001000; 005000; 006000; 011000; 012000; 013000; 015000; 016000; 017000; 021000; 025000; 026000; +174 more)
+- `OVW_Students_Taught_by_Ineffective_Teachers.csv` `District Number`: 176 distinct in KYRC25, 174 in KYRC26; added 0 ([]); removed 2 (006; 072)
+- `OVW_Students_Taught_by_Ineffective_Teachers.csv` `School Number`: 281 distinct in KYRC25, 281 in KYRC26; added 2 (137; 906); removed 2 (305; 374)
+- `OVW_Students_Taught_by_Ineffective_Teachers.csv` `School Code`: 1585 distinct in KYRC25, 1587 in KYRC26; added 28 (011030; 015905; 041110; 105040; 105905; 125041; 134906; 145035; 145170; 145175; 165137; 165220; +16 more); removed 26 (006000; 006010; 071016; 071070; 072000; 072030; 121015; 131016; 147120; 165054; 165067; 165082; +14 more)
+- `OVW_Students_Taught_by_Inexperienced_Teachers.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_Students_Taught_by_Inexperienced_Teachers.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `OVW_Students_Taught_by_Out_of_Field_Teachers.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_Students_Taught_by_Out_of_Field_Teachers.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `OVW_Students_with_Disabilities_IEP.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_Students_with_Disabilities_IEP.csv` `School Code`: 1667 distinct in KYRC25, 1661 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `OVW_Teacher_Working_Conditions.csv` `District Number`: 172 distinct in KYRC25, 136 in KYRC26; added 2 (321; 592); removed 38 (001; 005; 006; 011; 012; 013; 015; 016; 017; 021; 025; 026; +26 more)
+- `OVW_Teacher_Working_Conditions.csv` `School Number`: 263 distinct in KYRC25, 237 in KYRC26; added 12 (049; 126; 167; 168; 186; 191; 202; 470; 485; 590; 680; 720); removed 38 (009; 112; 113; 114; 118; 123; 124; 129; 135; 136; 138; 139; +26 more)
+- `OVW_Teacher_Working_Conditions.csv` `School Code`: 1434 distinct in KYRC25, 1094 in KYRC26; added 60 (105500; 115100; 132035; 165137; 165220; 175030; 175485; 197005; 221015; 231050; 231080; 231168; +48 more); removed 400 (001000; 001010; 001014; 001016; 001020; 005000; 005010; 005015; 005020; 005060; 006000; 006010; +388 more)
+- `OVW_Teachers_by_Gender.csv` `School Number`: 283 distinct in KYRC25, 282 in KYRC26; added 1 (137); removed 2 (305; 374)
+- `OVW_Teachers_by_Gender.csv` `School Code`: 1610 distinct in KYRC25, 1607 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 13 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +1 more)
+- `OVW_Teachers_by_Race_Ethnicity.csv` `School Number`: 283 distinct in KYRC25, 282 in KYRC26; added 1 (137); removed 2 (305; 374)
+- `OVW_Teachers_by_Race_Ethnicity.csv` `School Code`: 1610 distinct in KYRC25, 1607 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 13 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +1 more)
+- `OVW_Violent_Offenses.csv` `School Number`: 267 distinct in KYRC25, 266 in KYRC26; added 1 (135); removed 2 (305; 374)
+- `OVW_Violent_Offenses.csv` `School Code`: 1360 distinct in KYRC25, 1359 in KYRC26; added 15 (025012; 035018; 035135; 115012; 145015; 165270; 181012; 331050; 411013; 415010; 426035; 491020; +3 more); removed 16 (012005; 115017; 131016; 135022; 147120; 221024; 221110; 275374; 301140; 331210; 445045; 515133; +4 more)
+- `SAFE_Approaches_that_are_actively_implemented_school_wide.csv` `School Number`: 271 distinct in KYRC25, 270 in KYRC26; added 2 (137; 906); removed 3 (305; 374; 651)
+- `SAFE_Approaches_that_are_actively_implemented_school_wide.csv` `School Code`: 1343 distinct in KYRC25, 1349 in KYRC26; added 26 (011030; 015905; 041110; 105905; 125041; 134906; 145035; 165137; 165220; 195060; 195070; 221015; +14 more); removed 20 (071016; 071070; 121015; 147120; 165054; 165067; 165270; 165651; 165904; 165905; 175050; 221024; +8 more)
+- `SAFE_Behavior_Events_by_Context.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `SAFE_Behavior_Events_by_Context.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `SAFE_Behavior_Events_by_Grade_Level.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `SAFE_Behavior_Events_by_Grade_Level.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `SAFE_Behavior_Events_by_Location.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `SAFE_Behavior_Events_by_Location.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `SAFE_Behavior_Events_by_Type.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `SAFE_Behavior_Events_by_Type.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `SAFE_Legal_Sanctions.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `SAFE_Legal_Sanctions.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `ACCT_Crosstab_Cohort_4_Year.csv` `School Number`: 130 distinct in KYRC25, 127 in KYRC26; added 2 (456; 651); removed 5 (029; 245; 305; 463; 899)
+- `ACCT_Crosstab_Cohort_4_Year.csv` `School Code`: 526 distinct in KYRC25, 525 in KYRC26; added 9 (011030; 025012; 145015; 165651; 175050; 275456; 365065; 425015; 595140); removed 10 (121015; 165130; 165899; 211220; 271029; 275463; 465035; 515010; 571245; 571305)
+- `ACCT_Crosstab_Cohort_5_Year.csv` `School Number`: 125 distinct in KYRC25, 128 in KYRC26; added 6 (029; 032; 160; 191; 463; 899); removed 3 (245; 305; 456)
+- `ACCT_Crosstab_Cohort_5_Year.csv` `School Code`: 522 distinct in KYRC25, 523 in KYRC26; added 11 (011030; 075032; 145160; 165899; 211220; 271029; 271031; 275191; 275463; 365160; 491015); removed 10 (165054; 175050; 197015; 231180; 275456; 365065; 426035; 501071; 571245; 571305)
+- `ACCT_Crosstab_EditingMechanics.csv` `School Number`: 231 distinct in KYRC25, 231 in KYRC26; added 1 (406); removed 1 (374)
+- `ACCT_Crosstab_EditingMechanics.csv` `School Code`: 1265 distinct in KYRC25, 1279 in KYRC26; added 18 (165220; 221015; 275255; 275406; 311010; 311018; 311030; 311040; 311055; 311070; 311130; 311165; +6 more); removed 4 (221024; 221110; 275374; 331210)
+- `ACCT_Crosstab_Mathematics.csv` `School Number`: 232 distinct in KYRC25, 231 in KYRC26; added 0 ([]); removed 1 (374)
+- `ACCT_Crosstab_Mathematics.csv` `School Code`: 1305 distinct in KYRC25, 1303 in KYRC26; added 2 (165220; 221015); removed 4 (221024; 221110; 275374; 331210)
+- `ACCT_Crosstab_OnDemandWriting.csv` `School Number`: 231 distinct in KYRC25, 231 in KYRC26; added 1 (406); removed 1 (374)
+- `ACCT_Crosstab_OnDemandWriting.csv` `School Code`: 1266 distinct in KYRC25, 1279 in KYRC26; added 17 (165220; 221015; 275255; 275406; 311010; 311018; 311030; 311040; 311055; 311070; 311130; 311165; +5 more); removed 4 (221024; 221110; 275374; 331210)
+- `ACCT_Crosstab_Reading.csv` `School Number`: 232 distinct in KYRC25, 231 in KYRC26; added 0 ([]); removed 1 (374)
+- `ACCT_Crosstab_Reading.csv` `School Code`: 1305 distinct in KYRC25, 1303 in KYRC26; added 2 (165220; 221015); removed 4 (221024; 221110; 275374; 331210)
+- `ACCT_Crosstab_Science.csv` `School Number`: 232 distinct in KYRC25, 231 in KYRC26; added 0 ([]); removed 1 (374)
+- `ACCT_Crosstab_Science.csv` `School Code`: 1293 distinct in KYRC25, 1291 in KYRC26; added 2 (165220; 221015); removed 4 (221024; 221110; 275374; 331210)
+- `ACCT_Crosstab_SocialStudies.csv` `School Number`: 231 distinct in KYRC25, 231 in KYRC26; added 1 (406); removed 1 (374)
+- `ACCT_Crosstab_SocialStudies.csv` `School Code`: 1279 distinct in KYRC25, 1279 in KYRC26; added 4 (165220; 221015; 275255; 275406); removed 4 (221024; 221110; 275374; 331210)
+- `ACCT_Profile.csv` `School Number`: 234 distinct in KYRC25, 233 in KYRC26; added 0 ([]); removed 1 (374)
+- `ACCT_Profile.csv` `School Code`: 1316 distinct in KYRC25, 1314 in KYRC26; added 2 (165220; 221015); removed 4 (221024; 221110; 275374; 331210)
+- `ACCT_Summary.csv` `School Number`: 232 distinct in KYRC25, 231 in KYRC26; added 0 ([]); removed 1 (374)
+- `ACCT_Summary.csv` `School Code`: 1296 distinct in KYRC25, 1294 in KYRC26; added 2 (165220; 221015); removed 4 (221024; 221110; 275374; 331210)
+- `ASMT_Benchmark.csv` `School Number`: 130 distinct in KYRC25, 135 in KYRC26; added 5 (017; 061; 221; 784; 800); removed 0 ([])
+- `ASMT_Benchmark.csv` `School Code`: 543 distinct in KYRC25, 551 in KYRC26; added 18 (011030; 016015; 085095; 143350; 145015; 152045; 157061; 231180; 275221; 275784; 275800; 365160; +6 more); removed 10 (075032; 197015; 271031; 281030; 381005; 426023; 426035; 435014; 465035; 515010)
+- `ASMT_CAE.csv` `School Number`: 130 distinct in KYRC25, 135 in KYRC26; added 5 (017; 061; 221; 784; 800); removed 0 ([])
+- `ASMT_CAE.csv` `School Code`: 543 distinct in KYRC25, 551 in KYRC26; added 18 (011030; 016015; 085095; 143350; 145015; 152045; 157061; 231180; 275221; 275784; 275800; 365160; +6 more); removed 10 (075032; 197015; 271031; 281030; 381005; 426023; 426035; 435014; 465035; 515010)
+- `ASMT_Kentucky_Summative_Assessment.csv` `School Number`: 259 distinct in KYRC25, 257 in KYRC26; added 0 ([]); removed 2 (305; 374)
+- `ASMT_Kentucky_Summative_Assessment.csv` `School Code`: 1496 distinct in KYRC25, 1493 in KYRC26; added 6 (011030; 134011; 165220; 221015; 425015; 491020); removed 9 (121015; 221024; 221110; 275374; 331210; 551023; 571245; 571300; 571305)
+- `EDOP_Career_Studies.csv` `School Number`: 299 distinct in KYRC25, 296 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `EDOP_Career_Studies.csv` `School Code`: 1490 distinct in KYRC25, 1485 in KYRC26; added 11 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 531025; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `EDOP_Dual_Credit_Courses_Offered.csv` `District Number`: 170 distinct in KYRC25, 171 in KYRC26; added 1 (603); removed 0 ([])
+- `EDOP_Dual_Credit_Courses_Offered.csv` `School Number`: 115 distinct in KYRC25, 114 in KYRC26; added 5 (132; 186; 312; 390; 651); removed 6 (002; 004; 041; 042; 305; 769)
+- `EDOP_Dual_Credit_Courses_Offered.csv` `School Code`: 488 distinct in KYRC25, 484 in KYRC26; added 26 (005025; 011030; 016015; 017005; 071032; 165030; 165651; 265005; 275186; 311016; 311050; 365065; +14 more); removed 30 (092025; 105040; 115012; 121015; 125041; 132035; 134011; 143015; 181075; 197002; 197015; 231035; +18 more)
+- `EDOP_Gifted_Participation_by_Grade_Level.csv` `School Number`: 252 distinct in KYRC25, 250 in KYRC26; added 2 (193; 456); removed 4 (221; 374; 455; 651)
+- `EDOP_Gifted_Participation_by_Grade_Level.csv` `School Code`: 1447 distinct in KYRC25, 1424 in KYRC26; added 23 (035170; 121013; 143350; 145175; 145180; 152041; 165220; 181011; 181075; 197015; 221015; 225015; +11 more); removed 46 (001012; 011120; 042013; 085095; 113030; 115012; 121015; 131020; 132035; 133012; 145035; 165066; +34 more)
+- `EDOP_Health_Education_and_Physical_Education.csv` `School Number`: 265 distinct in KYRC25, 265 in KYRC26; added 2 (137; 194); removed 2 (305; 374)
+- `EDOP_Health_Education_and_Physical_Education.csv` `School Code`: 1320 distinct in KYRC25, 1319 in KYRC26; added 11 (011030; 165137; 165220; 221015; 251025; 275194; 365025; 365160; 425015; 431130; 555025); removed 12 (121015; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; 571305)
+- `EDOP_Visual_and_Performing_Arts.csv` `School Number`: 265 distinct in KYRC25, 265 in KYRC26; added 2 (137; 194); removed 2 (305; 374)
+- `EDOP_Visual_and_Performing_Arts.csv` `School Code`: 1320 distinct in KYRC25, 1319 in KYRC26; added 11 (011030; 165137; 165220; 221015; 251025; 275194; 365025; 365160; 425015; 431130; 555025); removed 12 (121015; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; 571305)
+- `EDOP_World_Languages.csv` `District Number`: 175 distinct in KYRC25, 174 in KYRC26; added 0 ([]); removed 1 (880)
+- `EDOP_World_Languages.csv` `School Number`: 265 distinct in KYRC25, 265 in KYRC26; added 2 (137; 194); removed 2 (305; 374)
+- `EDOP_World_Languages.csv` `School Code`: 1320 distinct in KYRC25, 1301 in KYRC26; added 9 (011030; 165137; 165220; 221015; 251025; 275194; 425015; 431130; 555025); removed 28 (071016; 071070; 105040; 121015; 135022; 146035; 147120; 165054; 165067; 165904; 165905; 175050; +16 more)
+- `OVW_Access_to_Technology.csv` `School Number`: 280 distinct in KYRC25, 280 in KYRC26; added 2 (137; 906); removed 2 (305; 374)
+- `OVW_Access_to_Technology.csv` `School Code`: 1417 distinct in KYRC25, 1424 in KYRC26; added 23 (011030; 015905; 041110; 105040; 105905; 125041; 134906; 145035; 145170; 145175; 165137; 165220; +11 more); removed 16 (121015; 131016; 147120; 165067; 165904; 165905; 175050; 221024; 221110; 271029; 271031; 275374; +4 more)
+- `OVW_District_School_List.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_District_School_List.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `OVW_Student_Membership.csv` `School Number`: 271 distinct in KYRC25, 263 in KYRC26; added 1 (976); removed 9 (194; 198; 222; 305; 344; 374; 465; 887; 919)
+- `OVW_Student_Membership.csv` `School Code`: 1571 distinct in KYRC25, 1525 in KYRC26; added 9 (011030; 042011; 165220; 175050; 221015; 301976; 311060; 425015; 551025); removed 55 (012012; 015070; 017009; 041011; 045198; 075010; 085075; 101007; 115027; 121015; 121017; 133016; +43 more)
+- `OVW_Teacher_Certification_Data.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_Teacher_Certification_Data.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `OVW_Teacher_Turnover.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `OVW_Teacher_Turnover.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `SAFE_Discipline_Resolutions.csv` `School Number`: 300 distinct in KYRC25, 297 in KYRC26; added 0 ([]); removed 3 (158; 305; 374)
+- `SAFE_Discipline_Resolutions.csv` `School Code`: 1669 distinct in KYRC25, 1663 in KYRC26; added 10 (011030; 165137; 165220; 221015; 251025; 365025; 425015; 431130; 555025; 571006); removed 16 (121015; 131016; 135022; 146035; 165904; 165905; 221024; 221110; 275374; 331210; 571245; 571300; +4 more)
+- `SAFE_Precautionary_Measures.csv` `School Number`: 271 distinct in KYRC25, 270 in KYRC26; added 2 (137; 906); removed 3 (305; 374; 651)
+- `SAFE_Precautionary_Measures.csv` `School Code`: 1345 distinct in KYRC25, 1349 in KYRC26; added 24 (011030; 015905; 041110; 105905; 125041; 134906; 145035; 165137; 165220; 195060; 195070; 221015; +12 more); removed 20 (071016; 071070; 121015; 147120; 165054; 165067; 165270; 165651; 165904; 165905; 175050; 221024; +8 more)
+- `ASMT_The_ACT.csv -> ASMT_CAE.csv` `School Number`: 130 distinct in KYRC25, 135 in KYRC26; added 5 (017; 061; 221; 784; 800); removed 0 ([])
+- `ASMT_The_ACT.csv -> ASMT_CAE.csv` `School Code`: 543 distinct in KYRC25, 551 in KYRC26; added 18 (011030; 016015; 085095; 143350; 145015; 152045; 157061; 231180; 275221; 275784; 275800; 365160; +6 more); removed 10 (075032; 197015; 271031; 281030; 381005; 426023; 426035; 435014; 465035; 515010)
+- `CRDC_Chronic_Absenteeism.csv -> OVW_Chronic_Absenteeism_CRDC.csv` `District Number`: 172 distinct in KYRC25, 174 in KYRC26; added 2 (132; 606); removed 0 ([])
+- `CRDC_Chronic_Absenteeism.csv -> OVW_Chronic_Absenteeism_CRDC.csv` `School Number`: 255 distinct in KYRC25, 252 in KYRC26; added 3 (406; 460; 800); removed 6 (068; 374; 456; 768; 784; 951)
+- `CRDC_Chronic_Absenteeism.csv -> OVW_Chronic_Absenteeism_CRDC.csv` `School Code`: 1259 distinct in KYRC25, 1277 in KYRC26; added 49 (001012; 005025; 025012; 026420; 035018; 061035; 065030; 075032; 115012; 115023; 132030; 132035; +37 more); removed 31 (071110; 085096; 131016; 134011; 145170; 145175; 165068; 177080; 181011; 181072; 197002; 221024; +19 more)
+
+## Non-6-digit school codes
+
+`KYRC25` `ACCT_Crosstab_Mathematics.csv` non-6-digit school codes: 901, 902, 903, 904, 905, 906, 907, 908, 909
+- `901`: 1700 rows; district number=901; district name=CKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=CKEC; school year=20242025
+- `902`: 1776 rows; district number=902; district name=GRREC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=GRREC; school year=20242025
+- `903`: 1287 rows; district number=903; district name=KEDC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KEDC; school year=20242025
+- `904`: 1182 rows; district number=904; district name=KVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KVEC; school year=20242025
+- `905`: 1643 rows; district number=905; district name=NKCES; school name=; school type=; level=Elementary School; High School; Middle School; co-op=NKCES; school year=20242025
+- `906`: 1573 rows; district number=906; district name=OVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=OVEC; school year=20242025
+- `907`: 1537 rows; district number=907; district name=SESC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=SESC; school year=20242025
+- `908`: 1572 rows; district number=908; district name=WKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=WKEC; school year=20242025
+- `909`: 1686 rows; district number=909; district name=GLEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=; school year=20242025
+`KYRC26` `ACCT_Crosstab_Mathematics.csv` non-6-digit school codes: 901, 902, 903, 904, 905, 906, 907, 908, 909
+- `901`: 1681 rows; district number=901; district name=CKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=CKEC; school year=20252026
+- `902`: 1782 rows; district number=902; district name=GRREC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=GRREC; school year=20252026
+- `903`: 1330 rows; district number=903; district name=KEDC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KEDC; school year=20252026
+- `904`: 1128 rows; district number=904; district name=KVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KVEC; school year=20252026
+- `905`: 1638 rows; district number=905; district name=NKCES; school name=; school type=; level=Elementary School; High School; Middle School; co-op=NKCES; school year=20252026
+- `906`: 1568 rows; district number=906; district name=OVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=OVEC; school year=20252026
+- `907`: 1516 rows; district number=907; district name=SESC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=SESC; school year=20252026
+- `908`: 1567 rows; district number=908; district name=WKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=WKEC; school year=20252026
+- `909`: 1727 rows; district number=909; district name=GLEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=GLEC; school year=20252026
+`KYRC25` `ACCT_Crosstab_Reading.csv` non-6-digit school codes: 901, 902, 903, 904, 905, 906, 907, 908, 909
+- `901`: 1700 rows; district number=901; district name=CKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=CKEC; school year=20242025
+- `902`: 1776 rows; district number=902; district name=GRREC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=GRREC; school year=20242025
+- `903`: 1287 rows; district number=903; district name=KEDC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KEDC; school year=20242025
+- `904`: 1182 rows; district number=904; district name=KVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KVEC; school year=20242025
+- `905`: 1643 rows; district number=905; district name=NKCES; school name=; school type=; level=Elementary School; High School; Middle School; co-op=NKCES; school year=20242025
+- `906`: 1573 rows; district number=906; district name=OVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=OVEC; school year=20242025
+- `907`: 1537 rows; district number=907; district name=SESC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=SESC; school year=20242025
+- `908`: 1572 rows; district number=908; district name=WKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=WKEC; school year=20242025
+- `909`: 1686 rows; district number=909; district name=GLEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=; school year=20242025
+`KYRC26` `ACCT_Crosstab_Reading.csv` non-6-digit school codes: 901, 902, 903, 904, 905, 906, 907, 908, 909
+- `901`: 1681 rows; district number=901; district name=CKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=CKEC; school year=20252026
+- `902`: 1782 rows; district number=902; district name=GRREC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=GRREC; school year=20252026
+- `903`: 1330 rows; district number=903; district name=KEDC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KEDC; school year=20252026
+- `904`: 1128 rows; district number=904; district name=KVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KVEC; school year=20252026
+- `905`: 1638 rows; district number=905; district name=NKCES; school name=; school type=; level=Elementary School; High School; Middle School; co-op=NKCES; school year=20252026
+- `906`: 1568 rows; district number=906; district name=OVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=OVEC; school year=20252026
+- `907`: 1516 rows; district number=907; district name=SESC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=SESC; school year=20252026
+- `908`: 1567 rows; district number=908; district name=WKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=WKEC; school year=20252026
+- `909`: 1727 rows; district number=909; district name=GLEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=GLEC; school year=20252026
+`KYRC25` `ACCT_Crosstab_Science.csv` non-6-digit school codes: 901, 902, 903, 904, 905, 906, 907, 908, 909
+- `901`: 1589 rows; district number=901; district name=CKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=CKEC; school year=20242025
+- `902`: 1685 rows; district number=902; district name=GRREC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=GRREC; school year=20242025
+- `903`: 1160 rows; district number=903; district name=KEDC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KEDC; school year=20242025
+- `904`: 996 rows; district number=904; district name=KVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KVEC; school year=20242025
+- `905`: 1579 rows; district number=905; district name=NKCES; school name=; school type=; level=Elementary School; High School; Middle School; co-op=NKCES; school year=20242025
+- `906`: 1472 rows; district number=906; district name=OVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=OVEC; school year=20242025
+- `907`: 1369 rows; district number=907; district name=SESC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=SESC; school year=20242025
+- `908`: 1401 rows; district number=908; district name=WKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=WKEC; school year=20242025
+- `909`: 1616 rows; district number=909; district name=GLEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=; school year=20242025
+`KYRC26` `ACCT_Crosstab_Science.csv` non-6-digit school codes: 901, 902, 903, 904, 905, 906, 907, 908, 909
+- `901`: 1630 rows; district number=901; district name=CKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=CKEC; school year=20252026
+- `902`: 1741 rows; district number=902; district name=GRREC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=GRREC; school year=20252026
+- `903`: 1187 rows; district number=903; district name=KEDC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KEDC; school year=20252026
+- `904`: 1020 rows; district number=904; district name=KVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KVEC; school year=20252026
+- `905`: 1535 rows; district number=905; district name=NKCES; school name=; school type=; level=Elementary School; High School; Middle School; co-op=NKCES; school year=20252026
+- `906`: 1462 rows; district number=906; district name=OVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=OVEC; school year=20252026
+- `907`: 1446 rows; district number=907; district name=SESC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=SESC; school year=20252026
+- `908`: 1449 rows; district number=908; district name=WKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=WKEC; school year=20252026
+- `909`: 1634 rows; district number=909; district name=GLEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=GLEC; school year=20252026
+`KYRC25` `ACCT_Crosstab_SocialStudies.csv` non-6-digit school codes: 901, 902, 903, 904, 905, 906, 907, 908, 909
+- `901`: 1625 rows; district number=901; district name=CKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=CKEC; school year=20242025
+- `902`: 1693 rows; district number=902; district name=GRREC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=GRREC; school year=20242025
+- `903`: 1136 rows; district number=903; district name=KEDC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KEDC; school year=20242025
+- `904`: 966 rows; district number=904; district name=KVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KVEC; school year=20242025
+- `905`: 1529 rows; district number=905; district name=NKCES; school name=; school type=; level=Elementary School; High School; Middle School; co-op=NKCES; school year=20242025
+- `906`: 1460 rows; district number=906; district name=OVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=OVEC; school year=20242025
+- `907`: 1414 rows; district number=907; district name=SESC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=SESC; school year=20242025
+- `908`: 1454 rows; district number=908; district name=WKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=WKEC; school year=20242025
+- `909`: 1597 rows; district number=909; district name=GLEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=; school year=20242025
+`KYRC26` `ACCT_Crosstab_SocialStudies.csv` non-6-digit school codes: 901, 902, 903, 904, 905, 906, 907, 908, 909
+- `901`: 1566 rows; district number=901; district name=CKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=CKEC; school year=20252026
+- `902`: 1736 rows; district number=902; district name=GRREC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=GRREC; school year=20252026
+- `903`: 1198 rows; district number=903; district name=KEDC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KEDC; school year=20252026
+- `904`: 1073 rows; district number=904; district name=KVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=KVEC; school year=20252026
+- `905`: 1532 rows; district number=905; district name=NKCES; school name=; school type=; level=Elementary School; High School; Middle School; co-op=NKCES; school year=20252026
+- `906`: 1435 rows; district number=906; district name=OVEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=OVEC; school year=20252026
+- `907`: 1365 rows; district number=907; district name=SESC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=SESC; school year=20252026
+- `908`: 1409 rows; district number=908; district name=WKEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=WKEC; school year=20252026
+- `909`: 1630 rows; district number=909; district name=GLEC; school name=; school type=; level=Elementary School; High School; Middle School; co-op=GLEC; school year=20252026
+

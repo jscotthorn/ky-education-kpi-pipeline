@@ -3,7 +3,7 @@
 Generated 2026-10-17 18:55 UTC by `scripts/kyrc_schema_diff.py`.
 
 Requests used a Chrome User-Agent. A status of 403, 429, or 503 is blocked, not missing. A status of 404 is absent. No request in this run returned 403, 429, or 503.
-School code, school number, and district number are not domain-diffed: the distinct-value cap is 80, and those columns exceed it. Grain checks for state rows are in the audit note.
+School code, school number, and district number are compared in full in `notes/kyrc26-code-domain-diff.md`. Other coded columns still stop at 80 distinct values. Grain checks for state rows are in the audit note.
 
 ## Containers
 
@@ -136,7 +136,7 @@ Same bytes on both containers. `datasets` Last-Modified is the 15 October 2026 r
 
 ## Domain changes
 
-Coded columns were compared in full only when the distinct-value set stayed under 80. School code, school number, and district number exceed that cap, so those diffs are not listed. They record which codes appeared first in each file, not codes that were added or removed.
+School code, school number, and district number are compared in full in `notes/kyrc26-code-domain-diff.md`. Other coded columns still stop at 80 distinct values. Grain checks for state rows are in the audit note.
 
 School year rolls from `20242025` to `20252026` on 99 columns. Collected-school-year and other low-cardinality exceptions:
 

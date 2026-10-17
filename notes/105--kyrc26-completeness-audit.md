@@ -295,3 +295,13 @@ The dtype failures assert `object` and now see pandas `StringDtype`. Census fail
 ## Files with no disposition
 
 None. Every confirmed KYRC26 CSV and zip is in the module table or the file table above.
+
+## Code domains after the 80-value cap was removed
+
+`python3 scripts/kyrc_schema_diff.py --codes-only` streamed `District Number`, `District Code`, `School Number`, and `School Code` in full for every paired CSV on `datasets`. The write-up is `notes/kyrc26-code-domain-diff.md`. Seven pairs are identical, including both graduation files and postsecondary readiness. The rest change by schools and districts entering or leaving the extract, except student-teacher ratio (no state or district-total codes) and overview advanced coursework (1,356 school codes to 257).
+
+The 3-digit code `901` is the CKEC educational-cooperative total, not a school. The four subject crosstabs also carry `902` through `909` for GRREC, KEDC, KVEC, NKCES, OVEC, SESC, WKEC, and GLEC. `District Number` equals the code, `School Name` is blank, and level is elementary, middle, or high school. Editing-and-mechanics and on-demand-writing crosstabs do not have these codes. No ETL reads them.
+
+## Open House TLS
+
+`https://openhouse.education.ky.gov/Home/SRCData` was not read. `urllib.request.urlopen` raises `urllib.error.URLError` caused by `ssl.SSLCertVerificationError` (`CERTIFICATE_VERIFY_FAILED`, unable to get local issuer certificate). OpenSSL reports verify error 21, unable to verify the first certificate. The server presents only the leaf (`CN=openhouse.education.ky.gov`, issued by DigiCert Global G2 TLS RSA SHA256 2020 CA1, valid 26 June 2026 through 9 January 2027) and does not send the intermediate. That unread page is not evidence of a missing file.

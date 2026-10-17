@@ -9,6 +9,12 @@ base_url_2025: "https://www.education.ky.gov/Open-House/data/OAA%20Temporary%20D
 # BaseETL does not read KYRC26 files until that module sets include_kyrc26.
 base_url_kyrc25: "https://kdeschoolreportcard.blob.core.windows.net/datasets/"
 base_url_kyrc26: "https://kdeschoolreportcard.blob.core.windows.net/datasets/"
+# The report-card download page links this container. On 17 October 2026 its
+# KYRC26 bytes matched datasets (Content-MD5) while Last-Modified and ETag
+# differed. The downloader HEADs both for KYRC25_/KYRC26_ names, keeps datasets
+# when the hashes match or are missing, takes the newer Last-Modified when they
+# differ, and uses this URL when datasets returns 404.
+base_url_kyrc_uat: "https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/"
 
 headers:
   Referer: "https://www.education.ky.gov/Open-House/data/Pages/Historical-SRC-Datasets.aspx"

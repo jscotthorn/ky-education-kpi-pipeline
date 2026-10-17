@@ -8,7 +8,7 @@ Shared prep for this plan now lives on `feature/2025-26-kyrc26`. The file-by-fil
 
 Load 2025-26 from the permanent `KYRC26_*.csv` files on the public Azure container `datasets`. Leave the OAA temporary 2026 files unused. The temporary bundle is an optional later path, described at the end, and it is the wrong shape for this pipeline.
 
-The files to load are already online. They were last modified 15 October 2026 at 10:00 UTC, the morning of the public accountability release. The Open House historical catalog still has no 2025-26 entries, and KDE has not published a date for when that catalog will list them. The 10-day regulatory review runs through 26 October 2026, so re-check `Last-Modified` after that date before a production download. Skip-if-exists would keep the release-morning copy if KDE replaces the blobs.
+The files to load are already online. On `datasets` they were last modified 15 October 2026 at 10:00 UTC, the morning of the public accountability release. The report-card download page publishes the same bytes from `datasetsuat6051276` (earlier Last-Modified, matching Content-MD5 on 17 October 2026). The downloader HEADs both. The Open House historical catalog still has no 2025-26 entries, and KDE has not published a date for when that catalog will list them. `https://openhouse.education.ky.gov/Home/SRCData` failed TLS verification (the server sends the leaf only), so that older catalog was not read. The 10-day regulatory review runs through 26 October 2026, so re-HEAD both containers after that date before a production download. A changed Last-Modified, ETag, or Content-MD5 replaces the local file.
 
 ## What changed from the previous plan
 
@@ -29,7 +29,7 @@ Checked again on develop, these earlier mapping worries are already handled and 
 | Filename year fallback, blank school name → district total | `BaseETL.extract_year`, `standardize_school_name` |
 | `Native Hawaiian or Other Pacific Islander` | general map in `config/demographic_mappings.yaml` |
 
-KYRC26 does not contain the temporary-file hazards (3-digit codes, missing school-year column, `Editing and Mechanic`, the 50-character IEP cutoff, numeric grades `03`). Those stay in the deferred section.
+KYRC26 does not contain the temporary-file hazards (missing school-year column, `Editing and Mechanic`, the 50-character IEP cutoff, numeric grades `03`). Those stay in the deferred section. The only 3-digit organization codes in the permanent files are `901`–`909` on the four subject crosstabs, and they are educational-cooperative totals (CKEC through GLEC), not schools. No ETL reads those files. See `notes/kyrc26-code-domain-diff.md`.
 
 ## Where the files are
 
@@ -39,7 +39,13 @@ Public container, confirmed by HTTP 200 on 17 October 2026:
 
 `Last-Modified` is `Thu, 15 Oct 2026 10:00:09 GMT` through `10:00:11 GMT`.
 
-Of the 99 `KYRC25_` names on the Open House historical list, 97 exist as `KYRC26_` on this container. The two absent names are `KYRC26_ASMT_The_ACT.csv` and `KYRC26_CRDC_Chronic_Absenteeism.csv`. Finance files that exist for KYRC25 (`KYRC25_FT_Spending_per_Student.csv`, `KYRC25_FT_Financial_Summary.csv`, both 18 July 2026) have no KYRC26 twin.
+Of the 99 `KYRC25_` names on the Open House historical list, the same stem exists as `KYRC26_` for 97. The other two were renamed, not dropped: `KYRC26_ASMT_The_ACT.csv` is 404 and the SAT file is `KYRC26_ASMT_CAE.csv`; `KYRC26_CRDC_Chronic_Absenteeism.csv` is 404 and the file is `KYRC26_OVW_Chronic_Absenteeism_CRDC.csv`. The ACT rename stays out of `act_scores`. The CRDC rename is unconsumed. The overview chronic-absenteeism file remains the KPI source.
+
+The download page links `https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/`. Byte MD5 matched `datasets` on all 99 KYRC26 CSVs on 17 October 2026. Last-Modified and ETag differ because the objects were written twice. `datasets` is the later copy (15 October 2026 10:00:09–10:00:11 GMT).
+
+Finance files that exist for KYRC25 have no KYRC26 twin. That is the two files the pipeline consumes (`KYRC25_FT_Spending_per_Student.csv`, `KYRC25_FT_Financial_Summary.csv`) plus `FT_Facilities_Debt_Services`, `FT_Grants`, `FT_Learning_Environment`, `FT_Operations`, `FT_State_Funding_SEEK`, `FT_Statewide_Funding_Sources`, `FT_Taxes`, and five more spending variants: `FT_Personnel_Spending_per_Student_Federal_Funds`, `FT_Personnel_Spending_per_Student_State_Local_Funds`, `FT_Total_Spending_per_Student_All_Fund_Sources`, `FT_Total_Spending_per_Student_Federal_Funds`, and `FT_Total_Spending_per_Student_State_Local_Funds`. The extra five do not change the wait for the two consumed names.
+
+The ACCT group is 19 CSVs, including `Survey_Results`. A count of 22 on the download page is those 19 files plus the package zip and two anchors that are not datasets. The four EDOP files for advanced courses and dual credit are in the 2025-26 tree and in `KYRC26_EDOP_Datasets.zip`. They are 2025-26 extracts. Dual-credit courses offered, state `All Enrollments`: enrollment 143,848 / completers 132,208 / qualifying 124,596.
 
 These locations do not have the files:
 
@@ -73,7 +79,7 @@ Reading and combined writing match the 15 October Kentucky Teacher release. The 
 
 https://www.kentuckyteacher.org/news/2026/10/kde-releases-2025-2026-assessment-and-accountability-data/
 
-A header diff of all 97 files against the KYRC25 twins found three kinds of change.
+A header diff of the 99 KYRC26 CSVs against their KYRC25 twins found 73 identical headers, 12 co-op spelling changes, the discipline `(Ssp2)` to `(SSP2)` change, and 13 measure-column changes. The three kinds below are the ones that matter for parsers. The full table is `notes/kyrc26-schema-diff-report.md`.
 
 **Co-op spelling only.** `Co-Op` / `Co-Op Code` became `CO-OP` / `CO-OP Code` on the assessment crosstabs, the by-grade summative file, profile, summary, and the district/school list. `BaseETL` already maps `CO-OP`. Measure columns on those files are unchanged. By-grade subjects and `Proficient / Distinguished` match KYRC25, including ordinal grades such as `10th`.
 
@@ -81,7 +87,7 @@ A header diff of all 97 files against the KYRC25 twins found three kinds of chan
 
 - Discipline resolutions: `Expelled, Not Receiving Services (Ssp2)` became `Expelled, Not Receiving Services (SSP2)`. The other KYRC25 casings are unchanged (`Out-of-School Suspensions (SSP3)`, `Removal by Hearing Officer (IAES2)`, `Unilateral Removal by School Personnel (IAES1)`, `In-School Removal (INSR) or In-District Removal (INDR) >=.5`).
 - Precautionary measures: `All classroom doors lock from the inside` is gone. `All outside doors are locked during school hours` remains, along with the other KYRC25 statements (`Visitors are required to sign-in to the building`, and the rest). Column order differs from KYRC25.
-- Dual credit courses offered: the KYRC25 typo `Couse Completers` is now `Course Completers`, which `etl/dual_credit.py` already maps.
+- Dual credit courses offered: the KYRC25 typo `Couse Completers` is now `Course Completers`, which `etl/dual_credit.py` already maps. The alias `'Couse Completers '` in that module has a trailing space the live KYRC25 header does not. That is a develop mismatch for the old file. KYRC26 does not need it.
 - Gifted participation by grade dropped `Grade 14`.
 - Teacher certification gained Rank I and Rank II count and percent columns. Teacher turnover gained instructional-staff count, turnover count, and turnover percent. Existing columns remain.
 - Student membership dropped `Preschool`. Develop does not parse that file.
@@ -98,7 +104,7 @@ Suspensions carry `Collected School Year` `20212022` on every one of the 14,949 
 
 `data/prepare_kde_data.py` accepts a string filename (historical Open House prefix) or `{url: "2025"|"kyrc25"|"historical", file: "..."}`.
 
-`url: kyrc25` is how chronic absenteeism, CTE, enrollment, secondary enrollment, transition, the teacher-quality family, spending, coursework, dual credit, gifted, career pathways, school courses, the district/school list, and financial summary reach 2024-25. Those entries currently point at `datasetsdev`, which answers 404. The same filenames return 200 on `datasets` and, for the ones checked, on Open House.
+`url: kyrc25` is how chronic absenteeism, CTE, enrollment, secondary enrollment, transition, the teacher-quality family, spending, coursework, dual credit, gifted, career pathways, school courses, the district/school list, and financial summary reach 2024-25. On `develop` those entries point at `datasetsdev`, which answers 404. The shared prep retargets `base_url_kyrc25` and `base_url_kyrc26` at `datasets`. The same filenames return 200 there.
 
 `url: "2025"` still points graduation, English learner proficiency, by-grade assessment, kindergarten, and postsecondary readiness at the OAA temporary 2025 files. Climate discovers the 2025 temporary survey names in code. Safe-schools behavior, discipline, precautionary measures, suspensions, and the ACT file are still KYRC24 only in `kde_sources.yaml`, even though the KYRC25 safe-schools files have been on the blob since May and June 2026.
 
@@ -110,13 +116,13 @@ Sizes are the amount of code and tests. KYRC26 filenames are already registered.
 
 ### 1. Point the downloader at the live container
 
-**Done** in the shared prep on `feature/2025-26-kyrc26`. `base_url_kyrc25` and `base_url_kyrc26` are `https://kdeschoolreportcard.blob.core.windows.net/datasets/`. A local file is kept only when its stored `Last-Modified` (and ETag, when both sides have one) still matches the blob. A file with no stamp is downloaded again. Journal 104 is the list of registered names. `BaseETL.include_kyrc26` stays false until the script PR that accepts the file.
+**Done** in the shared prep (PR #36). `base_url_kyrc25` and `base_url_kyrc26` are `https://kdeschoolreportcard.blob.core.windows.net/datasets/`. `base_url_kyrc_uat` is `https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/`. For `KYRC25_` and `KYRC26_` names the downloader HEADs both. Matching or missing Content-MD5 keeps `datasets`. Differing Content-MD5 keeps the newer Last-Modified and records that URL. A 404 on `datasets` uses the UAT container. A local file is kept only when its stored Last-Modified, ETag (when both sides have one), and Content-MD5 (when both sides have one) still match. A file with no stamp is downloaded again. Journal 104 is the list of registered names and the per-module checklist. `BaseETL.include_kyrc26` stays false until the script PR that accepts the file.
 
 Keep the existing `url: "2025"` entries for 2024-25. Moving those indicators onto `KYRC25_` files would change kindergarten's layout and the by-grade token, and it is a separate decision. Do not also configure a temporary 2026 filename for a metric that has a `KYRC26_` file.
 
 ### 2. Turn on filenames whose parsers already accept the header
 
-The filenames below are registered. **Size: small** per module: set `include_kyrc26 = True` and add the year-`2026` smoke check. Do not add the temporary 2026 file alongside them.
+The filenames below are registered. **Size: small** per module, except where journal 104 says otherwise: set `include_kyrc26 = True` and add the year-`2026` smoke check. Journal 104 is the checklist (exact files, header changes, fixtures, gotchas, size). Do not add the temporary 2026 file alongside them. `student_teacher_ratio` fixtures a school row, not `999000`. `advanced_coursework` expects 257 overview schools and collected year `20212022`.
 
 | Module | File |
 | --- | --- |
@@ -161,13 +167,13 @@ Smoke checks on the real file, state row:
 
 **Done.** `year_specific` for `2025` and `2026` is the 2024 block. A sample of KYRC26 `Demographic` columns on 17 October 2026 had no label outside that set. This stops the audit from flagging them as unexpected. It does not change metric values.
 
-### 5. Still unpublished
+### 5. Renamed, or still absent
 
-| Series | What exists today | When to add it |
+| Series | What exists today | What to do |
 | --- | --- | --- |
-| ACT | `KYRC25_ASMT_The_ACT.csv` is on `datasets` (14 May 2026). `KYRC26_ASMT_The_ACT.csv` is 404. The temporary `College Admissions Exam_2026.CSV` is SAT (state reading/writing 470.9, math 437.0, science 59.3, total 908.0) under ACT column titles | When a real `KYRC26` ACT file appears. Keep SAT out of the ACT series |
-| Finance | KYRC25 spending and financial summary are on the blob (18 July 2026). No KYRC26 twin | The SRC finance calendar puts the 2024-26 financial-transparency release in May 2027. See the timeline section |
-| CRDC chronic absenteeism | KYRC25 file exists (18 September 2026). KYRC26 name is 404 | When the name appears. The overview chronic-absenteeism file is already available and is the KPI source |
+| SAT, not ACT | `KYRC26_ASMT_The_ACT.csv` is 404. `KYRC26_ASMT_CAE.csv` is the permanent file and it is SAT (state reading and writing 470.9, mathematics 437.0, science 59.3, total 908.0). For KYRC25, `ASMT_CAE` and `ASMT_The_ACT` are the same ACT file. The repo still downloads only `KYRC24_ASMT_The_ACT.csv` | Keep it out of `act_scores`. SAT is a separate decision, not the next S script. Do not append the temporary college-exam file either |
+| Finance | The two consumed KYRC25 files, and twelve other `FT_` names, have no KYRC26 twin | Wait until `KYRC26_FT_Spending_per_Student.csv` and `KYRC26_FT_Financial_Summary.csv` return 200. The SRC finance calendar puts the 2024-26 financial-transparency release in May 2027. The extra spending variants do not change that wait |
+| CRDC chronic absenteeism | `KYRC26_CRDC_Chronic_Absenteeism.csv` is 404 because the file was renamed to `KYRC26_OVW_Chronic_Absenteeism_CRDC.csv`. Collected year on every KYRC26 row is `20242025` | Unconsumed. The overview file `KYRC26_OVW_Chronic_Absenteeism.csv` is the KPI source. Do not add a CRDC script unless a CRDC KPI is in scope |
 
 English learner attainment, the CSI / TSI / ATSI workbook, and `Accountable_Summary_2026.CSV` exist only in the temporary bundle. The permanent profile and summary files are the KYRC-shaped ones already on the blob. Subgroup indicator scores from the temporary summary are a new series, not required to refresh current KPIs.
 
@@ -214,7 +220,9 @@ If this path is taken later, the parsers need the temporary identity rules, whic
 ## Risks
 
 - `datasetsdev` 404s. A KYRC26 entry copied onto that base URL will silently skip or fail the download.
-- Skip-if-exists will keep the 15 October blob after a post-review replacement.
+- An update that lands only on `datasetsuat6051276` is invisible to a downloader that watches `datasets` alone. This branch probes both. If the hashes diverge after the review window, take the newer stamp and record which container it came from.
+- `student_teacher_ratio` has no `999000` or `All Schools` row. A state-row smoke test will fail. Do not rebuild district and state totals in the opt-in pull request.
+- `OVW_Advanced_Coursework` covers 257 schools and collected year `20212022`. An overview fixture copied from the KYRC25 total will fail.
 - Configuring both the temporary 2026 assessment file and `KYRC26_ACCT_Kentucky_Summative_Assessment.csv` writes two 2026 proficiency series (`grade_3` versus `10th`, and a second copy of the level rates).
 - Discipline casing drops out-of-school suspensions and three other counts if the KYRC26 file is parsed with the KYRC24 strings only.
 - Grade-level behavior events disappear for `PS` and `1st`–`14th` while `All Grades` still loads.
@@ -226,18 +234,20 @@ If this path is taken later, the parsers need the temporary identity rules, whic
 
 ## Open questions
 
-1. Download the 15 October `datasets` blobs now, or wait until after 26 October 2026 and re-HEAD first? The schema work can start on the current headers either way. A production load should follow the later stamp if it changes.
+1. Download the 15 October blobs now, or wait until after 26 October 2026 and re-HEAD `datasets` and `datasetsuat6051276` first? The schema work can start on the current headers either way. A production load should follow the later stamp if the hashes diverge, and should record which container it came from.
 2. Should 2024-25 graduation, English learners, kindergarten, by-grade assessment, and readiness stay on the temporary 2025 files? Moving them to `KYRC25_` makes the year comparable to KYRC26 and changes kindergarten's source layout and the by-grade token.
 3. Should the outside-doors question enter the precautionary compliance rate, and should that rate drop the classroom-door item that KYRC26 no longer reports?
 4. Are climate index scores enough for 2025-26, or should the 297 MB survey file be loaded too?
 5. Add the new teacher-turnover and teacher-certification columns (instructional-staff turnover, Rank I and Rank II) as KPIs in this round?
-6. Hold SAT, English learner attainment, and the CSI workbook until a permanent file exists?
+6. `KYRC26_ASMT_CAE.csv` is the permanent SAT file. Keep it out of `act_scores` unless a separate SAT series is in scope. English learner attainment and the CSI workbook still have no KYRC26 twin.
 
 ## Verification
 
 Checked 17 October 2026.
 
-- Blob HEAD/GET against `datasets` for every `KYRC25_` name in the Open House list of 99: 97 returned 200 with the 15 October stamp; ACT and CRDC chronic absenteeism returned 404. Finance names returned 404 for KYRC26 and 200 for KYRC25.
+- Blob HEAD/GET against `datasets` and `datasetsuat6051276` for the report-card tree: 99 KYRC26 CSVs returned 200 on both, with matching Content-MD5. `KYRC26_ASMT_The_ACT.csv` and `KYRC26_CRDC_Chronic_Absenteeism.csv` are 404 because those series were renamed to `KYRC26_ASMT_CAE.csv` and `KYRC26_OVW_Chronic_Absenteeism_CRDC.csv`. Finance names, including the five additional spending variants, returned 404 for KYRC26 and 200 for KYRC25.
+- School and district codes were compared without the 80-value cap. `901`–`909` on the subject crosstabs are cooperative totals. See `notes/kyrc26-code-domain-diff.md`.
+- `https://openhouse.education.ky.gov/Home/SRCData` failed TLS verification (leaf certificate only). That catalog was not read.
 - `datasetsdev` returned 404 for `KYRC25_OVW_Chronic_Absenteeism.csv`.
 - Open House `HistoricalDatasets` GET returned 206 for `KYRC25_OVW_Chronic_Absenteeism.csv` and 404 for the two KYRC26 names above.
 - SharePoint `Year eq '2025-2026'` returned an empty page. `Year eq '2024-2025'` returned a page with a next link.
