@@ -19,7 +19,7 @@ The node ids are in journal 105 (census live API, pandas `StringDtype` versus `o
 | Module | Status |
 | --- | --- |
 | `chronic_absenteeism` | Merged in PR #38 (`cursor/chronic-absenteeism-kyrc26-1b59`). Opt-in, plus a hygiene filename guard for the CRDC extract. Shared changes: `.gitignore` keeps `tests/fixtures/**/*.csv`, and `PyYAML` is a project dependency because tests import it. Details are under that module |
-| `graduation_rates` | In review (`cursor/graduation-rates-kyrc26-05b6`). Opt-in, plus the `5 Year Cohort Graduation Rate` alias. No shared parser, config, or dependency changes. Details are under that module |
+| `graduation_rates` | In review in PR #39 (`cursor/graduation-rates-kyrc26-05b6`). Opt-in, plus the `5 Year Cohort Graduation Rate` alias. No shared parser, config, or dependency changes. Details are under that module |
 
 `chronic_absenteeism` was re-tested on this branch after the review fixes: `42 failed, 394 passed, 104 skipped`. The 42 failure node ids match the develop baseline above. Run `python3 scripts/compare_pytest_to_journal105.py` and paste the report into the pull request. Do not commit a per-script diff file. The extra passes are the shared-prep tests already on `feature/2025-26-kyrc26` plus the chronic-absenteeism tests added here. Do not treat 375 passed as the number to match once shared prep is in the base.
 
