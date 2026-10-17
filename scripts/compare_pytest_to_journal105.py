@@ -3,14 +3,18 @@
 
 The develop baseline is the bullet list under ``## Develop test baseline`` in
 ``notes/105--kyrc26-completeness-audit.md`` (commit b14ec3c: 42 failed).
-There is no CI on this repository, so a script pull request should commit
-the report this script writes.
+Paste this script's report into the pull request body. Do not commit a
+per-script copy of the output.
+
+The process exits nonzero when a failure node id is not on that list, when
+pytest reports an error, or when an ERROR line is present. ERROR lines count
+as failures. A baseline failure that now passes is reported as removed and
+does not by itself fail the process.
 
 Examples
 --------
 python3 scripts/compare_pytest_to_journal105.py
-python3 scripts/compare_pytest_to_journal105.py --pytest-output /tmp/pytest.txt \\
-    --write notes/kyrc26-chronic-absenteeism-pytest-diff.txt
+python3 scripts/compare_pytest_to_journal105.py --pytest-output /tmp/pytest.txt
 """
 
 from __future__ import annotations
@@ -23,6 +27,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 JOURNAL = ROOT / "notes" / "105--kyrc26-completeness-audit.md"
+COUNT_PATTERNS = {
+    "failed": re.compile(r"(\d+) failed\b"),
+    "passed": re.compile(r"(\d+) passed\b"),
+    "skipped": re.compile(r"(\d+) skipped\b"),
+    "error": re.compile(r"(\d+) errors?\b"),
+}
 
 
 def baseline_node_ids(journal: Path) -> list[str]:
@@ -37,52 +47,118 @@ def baseline_node_ids(journal: Path) -> list[str]:
     return re.findall(r"- `(tests/[^`]+)`", section)
 
 
-def failure_node_ids(pytest_output: str) -> list[str]:
-    """Return node ids from pytest's FAILED lines."""
+def _node_id(rest: str) -> str:
+    """Drop a trailing pytest reason (`` - AssertionError: ...``)."""
+    if " - " in rest:
+        return rest.split(" - ", 1)[0].strip()
+    return rest.strip()
+
+
+def node_ids_with_prefix(pytest_output: str, prefix: str) -> list[str]:
+    """Return node ids from pytest summary lines that start with ``prefix``."""
     found = []
     for line in pytest_output.splitlines():
         stripped = line.strip()
-        if stripped.startswith("FAILED "):
-            found.append(stripped.split("FAILED ", 1)[1].strip())
+        if stripped.startswith(prefix):
+            found.append(_node_id(stripped.split(prefix, 1)[1]))
     return found
 
 
-def summary_line(pytest_output: str) -> str:
-    """Return the pytest totals line, or a note when it is missing."""
-    found = "(no pytest summary line found)"
+def summary_and_counts(pytest_output: str) -> tuple[str, dict[str, int], bool]:
+    """Parse failed, passed, skipped, and error counts from the totals line."""
+    summary = ""
     for line in pytest_output.splitlines():
         stripped = line.strip().strip("=").strip()
-        if re.search(r"\d+ failed, \d+ passed", stripped):
-            found = stripped
-    return found
+        if COUNT_PATTERNS["failed"].search(stripped) or COUNT_PATTERNS["passed"].search(stripped):
+            summary = stripped
+    counts = {name: 0 for name in COUNT_PATTERNS}
+    if not summary:
+        return "(no pytest summary line found)", counts, False
+    for name, pattern in COUNT_PATTERNS.items():
+        match = pattern.search(summary)
+        if match:
+            counts[name] = int(match.group(1))
+    return summary, counts, True
 
 
-def build_report(observed: list[str], pytest_output: str, baseline: list[str]) -> str:
-    """Format the node-id diff."""
-    observed_set = set(observed)
+def head_sha() -> str:
+    """Return the current commit, or ``unknown`` when git cannot answer."""
+    completed = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return "unknown"
+    return completed.stdout.strip()
+
+
+def pandas_version() -> str:
+    """Return the installed pandas version."""
+    try:
+        import pandas
+    except ImportError:
+        return "unavailable"
+    return str(pandas.__version__)
+
+
+def build_report(
+    failed_ids: list[str],
+    error_ids: list[str],
+    pytest_output: str,
+    baseline: list[str],
+) -> tuple[str, bool]:
+    """Format the report and whether the run has a new failure or error.
+
+    ERROR node ids are treated as failures. They are new unless the baseline
+    list already names them.
+    """
+    summary, counts, found_summary = summary_and_counts(pytest_output)
+    # ERROR lines count as failures even when the totals line omitted them.
+    counts["error"] = max(counts["error"], len(set(error_ids)))
     baseline_set = set(baseline)
-    only_run = sorted(observed_set - baseline_set)
-    only_journal = sorted(baseline_set - observed_set)
+    observed = set(failed_ids) | set(error_ids)
+    added = sorted(observed - baseline_set)
+    removed = sorted(baseline_set - observed)
+    # A summary that claims more failures than the baseline, without a parsed
+    # node id, is still a new failure.
+    summary_has_new_failure = found_summary and counts["failed"] > len(baseline_set)
+    has_new_problem = bool(added) or counts["error"] > 0 or bool(error_ids) or summary_has_new_failure
+    if not found_summary:
+        has_new_problem = True
+
     lines = [
         "Pytest failures compared with notes/105--kyrc26-completeness-audit.md",
+        f"Head: {head_sha()}",
+        f"Python: {sys.version.split()[0]}",
+        f"pandas: {pandas_version()}",
         "Develop baseline: origin/develop b14ec3c, 42 failed / 375 passed / 104 skipped.",
-        summary_line(pytest_output),
+        summary,
+        (
+            f"Counts: failed={counts['failed']} passed={counts['passed']} "
+            f"skipped={counts['skipped']} errors={counts['error']}"
+        ),
         f"Baseline node ids: {len(baseline_set)}",
-        f"Observed failure node ids: {len(observed_set)}",
-        f"Only in this run ({len(only_run)}):",
+        f"Observed FAILED node ids: {len(set(failed_ids))}",
+        f"Observed ERROR node ids: {len(set(error_ids))} (counted as failures)",
+        f"Added node ids ({len(added)}):",
     ]
-    lines.extend(f"  {node_id}" for node_id in only_run)
-    if not only_run:
+    lines.extend(f"  {node_id}" for node_id in added)
+    if not added:
         lines.append("  (none)")
-    lines.append(f"Only in journal 105 ({len(only_journal)}):")
-    lines.extend(f"  {node_id}" for node_id in only_journal)
-    if not only_journal:
+    lines.append(f"Removed node ids ({len(removed)}):")
+    lines.extend(f"  {node_id}" for node_id in removed)
+    if not removed:
         lines.append("  (none)")
-    if not only_run and not only_journal:
-        lines.append("Failure node ids match the journal 105 baseline.")
+    if not has_new_problem and not removed:
+        lines.append("No new failures or errors. Failure node ids match the journal 105 baseline.")
+    elif not has_new_problem:
+        lines.append("No new failures or errors. Removed baseline node ids are listed above.")
     else:
-        lines.append("Failure node ids differ from the journal 105 baseline.")
-    return "\n".join(lines) + "\n"
+        lines.append("New failure or error. This does not match the journal 105 baseline.")
+    return "\n".join(lines) + "\n", has_new_problem
 
 
 def run_pytest() -> str:
@@ -104,11 +180,6 @@ def main() -> int:
         type=Path,
         help="Read a saved pytest log instead of running the suite",
     )
-    parser.add_argument(
-        "--write",
-        type=Path,
-        help="Also write the report to this path",
-    )
     args = parser.parse_args()
 
     baseline = baseline_node_ids(JOURNAL)
@@ -116,15 +187,11 @@ def main() -> int:
         pytest_output = args.pytest_output.read_text(encoding="utf-8")
     else:
         pytest_output = run_pytest()
-    observed = failure_node_ids(pytest_output)
-    report = build_report(observed, pytest_output, baseline)
+    failed_ids = node_ids_with_prefix(pytest_output, "FAILED ")
+    error_ids = node_ids_with_prefix(pytest_output, "ERROR ")
+    report, has_new_problem = build_report(failed_ids, error_ids, pytest_output, baseline)
     sys.stdout.write(report)
-    if args.write:
-        destination = args.write if args.write.is_absolute() else ROOT / args.write
-        destination.write_text(report, encoding="utf-8")
-    only_run = set(observed) - set(baseline)
-    only_journal = set(baseline) - set(observed)
-    return 0 if not only_run and not only_journal else 1
+    return 1 if has_new_problem else 0
 
 
 if __name__ == "__main__":

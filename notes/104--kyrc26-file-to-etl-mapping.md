@@ -18,9 +18,9 @@ The node ids are in journal 105 (census live API, pandas `StringDtype` versus `o
 
 | Module | Status |
 | --- | --- |
-| `chronic_absenteeism` | In review in PR #38 (`cursor/chronic-absenteeism-kyrc26-1b59`). Opt-in, plus a hygiene filename guard for the CRDC extract. One shared change: `.gitignore` now keeps `tests/fixtures/**/*.csv`. Details are under that module |
+| `chronic_absenteeism` | Merged in PR #38 (`cursor/chronic-absenteeism-kyrc26-1b59`). Opt-in, plus a hygiene filename guard for the CRDC extract. Shared changes: `.gitignore` keeps `tests/fixtures/**/*.csv`, and `PyYAML` is a project dependency because tests import it. Details are under that module |
 
-`chronic_absenteeism` was re-tested on this branch after the review fixes: `42 failed, 394 passed, 104 skipped`. The 42 failure node ids match the develop baseline above. The diff is `notes/kyrc26-chronic-absenteeism-pytest-diff.txt`, produced by `scripts/compare_pytest_to_journal105.py`. The extra passes are the shared-prep tests already on `feature/2025-26-kyrc26` plus the chronic-absenteeism tests added here. Do not treat 375 passed as the number to match once shared prep is in the base.
+`chronic_absenteeism` was re-tested on this branch after the review fixes: `42 failed, 394 passed, 104 skipped`. The 42 failure node ids match the develop baseline above. Run `python3 scripts/compare_pytest_to_journal105.py` and paste the report into the pull request. Do not commit a per-script diff file. The extra passes are the shared-prep tests already on `feature/2025-26-kyrc26` plus the chronic-absenteeism tests added here. Do not treat 375 passed as the number to match once shared prep is in the base.
 
 ## What was checked
 
@@ -91,7 +91,7 @@ KYRC25 leaves the GLEC co-op cell blank. KYRC26 fills it with `GLEC`. Editing-an
 
 State checks use `School Code` `999000`, `Demographic` `All Students`, and school year `20252026` (pipeline year `2026`) unless the gotcha says that row is absent. Set `include_kyrc26 = True` in the same pull request, except events and climate, which edit their own filename lists.
 
-### `chronic_absenteeism` — S — pilot — done
+### `chronic_absenteeism` — S — pilot — merged
 
 | | |
 | --- | --- |
@@ -133,7 +133,7 @@ The CRDC file is a different shape (`Demographic` values such as `Total Student 
 
 Both years' demographic columns are the same 18 labels, all already in the 2026 demographic config. The full-file run reported 18 found and no unexpected labels. `KPIS.md` still describes the older `Grade N` suffixes. This file does not add those names; it uses the same ordinal suffixes KYRC25 already produced, so the KPI list was left as it is.
 
-Fixtures are nine real rows from each year, in `tests/fixtures/chronic_absenteeism/`, including the Bryan Station kindergarten pair. A test fails if any file in that directory exceeds 50 KB. `.gitignore` ignores every `*.csv`, which hid these fixtures. The exception `!tests/fixtures/**/*.csv` is the one shared change in this pull request. Later agents can commit the same kind of excerpt without `git add -f`. Raw downloads are still ignored.
+Fixtures are nine real rows from each year, in `tests/fixtures/chronic_absenteeism/`, including the Bryan Station kindergarten pair. `tests/test_fixture_sizes.py` fails if any CSV under `tests/fixtures/` exceeds 50 KB. `.gitignore` ignores every `*.csv`, which hid these fixtures. The exception `!tests/fixtures/**/*.csv` lets later agents commit the same kind of excerpt without `git add -f`. Raw downloads are still ignored. `PyYAML` is in `pyproject.toml` because `tests/test_kyrc26_registration.py` and `tests/test_prepare_kde_data.py` import `yaml`.
 
 ## Next-agent steps
 
@@ -144,6 +144,7 @@ Do these for every later script. The chronic-absenteeism pilot is the example, n
 3. Put one real fixture row in the test for each new suppression or blank pattern. This module's new pattern is school `165170`, grade `K`, All Students.
 4. Before adding a filename guard, check whether the sibling file would actually produce rows. The CRDC guard is hygiene: that file maps none of the overview measure columns, so it already yields no KPI rows.
 5. Re-read the module gotcha before requiring a `999000` row. `out_of_school_suspension` has no `999000` row in either year and the KPI year has to come from `School Year`, not the collected year. `student_teacher_ratio` has no state row and no district `All Schools` row in KYRC26; fixture a school row. Do not add a shared helper for a token or header that only one script needs.
+6. Run `python3 scripts/compare_pytest_to_journal105.py` and paste its report into the pull request body. Do not commit a per-script diff file. The script exits nonzero when a failure node id is new or any test errors. A failure already on the journal 105 list is not a regression.
 
 ### `graduation_rates` — S
 
@@ -437,7 +438,7 @@ On the blob, not registered, no ETL, do not add unless a module is in scope: `AS
 
 ## Suggested order
 
-1. `chronic_absenteeism`. Done. Unchanged headers, state rate 23.5. See the pilot notes above before copying the pattern.
+1. `chronic_absenteeism`. Merged. Unchanged headers, state rate 23.5. See the pilot notes above before copying the pattern.
 2. The other opt-in modules above, in the order listed, through `kindergarten_readiness`. `student_teacher_ratio` fixtures a school row. `advanced_coursework` expects 257 overview schools and collected year `20212022`.
 3. `kentucky_summative_assessment` after one opt-in has landed.
 4. `safe_schools_discipline`, then `safe_schools_events`, then `safe_schools_climate`.

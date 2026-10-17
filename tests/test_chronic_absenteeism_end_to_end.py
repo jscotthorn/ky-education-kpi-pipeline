@@ -526,16 +526,6 @@ PRIOR_YEAR_ANCHORS = {
 }
 
 
-def test_fixture_excerpts_stay_under_50kb():
-    """Committed excerpts stay small. A full download is not a fixture."""
-    limit = 50 * 1024
-    files = [path for path in FIXTURE_DIR.iterdir() if path.is_file()]
-    assert files, f"No fixtures in {FIXTURE_DIR}"
-    for path in files:
-        size = path.stat().st_size
-        assert size <= limit, f"{path.name} is {size} bytes; keep excerpts under {limit}"
-
-
 def test_blank_unsuppressed_grade_is_skipped(tmp_path):
     """A blank Suppressed=No grade is missing. A Suppressed=Yes grade is kept.
 
