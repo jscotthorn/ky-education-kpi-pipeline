@@ -5,9 +5,12 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
 from etl.graduation_rates import transform, clean_graduation_rates, GraduationRatesETL
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestGraduationRatesETL:
@@ -123,7 +126,7 @@ class TestGraduationRatesETL:
     def test_transform_2024_format(self):
         """Test transform with 2024 format data."""
         data = self.create_sample_2024_data()
-        data.to_csv(self.sample_dir / "graduation_rate_2024.csv", index=False)
+        data.to_csv(self.sample_dir / "graduation_rate_2024_format.csv", index=False)
         
         config = {
             "derive": {
@@ -164,7 +167,7 @@ class TestGraduationRatesETL:
         data_2024 = self.create_sample_2024_data()
         data_2021 = self.create_sample_2021_data()
         
-        data_2024.to_csv(self.sample_dir / "graduation_rate_2024.csv", index=False)
+        data_2024.to_csv(self.sample_dir / "graduation_rate_2024_format.csv", index=False)
         data_2021.to_csv(self.sample_dir / "graduation_rate_2021.csv", index=False)
         
         config = {
@@ -227,7 +230,7 @@ class TestGraduationRatesETL:
     def test_dtype_conversion(self):
         """Test data type conversions."""
         data = self.create_sample_2024_data()
-        data.to_csv(self.sample_dir / "graduation_rate_2024.csv", index=False)
+        data.to_csv(self.sample_dir / "graduation_rate_2024_format.csv", index=False)
         
         config = {
             "dtype": {
@@ -259,6 +262,55 @@ class TestGraduationRatesETL:
         if len(non_suppressed) > 0:
             numeric_values = pd.to_numeric(non_suppressed['value'], errors='coerce')
             assert numeric_values.notna().all(), "Non-suppressed values should be numeric"
+
+    def test_kyrc26_cohort_files_are_accepted(self):
+        """KYRC cohort files are in scope. A leftover temporary extract is not."""
+        etl = GraduationRatesETL("graduation_rates")
+        assert etl.include_kyrc26 is True
+        assert (
+            etl.module_column_mappings["5 Year Cohort Graduation Rate"]
+            == "graduation_rate_5_year"
+        )
+        assert (
+            etl.module_column_mappings["4 Year Cohort Graduation Rate"]
+            == "graduation_rate_4_year"
+        )
+
+        accepted = [
+            "KYRC26_ACCT_4_Year_High_School_Graduation.csv",
+            "KYRC26_ACCT_5_Year_High_School_Graduation.csv",
+            "KYRC25_ACCT_4_Year_High_School_Graduation.csv",
+            "KYRC25_ACCT_5_Year_High_School_Graduation.csv",
+            "KYRC24_ACCT_5_Year_High_School_Graduation.csv",
+        ]
+        rejected = [
+            "Graduation_Rate_2024.CSV",
+            "Graduation_Rate_2025.CSV",
+            "Graduation_Rate_2026.CSV",
+        ]
+        for name in accepted + rejected:
+            (self.sample_dir / name).write_text("School Year\n20252026\n")
+
+        found = sorted(path.name for path, _sheet in etl._find_data_files(self.sample_dir))
+        assert found == sorted(accepted)
+
+
+def test_kyrc25_cohort_files_replace_the_temporary_2025_source():
+    """2024-25 comes from the permanent KYRC25 files. The dead temporary file is not registered."""
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["graduation_rates"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert "KYRC25_ACCT_4_Year_High_School_Graduation.csv" in names
+    assert "KYRC25_ACCT_5_Year_High_School_Graduation.csv" in names
+    assert "KYRC26_ACCT_4_Year_High_School_Graduation.csv" in names
+    assert "KYRC26_ACCT_5_Year_High_School_Graduation.csv" in names
+    assert "Graduation_Rate_2024.CSV" not in names
+    assert "Graduation_Rate_2025.CSV" not in names
+    assert "Graduation_Rate_2026.CSV" not in names
+    assert names.count("KYRC25_ACCT_4_Year_High_School_Graduation.csv") == 1
+    assert names.count("KYRC25_ACCT_5_Year_High_School_Graduation.csv") == 1
 
 
 class TestGraduationRatesHelpers:

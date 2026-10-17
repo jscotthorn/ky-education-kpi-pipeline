@@ -15,9 +15,10 @@
 """
 Graduation Rates ETL Module
 
-Handles multiple file formats from Kentucky graduation rate data across years 2021-2024.
-Normalizes column names, handles schema variations, standardizes missing values, and
-applies demographic label standardization for consistent longitudinal reporting.
+Handles multiple file formats from Kentucky graduation rate data, including the
+2025-26 KYRC26 cohort files. Normalizes column names, handles schema variations,
+standardizes missing values, and applies demographic label standardization for
+consistent longitudinal reporting.
 """
 from pathlib import Path
 import pandas as pd
@@ -60,7 +61,13 @@ def clean_graduation_rates(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def handle_suppression_fields(df: pd.DataFrame) -> pd.DataFrame:
-    """Handle graduation-specific suppression fields."""
+    """Handle graduation-specific suppression fields.
+
+    Each KYRC cohort file has one ``Suppressed`` column. That column is mapped
+    to ``suppressed_4_year`` and copied here, including on the 5-year file.
+    A blank suppression cell stays blank. It is not ``Y``, so an empty rate
+    on that row is skipped instead of stored as a privacy suppression.
+    """
     # Ensure suppression columns exist
     if 'suppressed_4_year' not in df.columns:
         df['suppressed_4_year'] = 'N'
@@ -74,8 +81,41 @@ def handle_suppression_fields(df: pd.DataFrame) -> pd.DataFrame:
 
 
 class GraduationRatesETL(BaseETL):
-    """ETL module for processing graduation rates data."""
-    
+    """ETL module for processing graduation rates data.
+
+    KYRC26 is two cohort files with the same headers as the KYRC24 and KYRC25
+    cohort files. ``4 Year Cohort Graduation Rate`` was already mapped.
+    ``5 Year Cohort Graduation Rate`` is the 5-year file's rate column.
+    """
+
+    # Opt in here, in the same change that accepts the files. BaseETL skips
+    # every KYRC26_* CSV until this is True.
+    include_kyrc26 = True
+
+    def accepts_data_file(self, file_path: Path) -> bool:
+        """Skip a leftover temporary OAA graduation extract.
+
+        ``Graduation_Rate_2024.CSV``, ``Graduation_Rate_2025.CSV``, and
+        ``Graduation_Rate_2026.CSV`` use the hyphenated rate headers this
+        module already maps. Permanent KYRC cohort files are the source for
+        those years. ``Graduation_Rate_2025.CSV`` is also 404 upstream. A
+        leftover copy would emit a second set of rows beside the cohort
+        files. The match is case-insensitive, so ``graduation_rate_2024.csv``
+        is the same skip. Historical ``graduation_rate_2023.csv`` and earlier
+        names stay.
+        """
+        if file_path.name.lower() in {
+            "graduation_rate_2024.csv",
+            "graduation_rate_2025.csv",
+            "graduation_rate_2026.csv",
+        }:
+            logger.info(
+                "Skipping %s; the permanent KYRC cohort files are the source",
+                file_path.name,
+            )
+            return False
+        return super().accepts_data_file(file_path)
+
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {
@@ -91,6 +131,9 @@ class GraduationRatesETL(BaseETL):
             '4 Year Cohort Graduation Rate': 'graduation_rate_4_year',
             '4-YEAR GRADUATION RATE': 'graduation_rate_4_year',
             '4-Year Graduation Rate': 'graduation_rate_4_year',  # 2025 format
+            # KYRC cohort files (KYRC24, KYRC25, and KYRC26). The temporary
+            # 2025 file uses the hyphenated header below, which stays mapped.
+            '5 Year Cohort Graduation Rate': 'graduation_rate_5_year',
             '5-YEAR GRADUATION RATE': 'graduation_rate_5_year',
             '5-Year Graduation Rate': 'graduation_rate_5_year',  # 2025 format
 
