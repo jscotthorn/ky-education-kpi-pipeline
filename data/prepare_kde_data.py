@@ -43,37 +43,154 @@ class KDEDownloader:
         with open(self.config_path, 'r') as f:
             self.config = yaml.safe_load(f)
     
-    def download_file(self, url: str, file_path: Path, timeout: int = 30) -> bool:
-        """Prepare a single file from KDE with retry logic"""
+    def _base_url_for(self, url_type: str) -> str:
+        """Resolve a config url type to its download prefix."""
+        if url_type == "2025":
+            return self.config.get("base_url_2025", self.config["base_url"])
+        if url_type == "kyrc25":
+            return self.config.get("base_url_kyrc25", self.config["base_url"])
+        if url_type == "kyrc26":
+            return self.config.get(
+                "base_url_kyrc26",
+                self.config.get("base_url_kyrc25", self.config["base_url"]),
+            )
+        if url_type == "historical":
+            return self.config.get("base_url_historical", self.config["base_url"])
+        return self.config["base_url"]
+
+    def _entry_url(self, file_entry: object) -> tuple[str, str]:
+        """Return (filename, absolute url) for a string or dict config entry."""
+        if isinstance(file_entry, dict):
+            url_type = str(file_entry.get("url", "default"))
+            filename = str(file_entry["file"])
+            base_url = self._base_url_for(url_type)
+        else:
+            filename = str(file_entry)
+            base_url = self.config["base_url"]
+        return filename, f"{base_url}{filename}"
+
+    def _meta_path(self, file_path: Path) -> Path:
+        return file_path.with_name(file_path.name + ".kde-source.yaml")
+
+    def _read_source_meta(self, file_path: Path) -> Optional[Dict[str, str]]:
+        meta_path = self._meta_path(file_path)
+        if not meta_path.exists():
+            return None
+        with open(meta_path, "r", encoding="utf-8") as handle:
+            loaded = yaml.safe_load(handle) or {}
+        if not isinstance(loaded, dict):
+            return None
+        return {str(key): str(value) if value is not None else "" for key, value in loaded.items()}
+
+    def _write_source_meta(self, file_path: Path, meta: Dict[str, str]) -> None:
+        meta_path = self._meta_path(file_path)
+        with open(meta_path, "w", encoding="utf-8") as handle:
+            yaml.safe_dump(meta, handle, sort_keys=False)
+
+    def _probe_remote(self, url: str, timeout: int = 30) -> Dict[str, str]:
+        """Read Last-Modified and ETag without downloading the body.
+
+        Open House answers HEAD with 403, so fall back to a one-byte GET.
+        """
+        headers = self.config["headers"]
+        response = requests.head(url, headers=headers, timeout=timeout, allow_redirects=True)
+        try:
+            needs_get = response.status_code in (403, 405) or not response.headers.get("Last-Modified")
+            if needs_get:
+                response.close()
+                ranged = dict(headers)
+                ranged["Range"] = "bytes=0-0"
+                response = requests.get(url, headers=ranged, timeout=timeout, stream=True)
+            response.raise_for_status()
+            return {
+                "url": url,
+                "last_modified": response.headers.get("Last-Modified") or "",
+                "etag": response.headers.get("ETag") or "",
+            }
+        finally:
+            response.close()
+
+    def _same_remote_version(self, local: Dict[str, str], remote: Dict[str, str]) -> bool:
+        """True when the stored stamp still matches the remote object."""
+        remote_modified = remote.get("last_modified") or ""
+        local_modified = local.get("last_modified") or ""
+        if not remote_modified or local_modified != remote_modified:
+            return False
+        remote_etag = remote.get("etag") or ""
+        local_etag = local.get("etag") or ""
+        if remote_etag and local_etag and remote_etag != local_etag:
+            return False
+        return True
+
+    def download_file(self, url: str, file_path: Path, timeout: int = 30) -> Optional[Dict[str, str]]:
+        """Download one file. Returns the source stamp, or None on failure."""
+        partial = file_path.with_name(file_path.name + ".partial")
         try:
             logger.info(f"Preparing {file_path.name}...")
             response = requests.get(
-                url, 
+                url,
                 headers=self.config["headers"],
                 timeout=timeout,
-                stream=True
+                stream=True,
             )
             response.raise_for_status()
-            
-            # Create parent directory if it doesn't exist
+
             file_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            # Write file in chunks to handle large files
-            with open(file_path, 'wb') as f:
+            with open(partial, "wb") as handle:
                 for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-            
+                    if chunk:
+                        handle.write(chunk)
+            partial.replace(file_path)
+
             file_size = file_path.stat().st_size
             logger.info(f"✓ Downloaded: {file_path.name} ({file_size:,} bytes)")
-            return True
-            
+            return {
+                "url": url,
+                "last_modified": response.headers.get("Last-Modified") or "",
+                "etag": response.headers.get("ETag") or "",
+                "content_length": str(file_size),
+            }
         except requests.exceptions.RequestException as e:
             logger.error(f"✗ Failed to download {file_path.name}: {e}")
-            return False
+            return None
         except Exception as e:
             logger.error(f"✗ Unexpected error downloading {file_path.name}: {e}")
+            return None
+        finally:
+            if partial.exists():
+                partial.unlink()
+
+    def _sync_file(self, url: str, file_path: Path) -> bool:
+        """Download url when the local copy is missing or the remote stamp changed."""
+        local_meta = self._read_source_meta(file_path) if file_path.exists() else None
+        if file_path.exists() and local_meta:
+            try:
+                remote = self._probe_remote(url)
+            except requests.exceptions.RequestException as e:
+                logger.error(f"✗ Failed to check {file_path.name}: {e}")
+                return False
+            if self._same_remote_version(local_meta, remote):
+                logger.info(
+                    "Skipping %s (Last-Modified unchanged: %s)",
+                    file_path.name,
+                    remote.get("last_modified"),
+                )
+                return True
+            logger.info(
+                "Re-downloading %s; Last-Modified changed from %s to %s",
+                file_path.name,
+                local_meta.get("last_modified"),
+                remote.get("last_modified"),
+            )
+        elif file_path.exists():
+            logger.info("Re-downloading %s; no source stamp is recorded", file_path.name)
+
+        stamp = self.download_file(url, file_path)
+        if stamp is None:
             return False
-    
+        self._write_source_meta(file_path, stamp)
+        return True
+
     def download_directory(self, directory: str) -> Dict[str, bool]:
         """Download all files for a specific raw data directory"""
         if directory not in self.config["raw_directories"]:
@@ -86,39 +203,9 @@ class KDEDownloader:
         logger.info(f"Downloading {len(files)} files for {directory}")
 
         for file_entry in files:
-            # Handle both string filenames and dict entries with URL specification
-            if isinstance(file_entry, dict):
-                # Dict format: {url: "2025"|"kyrc25", file: "filename.csv"}
-                url_type = file_entry.get('url', 'default')
-                filename = file_entry['file']
-
-                if url_type == '2025':
-                    base_url = self.config.get('base_url_2025', self.config['base_url'])
-                elif url_type == 'kyrc25':
-                    base_url = self.config.get('base_url_kyrc25', self.config['base_url'])
-                elif url_type == 'historical':
-                    base_url = self.config.get('base_url_historical', self.config['base_url'])
-                else:
-                    base_url = self.config['base_url']
-
-                url = f"{base_url}{filename}"
-            else:
-                # String format: just the filename
-                filename = file_entry
-                url = f"{self.config['base_url']}{filename}"
-
+            filename, url = self._entry_url(file_entry)
             file_path = target_dir / filename
-
-            # Skip if file already exists
-            if file_path.exists():
-                logger.info(f"Skipping {filename} (already exists)")
-                results[filename] = True
-                continue
-
-            success = self.download_file(url, file_path)
-            results[filename] = success
-
-            # Rate limiting - small delay between requests
+            results[filename] = self._sync_file(url, file_path)
             time.sleep(0.5)
 
         return results

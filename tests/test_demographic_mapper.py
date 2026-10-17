@@ -64,6 +64,16 @@ class TestDemographicMapper:
         # Test that 2024 mappings work
         result_2024 = self.mapper.map_demographic("Non Economically Disadvantaged", "2024", "test")
         assert result_2024 == "Non-Economically Disadvantaged"
+
+        # 2025 and 2026 carry the same year-specific labels forward.
+        for year in ("2025", "2026"):
+            mapped = self.mapper.map_demographic("Non Economically Disadvantaged", year, "test")
+            assert mapped == "Non-Economically Disadvantaged"
+            validation = self.mapper.validate_demographics(
+                ["All Students", "White (non-Hispanic)", "Students with Disabilities (IEP)"],
+                year,
+            )
+            assert validation["unexpected"] == []
     
     def test_missing_values(self):
         """Test handling of missing/null demographic values."""

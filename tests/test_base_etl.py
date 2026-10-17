@@ -35,6 +35,42 @@ def test_extract_year():
         assert result == expected
 
 
+def test_extract_year_from_kyrc_filename():
+    etl = DummyETL("dummy")
+    row = pd.Series({"school_year": ""})
+    assert etl.extract_year(row, "KYRC26_OVW_Chronic_Absenteeism.csv") == "2026"
+    assert etl.extract_year(row, "Graduation_Rate_2025.CSV") == "2025"
+    # An 8-digit school year still wins over the filename.
+    assert etl.extract_year(pd.Series({"school_year": "20252026"}), "KYRC26_x.csv") == "2026"
+
+
+def test_coop_header_aliases():
+    etl = DummyETL("dummy")
+    frame = pd.DataFrame({"CO-OP": ["A"], "Co-Op": ["B"], "Co-Op Code": ["1"]})
+    renamed = etl.normalize_column_names(frame)
+    assert list(renamed.columns) == ["co_op", "co_op", "co_op_code"]
+
+
+def test_kyrc26_files_are_skipped_until_a_module_opts_in(tmp_path):
+    source = tmp_path / "dummy"
+    source.mkdir()
+    (source / "KYRC25_OVW_Chronic_Absenteeism.csv").write_text("a\n")
+    (source / "KYRC26_OVW_Chronic_Absenteeism.csv").write_text("a\n")
+
+    etl = DummyETL("dummy")
+    names = [path.name for path, _sheet in etl._find_data_files(source)]
+    assert names == ["KYRC25_OVW_Chronic_Absenteeism.csv"]
+
+    class ReadyETL(DummyETL):
+        include_kyrc26 = True
+
+    ready_names = sorted(path.name for path, _sheet in ReadyETL("dummy")._find_data_files(source))
+    assert ready_names == [
+        "KYRC25_OVW_Chronic_Absenteeism.csv",
+        "KYRC26_OVW_Chronic_Absenteeism.csv",
+    ]
+
+
 def test_extract_school_id_requires_school_code():
     etl = DummyETL("dummy")
     # Primary school_code
