@@ -1,0 +1,6 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,All Grades,Preschool,K,Grade 1,Grade 2,Grade 3,Grade 4,Grade 5,Grade 6,Grade 7,Grade 8,Grade 9,Grade 10,Grade 11,Grade 12,Grade 14
+20242025,,,999,All Districts,,All Schools,999000,,,,,,All Students,"682,013","30,754","48,202","49,841","50,364","52,070","48,738","49,560","49,769","46,432","49,550","53,534","52,960","50,359","49,243",637
+20242025,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000000,GRREC,902,A1,All Students,860,,,,,,,,,,,221,210,217,212,
+20242025,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,All Students,"44,390","1,411","3,120","3,325","3,346","3,525","3,194","3,348","3,215","2,949","3,305","3,648","3,524","3,257","3,187",36
+20242025,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000000,CKEC,901,A1,All Students,"2,262",,,,,,,,,,,639,581,464,572,6
+20242025,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000000,CKEC,901,A1,Native Hawaiian or Pacific Islander,2,,,,,,,,,,,0,1,1,0,0

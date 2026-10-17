@@ -24,6 +24,7 @@ The node ids are in journal 105 (census live API, pandas `StringDtype` versus `o
 | `postsecondary_readiness` | In review in PR #41 (`cursor/postsecondary-readiness-kyrc26-37b0`). Opt-in, and a source swap in `config/kde_sources.yaml`: `Postsecondary_Readiness_2025.CSV` is replaced by `KYRC25_ACCT_Postsecondary_Readiness.csv`. The parser skips leftover `Postsecondary_Readiness_2024.CSV`, `Postsecondary_Readiness_2025.CSV`, and `Postsecondary_Readiness_2026.CSV` so those years are not written twice. A source row that is not `Y` and has both rates empty is skipped. That removes the empty `suppressed` `N` rows journal 75 emitted, so KYRC24 changes from 21,438 KPI rows to 15,908. 2022 and 2023 stay 18,262. No shared parser or dependency changes. Details are under that module |
 | `postsecondary_enrollment` | In review in PR #43 (`cursor/postsecondary-enrollment-kyrc26-5640`). Opt-in only. Every registered prior-year URL returned 200, and no temporary OAA name was ever registered, so there is no source swap and no leftover-file skip. Headers match KYRC25. There is no Suppressed column. Known deviation from notes/8, tracked in issue #44: a `*` cell is dropped and a fully starred group emits no KPI row. That predates KYRC26, so prior-year KPI counts stay 18,737 / 7,781 / 9,509 / 9,625 / 9,679. KYRC26 writes 10,657. No shared parser or dependency changes. Details are under that module |
 | `cte_participation` | In review in PR #45 (`cursor/cte-participation-kyrc26-4ad7`). Opt-in only. Every registered prior-year URL returned 200, and no temporary OAA name was ever registered, so there is no source swap and no leftover-file skip. Headers match KYRC25. There is no Suppressed column. Known deviation from notes/8, tracked in issue #46: a `*` cell is dropped and a fully starred group emits no KPI row. That predates KYRC26, so prior-year KPI counts stay 9,772 / 9,270 / 9,935 / 14,075. KYRC26 writes 14,424. A second pre-existing deviation, tracked in issue #47: the two columns the parser maps to rates (participants, completers) hold counts, as do all four measure columns. None of the headers is named like a rate. The base parser publishes a count of 100 or below as the rate and nulls a count above 100. KYRC24 has 42 genuine participation rates above 100 that the same cleaner nulls. Not changed here. No shared parser or dependency changes. Details are under that module |
+| `student_enrollment` | In review in PR #48 (`cursor/student-enrollment-kyrc26-6f5d`). Opt-in, plus a local comma cleaner so pandas 3 StringDtype counts such as `669,865` survive. That cleaner restores the pandas 2.3.3 output for 2019-2025. The comma bug appears only on pandas 3, and pandas is unpinned. A filename skip for `OVW_Student_Membership` because the remaining grade headers would emit different totals. That file is not preschool membership: KYRC26 has no Preschool column on it. Every registered prior-year URL returned 200. No temporary OAA name was ever registered, so there is no source swap and no leftover-temp skip. Headers match KYRC25. There is no Suppressed column and no `*` cell. KYRC26 writes 180,076 KPI rows. `openpyxl` is not a declared dependency, so without it the 2019 workbook is skipped and the run continues. No shared parser or dependency changes. Details are under that module |
 
 `chronic_absenteeism` was re-tested on this branch after the review fixes: `42 failed, 394 passed, 104 skipped`. The 42 failure node ids match the develop baseline above. Run `python3 scripts/compare_pytest_to_journal105.py` and paste the report into the pull request. Do not commit a per-script diff file. The extra passes are the shared-prep tests already on `feature/2025-26-kyrc26` plus the chronic-absenteeism tests added here. Do not treat 375 passed as the number to match once shared prep is in the base.
 
@@ -36,6 +37,8 @@ The node ids are in journal 105 (census live API, pandas `StringDtype` versus `o
 `postsecondary_enrollment` compare run, pandas 3.0.6: `42 failed, 415 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The four passes beyond the readiness total are the KYRC26 acceptance test, the registered-source test, the blank-row and sibling-file test, and the real-row fixture test. Do not treat 411 passed as the number to match once this module merges.
 
 `cte_participation` compare run, pandas 3.0.6: `42 failed, 419 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The four passes beyond the enrollment total are the KYRC26 acceptance test, the registered-source test, the blank-row and sibling-file test, and the real-row fixture test. Do not treat 415 passed as the number to match once this module merges.
+
+`student_enrollment` compare run, pandas 3.0.6: `40 failed, 426 passed, 104 skipped`, errors 0. The 40 failure node ids are the develop baseline minus `tests/test_student_enrollment.py::TestStudentEnrollmentETL::test_clean_enrollment_data` and `tests/test_student_enrollment.py::TestCleanEnrollmentData::test_comma_removal`. Those two now pass because the StringDtype comma cleaner keeps `669,865`. The other two student-enrollment baseline failures stay. The five passes beyond the CTE total, plus those two, are the KYRC26 acceptance test, the registered-source test, the blank-row test, the membership-filename test, the real-row fixture test, and the two comma tests. The 2024 state primary anchor is an assertion inside that real-row test, so the pass count does not move. The 2024 and 2025 row difference versus a pandas 3 base run is the pandas 2.3.3 output being restored. pandas is unpinned. Do not treat 419 passed as the number to match once this module merges.
 
 ## What was checked
 
@@ -637,14 +640,128 @@ Lessons for later agents:
 9. Before adding a filename guard, parse one sibling row. Career Pathways, Career Readiness Indicators, the Perkins report, Postsecondary Opportunities, and Student Objectives emit nothing.
 10. The two columns the parser maps to rates (participants, completers) hold counts, as do all four 2022 and 2023 measure columns. `TOTAL NUMBER OF STUDENT` and `GRADE 12 CTE ELIGIBLE COMPLETER` are already mapped as counts. None of the headers is named like a rate. There is no decimal in them, and completers are at or below eligible wherever both are numeric. Bryan Station 2022 stores completers 77 and eligible 413: 77 of 413 is 18.6%. The base parser publishes a count of 100 or below as the rate and nulls a count above 100. That loses data. It is pre-existing, tracked in issue #47 (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/47), and not changed here. KYRC24 has 42 genuine participation rates above 100, and the same cleaner nulls those too (#47). KYRC25 and KYRC26 compute the rate from the count columns.
 
-### `student_enrollment` — S
+### `student_enrollment` — S — in review
 
 | | |
 | --- | --- |
 | KYRC26 files | `KYRC26_OVW_Student_Enrollment.csv` |
-| Header changes | None |
-| Fixtures / assertions | State `999000` row, year `2026` |
-| Gotchas | Preschool membership lives on `OVW_Student_Membership`, which is not this file and has no ETL |
+| Header changes | None versus KYRC25. The grade headers were already mapped. On pandas 3, a comma in `669,865` has to be stripped on StringDtype or `to_numeric` drops it. pandas 2.3.3 already strips it, because `dtype=str` is still object |
+| Fixtures / assertions | State `999000` total 669,865, year `2026`. Preschool 29,782 is on this file. 2024 state All Students primary is 331,857 |
+| Gotchas | `OVW_Student_Membership` is not preschool membership and has no ETL. KYRC26 removed its Preschool column. State All Grades there is 624,645, which is not enrollment 669,865 and is not 669,865 − 29,782. The remaining grade headers are mapped and would emit `student_enrollment_*`, so this parser skips that filename. Preschool enrollment is on this file. `openpyxl` is not declared, so a missing install skips the 2019 workbook without failing the run |
+
+Result, checked 17 October 2026 against the public `datasets` container. `include_kyrc26 = True`, the StringDtype comma cleaner in `clean_enrollment_data`, an NA-safe total lookup, and the membership filename skip are the changes. `etl/kyrc.py`, `BaseETL`, and the demographic config were not edited. Re-HEAD the enrollment file after 26 October 2026. If the hashes diverge from the stamps below, take the newer stamp and record which container it came from.
+
+`datasets` HEAD for the KYRC25 and KYRC26 files did not return Content-MD5. The UAT Content-MD5 matches the bytes downloaded from `datasets`, and `datasets` Last-Modified is newer, so these are the `datasets` objects.
+
+| File | Bytes | MD5 | Last-Modified |
+| --- | --- | --- | --- |
+| `KYRC26_OVW_Student_Enrollment.csv` | 3,586,080 | `34fb611ac6c7356089d79681a9748fdd` | Thu, 15 Oct 2026 10:00:10 GMT |
+| `KYRC25_OVW_Student_Enrollment.csv` | 3,620,384 | `70f5e78cc6b68f7b1161e53562e227ca` | Sat, 18 Jul 2026 21:29:47 GMT |
+| `KYRC24_OVW_Student_Enrollment.csv` (historical, the registered file) | 3,584,130 | `7bee3e93297164c1823f4aac6504a81c` | Wed, 28 May 2025 23:34:07 GMT |
+
+Each KYRC file has 30 columns. The headers match from KYRC24 through KYRC26. KYRC26 has 22,923 data rows. KYRC25 has 23,136. KYRC24 has 23,092. The MD5s are of those downloaded bytes.
+
+Every registered URL returned 200. `primary_enrollment_2023.csv`, `primary_enrollment_2022.csv`, `primary_enrollment_2021.csv`, `primary_enrollment_2020.csv`, and `STUDENT_PRIMARY_ENROLLMENT_18-19.xlsx` are on the historical host. `KYRC25_OVW_Student_Enrollment.csv` and `KYRC26_OVW_Student_Enrollment.csv` are on `datasets` and on UAT, with one MD5 each. The guessed OAA names `Student_Enrollment_2024.CSV`, `Student_Enrollment_2025.CSV`, `Student_Enrollment_2026.CSV`, and `primary_enrollment_2025.csv` are 404 and were never registered. There is no leftover-temp skip.
+
+The historical-host KYRC25 copy is a different file: 3,588,121 bytes, MD5 `3235aa7a4fdc6f45ca44c07fdcbe6b69`, Last-Modified Tue, 10 Feb 2026 19:57:10 GMT. Same keys. The only measure difference is that 32,263 zero cells are blank. It is not registered. The parser already omits a zero, so that copy would not change KPI values. The blob copy of KYRC24 (3,593,935 bytes, MD5 `12282908c95cd741bd04d6edf0267e64`) is also not registered. Its measure cells match the historical file. `CO-OP` differs on 2,504 rows: 2,488 Jefferson rows are blank here and `GREC` on the blob, and school `121026` (Rev. Henry E. Baker Sr. Interm. School, 16 rows) stores `CO-OP` `-84.21926253` and `CO-OP Code` `CKEC` here, against blob `CKEC` / `901`. The historical file returns 200, so it stays the source. Switching would change `co_op` on those 2,504 rows.
+
+All Students, KPI `year` `2026` (source `School Year` `20252026`). `All Schools` is stored as `---District Total---`. Counts are integers. No measure cell has a decimal. Where every grade cell is numeric, including zeros and excluding blanks, the grades sum to `All Grades`. That holds for every row in KYRC24, KYRC25, and KYRC26.
+
+| Row | School code | Total | Preschool | Kindergarten | Grade 12 | Grade 14 | Suppressed |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| State (`All Districts`) | `999000` | 669,865 | 29,782 | 46,806 | 49,115 | 634 | N |
+| Fayette County district | `165000` | 43,057 | 1,251 | 3,026 | 3,136 | 26 | N |
+| Bryan Station High School | `165170` | 2,241 | blank | blank | 567 | 2 | N |
+| Adair County High School | `001010` | 818 | blank | blank | 204 | 2 | N |
+
+State primary (preschool through grade 5) is 323,375. Middle (grades 6-8) is 145,235. Secondary (grades 9-12) is 200,621. 323,375 + 145,235 + 200,621 + 634 = 669,865. Fayette primary is 20,480, middle 9,333, secondary 13,218, grade 14 is 26. 20,480 + 9,333 + 13,218 + 26 = 43,057. Bryan Station grades 9-12 are 621, 529, 522, and 567. Secondary is 2,239. 2,239 + 2 = 2,241. Adair grades 9-12 are 194, 217, 201, and 204. Secondary is 816. 816 + 2 = 818.
+
+Bryan Station `state_school_id` `034165170`, `nces_id` `210186000388`, `school_type` `A1`, county `FAYETTE`. Fayette district `nces_id` `2101860`, `co_op` `CKEC`, `co_op_code` `901`. That `901` is the cooperative code. The school code stays `165170`. KYRC25 stored Bryan Station's NCES id as `210186000000`. KYRC24 and KYRC26 both use `210186000388`. Adair County High School `001010` is `210003000001` in KYRC24 and KYRC26 and `210003000000` in KYRC25. The KYRC24 historical Fayette district NCES id is blank.
+
+pandas is unpinned. On pandas 2.3.3, `read_csv(..., dtype=str)` returns object, so the existing `dtype == object` comma strip already runs. The base code on pandas 2.3.3 already writes this branch's 2019-2025 rows. The comma bug is pandas 3 only: `dtype=str` is StringDtype, the object check misses `669,865`, and `to_numeric` drops it. The StringDtype cleaner restores that pandas 2 output on pandas 3. It does not revise the published 2019-2025 counts. KYRC26 is new on both versions.
+
+The table is a pandas 3.0.6 run of the base code, before the cleaner and before `include_kyrc26`, against this branch. On that version, 2019-2023 already matched, because the 2020-2023 primary files have no comma inside a measure cell and the 2019 workbook stores numbers. 2024 and 2025 lost the comma-formatted cells and the aggregates those cells complete. After the cleaner they match the pandas 2 output. No previously emitted row disappeared. On pandas 3 the CSV text of `value` no longer has a trailing `.0`. The number is the same.
+
+| Year | pandas 3 base | pandas 2.3.3 and this branch |
+| --- | --- | --- |
+| 2019 | 164,810 | 164,810 |
+| 2020 | 176,886 | 176,886 |
+| 2021 | 174,798 | 174,798 |
+| 2022 | 178,567 | 178,567 |
+| 2023 | 179,785 | 179,785 |
+| 2024 | 180,131 | 181,563 |
+| 2025 | 180,375 | 181,803 |
+| 2026 | 0 | 180,076 |
+
+On pandas 3.0.6 the 2024 state All Students row kept only grade 14 (653), the one state cell with no comma. The 2025 state row kept only grade 14 (637). Counts of 1,000 and above are the cells with a comma: 1,354 in KYRC24 and 1,347 in KYRC25. State totals for the earlier years were already present on both versions: 2019 is 700,992 (school code `999000`), 2020 is 698,388, 2021 is 682,953, 2022 is 685,401, and 2023 is 687,294 (school code `999`).
+
+`openpyxl` is not a declared dependency. `pyproject.toml` lists pandas, pydantic, PyYAML, ruamel-yaml, pytest, tabulate, and requests. `pd.read_excel` needs openpyxl for `STUDENT_PRIMARY_ENROLLMENT_18-19.xlsx`. `BaseETL.process` catches the per-file exception, logs it, and continues, so a missing openpyxl writes 2020-2026 and leaves 2019 out. Dependencies were not changed.
+
+What pandas 3 drops, and what pandas 2.3.3 already wrote: 2024 is 1,432 rows, 1,354 comma-formatted cells plus 78 aggregate rows that had no under-1,000 grade to sum. 180,131 + 1,354 + 78 = 181,563. 2025 is 1,428 rows, 1,347 comma-formatted cells plus 81 aggregate rows. 180,375 + 1,347 + 81 = 181,803. Every restored value is at least 1,000. Fifty-six existing aggregate rows differ between the pandas 3 base and this output, 31 in 2024 and 25 in 2025, and all 56 are `student_enrollment_primary` (37), `student_enrollment_middle` (7), or `student_enrollment_secondary` (12). No previously emitted grade count or total differs. The 2024 state Asian primary on pandas 3 was 591, which is only the preschool cell (`591`). Kindergarten through grade 5 are `1,054`, `1,162`, `1,166`, `1,119`, `1,126`, and `1,157`. 591 + 1,054 + 1,162 + 1,166 + 1,119 + 1,126 + 1,157 = 7,375, which is the pandas 2 value. The fixture locks the same kind of sum for 2024 state All Students primary: 31,467 + 49,681 + 50,859 + 52,241 + 48,560 + 49,321 + 49,728 = 331,857. Published state totals are 686,224 (2024) and 682,013 (2025). Fayette stays 44,362 and 44,390. Bryan Station stays 2,266 and 2,262. Adair County High School stays 847 and 860.
+
+KYRC26 is not a complete 18-demographic grid. KYRC25 has 1,572 school codes and 23,136 rows. KYRC26 has 1,561 school codes and 22,923 rows. Code change versus KYRC25: 5 added, 16 removed, net −11. 1,572 − 16 + 5 = 1,561. None of the removed or added codes are cooperative totals 901-909.
+
+| Piece | Rows |
+| --- | --- |
+| KYRC25 | 23,136 |
+| 16 removed schools | −214 |
+| Demographic keys dropped on the 1,556 shared codes | −753 |
+| Demographic keys added on those codes | +691 |
+| 5 new codes | +63 |
+| KYRC26 | 22,923 |
+
+23,136 − 214 − 753 + 691 + 63 = 22,923. The 753 dropped keys are 41 district and 712 school. The 691 added keys are 39 district and 652 school. State keys stay 18. 41 + 712 = 753. 39 + 652 = 691.
+
+District rows go from 2,823 to 2,821. No district code was added or removed (175 codes). 2,823 − 41 + 39 = 2,821. School rows go from 20,295 to 20,084. 20,295 − 214 − 712 + 652 + 63 = 20,084. School codes go from 1,396 to 1,385. 1,396 − 16 + 5 = 1,385. 18 + 2,821 + 20,084 = 22,923.
+
+The 16 removed schools are not co-op totals. Seven are `A8` virtual academies and account for 103 of the 214 rows: Christian County Public Schools VLA `115012` (17), Cardinal Virtual Academy `121015` (16), HCS Virtual Academy `231035` (16), Liberty Academy `465035` (13), Cultivate Virtual Learning Academy `531025` (16), Todd County Virtual Academy `551023` (11), and Beacon Academy `571020` (14). 17 + 16 + 16 + 13 + 16 + 11 + 14 = 103. The other nine are Wurtland Middle `221024` (12), Wurtland Elementary `221110` (13), Young Elementary `275374` (13), Jefferson Regional Juvenile Detention Center `275463` (10), Arlie Boggs Elementary `331210` (10), GEO International High `571245` (13), Rivendell Elementary `571300` (16), Rivendell High `571305` (13), and Williamstown Head Start Preschool `593040` (11). 12 + 13 + 13 + 10 + 10 + 13 + 16 + 13 + 11 = 111. 103 + 111 = 214.
+
+The 5 new codes are The Anderson County Learning Academy `011030` (11), Mary E. Britton Middle School `165220` (16), Greenup County School of Innovation `221015` (13), Metcalfe County Academy `425015` (8), and Early Learning Academy `571006` (15). 11 + 16 + 13 + 8 + 15 = 63.
+
+KPI rows are not one per source row. A grade count is emitted when it is greater than 0. A total is emitted when `All Grades` is greater than 0. Primary, middle, and secondary sums are emitted when at least one of their grades is greater than 0. KYRC25 writes 181,803. KYRC26 writes 180,076.
+
+| Piece | KPI rows |
+| --- | --- |
+| KYRC25 | 181,803 |
+| 16 removed schools | −1,579 |
+| Shared codes | −549 |
+| 5 new schools | +401 |
+| KYRC26 | 180,076 |
+
+181,803 − 1,579 − 549 + 401 = 180,076. The shared-code change is state +1, district −62, and school −488. 1 − 62 − 488 = −549. The state +1 is Migrant grade 14: KYRC25 publishes 0, which this parser omits, and KYRC26 publishes 1. Level totals: state 339 to 340, district 43,300 to 43,238, school 138,164 to 136,498. 339 + 43,300 + 138,164 = 181,803. 340 + 43,238 + 136,498 = 180,076.
+
+| File | Blank cells | Zero cells | Positive cells | All-blank rows | `*` cells | KPI rows |
+| --- | --- | --- | --- | --- | --- | --- |
+| KYRC24 | 188,275 | 32,352 | 148,845 | 0 | 0 | 181,563 |
+| KYRC25 | 188,800 | 32,263 | 149,113 | 0 | 0 | 181,803 |
+| KYRC26 | 187,508 | 31,527 | 147,733 | 0 | 0 | 180,076 |
+
+188,275 + 32,352 + 148,845 = 369,472, and 23,092 × 16 = 369,472. 188,800 + 32,263 + 149,113 = 370,176, and 23,136 × 16 = 370,176. 187,508 + 31,527 + 147,733 = 366,768, and 22,923 × 16 = 366,768. There is no Suppressed column. The only non-numeric measure token is a blank. A blank grade is not part of `All Grades`. Bryan Station `165170` All Students leaves preschool through grade 8 blank, and 621 + 529 + 522 + 567 + 2 = 2,241. Those blank grades emit no KPI row, which is what notes/8 requires for a grade that is not offered. A zero is an offered grade with a count of 0, and it is inside the `All Grades` sum. The current parser drops that zero in two places: `extract_metrics` keeps a count only when it is greater than 0, and `convert_to_kpi_format` also skips a metric when the value is 0. Whether a published zero should be a KPI row is a pre-existing design question, not suppression. Counts of 1 and 2 are published, and the output has no `suppressed` `Y` row. The locked small-count row is Bryan Station Native Hawaiian or Pacific Islander: total 2, grades 9 and 10 are 0, grades 11 and 12 are 1, grade 14 is 0. The KPI rows are the total, grade 11, grade 12, and secondary 2. The same group's KYRC25 row publishes grade 10 and grade 11 as 1.
+
+`KYRC26_OVW_Student_Membership.csv` is not registered under this directory and it is not preschool membership. KYRC26 removed the Preschool column from that file. Its state All Students `All Grades` is 624,645. 669,865 − 29,782 = 640,083, which is not 624,645. Preschool enrollment, 29,782, is on `OVW_Student_Enrollment`. The grade headers that file still has are mapped, so a parse emits `student_enrollment_*` rows. `accepts_data_file` skips a name that contains `student_membership`. That keeps a leftover membership file from writing a second total next to this one.
+
+`CO-OP` `GREC` is 2,491 rows and 169 school codes in KYRC25, all Jefferson County codes beginning `275`. KYRC26 labels the remaining codes `GLEC`: 2,456 rows and 167 codes. The two removed Jefferson schools are Young Elementary `275374` (13) and the Jefferson Regional Juvenile Detention Center `275463` (10). 13 + 10 = 23. 2,491 − 23 = 2,468. Twelve demographic rows drop on the codes that remain. 2,468 − 12 = 2,456. Nothing in this pipeline groups or joins on the co-op name.
+
+Both years' demographic columns are the same 18 labels, all already in the 2026 demographic config. The label check reported 18 valid and no unexpected labels for 2024, 2025, and 2026. The five optional labels that are absent (Alternate Assessment, Consolidated Student Group, Non Economically Disadvantaged, Non English Learner, Student without Disabilities (IEP)) are the same set KYRC24 and KYRC25 already missed. No new KPI names. `KPIS.md` lists the KYRC files, the primary files, the 2018-19 workbook, and years 2019-2026.
+
+The 2023 file has 19 rows whose `SCHOOL YEAR` is `20022023` instead of `20222023`. `extract_year` keeps the last four digits, so they still file under 2023. That is a source typo, left as it is.
+
+Fixtures are real rows in `tests/fixtures/student_enrollment/`: six KYRC26 rows, five KYRC25 rows, four KYRC24 rows, and the 2022 and 2023 state All Students rows. They include the Bryan Station blank elementary grades and the Bryan Station Native Hawaiian and American Indian rows, where a 0 sits beside a published 1 or 2. `tests/test_fixture_sizes.py` passes.
+
+Follow-up, not fixed here. Issue #42 (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/42): `scripts/generate_report_drafts.py` selects state rows with `district == 'State'`, and `get_state_average` also requires `school_name == '---District Total---'`. Student enrollment is not in that script's indicator list. If it were added, no year would match both conditions. The 2020-2023 state rows are district `State` and school name `---State Total---` (school code `999`; 2019 uses `999000` with the same district and school name). KYRC24, KYRC25, and KYRC26 store district `All Districts` and school name `All Schools`, which this parser stores as `---District Total---` (school code `999000`). `analysis/scripts/base_analysis_dataset.py` reads `student_enrollment_total` and drops `---District Total---`. It does not select district `State`. On pandas 3, before the StringDtype cleaner, an `All Grades` count at or above 1,000 was missing. pandas 2.3.3 already wrote it. A total under 1,000 was present on both.
+
+Lessons for later agents:
+
+1. HEAD the registered URLs before assuming a temporary file went 404. This module's KYRC25 entry was already the permanent file, and it returns 200 on `datasets` and on UAT, with one MD5. The guessed OAA names are 404 and were never registered. Do not add a skip for a filename this directory has never used. The 2020-2023 primary names and the 2018-19 workbook stay. The historical-host KYRC25 copy blanks the zero cells. It is not registered.
+2. "Header changes: none" means the KYRC26 header matches KYRC25. The grade headers were already mapped. pandas is unpinned. On pandas 2.3.3, `dtype=str` is object and the existing comma strip already keeps `669,865`. On pandas 3, `dtype=str` is StringDtype, and a strip that checks only `dtype == object` drops it. The state total is 669,865. Preschool 29,782 is on this file.
+3. This file has no Suppressed column and no `*` cell. A blank grade is not part of `All Grades` and emits nothing. A zero is an offered grade with a count of 0. The parser skips that zero in two places: `extract_metrics` (`value > 0`) and `convert_to_kpi_format` (`value != 0`). Whether a published zero should be a KPI row is a pre-existing design question, not suppression. Counts of 1 and 2 are published. There is no `suppressed` `Y` row.
+4. `OVW_Student_Membership` is not preschool membership. KYRC26 has no Preschool column on that file. State All Grades is 624,645. 669,865 − 29,782 = 640,083, which is not 624,645. Preschool enrollment is on `OVW_Student_Enrollment`. The grade headers that file still has would emit `student_enrollment_*` rows, so this parser skips a `student_membership` filename. The file is not registered here and has no ETL.
+5. Compare the code sets, then the counts. KYRC26 is smaller by 213 source rows and 1,727 KPI rows, and the arithmetic above adds up. The 16 removed schools are not co-op totals. Seven virtual academies account for 103 of the 214 removed source rows.
+6. Prior-year identity against pandas 2.3.3 is the base code's own output. That version already writes this branch's 2019-2025 rows: 164,810 / 176,886 / 174,798 / 178,567 / 179,785 / 181,563 / 181,803. The smaller 2024 and 2025 counts, and the 56 partial aggregate sums, are a pandas 3 run of the base code. The StringDtype cleaner restores the pandas 2 sums. Published state, Fayette, Bryan Station, and Adair County High School values are the file values, including 686,224 and 682,013. The 2024 state All Students primary anchor is 331,857.
+7. State district is `All Districts` for 2024-2026 and `State` for 2019-2023. Issue #42: `scripts/generate_report_drafts.py` selects `State`, and `get_state_average` also requires school name `---District Total---`. Student enrollment is not in the indicator list. Neither shape would match both conditions.
+8. `GREC` became `GLEC` on the Jefferson codes that remain. Nothing in this pipeline joins on the co-op name. The KYRC24 historical file's `CO-OP` quirks (blank Jefferson rows, and `-84.21926253` on school `121026`) stay, because that file returns 200 and the blob copy is not registered.
+9. The 2023 file has 19 rows dated `20022023`. `extract_year` keeps 2023. Leave the typo.
+10. `openpyxl` is not a declared dependency. Without it, reading `STUDENT_PRIMARY_ENROLLMENT_18-19.xlsx` raises, `BaseETL.process` logs that error and continues, and 2019 is absent from the output. Dependencies were not changed.
 
 ### `secondary_enrollment` — S
 
