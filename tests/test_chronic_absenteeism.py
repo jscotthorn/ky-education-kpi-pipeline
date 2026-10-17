@@ -451,3 +451,20 @@ class TestChronicAbsenteeismETL:
         assert cleaned_df.loc[0, 'enrollment_count'] == 4200
         assert cleaned_df.loc[1, 'enrollment_count'] == 321064
         assert cleaned_df.loc[2, 'enrollment_count'] == 664910
+
+    def test_kyrc26_overview_is_accepted_and_crdc_is_not(self):
+        """KYRC26 overview is in scope. The renamed CRDC extract is not."""
+        assert self.etl.include_kyrc26 is True
+
+        overview = self.sample_dir / "KYRC26_OVW_Chronic_Absenteeism.csv"
+        crdc = self.sample_dir / "KYRC26_OVW_Chronic_Absenteeism_CRDC.csv"
+        prior = self.sample_dir / "KYRC25_OVW_Chronic_Absenteeism.csv"
+        overview.write_text("School Year\n20252026\n")
+        prior.write_text("School Year\n20242025\n")
+        crdc.write_text("School Year,Demographic\n20252026,Total Student Count\n")
+
+        names = sorted(path.name for path, _sheet in self.etl._find_data_files(self.sample_dir))
+        assert names == [
+            "KYRC25_OVW_Chronic_Absenteeism.csv",
+            "KYRC26_OVW_Chronic_Absenteeism.csv",
+        ]

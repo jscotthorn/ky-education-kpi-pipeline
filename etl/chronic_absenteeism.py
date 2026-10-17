@@ -1,9 +1,10 @@
 """
 Chronic Absenteeism ETL Module
 
-Handles chronic absenteeism data from Kentucky across years 2023-2024.
-Processes chronic absenteeism rates, counts, and enrollment data with grade-level
-and demographic breakdowns following standardized KPI format.
+Handles chronic absenteeism data from Kentucky, including the 2025-26 KYRC26
+overview file. Processes chronic absenteeism rates, counts, and enrollment
+data with grade-level and demographic breakdowns following standardized KPI
+format.
 """
 from pathlib import Path
 import pandas as pd
@@ -82,8 +83,34 @@ def standardize_suppression_field(df: pd.DataFrame) -> pd.DataFrame:
 
 
 class ChronicAbsenteeismETL(BaseETL):
-    """ETL module for processing chronic absenteeism data."""
-    
+    """ETL module for processing chronic absenteeism data.
+
+    KYRC26 overview headers match the KYRC25 file this parser already reads.
+    The CRDC extract (``KYRC26_OVW_Chronic_Absenteeism_CRDC.csv``) is a
+    different series and is not a source for these KPIs.
+    """
+
+    # Opt in here, in the same change that accepts the file. BaseETL skips
+    # every KYRC26_* CSV until this is True.
+    include_kyrc26 = True
+
+    def accepts_data_file(self, file_path: Path) -> bool:
+        """Skip the CRDC extract.
+
+        ``KYRC26_OVW_Chronic_Absenteeism_CRDC.csv`` is a renamed civil-rights
+        file, not the overview series these KPIs come from. This module reads
+        every CSV in the raw directory, so the renamed file has to be rejected
+        by name. The overview file does not have ``CRDC`` in its name.
+        """
+        stem = file_path.name.lower()
+        if "crdc" in stem and "chronic_absenteeism" in stem:
+            logger.info(
+                "Skipping %s; the CRDC chronic absenteeism extract is not a KPI source",
+                file_path.name,
+            )
+            return False
+        return super().accepts_data_file(file_path)
+
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {

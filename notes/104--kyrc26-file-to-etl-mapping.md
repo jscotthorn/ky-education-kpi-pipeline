@@ -14,6 +14,14 @@ Unchanged `origin/develop` at `b14ec3c`, this environment, pandas 3.0.6, 17 Octo
 
 The node ids are in journal 105 (census live API, pandas `StringDtype` versus `object`, climate `test_get_files_to_process` expects 4 files and finds 6, discipline rates, financial metric counts, and the rest of that list). A later script pull request should treat a failure on that list as pre-existing unless the assertion changed.
 
+## Script progress
+
+| Module | Status |
+| --- | --- |
+| `chronic_absenteeism` | Done. Opt-in only, plus a filename guard for the CRDC extract. One shared change: `.gitignore` now keeps `tests/fixtures/**/*.csv`. Details are under that module |
+
+`chronic_absenteeism` was re-tested on this branch after the opt-in: `42 failed, 392 passed, 104 skipped`. The 42 failures are the same node ids as the develop baseline above. The extra passes are the shared-prep tests already on `feature/2025-26-kyrc26` plus the two new chronic-absenteeism tests. Do not treat 375 passed as the number to match once shared prep is in the base.
+
 ## What was checked
 
 - The report-card with-tree API for 2025-26 has 106 active items: 99 CSVs and 7 package zips. Finance (`FT_`) is absent. 2024-25 through 2021-22 have 121 items, the same tree plus `FT_`.
@@ -83,14 +91,44 @@ KYRC25 leaves the GLEC co-op cell blank. KYRC26 fills it with `GLEC`. Editing-an
 
 State checks use `School Code` `999000`, `Demographic` `All Students`, and school year `20252026` (pipeline year `2026`) unless the gotcha says that row is absent. Set `include_kyrc26 = True` in the same pull request, except events and climate, which edit their own filename lists.
 
-### `chronic_absenteeism` — S — pilot
+### `chronic_absenteeism` — S — pilot — done
 
 | | |
 | --- | --- |
 | KYRC26 files | `KYRC26_OVW_Chronic_Absenteeism.csv` |
-| Header changes | None. Same as the KYRC25 file develop already parses |
-| Fixtures / assertions | State rate 23.5, suppression `No`, year `2026`. Grade tokens `All Grades`, `PS`, `K`, `1st` stay as they are for KYRC25 |
-| Gotchas | One file. Nothing else depends on it. Do not remap `PS` / `1st` in shared code |
+| Header changes | None. Same as the KYRC25 file develop already parses. No new column alias was required |
+| Fixtures / assertions | State rate 23.5, suppression `No`, year `2026`. Grade tokens `All Grades`, `PS`, `K`, `1st` stay as they are for KYRC25. Checked against the blob file, not a rewritten row |
+| Gotchas | One overview file. Do not read `KYRC26_OVW_Chronic_Absenteeism_CRDC.csv`. Do not remap `PS` / `1st` in shared code |
+
+Pilot result, checked 17 October 2026 against `https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC26_OVW_Chronic_Absenteeism.csv` (60,964,965 bytes, Last-Modified `Thu, 15 Oct 2026 10:00:10 GMT`, 430,848 data rows). The same checks on `KYRC25_OVW_Chronic_Absenteeism.csv` are the prior-year control. `include_kyrc26 = True` is the parser change. `etl/kyrc.py`, `BaseETL`, and the demographic config were not edited.
+
+All Students, All Grades, KPI `year` `2026` (source `School Year` `20252026`). `All Schools` is stored as `---District Total---`.
+
+| Row | School code | Rate | Count | Enrollment | Suppressed |
+| --- | --- | --- | --- | --- | --- |
+| State (`All Districts`) | `999000` | 23.5 | 149,637 | 635,917 | N |
+| Fayette County district | `165000` | 25.3 | 10,561 | 41,708 | N |
+| Bryan Station High School | `165170` | 43.2 | 902 | 2,088 | N |
+
+The 2024-25 control, same organizations: state 25.0 / 163,177 / 651,776; Fayette 27.0 / 11,575 / 42,878; Bryan Station 43.0 / 925 / 2,153. Processing the full KYRC25 file alone and processing it beside the full KYRC26 file produced the same 1,177,946 KPI rows (every column except `last_updated`).
+
+Suppression in the file is `Yes` / `No`. `standardize_suppression_field` already maps that to `Y` / `N`, and a `Y` row is kept with an empty value. Real 2026 rows used for that check: state All Grades `Military Dependent`; state `PS` All Students; Adair County High School `001010`, All Grades, `American Indian or Alaska Native`.
+
+Grade tokens are unchanged from KYRC25. `normalize_grade_field` lowercases tokens it does not know, so the metric suffixes are `k`, `1st`, and `ps`, not `kindergarten`, `grade_1`, or `preschool`. Do not call `normalize_kyrc_grade_token` from this module. State All Students counts: kindergarten 11,051 (2026) and 12,402 (2025); 1st 9,229 (2026) and 10,298 (2025). Preschool is suppressed at the state row.
+
+Individual grade rows carry a count and leave enrollment and rate blank, in both years. `All Grades` is the row with the rate (14,258 numeric rates in KYRC26, 14,482 in KYRC25). A missing `chronic_absenteeism_rate_k` is the source file.
+
+KYRC26 has 121,408 school-level grade rows with `Suppressed` `No` and all three measure cells empty. KYRC25 has zero such rows (those cells were `*` and `Suppressed` `Yes`). The current rule skips an unsuppressed empty measure, so 2026 writes 809,792 KPI rows against 1,177,946 for 2025. State and district rows are not in that empty set, and `All Grades` is not in it. Do not treat the smaller file as a dropped column, and do not start emitting those blank rows as suppressed. The file did not mark them suppressed.
+
+`CO-OP Code` `901` on the Fayette rows is the CKEC cooperative code. The school code stays `165170`. That is not the crosstab `901`–`909` total.
+
+The CRDC file is a different shape (`Demographic` values such as `Total Student Count`, measures `Total` / `Female` / `Male`, `Collected School Year` `20242025` on a `School Year` of `20252026`). It is not registered. This module globs every CSV in `data/raw/chronic_absenteeism`, so `accepts_data_file` rejects a name that contains both `crdc` and `chronic_absenteeism`. That guard is specific to this directory. Copy it only when a sibling file in the same raw directory is the wrong series.
+
+Both years' demographic columns are the same 18 labels, all already in the 2026 demographic config. The full-file run reported 18 found and no unexpected labels. `KPIS.md` still describes the older `Grade N` suffixes. This file does not add those names; it uses the same ordinal suffixes KYRC25 already produced, so the KPI list was left as it is.
+
+Fixtures are eight real rows from each year, in `tests/fixtures/chronic_absenteeism/`. The test runs the 2025 excerpt alone and again beside the 2026 excerpt, and it drops a CRDC decoy in the same directory. `.gitignore` ignores every `*.csv`, which hid these fixtures. The exception `!tests/fixtures/**/*.csv` is the one shared change in this pull request. Later agents can commit the same kind of excerpt without `git add -f`. Raw downloads are still ignored.
+
+What the next opt-in can copy: set `include_kyrc26 = True` in the module that accepts the file; copy real rows (state or the row the gotcha names, one district, one school, one suppressed group) into `tests/fixtures/<module>/`; assert the KPI year and those values; assert the prior-year excerpt is unchanged when the new file is added. Do not add a shared helper for a token or header that only one script needs. Re-read the module's own gotcha before assuming a `999000` row exists.
 
 ### `graduation_rates` — S
 
@@ -384,7 +422,7 @@ On the blob, not registered, no ETL, do not add unless a module is in scope: `AS
 
 ## Suggested order
 
-1. `chronic_absenteeism`. Unchanged headers, state rate 23.5.
+1. `chronic_absenteeism`. Done. Unchanged headers, state rate 23.5. See the pilot notes above before copying the pattern.
 2. The other opt-in modules above, in the order listed, through `kindergarten_readiness`. `student_teacher_ratio` fixtures a school row. `advanced_coursework` expects 257 overview schools and collected year `20212022`.
 3. `kentucky_summative_assessment` after one opt-in has landed.
 4. `safe_schools_discipline`, then `safe_schools_events`, then `safe_schools_climate`.

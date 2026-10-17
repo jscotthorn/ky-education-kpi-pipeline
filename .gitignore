@@ -16,6 +16,8 @@ mlruns
 
 # Processed an csv files (data should be hosted externally)
 *.csv
+# Real-row excerpts used by tests. Full downloads stay ignored.
+!tests/fixtures/**/*.csv
 data/processed/*.md
 
 # Local AI assistant files
