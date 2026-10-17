@@ -1,14 +1,26 @@
 """
 CTE Participation ETL Module
 
-Handles Kentucky Career and Technical Education (CTE) participation data across years 2022-2024.
+Handles Kentucky Career and Technical Education (CTE) participation data.
 Normalizes column names, handles schema variations, standardizes missing values, and
 applies demographic label standardization for consistent longitudinal reporting.
 
-Data includes three metrics:
-- CTE Participation Rate: Percentage of students participating in CTE courses
-- Grade 12 CTE Eligible Completer Count: Number of eligible CTE completers in grade 12
-- Grade 12 CTE Completion Rate: Percentage of grade 12 students completing CTE programs
+KYRC26 is ``KYRC26_CTE_Participation.csv``. Its headers match the KYRC25 file
+this module already maps. Counts still go through ``clean_numeric_with_commas``,
+and the participation rate is participants divided by enrollments.
+
+There is no Suppressed column. Known deviation from notes/8: a ``*`` cell is
+dropped and a fully starred group emits no row, instead of ``suppressed=Y``.
+That behavior predates KYRC26. It needs a design call, because KYRC26 fills
+in all-star demographic rows that KYRC25 left out, and career centers mix a
+blank enrollment with starred counts. A follow-up issue should decide it.
+Do not treat the drop as the intended design.
+
+The 2022 and 2023 files store many counts above 100 in the columns this
+module reads as rates. ``clean_cte_data`` nulls those values. State
+participation and completion counts are dropped; a school rate of 100 or
+below is kept. That also predates KYRC26 and needs its own design call,
+because the same column mixes rates and counts.
 """
 from pathlib import Path
 import pandas as pd
@@ -78,8 +90,18 @@ def clean_cte_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 class CTEParticipationETL(BaseETL):
-    """ETL module for processing CTE participation data."""
-    
+    """ETL module for processing CTE participation data.
+
+    KYRC26 uses the same count headers as KYRC25. No temporary OAA extract
+    is registered for this directory, and the guessed temporary names return
+    404, so there is no leftover filename to skip. The 2022 and 2023
+    historical names stay.
+    """
+
+    # Opt in here, in the same change that accepts the file. BaseETL skips
+    # every KYRC26_* CSV until this is True.
+    include_kyrc26 = True
+
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {

@@ -5,12 +5,18 @@ import unittest
 from pathlib import Path
 import pandas as pd
 import numpy as np
+import shutil
 import sys
+import tempfile
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import yaml
+
 from etl.cte_participation import CTEParticipationETL, clean_cte_data
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestCTEParticipationETL(unittest.TestCase):
@@ -156,6 +162,125 @@ class TestCTEParticipationETL(unittest.TestCase):
             # Counts should contain _count_
             if 'count' in metric_name:
                 self.assertIn('_count_', metric_name)
+
+
+class TestKyrc26CTEParticipation:
+    """KYRC26 opt-in. There is no temporary extract to skip."""
+
+    def setup_method(self):
+        self.test_dir = Path(tempfile.mkdtemp())
+        self.sample_dir = self.test_dir / "cte_participation"
+        self.sample_dir.mkdir(parents=True)
+        self.etl = CTEParticipationETL("cte_participation")
+
+    def teardown_method(self):
+        shutil.rmtree(self.test_dir)
+
+    def test_kyrc26_file_is_accepted(self):
+        """The permanent KYRC files and the 2022-2023 historical names stay in scope."""
+        assert self.etl.include_kyrc26 is True
+        assert self.etl.module_column_mappings["All High School CTE Participants"] == "cte_participant_count"
+        assert self.etl.module_column_mappings["All High School Enrollments"] == "total_student_count"
+        assert self.etl.module_column_mappings["12th Grade Completers"] == "cte_completer_count_grade_12"
+        assert self.etl.module_column_mappings["12th Grade Participants"] == "cte_participant_count_grade_12"
+
+        accepted = [
+            "KYRC26_CTE_Participation.csv",
+            "KYRC25_CTE_Participation.csv",
+            "KYRC24_CTE_Participation.csv",
+            "cte_by_student_group_2023.csv",
+            "cte_by_student_group_2022.csv",
+        ]
+        for name in accepted:
+            (self.sample_dir / name).write_text("School Year\n20252026\n")
+
+        found = sorted(path.name for path, _sheet in self.etl._find_data_files(self.sample_dir))
+        assert found == sorted(accepted)
+
+    def test_blank_row_and_unmapped_sibling_emit_nothing(self):
+        """An empty non-Y row is not offered. Sibling CTE files map no measure.
+
+        notes/8: a row that is not suppressed and has every value empty is
+        the absence of a row. These files have no Suppressed column. The
+        base converter already skips an empty metric, so the blank row emits
+        nothing. Career Pathways, Student Objectives, and the Perkins report
+        do not use these measure headers and have no Demographic column, so
+        they also emit nothing and need no filename guard.
+        """
+        blank = pd.DataFrame({
+            "School Year": ["20252026"],
+            "District Name": ["All Districts"],
+            "School Name": ["All Schools"],
+            "School Code": ["999000"],
+            "Demographic": ["All Students"],
+            "All High School CTE Participants": [""],
+            "All High School Enrollments": [""],
+            "12th Grade Completers": [""],
+            "12th Grade Participants": [""],
+        })
+        pathways = pd.DataFrame({
+            "School Year": ["20252026"],
+            "District Name": ["All Districts"],
+            "School Name": ["All Schools"],
+            "School Code": ["999000"],
+            "Program Area": ["Agricultural Education"],
+            "Pathways Available": ["Agribusiness Systems"],
+            "Active Enrollment": ["2,546"],
+            "Concentrator Students": ["2,002"],
+            "Pathway Completers": ["352"],
+        })
+        objectives = pd.DataFrame({
+            "School Year": ["20252026"],
+            "District Name": ["All Districts"],
+            "School Name": ["All Schools"],
+            "School Code": ["999000"],
+            "Percent 12th Grade Exploring": ["15.7"],
+            "Percent 12th Grade Concentrating": ["37.7"],
+            "Percent 12th Grade Completing": ["46.5"],
+        })
+        perkins = pd.DataFrame({
+            "School Year": ["20252026"],
+            "District Name": ["All Districts"],
+            "School Name": ["All Schools"],
+            "School Code": ["999000"],
+            "Performance Measure": ["1S1 - Four-Year Graduation Rate"],
+            "Total Enrollment": ["35,721"],
+            "Students Meeting Benchmark": ["35,192"],
+            "Performance Goal": ["Met"],
+        })
+        for frame, name in (
+            (blank, "blank.csv"),
+            (pathways, "KYRC26_CTE_Career_Pathways.csv"),
+            (objectives, "KYRC26_CTE_Student_Objectives.csv"),
+            (perkins, "KYRC26_CTE_Perkins_Report.csv"),
+        ):
+            normalized = self.etl.standardize_missing_values(self.etl.normalize_column_names(frame))
+            kpi = self.etl.convert_to_kpi_format(normalized, name)
+            assert kpi.empty, name
+
+        for name in (
+            "KYRC26_CTE_Career_Pathways.csv",
+            "KYRC26_CTE_Student_Objectives.csv",
+            "KYRC26_CTE_Perkins_Report.csv",
+        ):
+            (self.sample_dir / name).write_text("School Year\n20252026\n")
+            assert self.etl.accepts_data_file(self.sample_dir / name)
+
+
+def test_registered_sources_are_the_permanent_files():
+    """2024-25 is already the permanent KYRC25 file. No temporary name is registered."""
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["cte_participation"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert names == [
+        "KYRC24_CTE_Participation.csv",
+        "KYRC25_CTE_Participation.csv",
+        "KYRC26_CTE_Participation.csv",
+        "cte_by_student_group_2023.csv",
+        "cte_by_student_group_2022.csv",
+    ]
 
 
 if __name__ == '__main__':

@@ -23,6 +23,7 @@ The node ids are in journal 105 (census live API, pandas `StringDtype` versus `o
 | `english_learner_progress` | In review in PR #40 (`cursor/english-learner-progress-kyrc26-26cf`). Opt-in, and a source swap in `config/kde_sources.yaml`: `English_Language_Proficiency_2025.CSV` is replaced by `KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv`. The parser skips leftover `English_Language_Proficiency_2024.CSV`, `English_Language_Proficiency_2025.CSV`, and `English_Language_Proficiency_2026.CSV` so those years are not written twice. No shared parser or dependency changes. Details are under that module |
 | `postsecondary_readiness` | In review in PR #41 (`cursor/postsecondary-readiness-kyrc26-37b0`). Opt-in, and a source swap in `config/kde_sources.yaml`: `Postsecondary_Readiness_2025.CSV` is replaced by `KYRC25_ACCT_Postsecondary_Readiness.csv`. The parser skips leftover `Postsecondary_Readiness_2024.CSV`, `Postsecondary_Readiness_2025.CSV`, and `Postsecondary_Readiness_2026.CSV` so those years are not written twice. A source row that is not `Y` and has both rates empty is skipped. That removes the empty `suppressed` `N` rows journal 75 emitted, so KYRC24 changes from 21,438 KPI rows to 15,908. 2022 and 2023 stay 18,262. No shared parser or dependency changes. Details are under that module |
 | `postsecondary_enrollment` | In review in PR #43 (`cursor/postsecondary-enrollment-kyrc26-5640`). Opt-in only. Every registered prior-year URL returned 200, and no temporary OAA name was ever registered, so there is no source swap and no leftover-file skip. Headers match KYRC25. There is no Suppressed column. Known deviation from notes/8, tracked in issue #44: a `*` cell is dropped and a fully starred group emits no KPI row. That predates KYRC26, so prior-year KPI counts stay 18,737 / 7,781 / 9,509 / 9,625 / 9,679. KYRC26 writes 10,657. No shared parser or dependency changes. Details are under that module |
+| `cte_participation` | In review (`cursor/cte-participation-kyrc26-4ad7`). Opt-in only. Every registered prior-year URL returned 200, and no temporary OAA name was ever registered, so there is no source swap and no leftover-file skip. Headers match KYRC25. There is no Suppressed column. Known deviation from notes/8, same kind of design call as issue #44: a `*` cell is dropped and a fully starred group emits no KPI row. That predates KYRC26, so prior-year KPI counts stay 9,772 / 9,270 / 9,935 / 14,075. KYRC26 writes 14,424. A second pre-existing deviation: 2022 and 2023 store counts above 100 in the rate columns, and `clean_cte_data` nulls them. No shared parser or dependency changes. Details are under that module |
 
 `chronic_absenteeism` was re-tested on this branch after the review fixes: `42 failed, 394 passed, 104 skipped`. The 42 failure node ids match the develop baseline above. Run `python3 scripts/compare_pytest_to_journal105.py` and paste the report into the pull request. Do not commit a per-script diff file. The extra passes are the shared-prep tests already on `feature/2025-26-kyrc26` plus the chronic-absenteeism tests added here. Do not treat 375 passed as the number to match once shared prep is in the base.
 
@@ -33,6 +34,8 @@ The node ids are in journal 105 (census live API, pandas `StringDtype` versus `o
 `postsecondary_readiness` compare run, pandas 3.0.6: `42 failed, 411 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The five passes beyond the english-learner total are the KYRC26 acceptance test, the KYRC25 source-swap test, the leftover-temporary-file test, the blank-row skip test, and the real-row fixture test. Do not treat 406 passed as the number to match once this module merges.
 
 `postsecondary_enrollment` compare run, pandas 3.0.6: `42 failed, 415 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The four passes beyond the readiness total are the KYRC26 acceptance test, the registered-source test, the blank-row and sibling-file test, and the real-row fixture test. Do not treat 411 passed as the number to match once this module merges.
+
+`cte_participation` compare run, pandas 3.0.6: `42 failed, 419 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The four passes beyond the enrollment total are the KYRC26 acceptance test, the registered-source test, the blank-row and sibling-file test, and the real-row fixture test. Do not treat 415 passed as the number to match once this module merges.
 
 ## What was checked
 
@@ -515,14 +518,124 @@ Lessons for later agents:
 8. District `602` is a code-domain change versus KYRC25, not a header change. KYRC24 already had the Kentucky School for the Blind codes, all starred. KYRC26's 16 rows are starred too and emit nothing. Do not add a shared helper for that code.
 9. Before adding a filename guard, parse one sibling row. Current Year Graduates and Graduate Outcomes emit nothing. `GREC` became `GLEC` on the Jefferson codes that remain. Nothing in this pipeline joins on the co-op name.
 
-### `cte_participation` — S
+### `cte_participation` — S — in review
 
 | | |
 | --- | --- |
 | KYRC26 files | `KYRC26_CTE_Participation.csv` |
 | Header changes | None |
 | Fixtures / assertions | State participants 144,661 / enrollments 201,255. Counts already go through `clean_numeric_with_commas` |
-| Gotchas | None beyond the usual opt-in |
+| Gotchas | None beyond the usual opt-in. No Suppressed column. A `*` cell is dropped. See the result below |
+
+Result, checked 17 October 2026 against the public `datasets` container. `include_kyrc26 = True` is the parser change. `etl/kyrc.py`, `BaseETL`, `config/kde_sources.yaml`, and the demographic config were not edited. Re-HEAD the participation file after 26 October 2026. If the hashes diverge from the stamps below, take the newer stamp and record which container it came from.
+
+`datasets` HEAD for the KYRC26 file did not return Content-MD5. The UAT Content-MD5 matches the bytes downloaded from `datasets`, and `datasets` Last-Modified is newer, so this is the `datasets` object. The KYRC25 pair matches the same way.
+
+| File | Bytes | MD5 | Last-Modified |
+| --- | --- | --- | --- |
+| `KYRC26_CTE_Participation.csv` | 1,091,622 | `82a36bff5ecbce9321898898ae2c6d22` | Thu, 15 Oct 2026 10:00:09 GMT |
+| `KYRC25_CTE_Participation.csv` | 859,494 | `f357a9620827d8a5cfb711ed97c1f38a` | Thu, 14 May 2026 19:11:31 GMT |
+| `KYRC24_CTE_Participation.csv` | 845,823 | `0b0d30c79ff6c5f3c039aafd5ceb8081` | Thu, 29 May 2025 23:02:15 GMT |
+| `cte_by_student_group_2023.csv` | 1,193,029 | `1aa1a9adf4e2d055a229c1db12f84500` | Wed, 07 Feb 2024 15:08:37 GMT |
+| `cte_by_student_group_2022.csv` | 1,211,533 | `171707b976e55359a523b600b95270b2` | Thu, 08 Feb 2024 17:36:10 GMT |
+
+The MD5s are of those downloaded bytes. UAT Content-MD5 is `gqNr/17LzpMhiYiYrixtIg==` for KYRC26 and `81epYggn2KXPtxHtl8Hzig==` for KYRC25, which are those hashes. UAT Last-Modified is earlier (KYRC26 Sat, 10 Oct 2026 06:00:11 GMT; KYRC25 Tue, 06 Oct 2026 20:27:25 GMT).
+
+Every registered prior-year URL returned 200 with the browser headers in `config/kde_sources.yaml`. These names are 404, and none of them were registered: `CTE_Participation_2024.CSV`, `_2025.CSV`, and `_2026.CSV` on the OAA temporary host, on the historical host, and on `datasets`; `cte_by_student_group_2024.csv`, `_2025.csv`, and `_2026.csv` on those three hosts; `CTE_by_Student_Group_2025.CSV` and `CTE_Participation_2025.csv` on those three hosts. There is no leftover temporary file to skip. The 2022 and 2023 historical names stay.
+
+The historical host also has `KYRC25_CTE_Participation.csv` (859,710 bytes, MD5 `f222d497d0b4cefa7664d7d66e72f16b`, Last-Modified Thu, 19 Feb 2026 19:57:50 GMT). It is not the registered source. The registered `datasets` file is 216 bytes smaller. Both have 6,526 rows and the same headers. The only cell difference is `District Name` on 24 rows, school codes `603000` and `603390`: `datasets` says `Kentucky School for the Deaf` and the historical copy says `Kentucky School for the Deaf District`. Measure cells match. This pipeline keeps the registered `datasets` file.
+
+KYRC26 has 8,245 data rows. KPI `year` `2026` comes from `School Year` `20252026`. `All Schools` is stored as `---District Total---`. The participation rate is `round(participants / enrollments * 100, 1)`. The grade-12 rate is `round(completers / participants * 100, 1)`, and both counts are stored.
+
+| Row | School code | Participants | Enrollments | Rate | 12th completers | 12th participants | 12th rate | Suppressed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| State (`All Districts`) | `999000` | 144,661 | 201,255 | 71.9 | 19,990 | 44,038 | 45.4 | N |
+| Fayette County district | `165000` | 9,972 | 13,244 | 75.3 | 1,404 | 2,946 | 47.7 | N |
+| Bryan Station High School | `165170` | 1,358 | 2,241 | 60.6 | 144 | 482 | 29.9 | N |
+| Adair County High School | `001010` | 454 | 818 | 55.5 | 37 | 183 | 20.2 | N |
+
+Bryan Station `state_school_id` `034165170`, `nces_id` `210186000388`, `school_type` `A1`, county `FAYETTE`. Fayette district `nces_id` `2101860`, `co_op` `CKEC`, `co_op_code` `901`. That `901` is the cooperative code. The school code stays `165170`. KYRC25 stored Bryan Station's NCES id as `210186000000`. KYRC24 and KYRC26 both use `210186000388`. Adair County High School `001010` is `210003000001` in KYRC24 and KYRC26 and `210003000000` in KYRC25.
+
+The configured prior-year files were already the permanent files. A run of this branch before `include_kyrc26 = True` wrote the baseline. After the opt-in, years 2022-2025 match that file exactly, ignoring `last_updated`. 43,052 KPI rows, no value, suppression, district, or school-name difference.
+
+| Year | KPI rows |
+| --- | --- |
+| 2022 | 9,772 |
+| 2023 | 9,270 |
+| 2024 | 9,935 |
+| 2025 | 14,075 |
+| 2026 | 14,424 |
+
+State All Students stays 68.7 in 2024 and 70.3 in 2025. Fayette stays 64.3 and 70.7. Bryan Station stays 61.3 and 65.6. Adair County High School stays 63.9 and 59.2. The 2024 grade-12 rates stay 42.3, 38.5, 29.5, and 26.2. The 2025 grade-12 rates stay 44.6, 43.6, 30.2, and 23.3.
+
+KYRC26 is a complete grid: 485 school codes × 17 demographics = 8,245. KYRC25 has 476 school codes and is sparse, 6,526 rows. Code change versus KYRC25: 11 added, 2 removed, net +9. 476 − 2 + 11 = 485. None of the removed or added codes are cooperative totals 901-909. School numbers 901, 902, 905, and 908 are career-center numbers inside real districts. The school code stays six digits (`005901` for Allen County Career and Technical Center).
+
+| Piece | Rows |
+| --- | --- |
+| KYRC25 | 6,526 |
+| 2 removed schools | −32 |
+| New demographics on the 474 shared codes | +1,564 |
+| 11 new codes × 17 | +187 |
+| KYRC26 | 8,245 |
+
+6,526 − 32 + 1,564 + 187 = 8,245. The removed schools are Fayette County technical centers, both `A2`: Southside `165904` (17 rows) and Eastside `165905` (15 rows). 17 + 15 = 32. They are not co-op totals.
+
+All Schools rises from 2,308 to 2,856. No district code was removed. Districts `354` (Ludlow Independent) and `606` (Model Laboratory Schools at EKU) add 34 rows. The 166 shared district codes add 514 demographics. 2,308 + 34 + 514 = 2,856. School rows rise from 4,218 to 5,389: 4,218 − 32 + 153 + 1,050 = 5,389. The 153 rows are 9 new schools × 17. The 1,050 rows are new demographics on schools that already existed. 2,856 + 5,389 = 8,245.
+
+The 11 new codes are not a block of alternative schools. Two are district totals (`354000`, `606000`). The nine schools are `A1` (Lewis County High `335120`, Ludlow High `354020`, Union County High `565065`), `A2` (Locust Trace `165068`, The Hub `165137`), `A5` (Pathfinder `275951`, Commander Academy `575021`), `A8` (HCS Virtual Academy `231035`), and `B1` (Model High `606460`). `B1` is new versus KYRC25.
+
+KPI rows are not one per source row. A participation rate is emitted when both count cells are numbers and enrollment is above 0. A grade-12 group emits three KPI rows (rate, completer count, participant count) when both 12th-grade cells are numbers and the participant count is above 0. KYRC25: 4,535 rates + 3 × 3,180 = 14,075. KYRC26: 4,536 rates + 3 × 3,296 = 14,424.
+
+| Piece | Participation rates | Grade-12 groups | KPI rows |
+| --- | --- | --- | --- |
+| KYRC25 | 4,535 | 3,180 | 14,075 |
+| Shared keys, cell changes | −44 | +111 | +289 |
+| 1,564 new demographics on shared codes | +22 | +1 | +25 |
+| 11 new codes | +23 | +29 | +110 |
+| 32 removed rows | 0 | −25 | −75 |
+| KYRC26 | 4,536 | 3,296 | 14,424 |
+
+−44 + 3 × 111 = 289. 22 + 3 × 1 = 25. 23 + 3 × 29 = 110. 14,075 + 289 + 25 + 110 − 75 = 14,424. The 1,564 new demographic keys are 1,230 all-star, 247 star-and-blank, 84 mixed number and star, 2 mixed with a blank, and 1 number-and-blank. 1,230 + 247 + 84 + 2 + 1 = 1,564. The all-star and star-and-blank keys emit nothing under the current parser, which is why 1,564 source rows become 25 KPI rows.
+
+| File | All `*` | Mixed number/`*` | All numeric | Number and blank | Number, `*`, and blank | `*` and blank | KPI rows |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| KYRC25 | 509 | 2,400 | 2,560 | 611 | 277 | 169 | 14,075 |
+| KYRC26 | 1,829 | 2,428 | 2,679 | 603 | 282 | 424 | 14,424 |
+
+509 + 2,400 + 2,560 + 611 + 277 + 169 = 6,526. 1,829 + 2,428 + 2,679 + 603 + 282 + 424 = 8,245. There is no row in 2022, 2023, 2024, 2025, or 2026 where every measure cell is empty. A constructed all-blank row emits nothing, which is what notes/8 requires, and that rule does not move the prior-year counts.
+
+Blank enrollment is the empty cell that does appear. KYRC25 has 1,057. KYRC26 has 1,309, of which 850 are school type `C2`, 442 are `A2`, and 17 have a blank school type. Those rows are career and technical centers. The locked example is Allen County Career and Technical Center `005901`, All Students: participants 739, enrollment blank, 12th-grade completers 122, 12th-grade participants 241. The blank enrollment emits no participation rate. The grade-12 rate is 50.6, with counts 122 and 241, `suppressed` `N`. The KYRC25 twin is participants 725, enrollment blank, completers 107, participants 233, grade-12 rate 45.9. NCES id `210007000000` in KYRC25 and `210007002061` in KYRC26. The same school's `American Indian or Alaska Native` row is `*`, blank, `*`, `*`, and the current parser emits nothing.
+
+The locked full-suppression example is Bryan Station `165170`, `Native Hawaiian or Pacific Islander`: `*` in every measure cell in KYRC24 and KYRC26, and the row is absent from KYRC25. No KPI row in any year. Fayette `165000`, `American Indian or Alaska Native`, is the partial row: KYRC26 publishes 15 and 18 (rate 83.3) and stars both 12th-grade cells. KYRC25 publishes 13 and 21 (rate 61.9), stars the completer cell, and publishes 4 grade-12 participants, which is not enough for a grade-12 metric because the completer cell is `*`. Bryan Station Foster Care in KYRC26 publishes 21 and 49 (rate 42.9), stars completers, and publishes 6 grade-12 participants. The published rate is emitted with `suppressed` `N`. The starred grade-12 metrics are absent.
+
+There is no Suppressed column. The only non-numeric tokens in KYRC25 and KYRC26 are `*` and blank. KYRC24 also uses `--` (554 participation cells), which is already in `MISSING_VALUE_INDICATORS`. Under the current parser a `*` metric is absent and a fully starred group emits nothing, so the output has no `suppressed` `Y` row. Known deviation from notes/8. The behavior predates KYRC26. It needs a design call, and a follow-up issue, because KYRC26 adds 1,230 all-star demographic rows that KYRC25 omitted. Mapping every `*` to `Y` would mark those groups as privacy suppression. Career-center rows also mix a blank enrollment with starred counts. Issue #44 is the same kind of call for postsecondary enrollment. It does not cover this file. The tests that assert an absent starred metric say so.
+
+Separate from that, and also pre-existing: `clean_cte_data` nulls a participation or completion value above 100 because those KYRC24-and-earlier columns are read as rates. In 2022 that drops 2,415 participation values and 149 completion values. In 2023 it drops 2,162 and 115. In 2024 it drops 42 participation values. The 2022 state row is participants 167,510, total `*`, eligible completers 43,229, completers 13,624. Only the eligible count is emitted. The 2023 state row is participants 123,372 and completers 11,471, and only eligible completers 25,097 is emitted. Bryan Station 2022 keeps completion 77 and eligible 413, and drops participants 1,528. The same column holds a rate when the value is 100 or below. Changing this would change the 2022-2024 KPI counts. It needs its own design call. KYRC25 and KYRC26 do not hit it: their counts live in the count columns, and the rate is computed.
+
+`CO-OP` `GREC` is 353 rows and 25 school codes in KYRC25, all Jefferson County codes beginning `275`. KYRC26 labels all 25 `GLEC` and adds `275951`, Pathfinder School of Innovation. 26 codes, 442 rows. 25 × 17 + 17 = 442. Nothing in this pipeline groups or joins on the co-op name.
+
+`KYRC26_CTE_Career_Pathways.csv`, `KYRC26_CTE_Career_Readiness_Indicators.csv`, `KYRC26_CTE_Perkins_Report.csv`, `KYRC26_CTE_Postsecondary_Opportunities.csv`, and `KYRC26_CTE_Student_Objectives.csv` are not registered under this directory. None of them has a `Demographic` column, and none of their measure headers is one of the mapped participation columns. A parse emits no KPI rows. No filename guard.
+
+Follow-up, not fixed here. Issue #42 (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/42): `scripts/generate_report_drafts.py` selects state rows with `district == 'State'`, and `get_state_average` also requires `school_name == '---District Total---'`. CTE is not in that script's indicator list. If it were added, no year would match both conditions. The 2022 and 2023 state rows are district `State` and school name `---State Total---` (school code `999`). KYRC24, KYRC25, and KYRC26 store district `All Districts` and school name `All Schools`, which this parser stores as `---District Total---` (school code `999000`). This module emits no empty value, so the NaN guard in issue #42 is not reached by these rows. `analysis/config/covariate_catalog.yaml` lists `cte_participation_rate` as a covariate. No analysis script selects these rows by district `State`.
+
+Both years' demographic columns are the same 17 labels, all already in the 2026 demographic config. The label check reported 17 valid and no unexpected labels for 2022 through 2026. No new KPI names. `KPIS.md` still lists the three KYRC24 metrics and not `cte_completer_count_grade_12` or `cte_participant_count_grade_12`. Those two names were already emitted for KYRC25 before this change.
+
+The 2023 file has 17 rows whose `SCHOOL YEAR` is `20022023` instead of `20222023`. `extract_year` keeps the last four digits, so they still file under 2023. That is a source typo, left as it is.
+
+Fixtures are real rows in `tests/fixtures/cte_participation/`: nine KYRC26 rows, seven KYRC25 rows, six KYRC24 rows, and the state and Bryan Station rows from 2022 and 2023. They include the Bryan Station Native Hawaiian suppression, the Fayette American Indian partial row, the Bryan Station Foster Care partial row, and both Allen County career-center rows. `tests/test_fixture_sizes.py` passes.
+
+Lessons for later agents:
+
+1. HEAD the registered URLs before assuming a temporary file went 404. This module's KYRC25 entry was already the permanent file, and it returns 200 on `datasets` and on UAT, with one MD5. The guessed OAA names are 404 and were never registered. Do not add a skip for a filename this directory has never used. The 2022 and 2023 names stay. The historical-host KYRC25 copy is a different file: 24 district-name cells, and the measure cells match. It is not registered.
+2. "Header changes: none" means the KYRC26 header matches KYRC25. The count headers were already mapped. A comma in `144,661` still goes through `clean_numeric_with_commas`. The state rate is 71.9, from 144,661 / 201,255.
+3. This file has no Suppressed column. `*` is a cell, not a row flag. Known deviation from notes/8: this module drops `*` cells and fully starred groups instead of emitting `suppressed=Y`. The behavior predates KYRC26. It needs a design call, and a follow-up issue, because KYRC26 adds all-star demographic rows that KYRC25 left out, and career centers mix a blank enrollment with starred counts. Issue #44 is the parallel call for postsecondary enrollment. It does not cover this file. Do not treat the drop as the intended design.
+4. A blank enrollment on a career center is an empty denominator, not a suppressed rate. Allen County `005901` All Students emits the grade-12 metrics and no participation rate. There is no all-blank source row in any year this module reads. Skipping an empty measure does not change the prior-year counts.
+5. Compare the token set, then the counts. KYRC26 is larger because it is a 485 × 17 grid and KYRC25 is sparse. The KPI increase is 349 rows, and the arithmetic above adds up. The two removed schools are Fayette `A2` technical centers, not co-op totals. 17 + 15 = 32 source rows, and those rows held 25 published grade-12 groups and no participation rate.
+6. Prior-year identity is a diff against output the base parser already wrote, before `include_kyrc26` was set. 2022-2025 match that file: 9,772 / 9,270 / 9,935 / 14,075. Published state, Fayette, Bryan Station, and Adair County High School values are unchanged.
+7. State district is `All Districts` for 2024-2026 and `State` for 2022-2023. Issue #42: `scripts/generate_report_drafts.py` selects `State`, and `get_state_average` also requires school name `---District Total---`. CTE is not in the indicator list. The 2022-2023 state rows are district `State` and school name `---State Total---` (school code `999`), so neither shape would match both conditions.
+8. `GREC` became `GLEC` on the 25 Jefferson codes that remain, plus new school `275951`. Nothing in this pipeline joins on the co-op name. District `606` and school type `B1` are code-domain changes, not header changes.
+9. Before adding a filename guard, parse one sibling row. Career Pathways, Career Readiness Indicators, the Perkins report, Postsecondary Opportunities, and Student Objectives emit nothing.
+10. The 2022 and 2023 rate columns contain counts above 100. The cleaner nulls them, so the state participation rate is missing in those years. That predates KYRC26 and needs its own design call. KYRC25 and KYRC26 compute the rate from the count columns and do not hit that null.
 
 ### `student_enrollment` — S
 
