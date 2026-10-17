@@ -453,7 +453,7 @@ class TestChronicAbsenteeismETL:
         assert cleaned_df.loc[2, 'enrollment_count'] == 664910
 
     def test_kyrc26_overview_is_accepted_and_crdc_is_not(self):
-        """KYRC26 overview is in scope. The renamed CRDC extract is not."""
+        """KYRC26 overview is in scope. The CRDC name is skipped as hygiene."""
         assert self.etl.include_kyrc26 is True
 
         overview = self.sample_dir / "KYRC26_OVW_Chronic_Absenteeism.csv"

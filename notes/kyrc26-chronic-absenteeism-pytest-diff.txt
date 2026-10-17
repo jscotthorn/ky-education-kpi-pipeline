@@ -1,0 +1,10 @@
+Pytest failures compared with notes/105--kyrc26-completeness-audit.md
+Develop baseline: origin/develop b14ec3c, 42 failed / 375 passed / 104 skipped.
+42 failed, 394 passed, 104 skipped, 212 warnings in 13.77s
+Baseline node ids: 42
+Observed failure node ids: 42
+Only in this run (0):
+  (none)
+Only in journal 105 (0):
+  (none)
+Failure node ids match the journal 105 baseline.

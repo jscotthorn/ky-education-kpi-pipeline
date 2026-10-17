@@ -86,8 +86,6 @@ class ChronicAbsenteeismETL(BaseETL):
     """ETL module for processing chronic absenteeism data.
 
     KYRC26 overview headers match the KYRC25 file this parser already reads.
-    The CRDC extract (``KYRC26_OVW_Chronic_Absenteeism_CRDC.csv``) is a
-    different series and is not a source for these KPIs.
     """
 
     # Opt in here, in the same change that accepts the file. BaseETL skips
@@ -95,17 +93,18 @@ class ChronicAbsenteeismETL(BaseETL):
     include_kyrc26 = True
 
     def accepts_data_file(self, file_path: Path) -> bool:
-        """Skip the CRDC extract.
+        """Skip the CRDC extract as hygiene.
 
-        ``KYRC26_OVW_Chronic_Absenteeism_CRDC.csv`` is a renamed civil-rights
-        file, not the overview series these KPIs come from. This module reads
-        every CSV in the raw directory, so the renamed file has to be rejected
-        by name. The overview file does not have ``CRDC`` in its name.
+        ``KYRC26_OVW_Chronic_Absenteeism_CRDC.csv`` is a different series.
+        It has none of the overview measure columns this module maps, so a
+        parse would emit no KPI rows. The name check only keeps that sibling
+        out of the raw-directory glob. The overview file has no ``CRDC`` in
+        its name.
         """
         stem = file_path.name.lower()
         if "crdc" in stem and "chronic_absenteeism" in stem:
             logger.info(
-                "Skipping %s; the CRDC chronic absenteeism extract is not a KPI source",
+                "Skipping %s; the CRDC extract is not the overview file",
                 file_path.name,
             )
             return False
