@@ -2,6 +2,14 @@
 Postsecondary Enrollment ETL Module
 
 Refactored to use BaseETL for standardized processing.
+
+KYRC26 is ``KYRC26_ADLF_Transition_to_In_State_Postsecondary_Education.csv``.
+Its headers match the KYRC24 and KYRC25 files this module already maps.
+There is no Suppressed column. A ``*`` cell is a privacy suppression and is
+already in the shared missing-value list, so that metric is not emitted.
+A row that is not ``Y`` and has every measure empty is not offered. The
+base converter already skips those empty metrics. None of the 2021-2026
+files contain a blank measure cell.
 """
 from pathlib import Path
 from typing import Dict, Any
@@ -45,7 +53,18 @@ def clean_numeric_values(df: pd.DataFrame) -> pd.DataFrame:
 
 
 class PostsecondaryEnrollmentETL(BaseETL):
-    """ETL module for postsecondary enrollment data."""
+    """ETL module for postsecondary enrollment data.
+
+    KYRC26 uses the same measure headers as KYRC24 and KYRC25, including
+    ``Percentage College Enrolled In State Table``. The 2021-2023 files
+    use the uppercase names, which are already mapped. No temporary OAA
+    extract is registered for this directory, and the guessed temporary
+    names return 404, so there is no leftover filename to skip.
+    """
+
+    # Opt in here, in the same change that accepts the file. BaseETL skips
+    # every KYRC26_* CSV until this is True.
+    include_kyrc26 = True
 
     @property
     def module_column_mappings(self) -> Dict[str, str]:

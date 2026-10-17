@@ -1,0 +1,7 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,Total In Group,Public College Enrolled In State,Private College Enrolled In State,College Enrolled In State,Percentage Public College Enrolled In State,Percentage Private College Enrolled In State,Percentage College Enrolled In State Table
+20232024,,,999,All Districts,,All Schools,999000,,,,,,All Students,"46,577","18,196","3,361","21,557",39.10%,7.20%,46.30%
+20232024,034,FAYETTE,165,Fayette County,,All Schools,165000,,,CKEC,901,,All Students,"3,053","1,352",177,"1,529",44.30%,5.80%,50.10%
+20232024,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,All Students,448,175,25,200,39.10%,5.60%,44.60%
+20232024,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,Asian,*,*,*,*,*,*,*
+20232024,001,ADAIR,001,Adair County,,All Schools,001000,,,GRREC,902,,All Students,199,39,39,78,19.60%,19.60%,39.20%
+20232024,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,All Students,*,*,*,*,*,*,*
