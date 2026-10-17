@@ -1,11 +1,10 @@
 """
 Student Enrollment ETL Module
 
-Handles Kentucky student enrollment data (Preschool-Grade 12) across years 2020-2024.
-Combines primary and secondary enrollment data from historical separate files and
-unified KYRC24 format. Normalizes column names, handles schema variations, 
-standardizes missing values, and applies demographic label standardization 
-for consistent longitudinal reporting.
+Handles Kentucky student enrollment data (Preschool-Grade 12) across years 2020-2026.
+Combines historical primary enrollment files and the KYRC overview files.
+Normalizes column names, handles schema variations, standardizes missing values,
+and applies demographic label standardization for consistent longitudinal reporting.
 
 Data includes enrollment counts by grade level:
 - Preschool through Grade 12 enrollment counts
@@ -28,6 +27,15 @@ from base_etl import BaseETL, Config
 logger = logging.getLogger(__name__)
 
 
+def _is_string_like(series: pd.Series) -> bool:
+    """True for object text and for pandas StringDtype.
+
+    ``read_csv(..., dtype=str)`` on pandas 3 returns StringDtype, not object.
+    A comma in ``669,865`` has to be removed before ``to_numeric``.
+    """
+    return series.dtype == object or bool(pd.api.types.is_string_dtype(series))
+
+
 def clean_enrollment_data(df: pd.DataFrame) -> pd.DataFrame:
     """Clean and validate student enrollment count values."""
     # Grade-level columns to validate
@@ -39,9 +47,16 @@ def clean_enrollment_data(df: pd.DataFrame) -> pd.DataFrame:
     
     for col in grade_columns:
         if col in df.columns:
-            # Convert to numeric, handling commas in numbers
-            if df[col].dtype == 'object':
-                df[col] = df[col].astype(str).str.replace(',', '').str.replace('"', '')
+            # Convert to numeric, handling commas in numbers.
+            # astype("string") keeps missing values as <NA>. astype(str) would
+            # turn those into the literal "nan" and then into a number.
+            if _is_string_like(df[col]):
+                df[col] = (
+                    df[col]
+                    .astype("string")
+                    .str.replace(",", "", regex=False)
+                    .str.replace('"', "", regex=False)
+                )
             
             # Convert to numeric, errors='coerce' will make invalid values NaN
             df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -56,7 +71,34 @@ def clean_enrollment_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 class StudentEnrollmentETL(BaseETL):
-    """ETL module for processing student enrollment data."""
+    """ETL module for processing student enrollment data.
+
+    KYRC26 uses the same grade headers as KYRC24 and KYRC25. The 2020-2023
+    files use the uppercase count names, which are already mapped. No
+    temporary OAA extract is registered for this directory, and the guessed
+    temporary names return 404, so there is no leftover filename to skip.
+    """
+
+    # Opt in here, in the same change that accepts the file. BaseETL skips
+    # every KYRC26_* CSV until this is True.
+    include_kyrc26 = True
+
+    def accepts_data_file(self, file_path: Path) -> bool:
+        """Skip a student-membership extract dropped into this directory.
+
+        ``OVW_Student_Membership`` uses the same grade headers except
+        Preschool, and its All Grades total is not this file's total.
+        A parse would emit ``student_enrollment_*`` rows with different
+        counts. Membership is not registered here and has no ETL. Preschool
+        enrollment stays on ``OVW_Student_Enrollment``.
+        """
+        if "student_membership" in file_path.name.lower():
+            logger.info(
+                "Skipping %s; student membership is not the enrollment source",
+                file_path.name,
+            )
+            return False
+        return super().accepts_data_file(file_path)
 
     @property
     def module_column_mappings(self) -> Dict[str, str]:

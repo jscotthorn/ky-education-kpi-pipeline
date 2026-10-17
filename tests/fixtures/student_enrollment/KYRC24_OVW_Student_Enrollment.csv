@@ -1,0 +1,5 @@
+﻿School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,All Grades,Preschool,K,Grade 1,Grade 2,Grade 3,Grade 4,Grade 5,Grade 6,Grade 7,Grade 8,Grade 9,Grade 10,Grade 11,Grade 12,Grade 14
+20232024,,,999,All Districts,,All Schools,999000,,,,,,All Students,"686,224","31,467","49,681","50,859","52,241","48,560","49,321","49,728","46,144","49,278","50,090","56,075","54,149","50,192","47,786",653
+20232024,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,All Students,847,,,,,,,,,,,220,235,216,176,
+20232024,034,FAYETTE,165,Fayette County,,All Schools,165000,,,CKEC,901,,All Students,"44,362","1,318","3,252","3,325","3,496","3,200","3,290","3,264","2,925","3,293","3,179","3,853","3,531","3,348","3,062",26
+20232024,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,All Students,"2,266",,,,,,,,,,,655,583,491,530,7

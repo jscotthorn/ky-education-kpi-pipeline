@@ -5,9 +5,12 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
 from etl.student_enrollment import transform, clean_enrollment_data, StudentEnrollmentETL
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestStudentEnrollmentETL:
@@ -382,3 +385,114 @@ class TestCleanEnrollmentData:
         assert pd.isna(result['all_grades'].iloc[1])
         assert result['all_grades'].iloc[2] == 500
         assert pd.isna(result['grade_1'].iloc[1])
+
+
+class TestKyrc26StudentEnrollment:
+    """KYRC26 opt-in. There is no temporary extract to skip."""
+
+    def setup_method(self):
+        self.test_dir = Path(tempfile.mkdtemp())
+        self.sample_dir = self.test_dir / "student_enrollment"
+        self.sample_dir.mkdir(parents=True)
+        self.etl = StudentEnrollmentETL("student_enrollment")
+
+    def teardown_method(self):
+        shutil.rmtree(self.test_dir)
+
+    def test_kyrc26_file_is_accepted(self):
+        """The permanent KYRC files and the historical primary names stay in scope."""
+        assert self.etl.include_kyrc26 is True
+        assert self.etl.module_column_mappings["All Grades"] == "all_grades"
+        assert self.etl.module_column_mappings["Preschool"] == "preschool"
+        assert self.etl.module_column_mappings["TOTAL STUDENT COUNT"] == "total_student_count"
+
+        accepted = [
+            "KYRC26_OVW_Student_Enrollment.csv",
+            "KYRC25_OVW_Student_Enrollment.csv",
+            "KYRC24_OVW_Student_Enrollment.csv",
+            "primary_enrollment_2023.csv",
+            "primary_enrollment_2022.csv",
+            "primary_enrollment_2021.csv",
+            "primary_enrollment_2020.csv",
+        ]
+        for name in accepted:
+            (self.sample_dir / name).write_text("School Year\n20252026\n")
+        (self.sample_dir / "KYRC26_OVW_Student_Membership.csv").write_text("School Year\n20252026\n")
+
+        found = sorted(path.name for path, _sheet in self.etl._find_data_files(self.sample_dir))
+        assert found == sorted(accepted)
+        assert self.etl.accepts_data_file(self.sample_dir / "KYRC26_OVW_Student_Membership.csv") is False
+
+    def test_blank_row_emits_nothing(self):
+        """An empty non-Y row is not offered and emits no KPI row.
+
+        notes/8: a row that is not suppressed and has every value empty is
+        the absence of a row. These files have no Suppressed column. A
+        constructed all-blank row emits nothing. There is no such row in
+        KYRC24, KYRC25, or KYRC26.
+        """
+        blank = pd.DataFrame({
+            "School Year": ["20252026"],
+            "District Name": ["All Districts"],
+            "School Name": ["All Schools"],
+            "School Code": ["999000"],
+            "Demographic": ["All Students"],
+            "All Grades": [""],
+            "Preschool": [""],
+            "K": [""],
+            "Grade 1": [""],
+            "Grade 12": [""],
+            "Grade 14": [""],
+        })
+        normalized = self.etl.standardize_missing_values(self.etl.normalize_column_names(blank))
+        kpi = self.etl.convert_to_kpi_format(normalized, "blank.csv")
+        assert kpi.empty
+
+    def test_membership_headers_would_emit_enrollment_rows(self):
+        """Membership shares the grade headers, so the filename is rejected.
+
+        State All Students membership is 624,645 with no Preschool column.
+        Enrollment for the same row is 669,865 and includes preschool 29,782.
+        Those are different counts. A parse of the membership row emits
+        student_enrollment metrics, which is why accepts_data_file skips the
+        file. Membership is not registered under this directory.
+        """
+        membership = pd.DataFrame({
+            "School Year": ["20252026"],
+            "District Name": ["All Districts"],
+            "School Name": ["All Schools"],
+            "School Code": ["999000"],
+            "Demographic": ["All Students"],
+            "All Grades": ["624,645"],
+            "K": ["45,325"],
+            "Grade 12": ["46,901"],
+            "Grade 14": ["525"],
+        })
+        normalized = self.etl.standardize_missing_values(self.etl.normalize_column_names(membership))
+        kpi = self.etl.convert_to_kpi_format(normalized, "KYRC26_OVW_Student_Membership.csv")
+        totals = kpi[kpi["metric"] == "student_enrollment_total"]
+        assert len(totals) == 1
+        assert float(totals.iloc[0]["value"]) == 624645
+        assert "student_enrollment_preschool" not in set(kpi["metric"])
+        assert self.etl.accepts_data_file(self.sample_dir / "KYRC26_OVW_Student_Membership.csv") is False
+
+
+def test_registered_sources_are_the_permanent_files():
+    """2024-25 is already the permanent KYRC25 file. No temporary name is registered."""
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["student_enrollment"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert names == [
+        "KYRC24_OVW_Student_Enrollment.csv",
+        "KYRC25_OVW_Student_Enrollment.csv",
+        "KYRC26_OVW_Student_Enrollment.csv",
+        "primary_enrollment_2023.csv",
+        "primary_enrollment_2022.csv",
+        "primary_enrollment_2021.csv",
+        "primary_enrollment_2020.csv",
+        "STUDENT_PRIMARY_ENROLLMENT_18-19.xlsx",
+    ]
+    assert not any("membership" in name.lower() for name in names)
+    assert not any("Student_Enrollment_20" in name for name in names)
