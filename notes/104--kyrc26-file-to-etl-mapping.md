@@ -21,12 +21,15 @@ The node ids are in journal 105 (census live API, pandas `StringDtype` versus `o
 | `chronic_absenteeism` | Merged in PR #38 (`cursor/chronic-absenteeism-kyrc26-1b59`). Opt-in, plus a hygiene filename guard for the CRDC extract. Shared changes: `.gitignore` keeps `tests/fixtures/**/*.csv`, and `PyYAML` is a project dependency because tests import it. Details are under that module |
 | `graduation_rates` | Merged in PR #39 (`cursor/graduation-rates-kyrc26-05b6`). Opt-in, the 5-year cohort alias, and a source swap in `config/kde_sources.yaml`: `Graduation_Rate_2025.CSV` is replaced by the two permanent KYRC25 cohort files. The parser skips leftover `Graduation_Rate_2024.CSV`, `Graduation_Rate_2025.CSV`, and `Graduation_Rate_2026.CSV` so those years are not written twice. No shared parser or dependency changes. Details are under that module |
 | `english_learner_progress` | In review in PR #40 (`cursor/english-learner-progress-kyrc26-26cf`). Opt-in, and a source swap in `config/kde_sources.yaml`: `English_Language_Proficiency_2025.CSV` is replaced by `KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv`. The parser skips leftover `English_Language_Proficiency_2024.CSV`, `English_Language_Proficiency_2025.CSV`, and `English_Language_Proficiency_2026.CSV` so those years are not written twice. No shared parser or dependency changes. Details are under that module |
+| `postsecondary_readiness` | In review (`cursor/postsecondary-readiness-kyrc26-37b0`). Opt-in, and a source swap in `config/kde_sources.yaml`: `Postsecondary_Readiness_2025.CSV` is replaced by `KYRC25_ACCT_Postsecondary_Readiness.csv`. The parser skips leftover `Postsecondary_Readiness_2024.CSV`, `Postsecondary_Readiness_2025.CSV`, and `Postsecondary_Readiness_2026.CSV` so those years are not written twice. No shared parser or dependency changes. Details are under that module |
 
 `chronic_absenteeism` was re-tested on this branch after the review fixes: `42 failed, 394 passed, 104 skipped`. The 42 failure node ids match the develop baseline above. Run `python3 scripts/compare_pytest_to_journal105.py` and paste the report into the pull request. Do not commit a per-script diff file. The extra passes are the shared-prep tests already on `feature/2025-26-kyrc26` plus the chronic-absenteeism tests added here. Do not treat 375 passed as the number to match once shared prep is in the base.
 
 `graduation_rates` compare run after the 2024 temporary-file skip, pandas 3.0.6: `42 failed, 400 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The extra pass beyond the KYRC25 source swap is `test_leftover_temporary_file_does_not_duplicate_2024`. Do not treat 394 passed as the number to match once this module merges.
 
 `english_learner_progress` compare run, pandas 3.0.6: `42 failed, 406 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The six passes beyond the graduation-rates total are the KYRC26 acceptance test, the KYRC25 source-swap test, the leftover-temporary-file test, the blank-and-partial-blank test, the sibling-file test, and the real-row fixture test. Do not treat 400 passed as the number to match once this module merges.
+
+`postsecondary_readiness` compare run, pandas 3.0.6: `42 failed, 411 passed, 104 skipped`, errors 0. The 42 failure node ids match the develop baseline. The five passes beyond the english-learner total are the KYRC26 acceptance test, the KYRC25 source-swap test, the leftover-temporary-file test, the blank-and-star test, and the real-row fixture test. Do not treat 406 passed as the number to match once this module merges.
 
 ## What was checked
 
@@ -310,14 +313,85 @@ Lessons for later agents:
 6. Do not add a shared helper for a header or token only this file uses. The level names were already mapped. Do not add a space to the shared missing-value list.
 7. State district is `All Districts`. `scripts/generate_report_drafts.py` still selects `State`. That lookup now finds no EL state row in 2024, 2025, or 2026, the same gap as graduation. The 2022 and 2023 historical files still use `State`. The three EL analysis scripts still stop at 2025.
 
-### `postsecondary_readiness` — S
+### `postsecondary_readiness` — S — in review
 
 | | |
 | --- | --- |
 | KYRC26 files | `KYRC26_ACCT_Postsecondary_Readiness.csv` |
-| Header changes | None. School-code set is identical to KYRC25 |
-| Fixtures / assertions | State base rate 85.3, rate with bonus 93.9, year `2026` |
-| Gotchas | Leave `Postsecondary_Readiness_2025.CSV` in place |
+| Header changes | None versus KYRC25. `Postsecondary Rate` and `Postsecondary Rate With Bonus` were already mapped, including the temporary-file headers. School-code set is identical to KYRC25 |
+| Fixtures / assertions | State base rate 85.3, rate with bonus 93.9, year `2026`. Checked against the blob file, not a rewritten row |
+| Gotchas | `Postsecondary_Readiness_2025.CSV` is 404. The permanent KYRC25 file is the 2024-25 source. Skip leftover `Postsecondary_Readiness_2024.CSV`, `Postsecondary_Readiness_2025.CSV`, and `Postsecondary_Readiness_2026.CSV`. The 2026 temporary file is still live. Do not register it. `scripts/generate_report_drafts.py` still looks for district `State`. `analysis/scripts/postsecondary_readiness_analysis.py` still caps the year at 2025 |
+
+Result, checked 17 October 2026 against the public `datasets` container. `include_kyrc26 = True` and the `kde_sources.yaml` source swap are the changes. `etl/kyrc.py`, `BaseETL`, and the demographic config were not edited. Re-HEAD the readiness files after 26 October 2026. If the hashes diverge from the stamps below, take the newer stamp and record which container it came from.
+
+`datasets` HEAD for the KYRC26 file did not return Content-MD5. The UAT Content-MD5 matches the bytes downloaded from `datasets`, and `datasets` Last-Modified is newer, so this is the `datasets` object. The KYRC25 `datasets` Content-MD5 matches the download. KYRC24 `datasets`, the historical-datasets host, and the UAT container are the same bytes.
+
+| File | Bytes | MD5 | Last-Modified |
+| --- | --- | --- | --- |
+| `KYRC26_ACCT_Postsecondary_Readiness.csv` | 1,366,274 | `b5893752e1eefeabc05ab37caa40b7ab` | Thu, 15 Oct 2026 10:00:09 GMT |
+| `KYRC25_ACCT_Postsecondary_Readiness.csv` | 1,365,309 | `1ee5f118a10ecd6f9408c85a1c939ded` | Fri, 09 Oct 2026 19:39:31 GMT |
+| `KYRC24_ACCT_Postsecondary_Readiness.csv` | 1,337,876 | `85eb6af528ac3026cb1f7ad9746d93d4` | Thu, 14 May 2026 19:11:28 GMT |
+
+The historical-datasets host serves the same KYRC24 bytes. Its KYRC25 copy is a different file (1,371,527 bytes, `54c8b0bd22b81beebfeefdeec25af9b1`, Last-Modified Tue, 10 Feb 2026 20:37:59 GMT). The two copies differ in 6,218 rate cells, every one a suppressed `*` in the `datasets` file and ` *` (a leading space) in the February copy. Published numeric rates match. Both copies produce the same 21,438 KPI rows. The registered `kyrc25` URL is `datasets`.
+
+Each KYRC file has 10,719 data rows, 397 school codes, and the same 27 demographic labels. The full-file run reported 27 found and no unexpected labels. No new KPI names. The two metrics are `postsecondary_readiness_rate` and `postsecondary_readiness_rate_with_bonus`.
+
+All Students, KPI `year` `2026` (source `School Year` `20252026`). `All Schools` is stored as `---District Total---`.
+
+| Row | School code | Base | With bonus | Suppressed |
+| --- | --- | --- | --- | --- |
+| State (`All Districts`) | `999000` | 85.3 | 93.9 | N |
+| Fayette County district | `165000` | 86.4 | 96.0 | N |
+| Bryan Station High School | `165170` | 80.7 | 90.9 | N |
+| Adair County district | `001000` | 97.5 | 109.9 | N |
+| State `Asian` | `999000` | 92.8 | 101.3 | N |
+| Bryan Station `Asian` | `165170` | empty | empty | Y |
+| Bryan Station `American Indian or Alaska Native` | `165170` | empty | empty | blank in the file |
+
+Bryan Station `state_school_id` `034165170`, `nces_id` `210186000388`, `school_type` `A1`, county `FAYETTE`. Fayette district `nces_id` `2101860`, `co_op` `CKEC`, `co_op_code` `901`. That `901` is the cooperative code. The school code stays `165000`. KYRC25 stored Bryan Station's NCES id as `210186000000`. KYRC24 and KYRC26 both use `210186000388`. Adair County High School `001010` is `210003000001` in KYRC24 and KYRC26 and `210003000000` in KYRC25. The state `Asian` bonus rate is 101.3. Bonus rates above 100 are kept. The validation ceiling is 150.
+
+The configured 2023-24 file is `KYRC24_ACCT_Postsecondary_Readiness.csv`. A base-branch run wrote 21,438 KPI rows. This branch matches that output exactly, ignoring `last_updated`. State All Students is 81.0 / 86.0. Fayette is 77.5 / 82.6. Bryan Station is 68.6 / 77.7. Adair County district is 86.5 / 94.9.
+
+`config/kde_sources.yaml` did not register the KYRC25 readiness file. 2024-25 production came from `Postsecondary_Readiness_2025.CSV`. That temporary file returned 404 on the OAA URL, on the historical-datasets host, and it is not in the Wayback index used here. It is no longer registered. The permanent KYRC25 file, parsed with the unchanged parser, writes 21,438 KPI rows. State All Students is 83.3 / 89.1. Fayette is 84.2 / 91.3. Bryan Station is 87.9 / 98.5. Journal 75's Adair County district sample is 90.2 / 98.0, Female 93.7 / 102.6, Male 87.3 / 94.1, and the permanent file matches those six cells.
+
+Journal 75 (19 November 2025) is the surviving record of the temporary file: 10,962 source rows became 21,924 KPI rows. The permanent KYRC25 file has 10,719 source rows and writes 21,438 KPI rows. Only the KYRC25 name is registered, so those 21,438 rows replace the temporary file's 21,924. They are not added to them.
+
+The 486-row drop is 9 educational cooperatives, codes 901–909, times 27 demographic groups times 2 metrics. 10,962 / 27 = 406 entities. 10,719 / 27 = 397. The difference is 9 entities. The 2025 temporary file itself cannot be re-read. The live `Postsecondary_Readiness_2026.CSV` (842,564 bytes, not registered) has the same 10,962-row shape and the same nine-column header. Its nine extra entities are the cooperative totals: 901 CKEC, 902 GRREC, 903 KEDC, 904 KVEC, 905 NKCES, 906 OVEC, 907 SESC, 908 WKEC, and 909 JEFF CO, each with `type` `SP`. That is 9 × 27 = 243 source rows, and 243 × 2 = 486 KPI rows. After the 3-digit district and state codes are padded to six digits, the other 10,719 keys match KYRC26. Suppression codes match: 4,920 `N`, 3,232 `Y`, and 2,567 blank. Every published rate matches. 1,423 cells differ only by a trailing `.0`, such as `80` versus `80.0` and `110` versus `110.0`.
+
+The temporary file does not add alternative schools. It has 228 six-digit school codes, the same 228 KYRC school codes. It has 169 three-digit district and state codes, which pad to the 169 KYRC codes that end in `000`, including state `999` to `999000`. The only codes KYRC leaves out are 901–909. `type` on the temporary file is `A1` (10,665 rows), `B1` (54), or `SP` (243). The second `B1` entity is district `606`, Model Laboratory Schools at EKU. KYRC stores that district total as `606000` with a blank school type. The school `606460` is `B1` in both files. 228 + 169 + 9 = 406. 228 + 169 = 397.
+
+The November 2025 and August 2026 snapshots were not the same rates. Journal 102 records the November state cells as 83.0 / 88.8 and Fayette as 82.2 / 89.2, and the 3 August 2026 re-download as 83.3 / 89.1 and 84.2 / 91.3. The permanent file matches the August state and Fayette cells. Henry Clay High School `165039` is 72.1 / 73.5. Journal 102 named 72.1 as the August base rate; the November base rate was 67.3 and the November bonus was 68.7. Lafayette is 88.6 / 93.8 against November 84.9 / 90.1. Paul Laurence Dunbar is 83.6 / 90.6 against November 79.8 / 86.9. Tates Creek (87.0 / 97.4), Frederick Douglass (88.7 / 97.4), and Bryan Station (87.9 / 98.5) match the November printout. Adair County matches the November sample above. Those are the cells that can be checked. The rest of the November file is gone.
+
+Suppression in the KYRC file is `N`, `Y`, or blank. There is no new code. `Y` is `*` in KYRC25 and KYRC26 and ` *` in KYRC24. Both become an empty KPI value because `suppressed` is `Y`. `to_numeric` already drops the spaced star. Do not add a space to the shared missing-value list. Blank means both rate cells are empty. This module still emits both metrics for that row, with `suppressed` `N` and an empty value. That is what KYRC24 already did. Skipping the blank row would change the 21,438 prior-year count. There is no partial blank. The two rate cells always share a status.
+
+| File | N | Y | Blank | KPI rows |
+| --- | --- | --- | --- | --- |
+| KYRC24 | 4,760 | 3,194 | 2,765 | 21,438 |
+| KYRC25 | 4,956 | 3,109 | 2,654 | 21,438 |
+| KYRC26 | 4,920 | 3,232 | 2,567 | 21,438 |
+
+`N` plus `Y` plus blank is the source-row count, 10,719. Each source row emits two KPI rows, so the output count does not move when a cell changes code. KYRC26 against KYRC25, on the same 10,719 keys: 4,423 stay `N`, 2,192 stay `Y`, and 2,137 stay blank. 527 move `N` to `Y` and 493 move `Y` to `N`. 513 move blank to `Y` and 424 move `Y` to blank. 6 move `N` to blank and 4 move blank to `N`. The net is −36 `N`, +123 `Y`, and −87 blank (4,956 − 36 = 4,920, 3,109 + 123 = 3,232, 2,654 − 87 = 2,567).
+
+The locked blank example is Bryan Station `165170`, `American Indian or Alaska Native`: KYRC26, KYRC25, and KYRC24 are blank and each emits two empty metrics with `suppressed` `N`. State `Alternate Assessment` is blank in all three years and is stored the same way. School-level suppression used for the check: Bryan Station `Asian`, `Y` / `*` in KYRC25 and KYRC26, and `Y` / ` *` in KYRC24.
+
+`CO-OP` `GREC` is 594 rows and 22 school codes in the KYRC25 file, all Jefferson County codes beginning `275`. KYRC26 labels those same 22 codes `GLEC` and has no `GREC` rows. Nothing in this pipeline groups or joins on the co-op name. A later cross-year grouping on `co_op` would split that cooperative in two.
+
+`Postsecondary_Readiness_2026.CSV` does emit rows, because `Postsecondary Rate` was already mapped. The guard exists so a leftover copy cannot sit beside the KYRC file and write that year twice. The match is case-insensitive. The 2024-shaped unit test uses `postsecondary_readiness_2024_format.csv` so it still exercises those headers. Historical `postsecondary_readiness_2022.csv` and `postsecondary_readiness_2023.csv` stay. `Postsecondary_Readiness_2024.CSV` is also 404. The temporary file stores the state district as `State` and the state school code as `999`.
+
+Follow-up, not fixed here. `scripts/generate_report_drafts.py` selects state rows with `district == 'State'`. The 2022 and 2023 historical files still have district `State`, school name `---State Total---`, and school code `999` (9,131 source rows each). KYRC24 already stored `All Districts`. The 2024-25 temporary file that used `State` is no longer registered, so the lookup now finds no postsecondary state row in 2024, 2025, or 2026. `analysis/scripts/postsecondary_readiness_analysis.py` keeps year range `(2022, 2025)` and `school_type == 'A1'`. The temporary file's `type` column is not mapped to `school_type`, so its 2025 rows never entered that dataset. The KYRC25 file sets School Type. 227 A1 schools have a published All Students base rate, and those 2025 rows now pass the filter. 2026 school rows will not enter until the year cap moves. School Type `A1` is already on the school rows (6,129 source rows, 227 schools).
+
+Fixtures are real rows in `tests/fixtures/postsecondary_readiness/`: eleven rows each from KYRC26, KYRC25, and KYRC24, including the Bryan Station American Indian blank, the Bryan Station Asian suppression, and the KYRC24 spaced star. `tests/test_fixture_sizes.py` passes.
+
+Lessons for later agents:
+
+1. "Leave the temporary file in place" was the checklist before the HEAD. `Postsecondary_Readiness_2025.CSV` is 404. Switch that year to the permanent KYRC file and do not register both. The 2026 temporary file is still live (842,564 bytes). Do not register it next to `KYRC26_`.
+2. "Header changes: none" means the KYRC26 header matches KYRC25. It also means the temporary rate headers were already mapped, so a leftover `Postsecondary_Readiness_2024.CSV`, `_2025.CSV`, or `_2026.CSV` emits a second copy of that year. The guard is case-insensitive. Historical `postsecondary_readiness_2022.csv` and `_2023.csv` stay. Rename a unit-test file that used the skipped name.
+3. This module emits both metrics for every source row, including a blank suppression row. The blank row is stored as `suppressed` `N` with an empty value. That is existing KYRC24 behavior. Do not skip it. A skip would change the 21,438 prior-year count. `Y` emits two empty metrics with `suppressed` `Y`. There is no partial blank. KYRC24 stores the star as ` *`. `to_numeric` already drops it. Do not add a space to the shared missing-value list.
+4. Compare the suppression value set, then the counts. Here the codes are still `N`, `Y`, and blank, and the output row count does not move. `N` plus `Y` plus blank is the source-row count. Each source row emits two KPI rows.
+5. The temporary-to-permanent gap for this file is the nine cooperative totals, not alternative schools. 406 entities versus 397 is 9 × 27 source rows, and × 2 metrics is 486 KPI rows. The 2025 temporary file is 404. Journal 75's 10,962 rows are the same 406 × 27 shape, and the live 2026 temporary file is where the nine codes can be counted.
+6. Prior-year identity is a diff of the files the base parser already emitted. This module's KYRC24 file matches that output (21,438 KPI rows). KYRC25 was not registered. Its 2024-25 rates already came from `Postsecondary_Readiness_2025.CSV`. Replacing that dead file is a source swap.
+7. State district is `All Districts`. `scripts/generate_report_drafts.py` still selects `State`. That lookup finds the 2022 and 2023 rows and finds no KYRC state row in 2024, 2025, or 2026. The readiness analysis script still stops at 2025 and requires `school_type == 'A1'`. The temporary `type` column was not mapped, so the KYRC25 School Type column is what lets 2025 A1 schools into that dataset.
+8. Do not add a shared helper for a header only this file uses. The rate headers were already mapped. `GREC` became `GLEC` on 22 Jefferson County school codes (594 rows). Nothing in this pipeline joins on the co-op name.
 
 ### `postsecondary_enrollment` — S
 

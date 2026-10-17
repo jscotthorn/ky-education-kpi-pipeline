@@ -474,6 +474,294 @@ class TestPostsecondaryReadinessAdvanced:
         assert (suppressed_records['suppressed'] == 'Y').all(), "All suppressed records must have suppressed='Y'"
 
 
+FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures" / "postsecondary_readiness"
+
+# Values the base-branch parser already wrote from the KYRC24 file
+# (10,719 source rows, 21,438 KPI rows) and from the KYRC25 file the same
+# parser emits once that file is the 2024-25 source. Order is base rate,
+# rate with bonus.
+PRIOR_ANCHORS = {
+    ("2024", "999000"): ("81.0", "86.0"),
+    ("2024", "165000"): ("77.5", "82.6"),
+    ("2024", "165170"): ("68.6", "77.7"),
+    ("2024", "001000"): ("86.5", "94.9"),
+    ("2025", "999000"): ("83.3", "89.1"),
+    ("2025", "165000"): ("84.2", "91.3"),
+    ("2025", "165170"): ("87.9", "98.5"),
+    # Journal 75's temporary-file sample. The permanent KYRC25 cells match it.
+    ("2025", "001000"): ("90.2", "98.0"),
+}
+
+RATE_METRICS = (
+    "postsecondary_readiness_rate",
+    "postsecondary_readiness_rate_with_bonus",
+)
+
+
+def _run_fixtures(tmp_path: Path, filenames: list[str]) -> pd.DataFrame:
+    """Copy committed real-row excerpts into a raw directory and transform them."""
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "postsecondary_readiness"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    for name in filenames:
+        (source_dir / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+    transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-10-17"}})
+    output = proc_dir / "postsecondary_readiness.csv"
+    assert output.exists(), filenames
+    return pd.read_csv(output, dtype=str)
+
+
+def _comparable(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop the processing timestamp and sort so two runs can be compared."""
+    columns = [column for column in df.columns if column != "last_updated"]
+    return df[columns].sort_values(columns).reset_index(drop=True)
+
+
+def _metric_rows(
+    df: pd.DataFrame, year: str, school_id: str, metric: str, student_group: str
+) -> pd.DataFrame:
+    return df[
+        (df["year"] == year)
+        & (df["school_id"] == school_id)
+        & (df["metric"] == metric)
+        & (df["student_group"] == student_group)
+    ]
+
+
+def _metric_value(
+    df: pd.DataFrame, year: str, school_id: str, metric: str, student_group: str
+) -> pd.Series:
+    matches = _metric_rows(df, year, school_id, metric, student_group)
+    assert len(matches) == 1, (year, school_id, metric, student_group, len(matches))
+    return matches.iloc[0]
+
+
+def test_leftover_temporary_file_does_not_duplicate_a_year(tmp_path):
+    """A leftover Postsecondary_Readiness_YYYY.CSV must not add a second year.
+
+    The temporary row uses a different rate and a 3-digit state code so a
+    duplicate would be visible. State All Students stays 81.0 (2024),
+    83.3 (2025), and 85.3 (2026).
+    """
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "postsecondary_readiness"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    names = [
+        "KYRC24_ACCT_Postsecondary_Readiness.csv",
+        "KYRC25_ACCT_Postsecondary_Readiness.csv",
+        "KYRC26_ACCT_Postsecondary_Readiness.csv",
+    ]
+    for name in names:
+        (source_dir / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+    header = (
+        "School Year,School Code,District Name,School Name,type,Demographic,Suppressed,"
+        "Postsecondary Rate,Postsecondary Rate With Bonus\n"
+    )
+    for filename, year in (
+        ("Postsecondary_Readiness_2024.CSV", "20232024"),
+        ("Postsecondary_Readiness_2025.CSV", "20242025"),
+        ("Postsecondary_Readiness_2026.CSV", "20252026"),
+    ):
+        (source_dir / filename).write_text(
+            header + f"{year},999,State,,A1,All Students,N,50.0,51.0\n"
+        )
+
+    transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-10-17"}})
+    output = pd.read_csv(proc_dir / "postsecondary_readiness.csv", dtype=str)
+
+    assert set(output["source_file"]) == set(names)
+    assert "50.0" not in set(output["value"].dropna())
+    assert "51.0" not in set(output["value"].dropna())
+    assert "999" not in set(output["school_id"])
+    assert set(output.loc[output["district"] == "State", "school_id"]) == set()
+    assert _metric_value(
+        output, "2024", "999000", "postsecondary_readiness_rate", "All Students"
+    )["value"] == "81.0"
+    assert _metric_value(
+        output, "2025", "999000", "postsecondary_readiness_rate", "All Students"
+    )["value"] == "83.3"
+    assert _metric_value(
+        output, "2026", "999000", "postsecondary_readiness_rate", "All Students"
+    )["value"] == "85.3"
+
+
+def test_blank_row_stays_unsuppressed_and_star_row_is_suppressed(tmp_path):
+    """A blank Suppressed cell is kept with an empty value. A Y cell stays suppressed.
+
+    Bryan Station American Indian is blank in KYRC24, KYRC25, and KYRC26.
+    Both metrics are still emitted, with suppressed N, which is what KYRC24
+    already did. Bryan Station Asian is Y. KYRC24 stores that star as a
+    leading space plus an asterisk. The value is empty either way.
+    """
+    output = _run_fixtures(
+        tmp_path,
+        [
+            "KYRC24_ACCT_Postsecondary_Readiness.csv",
+            "KYRC25_ACCT_Postsecondary_Readiness.csv",
+            "KYRC26_ACCT_Postsecondary_Readiness.csv",
+        ],
+    )
+    absent = "American Indian or Alaska Native"
+    for year in ("2024", "2025", "2026"):
+        for metric in RATE_METRICS:
+            row = _metric_value(output, year, "165170", metric, absent)
+            assert row["suppressed"] == "N"
+            assert pd.isna(row["value"])
+        state_blank = _metric_value(
+            output, year, "999000", "postsecondary_readiness_rate", "Alternate Assessment"
+        )
+        assert state_blank["suppressed"] == "N"
+        assert pd.isna(state_blank["value"])
+        assert state_blank["district"] == "All Districts"
+
+    for year in ("2024", "2025", "2026"):
+        for metric in RATE_METRICS:
+            row = _metric_value(output, year, "165170", metric, "Asian")
+            assert row["suppressed"] == "Y"
+            assert pd.isna(row["value"])
+
+
+def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
+    """2025-26 KPIs from real readiness rows, with fixed earlier-year anchors.
+
+    State All Students is 85.3 base and 93.9 with bonus. KPI year is 2026,
+    from school year 20252026. District is All Districts. The 2024 anchors
+    are values the base parser already wrote from the KYRC24 file.
+    """
+    prior_names = [
+        "KYRC24_ACCT_Postsecondary_Readiness.csv",
+        "KYRC25_ACCT_Postsecondary_Readiness.csv",
+    ]
+    current_names = prior_names + ["KYRC26_ACCT_Postsecondary_Readiness.csv"]
+    prior_only = _run_fixtures(tmp_path / "prior", prior_names)
+    combined = _run_fixtures(tmp_path / "combined", current_names)
+
+    # Same-branch check only: adding the 2026 excerpt does not rewrite earlier rows.
+    # The fixed anchors below are the prior-year regression.
+    prior_slice = combined[combined["year"].isin(["2024", "2025"])]
+    assert _comparable(prior_slice).equals(_comparable(prior_only))
+
+    assert set(combined["source_file"]) == set(current_names)
+    assert "20252026" not in set(combined["year"])
+    assert set(combined.loc[combined["source_file"].str.startswith("KYRC26_"), "year"]) == {"2026"}
+
+    state_base = _metric_value(
+        combined, "2026", "999000", "postsecondary_readiness_rate", "All Students"
+    )
+    state_bonus = _metric_value(
+        combined, "2026", "999000", "postsecondary_readiness_rate_with_bonus", "All Students"
+    )
+    for row, expected in ((state_base, "85.3"), (state_bonus, "93.9")):
+        assert row["value"] == expected
+        assert row["suppressed"] == "N"
+        assert row["district"] == "All Districts"
+        assert row["school_name"] == "---District Total---"
+        assert row["year"] == "2026"
+        assert row["school_id"] == "999000"
+        assert row["source_file"] == "KYRC26_ACCT_Postsecondary_Readiness.csv"
+
+    # Published state group. The bonus rate is above 100 and is kept.
+    state_asian = _metric_value(
+        combined, "2026", "999000", "postsecondary_readiness_rate", "Asian"
+    )
+    assert state_asian["value"] == "92.8"
+    assert state_asian["suppressed"] == "N"
+    assert _metric_value(
+        combined, "2026", "999000", "postsecondary_readiness_rate_with_bonus", "Asian"
+    )["value"] == "101.3"
+
+    district = _metric_value(
+        combined, "2026", "165000", "postsecondary_readiness_rate", "All Students"
+    )
+    assert district["value"] == "86.4"
+    assert district["district"] == "Fayette County"
+    assert district["school_name"] == "---District Total---"
+    assert district["school_id"] == "165000"
+    assert district["co_op"] == "CKEC"
+    assert district["co_op_code"] == "901"
+    assert district["nces_id"] == "2101860"
+    assert district["suppressed"] == "N"
+    assert _metric_value(
+        combined, "2026", "165000", "postsecondary_readiness_rate_with_bonus", "All Students"
+    )["value"] == "96.0"
+
+    school = _metric_value(
+        combined, "2026", "165170", "postsecondary_readiness_rate", "All Students"
+    )
+    assert school["value"] == "80.7"
+    assert school["district"] == "Fayette County"
+    assert school["school_name"] == "Bryan Station High School"
+    assert school["state_school_id"] == "034165170"
+    assert school["nces_id"] == "210186000388"
+    assert school["school_type"] == "A1"
+    assert school["county_name"] == "FAYETTE"
+    assert school["suppressed"] == "N"
+    assert _metric_value(
+        combined, "2026", "165170", "postsecondary_readiness_rate_with_bonus", "All Students"
+    )["value"] == "90.9"
+
+    # Adair district bonus exceeds 100. The high school bonus is a different cell.
+    adair = _metric_value(
+        combined, "2026", "001000", "postsecondary_readiness_rate", "All Students"
+    )
+    assert adair["value"] == "97.5"
+    assert adair["district"] == "Adair County"
+    assert adair["school_name"] == "---District Total---"
+    assert adair["nces_id"] == "2100030"
+    assert adair["co_op"] == "GRREC"
+    assert adair["co_op_code"] == "902"
+    assert _metric_value(
+        combined, "2026", "001000", "postsecondary_readiness_rate_with_bonus", "All Students"
+    )["value"] == "109.9"
+    assert _metric_value(
+        combined, "2026", "001000", "postsecondary_readiness_rate_with_bonus", "Female"
+    )["value"] == "112.1"
+    assert _metric_value(
+        combined, "2026", "001010", "postsecondary_readiness_rate_with_bonus", "All Students"
+    )["value"] == "110.0"
+    assert _metric_value(
+        combined, "2026", "001010", "postsecondary_readiness_rate", "All Students"
+    )["school_name"] == "Adair County High School"
+
+    # KYRC25 stored Bryan Station's NCES id as 210186000000. KYRC24 and KYRC26 use 210186000388.
+    assert _metric_value(
+        prior_only, "2025", "165170", "postsecondary_readiness_rate", "All Students"
+    )["nces_id"] == "210186000000"
+    assert _metric_value(
+        prior_only, "2024", "165170", "postsecondary_readiness_rate", "All Students"
+    )["nces_id"] == "210186000388"
+
+    for (year, school_id), expected in PRIOR_ANCHORS.items():
+        for metric, value in zip(RATE_METRICS, expected):
+            row = _metric_value(prior_only, year, school_id, metric, "All Students")
+            assert row["value"] == value
+            assert row["suppressed"] == "N"
+            if school_id == "999000":
+                assert row["district"] == "All Districts"
+            elif school_id in {"165000", "165170"}:
+                assert row["district"] == "Fayette County"
+            else:
+                assert row["district"] == "Adair County"
+
+    # Journal 75's Adair Female and Male cells, on the permanent KYRC25 file.
+    assert _metric_value(
+        prior_only, "2025", "001000", "postsecondary_readiness_rate", "Female"
+    )["value"] == "93.7"
+    assert _metric_value(
+        prior_only, "2025", "001000", "postsecondary_readiness_rate_with_bonus", "Female"
+    )["value"] == "102.6"
+    assert _metric_value(
+        prior_only, "2025", "001000", "postsecondary_readiness_rate", "Male"
+    )["value"] == "87.3"
+    assert _metric_value(
+        prior_only, "2025", "001000", "postsecondary_readiness_rate_with_bonus", "Male"
+    )["value"] == "94.1"
+
+
 if __name__ == "__main__":
     # Run specific test
     test = TestPostsecondaryReadinessEndToEnd()
