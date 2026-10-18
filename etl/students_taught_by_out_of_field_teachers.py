@@ -26,23 +26,28 @@ registered, and the guessed temporary names return 404, so there is no
 leftover temporary filename to skip.
 ``KYRC23_OVW_Students_Taught_by_Out_of_Field_Teachers.csv`` returns 200 and
 republishes 2022-23. It is not registered, and ``accepts_data_file`` skips
-that name. ``students_taught_by_out_of_field_teachers_2020.csv`` is the
-2019-20 report card. State Title I All Students is 1.41. The 2020-21 file
-is 8.88. It is registered.
+that name. ``students_taught_by_out_of_field_teachers_2020.csv`` returns
+200 and is school year 20192020. It is not registered. 1,680 of 1,831 Title I
+and Not Title I rows are all zero, and 122 of 177 districts are entirely
+zero, so state Title I 1.41 against 8.88 in 2021 is not a comparable series.
+``accepts_data_file`` skips that name. Issue #66 holds whether to bring the
+file back. The 2020 file is largely zero-fill. That is a different shape
+from the ineffective-teacher placeholder, where the only number is students
+with disabilities.
 
 The registered KYRC24 file is the historical extract. Its headers are
 ``Unnamed: 13`` and ``Inexperienced Value`` through ``Inexperienced Value.8``.
-The datasets copy has real demographic headers and different school cells.
-This module does not swap that copy in.
+The datasets copy's Title I and Not Title I cells match the UAT copy, and
+the historical file's gap rows match the datasets gaps rather than the
+historical group cells. This module does not swap that copy. Issue #66
+holds the choice.
 
 There is no count column and no blank measure cell in any registered year.
-A blank percent is missing, not a zero. A published 0 is kept. No year has
-the placeholder shape in which every percent except students with
-disabilities is missing, so that shape is not dropped. A negative cell is
-kept. In 2020-2023 the equity gap is Title I minus Not Title I on every
-paired cell. KYRC26 is the same difference, with 32 cells off by 0.1.
-KYRC24 and KYRC25 are mixed. Issue #59 tracks the signed gap. This module
-stores the published cell.
+A blank percent is missing, not a zero. A published 0 is kept. A negative
+cell is kept. The stored equity gap is signed for 2021-2023 and for KYRC26
+(Title I minus Not Title I; KYRC26 has 32 cells off by 0.1) and is the
+absolute value for 2024 and 2025. Issue #59 tracks the signed gap. This
+module stores the published cell.
 """
 from pathlib import Path
 import pandas as pd
@@ -61,6 +66,11 @@ logger = logging.getLogger(__name__)
 
 # KYRC23 is the 2022-23 extract again. School year is 20222023 on every row.
 _KYRC23_REPUBLISH = "KYRC23_OVW_STUDENTS_TAUGHT_BY_OUT_OF_FIELD_TEACHERS.CSV"
+
+# 2019-20 is a real file, and its coverage is not comparable. 1,680 of 1,831
+# Title I and Not Title I rows are all zero. Issue #66 holds whether to
+# register it later. A leftover download must not write year 2020.
+_UNREGISTERED_2020 = "STUDENTS_TAUGHT_BY_OUT_OF_FIELD_TEACHERS_2020.CSV"
 
 # Text that is not a percent. These registered files do not use it. A later
 # file, or a StringDtype cell that kept the text, is still missing. There
@@ -145,7 +155,7 @@ def _parse_percent(value: Any) -> Any:
 class StudentsTaughtByOutOfFieldTeachersETL(BaseETL):
     """ETL module for students taught by out-of-field teachers.
 
-    KYRC26 uses the same headers as KYRC25. The 2020-2023 files use the
+    KYRC26 uses the same headers as KYRC25. The 2021-2023 files use the
     uppercase percent names, which are already mapped. The registered KYRC24
     file uses the corrupted ``Inexperienced Value`` headers, which are mapped
     here. No temporary OAA extract is registered for this directory.
@@ -174,20 +184,34 @@ class StudentsTaughtByOutOfFieldTeachersETL(BaseETL):
     }
 
     def accepts_data_file(self, file_path: Path) -> bool:
-        """Skip the KYRC23 republish of the 2022-23 extract.
+        """Skip the KYRC23 republish and the unregistered 2019-20 file.
 
         ``KYRC23_OVW_Students_Taught_by_Out_of_Field_Teachers.csv`` returns
         200 on the datasets host. School year is ``20222023`` on every row,
         and the school codes match ``students_taught_by_out_of_field_teachers_2023.csv``
         once a district code is padded to six digits. Many cells differ, so
         it is not a rounded copy of the historical file. Loading both files
-        would write 2023 twice. The guessed OAA names are 404 and were never
-        registered, so they are not skipped here.
+        would write 2023 twice.
+
+        ``students_taught_by_out_of_field_teachers_2020.csv`` returns 200
+        and is school year 20192020. 1,680 of 1,831 Title I and Not Title I
+        rows are all zero, and 122 of 177 districts are entirely zero.
+        Loading it would show state Title I 1.41 against 8.88 in 2021.
+        Issue #66 holds whether to bring it back. The guessed OAA names are
+        404 and were never registered, so they are not skipped here.
         """
-        if file_path.name.upper() == _KYRC23_REPUBLISH:
+        upper_name = file_path.name.upper()
+        if upper_name == _KYRC23_REPUBLISH:
             logger.info(
                 "Skipping %s; it republishes 2022-23 already loaded from "
                 "students_taught_by_out_of_field_teachers_2023.csv",
+                file_path.name,
+            )
+            return False
+        if upper_name == _UNREGISTERED_2020:
+            logger.info(
+                "Skipping %s; the 2019-20 file is largely zero-fill and is "
+                "not registered. Issue #66 holds whether to bring it back.",
                 file_path.name,
             )
             return False
@@ -199,7 +223,7 @@ class StudentsTaughtByOutOfFieldTeachersETL(BaseETL):
         Map columns to standardized names.
 
         Handles column name variations across years:
-        - 2020-2023: Uppercase with % prefix and TCHRS abbreviation
+        - 2021-2023: Uppercase with % prefix and TCHRS abbreviation
         - KYRC24: Corrupted headers (handled separately)
         - KYRC25 and KYRC26: Title case demographic column names
         """
@@ -223,7 +247,8 @@ class StudentsTaughtByOutOfFieldTeachersETL(BaseETL):
             'Non English Learner': 'non_english_learner',
             'Non-English Learner': 'non_english_learner',
 
-            # Demographics - Historical (2020-2023)
+            # Demographics - Historical (2021-2023). The 2019-20 file uses
+            # the same names and is not loaded. Issue #66.
             '% STUDENTS TAUGHT BY OUT OF FIELD TCHRS': 'all_students',
             '% NON-WHITE STUDENTS TAUGHT BY OUT OF FIELD TCHRS': 'non_white',
             '% WHITE STUDENTS TAUGHT  BY OUT OF FIELD TCHRS': 'white',  # Note: double space in original
@@ -293,12 +318,12 @@ class StudentsTaughtByOutOfFieldTeachersETL(BaseETL):
         demographic on ``student_group``.
 
         A percent of 0 is kept. A blank is omitted. A negative cell is kept.
-        The equity gap is a published difference. In 2020-2023 it is Title I
-        minus Not Title I on every paired cell, so a negative cell is one
-        where Title I is lower. KYRC26 follows that difference, including
-        the state English learner gap of -6.0. KYRC24 and KYRC25 do not
-        follow one rule on every cell. Issue #59 tracks the signed gap.
-        The published cell is stored either way.
+        The equity gap is a published difference. In 2021-2023 and in KYRC26
+        it is Title I minus Not Title I, so a negative cell is one where
+        Title I is lower. KYRC26 includes the state English learner gap of
+        -6.0, and 32 cells are off by 0.1. The 2024 and 2025 files publish
+        the absolute value and have no negatives. Issue #59 tracks the
+        signed gap. The published cell is stored either way.
         """
         metrics: Dict[str, Any] = {}
 

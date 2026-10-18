@@ -341,13 +341,13 @@ class TestStudentsTaughtByOutOfFieldTeachersETL:
     def test_negative_equity_gap_values(self):
         """A published negative equity-gap cell is stored.
 
-        In 2020-2023 the gap is Title I minus Not Title I, so a negative
-        cell is one where Title I is lower. KYRC26 follows that difference,
-        including the state English learner gap of -6.0. KYRC24 and KYRC25
-        do not follow one rule on every cell. Issue #59
+        In 2021-2023 and in KYRC26 the published gap is Title I minus Not
+        Title I, so a negative cell is one where Title I is lower. The
+        registered 2024 and 2025 files publish the absolute value and have
+        no negatives. Issue #59
         (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/59)
-        tracks the signed gap. This module stores the published cell. The
-        drop is not suppression ``Y``.
+        tracks the signed gap. This module stores the published cell,
+        including this constructed -2.5. The drop is not suppression ``Y``.
         """
         data = pd.DataFrame({
             'School Year': ['20242025'],
@@ -426,7 +426,11 @@ class TestStudentsTaughtByOutOfFieldTeachersETL:
         return config["sources"]["students_taught_by_out_of_field_teachers"]
 
     def test_kyrc26_file_is_accepted(self):
-        """The permanent KYRC files and the historical names, including 2020, stay in scope."""
+        """The permanent KYRC files and the 2021-2023 names stay in scope.
+
+        The 2019-20 file is not accepted. Issue #66 holds whether to bring
+        it back. A leftover copy must not be discovered as a data file.
+        """
         assert self.etl.include_kyrc26 is True
         assert self.etl.module_column_mappings["Title_I_Status"] == "title_i_status"
         assert self.etl.module_column_mappings["All Students"] == "all_students"
@@ -442,7 +446,6 @@ class TestStudentsTaughtByOutOfFieldTeachersETL:
             "students_taught_by_out_of_field_teachers_2023.csv",
             "students_taught_by_out_of_field_teachers_2022.csv",
             "students_taught_by_out_of_field_teachers_2021.csv",
-            "students_taught_by_out_of_field_teachers_2020.csv",
         ]
         for name in accepted:
             (self.sample_dir / name).write_text(
@@ -451,9 +454,14 @@ class TestStudentsTaughtByOutOfFieldTeachersETL:
         (self.sample_dir / "KYRC23_OVW_Students_Taught_by_Out_of_Field_Teachers.csv").write_text(
             "School Year,School Code,Title I Status,All Students\n20222023,001010,Title 1,6.6\n"
         )
+        (self.sample_dir / "students_taught_by_out_of_field_teachers_2020.csv").write_text(
+            "SCHOOL YEAR,SCHOOL CODE,TITLE I STATUS,% STUDENTS TAUGHT BY OUT OF FIELD TCHRS\n"
+            "20192020,999,Title 1,1.41\n"
+        )
 
         found = sorted(path.name for path, _sheet in self.etl._find_data_files(self.sample_dir))
         assert found == sorted(accepted)
+        assert "students_taught_by_out_of_field_teachers_2020.csv" not in found
 
     def test_kyrc23_republish_is_skipped(self):
         """A leftover KYRC23 file must not write a second copy of 2023.
@@ -478,6 +486,32 @@ class TestStudentsTaughtByOutOfFieldTeachersETL:
         assert float(result["value"].iloc[0]) == 7.3
         assert result["school_id"].iloc[0] == "999000"
         assert result["district"].iloc[0] == "All Districts"
+
+    def test_2020_zero_fill_file_is_not_loaded(self):
+        """A leftover 2019-20 file does not write year 2020.
+
+        The file is genuine school year 20192020. 1,680 of 1,831 Title I
+        and Not Title I rows are all zero, and 122 of 177 districts are
+        entirely zero. State Title I is 1.41 against 8.88 in 2021. That
+        coverage is not comparable, so the file is not registered.
+        Issue #66 (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/66)
+        holds whether to bring it back. The 1.41 cell must not appear.
+        """
+        (self.sample_dir / "students_taught_by_out_of_field_teachers_2020.csv").write_text(
+            "SCHOOL YEAR,DISTRICT NAME,SCHOOL NAME,SCHOOL CODE,TITLE I STATUS,"
+            "% STUDENTS TAUGHT BY OUT OF FIELD TCHRS\n"
+            "20192020,State,---State Total---,999,Title 1,1.41\n"
+        )
+        (self.sample_dir / "KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv").write_text(
+            "School Year,District Name,School Name,School Code,Title I Status,All Students\n"
+            "20252026,All Districts,All Schools,999000,Title 1,7.3\n"
+        )
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "students_taught_by_out_of_field_teachers.csv", dtype=str)
+        assert set(result["year"]) == {"2026"}
+        assert not result["source_file"].str.contains("2020").any()
+        assert float(result["value"].iloc[0]) == 7.3
+        assert "1.41" not in set(result["value"])
 
     def test_na_row_emits_nothing_and_zero_is_kept(self):
         """N/A is not a percent. A published 0 is kept.
@@ -514,17 +548,17 @@ class TestStudentsTaughtByOutOfFieldTeachersETL:
     def test_disability_only_zero_is_kept(self):
         """A students-with-disabilities 0 is kept when the other cells are N/A.
 
-        The 2020 ineffective-teacher file has rows whose only number is
-        students with disabilities 0.00. This file does not. Every mapped
-        percent in 2020-2026 is numeric. A constructed row with that shape
-        still stores the published 0. Dropping it would invent a rule this
-        source does not need.
+        The 2020 ineffective-teacher file skips a row whose only number is
+        students with disabilities 0.00. This source's 2019-20 file is a
+        different problem: it is largely zero-fill, and it is not loaded.
+        Issue #66. A constructed row on a later year still stores the
+        published 0. Dropping it would invent the ineffective-teacher rule.
         """
         text = (
             "School Year,District Name,School Name,School Code,Title I Status,"
             "All Students,Non-White,White (non-Hispanic),"
             "Students with Disabilities (IEP)\n"
-            "20192020,Example District,Placeholder School,236021,Not Title 1,N/A,N/A,N/A,0.00\n"
+            "20202021,Example District,Placeholder School,236021,Not Title 1,N/A,N/A,N/A,0.00\n"
             "20252026,Fayette County,Bryan Station High School,165170,Title 1,N/A,N/A,N/A,0.0\n"
         )
         (self.sample_dir / "KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv").write_text(text)
@@ -621,7 +655,11 @@ class TestStudentsTaughtByOutOfFieldTeachersETL:
 
 
 def test_registered_sources_are_the_permanent_files():
-    """KYRC24, KYRC25, KYRC26, and 2020-2023 are registered. KYRC23 is not."""
+    """KYRC24, KYRC25, KYRC26, and 2021-2023 are registered.
+
+    The 2019-20 file and the KYRC23 republish are not. Issue #66 holds the
+    2019-20 decision.
+    """
     config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
     names = []
     for entry in config["raw_directories"]["students_taught_by_out_of_field_teachers"]:
@@ -634,7 +672,7 @@ def test_registered_sources_are_the_permanent_files():
         "students_taught_by_out_of_field_teachers_2023.csv",
         "students_taught_by_out_of_field_teachers_2022.csv",
         "students_taught_by_out_of_field_teachers_2021.csv",
-        "students_taught_by_out_of_field_teachers_2020.csv",
     ]
+    assert "students_taught_by_out_of_field_teachers_2020.csv" not in names
     assert not any("KYRC23" in name for name in names)
     assert not any(name.startswith("Students_Taught_by_Out_of_Field") for name in names)

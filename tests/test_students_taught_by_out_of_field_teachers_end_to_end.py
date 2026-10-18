@@ -371,7 +371,6 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     There is no Suppressed column and no starred cell. A published 0 is kept.
     """
     names = [
-        "students_taught_by_out_of_field_teachers_2020.csv",
         "students_taught_by_out_of_field_teachers_2021.csv",
         "students_taught_by_out_of_field_teachers_2022.csv",
         "students_taught_by_out_of_field_teachers_2023.csv",
@@ -382,7 +381,7 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     combined = _run_fixtures(tmp_path / "combined", names + [
         "KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
     ])
-    prior_years = ["2020", "2021", "2022", "2023", "2024", "2025"]
+    prior_years = ["2021", "2022", "2023", "2024", "2025"]
     prior_slice = combined[combined["year"].isin(prior_years)]
     assert _comparable(prior_slice).equals(_comparable(prior_only))
 
@@ -541,20 +540,7 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert float(_one(
         combined, "2021", "999", "students_taught_by_out_of_field_teachers_rate_not_title_1",
     )["value"]) == 3.56
-
-    state_2020 = _one(
-        combined, "2020", "999", "students_taught_by_out_of_field_teachers_rate_title_1",
-    )
-    assert float(state_2020["value"]) == 1.41
-    assert state_2020["district"] == "State"
-    assert state_2020["school_name"] == "---State Total---"
-    assert state_2020["school_id"] == "999"
-    assert float(_one(
-        combined, "2020", "999", "students_taught_by_out_of_field_teachers_rate_not_title_1",
-    )["value"]) == 0.51
-    assert float(_one(
-        combined, "2020", "999", "students_taught_by_out_of_field_teachers_rate_equity_gap",
-    )["value"]) == 0.90
+    assert "2020" not in set(combined["year"])
 
 
 if __name__ == "__main__":
