@@ -42,7 +42,23 @@ class TestParseRatio:
         assert parse_ratio("48:01:00") == 48.0
         assert parse_ratio("28:01:00") == 28.0
         assert parse_ratio("0:01") == 0.0
+        assert parse_ratio("00:01") == 0.0
         assert parse_ratio("0:00") == 0.0
+        assert parse_ratio("0:00:00") == 0.0
+
+    def test_rejects_a_denominator_other_than_one_teacher(self):
+        """A ``:00`` denominator is a zero ratio only.
+
+        ``15:00`` must not be stored as 15. ``15:2`` and ``15:01:30`` are
+        not students per one teacher. Each returns ``pd.NA``, the same
+        result as any other unparseable cell, and ``extract_metrics``
+        skips it.
+        """
+        assert pd.isna(parse_ratio("15:00"))
+        assert pd.isna(parse_ratio("15:00:00"))
+        assert pd.isna(parse_ratio("15:2"))
+        assert pd.isna(parse_ratio("15:01:30"))
+        assert pd.isna(parse_ratio("0:00:30"))
 
     def test_comma_numerator(self):
         """A thousands separator in the numerator is not part of the ratio.

@@ -50,8 +50,8 @@ logger = logging.getLogger(__name__)
 _KYRC23_REPUBLISH = "KYRC23_OVW_STUDENT_TO_TEACHER_RATIO.CSV"
 
 # Students per one teacher. ``28:01:00`` is the same ratio with a trailing
-# seconds field. ``0:00`` is a published zero. A denominator other than 1
-# (or 00 on a zero) is not this measure.
+# seconds field of zeros. A denominator of ``00`` is a published zero only
+# when the numerator is 0 (``0:00`` or ``0:00:00``). ``15:00`` is not 15.
 _RATIO_PART = re.compile(r"^[\d.]+$")
 _ZERO_SECONDS = re.compile(r"^0+$")
 
@@ -82,10 +82,12 @@ def parse_ratio(ratio_str: Any) -> Any:
     Parse a published student-teacher ratio into students per one teacher.
 
     ``15:01``, ``15:1``, and ``15.5:01`` all mean 15 or 15.5 students per
-    teacher. ``28:01:00`` is that same shape with a trailing ``:00``.
-    ``0:01``, ``0:1``, and ``0:00`` are a published zero. A plain number is
-    accepted for a file that drops the colon. A missing cell returns
-    ``pd.NA``.
+    teacher. ``28:01:00`` is that same shape with a trailing ``:00`` of
+    zeros. ``0:01``, ``0:1``, ``00:01``, and ``0:00`` are a published zero.
+    A ``:00`` or ``:00:00`` denominator is accepted only when the numerator
+    is 0. ``15:00``, ``15:2``, and ``15:01:30`` are not this measure and
+    return ``pd.NA``. A plain number is accepted for a file that drops the
+    colon. A missing cell returns ``pd.NA``.
 
     Args:
         ratio_str: Ratio text, or a missing value.
@@ -108,15 +110,23 @@ def parse_ratio(ratio_str: Any) -> Any:
     if len(parts) in (2, 3) and all(_RATIO_PART.match(part) for part in parts):
         numerator, denominator = parts[0], parts[1]
         seconds = parts[2] if len(parts) == 3 else None
-        denominator_is_one = denominator in {"1", "01"}
-        denominator_is_zero = denominator == "00" and seconds is None
-        seconds_ok = seconds is None or _ZERO_SECONDS.match(seconds) is not None
-        if (denominator_is_one or denominator_is_zero) and seconds_ok:
-            try:
-                return float(numerator)
-            except ValueError:
-                logger.warning(f"Could not convert ratio {ratio_str} to float")
-                return pd.NA
+        seconds_are_zero = seconds is None or _ZERO_SECONDS.match(seconds) is not None
+        try:
+            numerator_value = float(numerator)
+        except ValueError:
+            logger.warning(f"Could not convert ratio {ratio_str} to float")
+            return pd.NA
+        # One teacher, optionally with a zero seconds field: ``15:01``,
+        # ``15:1``, ``00:01``, ``28:01:00``.
+        if denominator in {"1", "01"} and seconds_are_zero:
+            return numerator_value
+        # ``0:00`` and ``0:00:00`` are a published zero. ``15:00`` is not 15.
+        if (
+            denominator == "00"
+            and numerator_value == 0.0
+            and seconds_are_zero
+        ):
+            return 0.0
 
     logger.warning(f"Invalid ratio format: {ratio_str}")
     return pd.NA
@@ -181,11 +191,12 @@ class StudentTeacherRatioETL(BaseETL):
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics = {}
 
-        # Students per one teacher. A published zero (``0:01``, ``0:1``, or
-        # ``0:00``) is omitted by this comparison. Those rows are career
-        # centers, preschools, alternative programs, and similar schools.
-        # KYRC26 has no A1 school with a zero ratio. The omission predates
-        # KYRC26. It is not a rule to preserve.
+        # Students per one teacher. A published zero (``0:01``, ``0:1``,
+        # ``00:01``, or ``0:00``) is omitted by this comparison. Those rows
+        # are not applicable: zero membership, or teachers counted outside
+        # normal reporting. They are preschools, career and technical
+        # centers, alternative schools, and KSB, KSD, and Model, not regular
+        # A1 schools. Omitting them is correct under notes/8.
         ratio_numeric = parse_ratio(row.get('ratio', pd.NA))
         if pd.notna(ratio_numeric) and ratio_numeric > 0:
             metrics['student_teacher_ratio'] = ratio_numeric
