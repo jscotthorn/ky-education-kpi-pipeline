@@ -399,6 +399,13 @@ raw_directories:
 
   # Teacher Quality Indicators
   teacher_turnover:
+    # KYRC23_OVW_Teacher_Turnover.csv returns 200 and is not registered.
+    # It republishes 2022-23 and turns 57 N/A rows into 0. The parser
+    # skips that filename. The historical KYRC24 URL still returns 200.
+    # Its teacher counts and percents match the datasets copy. The
+    # datasets copy fills 170 blank co-op cells, repairs one co-op cell,
+    # and adds district 880000 as zeros. It is not swapped.
+    # KYRC25 bytes match the historical file and the UAT copy.
     - "KYRC24_OVW_Teacher_Turnover.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Teacher_Turnover.csv"
@@ -407,7 +414,12 @@ raw_directories:
     - "teacher_turnover_2023.csv"
     - "teacher_turnover_2022.csv"
     - "teacher_turnover_2021.csv"
-    # Historical xlsx files (pre-2020)
+    # 2019-20 report card. School year 20192020. State turnover is 18.2
+    # against 16.2 in the 2020-21 file. Not a republish.
+    - "teacher_turnover_2020.csv"
+    # Historical xlsx files (pre-2020). TEACHER_TURNOVER_17-18.xlsx
+    # returns 200 and is school year 20172018. It is earlier than this
+    # series, not a gap between registered files, so it is not registered.
     - "TEACHER_TURNOVER_18-19.xlsx"
 
   teacher_certification:

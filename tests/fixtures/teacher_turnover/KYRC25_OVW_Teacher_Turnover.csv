@@ -1,0 +1,5 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Teacher Count,Teacher Turnover Count,Turnover Percent
+20242025,,,999,All Districts,,All Schools,999000,,,,,,"48,755","10,612",21.8
+20242025,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000000,GRREC,902,A1,66,12,18.2
+20242025,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,"2,725",572,21.0
+20242025,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000000,CKEC,901,A1,131,18,13.7

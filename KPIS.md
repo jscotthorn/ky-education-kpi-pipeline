@@ -367,16 +367,20 @@ The registered files have no Suppressed column and no starred cell. A published 
 ## Teacher Turnover
 **Source**: `etl/teacher_turnover.py`
 
-School-level teacher turnover metrics showing the percentage and count of teachers who left each year.
+School-level teacher turnover. KDE's 2018-19 workbook cover sheet defines the percent as the percentage of teacher turnover experienced by the school or district, the turnover count as the number of teaching positions which experienced turnover, and the teacher count as the total number of teachers. There is no demographic column. The ETL stores the published percent and does not rebuild it from the counts.
 
-- `teacher_turnover_rate` - Percentage of teachers who left (Turnover Percent)
-- `teacher_turnover_count` - Number of teachers who left
-- `teacher_count` - Total teacher count (denominator for rate calculation)
+KYRC26 district and state rows are a different measure from 2019-2025. Do not read them as the next point in that series. From 2019 through 2025, state turnover equals the sum of district turnover. The 2025 state turnover count is 10,612. 2020 is the exception: state turnover is 8,154 and the districts sum to 8,133, off by 21, and the Kentucky Tech district row (`777`) is 0/0/0. In 2026 the state turnover count is 4,271, the districts sum to 5,675, and the schools sum to 7,686. District turnover is below that district's school sum in 151 of 177 districts (0 districts in 2025). Teacher counts in 2026 are state 40,557, districts 40,639, schools 42,406. Jefferson County goes from 7,763 / 2,019 / 26.0 in 2025 to 5,838 / 581 / 10.0, while its schools sum to 1,053. Fayette County's district row is 407 against a school sum of 582. School rows shifted too: same-school teacher counts fell a median 10.5% (the same median from 2024 to 2025 is 0.0%), and among rows with a positive teacher count the median percent fell from 19.4 to 16.7 at schools and from 20.2 to 13.7 at districts. The likely cause is inferred from KDE's glossary wording, "left teaching in a school, district or the state": a district row counts leavers from the district, and the state row counts leavers from the state, rather than summing the schools. No KDE methodology note was found. [#68](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/68).
 
-**Data Sources**: KYRC25_OVW_Teacher_Turnover.csv, KYRC24_OVW_Teacher_Turnover.csv, teacher_turnover_{year}.csv
-**Years Available**: 2021-2025
-**Unit**: Rate (0-100%), Count (non-negative integers)
-**Demographics**: School-level only (All Students)
+In 2021, 15 rows publish 100 where the turnover count is larger than the teacher count, including Virtual Academy `042020` at 0 / 1 / 100. Other years publish percents above 100. A row with 0 teachers and a turnover count above 0 publishes 100 to 400. Louisville Day `275138` in 2022 is 0 / 4 / 400. A 0% with a positive teacher count is a real zero. A 0% with a teacher count of 0 is a placeholder, not a real zero, and it is still stored. The 57 Kentucky Tech rows that are `N/A` in 2023 are 0/0/0 in 2022 (57 of 57). 2024 and 2025 each have 54 Kentucky Tech rows, all 0/0/0. 2020-2022 and 2024-2026 each have 92 to 103 rows with 0 teachers and a published 0%. 2023 has 39. [#69](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/69). A blank or `N/A` is missing. The 2023 Kentucky Tech `N/A` rows are not stored. KYRC26 instructional-staff turnover is a separate measure and is not stored.
+
+- `teacher_turnover_rate` - Published turnover percent
+- `teacher_turnover_count` - Number of teaching positions which experienced turnover
+- `teacher_count` - Total teacher count
+
+**Data Sources**: KYRC26_OVW_Teacher_Turnover.csv, KYRC25_OVW_Teacher_Turnover.csv, KYRC24_OVW_Teacher_Turnover.csv, teacher_turnover_{year}.csv, TEACHER_TURNOVER_18-19.xlsx
+**Years Available**: 2019-2026. 2020 is comparable to 2019 and 2021-2025. The 2026 district and state rows are a different measure and are not a continuation of that series. School rows for 2026 are stored, and they shifted (teacher count about −10%, turnover count about −25%)
+**Unit**: Published percent (can exceed 100), Count (non-negative). A 0% with a teacher count of 0 is a stored placeholder, not a real zero
+**Demographics**: School-level only (All Students). State rows are district `All Districts` for 2024-2026 and `State` for 2019-2023
 
 ---
 
