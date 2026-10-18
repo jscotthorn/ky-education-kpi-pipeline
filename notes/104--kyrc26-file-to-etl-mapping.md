@@ -1769,7 +1769,7 @@ Lessons for later agents:
 9. No shared parser or dependency changes. The historical KYRC24 extract stays registered. Its numbers match the datasets copy where both publish a number. The datasets copy drops Preschool, turns historical stars into blanks, and uses the long category shape. Those filled blanks are not loaded. KYRC25 has no value difference between the historical file, datasets, and UAT.
 10. 2022 repeats Covington Independent `134` for every demographic. Keep the larger All Students total, 105 rather than 3. A number beats a star. Other years do not repeat a school-and-demographic key. The Breathitt `20022023` district total is year 2023 and is the only Breathitt district total. Do not skip it.
 
-### `advanced_coursework` — S — in review
+### `advanced_coursework` — S — in review in PR #79
 
 | | |
 | --- | --- |
