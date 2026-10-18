@@ -469,6 +469,47 @@ class TestKyrc26OptIn:
         assert set(adair["suppressed"]) == {"N"}
         assert set(adair["year"]) == {"2026"}
 
+    def test_disability_only_zero_is_kept_after_2020(self):
+        """A students-with-disabilities 0 is kept when the year is not 2020.
+
+        The 2020 skip applies only when every other percent is missing.
+        The same shape in 2021, and in KYRC26, is a published 0 and is
+        stored. Removing the year check drops these rows, so this test
+        fails.
+        """
+        text = (
+            "School Year,District Name,School Name,School Code,Title I Status,"
+            "All Students,Non-White,White (non-Hispanic),"
+            "Students with Disabilities (IEP)\n"
+            "20192020,Harlan Independent,Sunshine School,236021,Not Title 1,N/A,N/A,N/A,0.00\n"
+            "20202021,Anderson County,APEX Academy,011030,Not Title 1,N/A,N/A,N/A,0.0\n"
+            "20252026,Fayette County,Bryan Station High School,165170,Title 1,N/A,N/A,N/A,0.0\n"
+        )
+        (self.sample_dir / "KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv").write_text(text)
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(
+            self.proc_dir / "students_taught_by_ineffective_teachers.csv", dtype=str
+        )
+        assert "236021" not in set(result["school_id"])
+
+        def kept(school_id: str, year: str) -> pd.Series:
+            rows = result[
+                (result["school_id"] == school_id) & (result["year"] == year)
+            ]
+            assert len(rows) == 1
+            return rows.iloc[0]
+
+        for school_id, year in (("011030", "2021"), ("165170", "2026")):
+            row = kept(school_id, year)
+            assert row["student_group"] == "Students with Disabilities (IEP)"
+            assert float(row["value"]) == 0.0
+            assert row["suppressed"] == "N"
+            assert row["metric"] == (
+                "students_taught_by_ineffective_teachers_rate_not_title_1"
+                if year == "2021"
+                else "students_taught_by_ineffective_teachers_rate_title_1"
+            )
+
     def test_suppressed_row_is_kept_empty(self):
         """A suppressed Title I row is stored with an empty value.
 
