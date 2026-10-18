@@ -607,7 +607,9 @@ A talent-category count is the number of students identified in that category. A
 
 State rows are district `All Districts` for 2024-2026 and `State` for 2019-2023. The 2026 state total is 90,464. District totals equal that state total. The 2025 state total is 90,490 and the districts sum to 90,492. In 2019 and 2020 the district sum sits about 1,000 above the state. School sums do not exceed the district total except Garrard County in 2021 (149 against 147). A short school sum is suppressed cells, or a few students in 2026 (Corbin Independent 4, Hardin County 1, Paintsville Independent 2, Warren County 5). There is no gap metric.
 
-A `*` is stored as value NA with suppressed Y. A blank cell is not stored. A published 0 is kept. Grade 14 is absent in 2026. The coversheet calls it the number of gifted and talented students in grade 14. Preschool is absent in 2025 and 2026. No registered preschool cell is a positive number.
+A `*` is stored as value NA with suppressed Y. A blank cell is not stored. Grade 14 is absent in 2026. The coversheet calls it the number of gifted and talented students in grade 14. Preschool is absent in 2025 and 2026. No registered preschool cell is a positive number.
+
+A published 0 is kept where the file publishes one. The 2018-19 workbook publishes 0, including most grade 14 cells. KYRC25 and KYRC26 schools that appear only on the category file publish 0. The 2020-2023 historical files publish no 0 and no blank. The smallest number in those files is 3, so a Y in those years covers a count of 0, 1, or 2 and a not-applicable cell, not only a privacy suppression. Preschool, grade 14, and Consolidated Student Group are starred on every 2020-2023 row. About two thirds of those rows are starred in all 28 measure cells. A Y row in those years is not evidence the group exists. The KYRC23 republication of 2022-23 leaves 16,277 of the 20,036 fully starred 2023 rows out, turns 135,421 starred grade cells into blanks, and turns 8,765 starred category cells into 0. Preschool, grade 14, and Consolidated Student Group in those years are still written. [Issue #77](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/77) asks whether those always-starred cells should stay.
 
 ### Grade participation
 - `gifted_participation_count_all_grades` - Unduplicated gifted students
@@ -635,7 +637,7 @@ A `*` is stored as value NA with suppressed Y. A blank cell is not stored. A pub
 - Female / Male
 - Race/ethnicity groups (African American, Hispanic or Latino, etc.)
 - Economically Disadvantaged, English Learner, Students with Disabilities (IEP), Foster Care, Homeless, Migrant, Military Dependent
-- Consolidated Student Group on the 2019-2023 files
+- Consolidated Student Group on the 2020-2023 files. The 2019 workbook has the group too, read from `DGROUP` rather than from the code `CSG`. Code `CSG` in the shared map is Students with Disabilities, and code `ACD` is dropped. In this workbook `DGROUP` says `CSG` is Consolidated Student Group (state 14,874) and `ACD` is `Studw/disab.`, the disability count (state 3,136). The 2020 disability count is 3,357. The shared map is unchanged. [Issue #76](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/76) tracks the same code swap in other 2018-19 workbooks
 - KYRC24-KYRC26 category files are All Students only
 
 **Data Sources**: `GIFTED_AND_TALENTED_18-19.xlsx`, `gifted_and_talented_2020.csv` through `gifted_and_talented_2023.csv`, KYRC24 through KYRC26 `EDOP_Gifted_Participation_by_Grade_Level.csv` and `EDOP_Gifted_Participation_by_Category.csv`

@@ -596,6 +596,205 @@ class TestGiftedTalentedETL:
         assert breathitt["school_name"] == "---District Total---"
         assert float(cell("2023", "061", "All Students", "gifted_participation_count_kindergarten")["value"]) == 17.0
 
+    def test_collapse_repeated_keys_overlays_a_number_from_the_smaller_row(self):
+        """The merge itself keeps 105 and overlays a number the 105 row starred.
+
+        This calls ``_collapse_repeated_keys`` on one frame. It does not
+        go through ``process``. A later per-metric dedupe cannot hide a
+        no-op here: two rows would remain, and grade 1 would stay a star.
+        """
+        frame = pd.DataFrame([
+            {
+                "school_code": "134",
+                "school_name": "smaller copy",
+                "demographic": "All Students",
+                "all_grades": "3",
+                "grade_1": "6",
+                "_star_all_grades": False,
+                "_star_grade_1": False,
+            },
+            {
+                "school_code": "134",
+                "school_name": "larger copy",
+                "demographic": "All Students",
+                "all_grades": "105",
+                "grade_1": pd.NA,
+                "_star_all_grades": False,
+                "_star_grade_1": True,
+            },
+        ])
+        collapsed = self.etl._collapse_repeated_keys(frame, "gifted_and_talented_2022.csv")
+        assert len(collapsed) == 1
+        row = collapsed.iloc[0]
+        assert row["school_name"] == "larger copy"
+        assert row["all_grades"] == "105"
+        assert row["grade_1"] == "6"
+        assert not bool(row["_star_grade_1"])
+
+    def test_star_text_fallback_does_not_treat_a_blank_as_a_star(self):
+        """A row with no ``_star_`` column uses the cell text.
+
+        ``*`` is stored as suppressed Y. A blank is skipped. Treating the
+        blank as a star would keep the row.
+        """
+        blank = pd.Series({
+            "demographic": "All Students",
+            "all_grades": "",
+            "school_code": "001010",
+            "school_year": "20252026",
+            "district_name": "Adair County",
+            "school_name": "Adair County High School",
+        })
+        assert self.etl.should_skip_row(blank)
+        assert self.etl.extract_metrics(blank) == {}
+
+        star = blank.copy()
+        star["all_grades"] = "*"
+        assert not self.etl.should_skip_row(star)
+        metrics = self.etl.extract_metrics(star)
+        assert "gifted_participation_count_all_grades" in metrics
+        assert pd.isna(metrics["gifted_participation_count_all_grades"])
+
+        kpi = self.etl.convert_to_kpi_format(pd.DataFrame([star]), "star_fallback.csv")
+        assert len(kpi) == 1
+        assert kpi.iloc[0]["suppressed"] == "Y"
+        assert pd.isna(kpi.iloc[0]["value"])
+
+    def test_wide_kyrc24_category_file(self):
+        """KYRC24 category rows are wide. The count sits on the diagonal.
+
+        All Students uses All Grades. Creative uses its own column. The
+        other columns on that row are blank and are not stored as zeros.
+        """
+        self._copy_fixtures()
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        df = pd.read_csv(self.proc_dir / "gifted_talented.csv", dtype=str, keep_default_na=False)
+        year = df[
+            (df["year"] == "2024")
+            & (df["school_id"] == "999000")
+            & (df["source_file"] == "KYRC24_EDOP_Gifted_Participation_by_Category.csv")
+        ]
+        assert set(year["metric"]) == {
+            "gifted_participation_count_all_grades",
+            "gifted_category_count_creative_or_divergent_thinking",
+        }
+        total = year[year["metric"] == "gifted_participation_count_all_grades"].iloc[0]
+        assert float(total["value"]) == 88706.0
+        assert total["suppressed"] == "N"
+        assert total["student_group"] == "All Students"
+        creative = year[year["metric"] == "gifted_category_count_creative_or_divergent_thinking"].iloc[0]
+        assert float(creative["value"]) == 6277.0
+        assert creative["suppressed"] == "N"
+        assert "gifted_category_count_general_intellectual_ability" not in set(year["metric"])
+
+    def test_2019_workbook_maps_disability_from_dgroup(self):
+        """2019 Students with Disabilities is ``Studw/disab.``, not code CSG.
+
+        The shared map sends CSG to Students with Disabilities and drops
+        ACD. This workbook's DGROUP says CSG is Consolidated Student Group
+        and ACD is the disability count. A CSV that still carries the code
+        CSG keeps the shared map.
+        """
+        workbook = pd.DataFrame([
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "TST",
+                "DGROUP": "All Students",
+                "GT_CNT": "94644",
+            },
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "CSG",
+                "DGROUP": "Consolidated Student Group",
+                "GT_CNT": "14874",
+            },
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "ACD",
+                "DGROUP": "Studw/disab.",
+                "GT_CNT": "3136",
+            },
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "LEP",
+                "DGROUP": "EL",
+                "GT_CNT": "797",
+            },
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "LUP",
+                "DGROUP": "Free/Reduced",
+                "GT_CNT": "34919",
+            },
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "ETH",
+                "DGROUP": "Hispanic",
+                "GT_CNT": "3616",
+            },
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "MIL",
+                "DGROUP": "Military Connected",
+                "GT_CNT": "215",
+            },
+        ])
+        workbook.to_excel(
+            self.sample_dir / "GIFTED_AND_TALENTED_18-19.xlsx",
+            sheet_name="DATA",
+            index=False,
+        )
+        coded = pd.DataFrame({
+            "SCHOOL YEAR": ["20182019"],
+            "DISTRICT NAME": ["State"],
+            "SCHOOL NAME": ["---State Total---"],
+            "SCHOOL CODE": ["999"],
+            "DEMOGRAPHIC": ["CSG"],
+            "TOTAL COUNT": ["14874"],
+        })
+        coded.to_csv(self.sample_dir / "gifted_codes_2019.csv", index=False)
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        df = pd.read_csv(self.proc_dir / "gifted_talented.csv", dtype=str, keep_default_na=False)
+        book = df[df["source_file"] == "GIFTED_AND_TALENTED_18-19.xlsx"]
+        metric = "gifted_participation_count_all_grades"
+
+        def value_for(group: str) -> float:
+            rows = book[(book["student_group"] == group) & (book["metric"] == metric)]
+            assert len(rows) == 1, (group, len(rows))
+            return float(rows.iloc[0]["value"])
+
+        assert value_for("All Students") == 94644.0
+        assert value_for("Consolidated Student Group") == 14874.0
+        assert value_for("Students with Disabilities (IEP)") == 3136.0
+        assert value_for("English Learner") == 797.0
+        assert value_for("Economically Disadvantaged") == 34919.0
+        assert value_for("Hispanic or Latino") == 3616.0
+        assert value_for("Military Dependent") == 215.0
+        coded_rows = df[df["source_file"] == "gifted_codes_2019.csv"]
+        assert set(coded_rows["student_group"]) == {"Students with Disabilities (IEP)"}
+        assert float(coded_rows.iloc[0]["value"]) == 14874.0
+
 
 def test_registered_sources_are_the_permanent_files():
     """KYRC24 through KYRC26 and the 2020-2023 historical files are registered.

@@ -20,15 +20,33 @@ KDE publishes two measures:
 The category file's ``All Students`` cell is that same unduplicated total.
 It is stored as ``gifted_participation_count_all_grades`` and is not given
 a second metric name. A school that appears on both files keeps the grade
-file's row. There is no Suppressed column. A ``*`` on a measure cell is
-stored as value NA with suppressed Y. A blank cell is not a star and is
-not stored. A published 0 is kept.
+file's row. That category row is left out before the CSV is written.
+
+There is no Suppressed column. A ``*`` on a measure cell is stored as
+value NA with suppressed Y. A blank cell is not a star and is not stored.
+
+A published 0 is kept where the file actually publishes 0. The 2018-19
+workbook publishes 0, including most grade 14 cells. KYRC25 and KYRC26
+schools that appear only on the category file publish 0. The 2020-2023
+historical files publish no 0 and no blank. The smallest number in those
+files is 3, so a Y covers a count of 0, 1, or 2 and a not-applicable
+cell, not only a privacy suppression. Preschool, grade 14, and
+Consolidated Student Group are starred on every 2020-2023 row. About two
+thirds of those rows are starred in all 28 measure cells. A Y row in
+those years is not evidence the group exists. The KYRC23 republication
+of 2022-23 leaves 16,277 of the 20,036 fully starred 2023 rows out,
+turns 135,421 starred grade cells into blanks, and turns 8,765 starred
+category cells into 0.
+
+The 2018-19 workbook's disability count is ``DGROUP`` ``Studw/disab.``
+(DEMO code ``ACD``). DEMO code ``CSG`` is Consolidated Student Group.
+This module reads that workbook's group from ``DGROUP``. The shared
+demographic map is not changed.
 """
 from pathlib import Path
 import pandas as pd
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 import logging
-import csv
 
 import sys
 
@@ -116,7 +134,11 @@ _SKIP_EXACT_NAMES = {
     "KYRC23_EDOP_Gifted_Participation_by_Category.csv",
 }
 
-_KEY_COLUMNS = ("year", "school_id", "student_group", "metric")
+# 2018-19 DATA sheet. DEMO ``CSG`` is Consolidated Student Group.
+# DEMO ``ACD`` is the disability count, labeled ``Studw/disab.``.
+_WORKBOOK_2019 = "gifted_and_talented_18-19.xlsx"
+_ALL_STUDENTS_LABELS = {"all students", "tst"}
+_ALL_GRADES_METRIC = "gifted_participation_count_all_grades"
 
 
 def _star_column_name(column: str) -> str:
@@ -127,7 +149,9 @@ def _star_column_name(column: str) -> str:
 def _is_star_text(value: Any) -> bool:
     """True when the cell text is a privacy star.
 
-    A blank is not a star. ``bool(pd.NA)`` is not used.
+    A blank is not a star. ``bool(pd.NA)`` is not used. This is the
+    path for a row that has no ``_star_`` column. ``*`` and ``**`` are
+    stars. An empty string is not.
     """
     if isinstance(value, str):
         return value.strip() in {"*", "**"}
@@ -177,8 +201,8 @@ def _metric_was_starred(row: pd.Series, column: str) -> bool:
     """True when this measure cell was a ``*``.
 
     ``standardize_missing_values`` records the position before it turns
-    the star into NA. A caller that still has the raw ``*`` is recognized
-    from the cell text.
+    the star into NA. A row that has no ``_star_`` column is recognized
+    from the cell text. A blank on that path is not a star.
     """
     flag_name = _star_column_name(column)
     if flag_name in row.index:
@@ -299,11 +323,22 @@ class GiftedTalentedETL(BaseETL):
     one row per category and a ``Students`` count. ``TOTAL COUNT`` on the
     2020-2023 historical files is the all-grades total. ``include_kyrc26``
     opts the parser into the registered KYRC26 files.
+
+    A Y on those 2020-2023 files is not evidence the group exists. Those
+    files publish no 0 and no blank, and the smallest number is 3.
+    Preschool, grade 14, and Consolidated Student Group are starred on
+    every row. The 2018-19 disability group is read from ``DGROUP``.
     """
 
     # Opt in here, in the same change that accepts the file. BaseETL skips
     # every KYRC26_* CSV until this is True.
     include_kyrc26 = True
+
+    def __init__(self, source_name: Optional[str] = None) -> None:
+        super().__init__(source_name)
+        # (year, school_id) whose grade file already emits All Students
+        # all-grades. Category-file copies of that cell are not written.
+        self._grade_all_students_keys: Set[Tuple[str, str]] = set()
 
     @property
     def module_column_mappings(self) -> Dict[str, str]:
@@ -370,6 +405,9 @@ class GiftedTalentedETL(BaseETL):
             "COOP": "co_op",
             "COOP_CODE": "co_op_code",
             "DEMO": "demographic",
+            # Human label. CSG's label is Consolidated Student Group.
+            # ACD's label is Studw/disab., the disability count.
+            "DGROUP": "dgroup",
             "GT_CNT": "all_grades",
             "P_CNT": "preschool",
             "K_CNT": "kindergarten",
@@ -648,15 +686,107 @@ class GiftedTalentedETL(BaseETL):
             defaults[f"gifted_category_count_{slug}"] = pd.NA
         return defaults
 
+    def _apply_2019_workbook_labels(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """Read the 2018-19 group from ``DGROUP``, not the DEMO code.
+
+        The shared map sends code ``CSG`` to Students with Disabilities
+        and drops code ``ACD``. In this workbook ``DGROUP`` says ``CSG``
+        is Consolidated Student Group and ``ACD`` is ``Studw/disab.``,
+        the disability count (state 3,136; the 2020 disability count is
+        3,357). The year-2019 map already turns ``Studw/disab.`` into
+        Students with Disabilities and leaves Consolidated Student Group
+        as itself. Other ``DGROUP`` labels land on the same groups the
+        codes do. Other modules keep the shared yaml.
+        """
+        if Path(source_file).name.lower() != _WORKBOOK_2019:
+            return df
+        if "dgroup" not in df.columns:
+            return df
+        text = df["dgroup"].astype("string").str.strip()
+        missing_token = text.str.lower().isin(["<na>", "nan", "none"]).fillna(False)
+        present = (df["dgroup"].notna() & text.ne("") & ~missing_token).fillna(False)
+        if not bool(present.any()):
+            return df
+        out = df.copy()
+        out.loc[present, "demographic"] = text.loc[present]
+        return out
+
+    def _collect_grade_all_students_keys(self, raw_dir: Path) -> Set[Tuple[str, str]]:
+        """Schools whose grade file already emits All Students all-grades.
+
+        The category file repeats that cell. Where the grade file has
+        the school, the two numbers match, and neither file is a star
+        against a number. The category copy is not written. A school
+        that is only on the category file, including a published 0, is
+        not in this set and is kept. The output CSV is not read back.
+        """
+        keys: Set[Tuple[str, str]] = set()
+        source_dir = raw_dir / self.source_name
+        if not source_dir.exists():
+            return keys
+        for data_file, sheet in self._find_data_files(source_dir):
+            if "by_category" in data_file.name.lower():
+                continue
+            if data_file.stat().st_size == 0:
+                continue
+            frame = self.normalize_column_names(self._read_data_file(data_file, sheet))
+            keys.update(self._all_students_keys_in_frame(frame, data_file.name))
+        logger.info(
+            "Grade files already hold All Students all-grades for %s schools",
+            len(keys),
+        )
+        return keys
+
+    def _all_students_keys_in_frame(self, df: pd.DataFrame, source_file: str) -> Set[Tuple[str, str]]:
+        """(year, school id) where All Students all-grades is a number or a star."""
+        if df.empty or "school_code" not in df.columns or "all_grades" not in df.columns:
+            return set()
+        if "demographic" not in df.columns:
+            return set()
+        demo = df["demographic"].astype("string").str.strip().str.lower()
+        subset = df.loc[demo.isin(_ALL_STUDENTS_LABELS)]
+        if subset.empty:
+            return set()
+        text = subset["all_grades"].astype("string").str.replace(",", "", regex=False).str.strip()
+        starred = text.isin(["*", "**"])
+        numeric = pd.to_numeric(text.mask(starred), errors="coerce").notna()
+        keep = subset.loc[starred.to_numpy() | numeric.to_numpy()]
+        if keep.empty:
+            return set()
+        if "school_year" in keep.columns:
+            year_text = keep["school_year"].astype("string").str.strip()
+        else:
+            year_text = pd.Series("", index=keep.index, dtype="string")
+        fallback = self.extract_year(pd.Series({"school_year": ""}), source_file)
+        length = year_text.str.len()
+        year = year_text.where(length != 8, year_text.str[-4:])
+        year = year.where(length.isin([4, 8]), fallback)
+        code = keep["school_code"].astype("string").str.strip()
+        code = code.str.replace(r"\.0$", "", regex=True)
+        usable = (code.ne("") & ~code.str.lower().isin(["nan", "<na>", "none"])).fillna(False)
+        pairs = zip(year.loc[usable].astype(str), code.loc[usable].astype(str))
+        return set(pairs)
+
+    def _category_total_already_on_grade_file(self, source_file: str, template: Dict[str, Any]) -> bool:
+        """True when this category All Students total is already on the grade file."""
+        if "by_category" not in Path(source_file).name.lower():
+            return False
+        key = (str(template.get("year", "")), str(template.get("school_id", "")))
+        return key in self._grade_all_students_keys
+
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
         """Write a published cell as ``N`` and a ``*`` cell as ``Y``.
 
         A blank cell is not a row. Repeated school keys are merged first.
-        The category total uses the grade metric name, and the talent
-        categories use ``gifted_category_count_*``.
+        The 2018-19 group is the ``DGROUP`` label. The category total
+        uses the grade metric name, and the talent categories use
+        ``gifted_category_count_*``. A category All Students total that
+        the grade file already holds is not written.
         """
+        df = self._apply_2019_workbook_labels(df, source_file)
         df = self._collapse_repeated_keys(df, source_file)
         kpi_rows: List[Dict[str, Any]] = []
+        skipped_category_totals = 0
         for _, row in df.iterrows():
             if self.should_skip_row(row):
                 continue
@@ -665,6 +795,12 @@ class GiftedTalentedETL(BaseETL):
                 continue
             metrics = self.extract_metrics(row)
             for metric_name, value in metrics.items():
+                if (
+                    metric_name == _ALL_GRADES_METRIC
+                    and self._category_total_already_on_grade_file(source_file, kpi_template)
+                ):
+                    skipped_category_totals += 1
+                    continue
                 kpi_record = kpi_template.copy()
                 kpi_record["metric"] = metric_name
                 if _is_missing(value):
@@ -674,6 +810,12 @@ class GiftedTalentedETL(BaseETL):
                     kpi_record["value"] = float(value)
                     kpi_record["suppressed"] = "N"
                 kpi_rows.append(kpi_record)
+        if skipped_category_totals:
+            logger.info(
+                "Left %s category All Students totals off %s; the grade file already has them",
+                skipped_category_totals,
+                Path(source_file).name,
+            )
 
         if not kpi_rows:
             logger.warning("No valid KPI rows created")
@@ -683,73 +825,18 @@ class GiftedTalentedETL(BaseETL):
         return kpi_df[available_columns]
 
     def process(self, raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
-        """Run the base writer, then drop duplicate metric keys across files.
+        """Write KPI rows, leaving out category totals the grade file already has.
 
         The category file's All Students count is the same total as the
         grade file's All Grades. Both use ``gifted_participation_count_all_grades``.
         Where the two files share a school, the values match and the grade
         file's row is kept. A school that is only on the category file,
-        including a published 0, is kept.
+        including a published 0, is kept. The grade-file schools are
+        collected first, so file order does not matter and the output
+        CSV is not read back.
         """
+        self._grade_all_students_keys = self._collect_grade_all_students_keys(raw_dir)
         super().process(raw_dir, proc_dir, cfg)
-        self._drop_cross_file_duplicate_keys(proc_dir)
-
-    def _drop_cross_file_duplicate_keys(self, proc_dir: Path) -> None:
-        """Drop a second copy of the same year, school, group, and metric."""
-        output_path = proc_dir / f"{self.source_name}.csv"
-        if not output_path.exists() or output_path.stat().st_size == 0:
-            return
-        df = pd.read_csv(output_path, dtype=str, keep_default_na=False)
-        if df.empty or any(column not in df.columns for column in _KEY_COLUMNS):
-            return
-        counts = df.groupby(list(_KEY_COLUMNS), dropna=False).size()
-        extra = int((counts > 1).sum())
-        if extra == 0:
-            return
-        work = df.copy()
-        work["_ord"] = range(len(work))
-        source = work["source_file"].astype("string").str.lower()
-        work["_pref"] = source.str.contains("by_category", regex=False).fillna(False).astype(int)
-        work["_num"] = pd.to_numeric(work["value"], errors="coerce")
-        work["_has"] = work["value"].ne("") & work["_num"].notna()
-        work = work.sort_values(
-            list(_KEY_COLUMNS) + ["_has", "_num", "_pref", "_ord"],
-            ascending=[True, True, True, True, False, False, True, True],
-            na_position="last",
-        )
-        kept = work.drop_duplicates(list(_KEY_COLUMNS), keep="first")
-        dropped = len(work) - len(kept)
-        differing = self._count_value_disagreements(work)
-        kept = kept.sort_values("_ord")
-        logger.info(
-            "Dropped %s duplicate gifted metric keys (%s keys, %s with different values)",
-            dropped,
-            extra,
-            differing,
-        )
-        fieldnames = [column for column in KPI_COLUMNS if column in kept.columns]
-        with open(output_path, "w", newline="", encoding="utf-8") as handle:
-            writer = csv.DictWriter(handle, fieldnames=fieldnames)
-            writer.writeheader()
-            for _, row in kept.iterrows():
-                writer.writerow({column: row[column] for column in fieldnames})
-
-    def _count_value_disagreements(self, ordered: pd.DataFrame) -> int:
-        """Count duplicate keys whose published numbers are not equal."""
-        disagreements = 0
-        for _key, group in ordered.groupby(list(_KEY_COLUMNS), sort=False):
-            if len(group) < 2:
-                continue
-            numbers = group.loc[group["_has"], "_num"]
-            if numbers.nunique(dropna=True) > 1:
-                disagreements += 1
-                logger.warning(
-                    "Gifted duplicate key %s has values %s; kept %s",
-                    _key,
-                    sorted(numbers.unique().tolist()),
-                    numbers.iloc[0],
-                )
-        return disagreements
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

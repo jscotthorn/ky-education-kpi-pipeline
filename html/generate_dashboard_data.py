@@ -7,8 +7,37 @@ Creates heatmap data showing schools vs demographics with rate values.
 import pandas as pd
 import json
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple
 import argparse
+
+# Columns the heatmap and the Fayette filter actually read. Declaring the
+# dtype skips inference. A full KPI file is about a gigabyte, and inference
+# on every column is what made this read slow.
+_DASHBOARD_COLUMNS: Tuple[str, ...] = (
+    "district",
+    "school_name",
+    "year",
+    "student_group",
+    "metric",
+    "value",
+    "suppressed",
+)
+
+
+def read_kpi_csv(file_path: Path) -> pd.DataFrame:
+    """Read the dashboard columns with an explicit string dtype.
+
+    ``value`` is numeric after the read. A blank stays missing. Unused
+    KPI columns are not loaded.
+    """
+    frame = pd.read_csv(
+        file_path,
+        usecols=lambda name: name in _DASHBOARD_COLUMNS,
+        dtype="string",
+    )
+    if "value" in frame.columns:
+        frame["value"] = pd.to_numeric(frame["value"], errors="coerce")
+    return frame
 
 
 def generate_heatmap_data(df: pd.DataFrame, metric: str, year: str = None) -> Dict[str, Any]:
@@ -112,7 +141,7 @@ def process_kpi_file(file_path: Path, fayette_only: bool = True) -> Dict[str, An
         Dictionary with available metrics and years
     """
     try:
-        df = pd.read_csv(file_path)
+        df = read_kpi_csv(file_path)
         
         # Filter to Fayette County if requested
         if fayette_only:
@@ -183,7 +212,7 @@ def generate_dashboard_json(processed_dir: Path, output_dir: Path, fayette_only:
             continue
         
         # Load data for heatmap generation
-        df = pd.read_csv(kpi_file)
+        df = read_kpi_csv(kpi_file)
         if fayette_only:
             df = df[df['district'].str.contains('Fayette', case=False, na=False)]
         
