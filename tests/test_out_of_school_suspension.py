@@ -112,8 +112,8 @@ class TestOutOfSchoolSuspensionETL:
             transform(raw_dir, proc_dir, {'derive': {}})
             assert not (proc_dir / 'out_of_school_suspension.csv').exists()
 
-    def test_negative_values_suppressed(self):
-        """A negative SSP3 cell emits nothing from this module.
+    def test_safe_schools_discipline_file_is_skipped(self):
+        """An annual Safe Schools file emits nothing, including a negative SSP3 cell.
 
         safe_schools_discipline owns ``OUT OF SCHOOL SUSPENSION SSP3``
         since e7d815a (4 Aug 2025). The annual file is not read here.
@@ -193,6 +193,39 @@ class TestOutOfSchoolSuspensionETL:
         assert pd.isna(in_total['value'])
         assert float(female[female['metric'] == 'out_of_school_suspension_total_count'].iloc[0]['value']) == 2
         assert female[female['metric'] == 'out_of_school_suspension_total_count'].iloc[0]['suppressed'] == 'N'
+
+    def test_negative_crdc_count_is_suppressed(self):
+        """A negative CRDC count is empty and suppressed Y.
+
+        Bryan Station All Students is a real KYRC24 row. The published
+        single-with-disabilities cell is 5. This test sets that cell to
+        -1 in memory. The fixture file stays verbatim.
+        """
+        raw = pd.read_csv(FIXTURE, dtype=str)
+        row = raw[
+            (raw['School Code'] == '165170') & (raw['Demographic'] == 'All Students')
+        ].copy()
+        assert len(row) == 1
+        assert row['Single Out-of-School With Disabilities'].iloc[0] == '5'
+        row['Single Out-of-School With Disabilities'] = '-1'
+        df = self.etl.standardize_missing_values(self.etl.normalize_column_names(row))
+        kpi = self.etl.convert_to_kpi_format(df, 'KYRC24_OVW_Student_Suspensions.csv')
+        negative = kpi[
+            kpi['metric'] == 'out_of_school_suspension_single_with_disabilities_count'
+        ].iloc[0]
+        assert negative['suppressed'] == 'Y'
+        assert pd.isna(negative['value'])
+        assert negative['school_id'] == '165170'
+        published = kpi[
+            kpi['metric'] == 'out_of_school_suspension_single_without_disabilities_count'
+        ].iloc[0]
+        assert float(published['value']) == 2
+        assert published['suppressed'] == 'N'
+        on_disk = pd.read_csv(FIXTURE, dtype=str)
+        stored = on_disk[
+            (on_disk['School Code'] == '165170') & (on_disk['Demographic'] == 'All Students')
+        ]
+        assert stored['Single Out-of-School With Disabilities'].iloc[0] == '5'
 
 
 class TestTransform:

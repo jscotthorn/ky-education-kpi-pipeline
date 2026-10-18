@@ -25,6 +25,12 @@ The annual Safe Schools files ``safe_schools_discipline_YYYY.csv`` are
 not read here. ``safe_schools_discipline`` has published
 ``out_of_school_suspension_count`` from ``OUT OF SCHOOL SUSPENSION SSP3``
 since commit ``e7d815a`` (4 Aug 2025).
+
+A row whose measure cells are all blank is skipped. A lone blank component
+in an otherwise filled row is emitted as empty and suppressed ``Y``, and
+that blank suppresses its total. notes/8 says a blank emits nothing.
+KYRC24 and KYRC26 have no blank count cells, so this does not change the
+output. Revisit it if KDE publishes a blank in one component of a filled row.
 """
 from pathlib import Path
 from typing import Any, Dict, Sequence
