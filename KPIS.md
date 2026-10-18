@@ -687,18 +687,18 @@ Career and Technical Education (CTE) pathway availability and completion metrics
 ## School Courses
 **Source**: `etl/school_courses.py`
 
-General course offerings including middle school Algebra 1 access.
+KDE's school-courses summary is specialized course enrollment, not the full catalog and not middle-school Algebra 1. The 2018-19 coversheet defines the categories as career and technical education (CTE), health and physical education (HPE), visual and performing arts (VPA), and world languages (WL). `Total_Students` / `All Students` is the number of students enrolled in that course. There is no demographic column and no state or district total. Every row is one course at one school.
 
 ### Course Metrics
-- `algebra_1_grade_8_count` - Number of 8th grade students enrolled in Algebra 1
-- `has_algebra_1_access` - Boolean indicator (1/0) for whether 8th graders have access to Algebra 1
-- `courses_offered_count` - Count of unique courses offered (aggregated metric)
+- `courses_offered_count` - One row per course. A published enrollment above 0 is stored as 1. A published 0 is stored as 0. A `*` on the enrollment total is stored as value NA with `suppressed` Y. A blank total is not stored. Grade cells are not summed into this flag. A school total is the count of these rows, which repeats the school/year/metric key.
+- `algebra_1_grade_8_count` - Grade 8 enrollment when the course name contains `Algebra I` or `Algebra 1`. No registered file has such a course.
+- `has_algebra_1_access` - 1 when that grade-8 count is above 0, 0 when the published grade-8 count is 0, and NA with `suppressed` Y when the grade-8 cell is `*`. A blank grade-8 cell is not stored.
 
-**Note**: This dataset contains course-level data without demographic breakdowns. All records have `student_group='All Students'`.
+**Note**: `student_group` is `All Students` on every row because the file has no demographic column. KYRC state rows in other modules use district `All Districts`. This file has no `999000` row, so there is no state district name to store. In 2020-2026 the smallest published enrollment is 3, so a suppressed Y in those years can also mean 0-2 or not applicable. 2019 publishes counts of 1 and has no stars. A `*` on a grade cell does not suppress a published total.
 
-**Data Sources**: KYRC25_EDOP_School_Courses_Summary.csv, school_courses_summary_{year}.csv
-**Years Available**: 2021-2025
-**Unit**: Count (non-negative integers), Boolean (0 or 1)
+**Data Sources**: `KYRC24_EDOP_School_Courses_Summary.csv` (datasets host), `KYRC25_EDOP_School_Courses_Summary.csv`, `KYRC26_EDOP_School_Courses_Summary.csv`, `school_courses_summary_{2020,2021,2022,2023}.csv`, `SCHOOL_COURSES_SUMMARY_18-19.xlsx`
+**Years Available**: 2019-2026
+**Unit**: Count (0 or 1 for `courses_offered_count`; the Algebra count is a headcount when a matching course exists)
 **Demographics**: School-level only (All Students)
 
 ---
