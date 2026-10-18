@@ -598,6 +598,11 @@ raw_directories:
     - "SCHOOL_COURSES_SUMMARY_18-19.xlsx"
 
   gifted_talented:
+    # Registered historical KYRC24. The grade file has Preschool. The
+    # category file is wide: the count sits in the column named by Category.
+    # The datasets and UAT copies are a later shape (no Preschool, long
+    # Category + Students). Where both publish a number the cells match.
+    # The historical files stay registered.
     - "KYRC24_EDOP_Gifted_Participation_by_Category.csv"
     - "KYRC24_EDOP_Gifted_Participation_by_Grade_Level.csv"
     - url: "kyrc25"
@@ -608,10 +613,20 @@ raw_directories:
       file: "KYRC25_EDOP_Gifted_Participation_by_Category.csv"
     - url: "kyrc26"
       file: "KYRC26_EDOP_Gifted_Participation_by_Category.csv"
+    # KYRC23_EDOP_Gifted_Participation_by_Grade_Level.csv and the category
+    # twin return 200 on datasets and UAT and 404 on the historical host.
+    # School year is 20222023. Shared All Students cells match
+    # gifted_and_talented_2023.csv, including state 87,613. accepts_data_file
+    # skips those two names so 2023 is not written twice. They are not
+    # registered. gifted_and_talented_2020.csv is school year 20192020 and
+    # is the missing year between the 2018-19 workbook and 2021.
     - "gifted_and_talented_2023.csv"
     - "gifted_and_talented_2022.csv"
     - "gifted_and_talented_2021.csv"
-    # Historical xlsx files (pre-2020)
+    - "gifted_and_talented_2020.csv"
+    # Historical xlsx files (pre-2020). GIFTED_AND_TALENTED_17-18.xlsx
+    # returns 200 and is school year 20172018 (26,586 DATA rows). It is
+    # earlier than this series and is not registered.
     - "GIFTED_AND_TALENTED_18-19.xlsx"
 
   # Financial Summary - District-level financial and staffing metrics

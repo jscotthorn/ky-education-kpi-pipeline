@@ -601,25 +601,45 @@ State rows are district `All Districts` and school `All Schools`, stored as `---
 ## Gifted and Talented
 **Source**: `etl/gifted_talented.py`
 
-Participation counts for gifted and talented programs by grade level.
+KDE's 2018-19 coversheet calls `GT_CNT` the number of gifted and talented students enrolled. That all-grades count is unduplicated. Female plus Male equals All Students wherever all three cells are numbers. The seven race counts also add to All Students on the state row in 2019, 2020, 2022, 2023, 2025, and 2026. 2021 and 2024 are each short by 1. Kindergarten through grade 12 add to the state total in 2026. Earlier years leave preschool or grade 14 as a star or a blank, and the published grade cells are then short of the total by 0, 1, or 2.
 
-### Grade Level Participation
-- `gifted_participation_count_all_grades` - Total students in gifted programs
-- `gifted_participation_count_preschool` - Students in preschool
-- `gifted_participation_count_kindergarten` - Students in kindergarten
-- `gifted_participation_count_grade_1` through `gifted_participation_count_grade_12` - Students by grade level
-- `gifted_participation_count_grade_14` - Students in post-secondary transition
+A talent-category count is the number of students identified in that category. A student may be identified in more than one category, so the categories overlap and do not sum to the grade total. The category file's All Students cell is the same unduplicated total as All Grades. It is stored as `gifted_participation_count_all_grades`, not as a second metric. The 2018-19 coversheet labels `AcademicArts` "Art Students." The state count lines up with later language arts (20,827 in 2019, 20,183 in 2024), and `VisPerfArt` lines up with visual art (5,245 in 2019, 5,515 in 2024). Language arts stays on `specific_academic_aptitude_language_arts`.
+
+State rows are district `All Districts` for 2024-2026 and `State` for 2019-2023. The 2026 state total is 90,464. District totals equal that state total. The 2025 state total is 90,490 and the districts sum to 90,492. In 2019 and 2020 the district sum sits about 1,000 above the state. School sums do not exceed the district total except Garrard County in 2021 (149 against 147). A short school sum is suppressed cells, or a few students in 2026 (Corbin Independent 4, Hardin County 1, Paintsville Independent 2, Warren County 5). There is no gap metric.
+
+A `*` is stored as value NA with suppressed Y. A blank cell is not stored. A published 0 is kept. Grade 14 is absent in 2026. The coversheet calls it the number of gifted and talented students in grade 14. Preschool is absent in 2025 and 2026. No registered preschool cell is a positive number.
+
+### Grade participation
+- `gifted_participation_count_all_grades` - Unduplicated gifted students
+- `gifted_participation_count_preschool` - Preschool, when the file has the column
+- `gifted_participation_count_kindergarten` - Kindergarten
+- `gifted_participation_count_grade_1` through `gifted_participation_count_grade_12` - One grade
+- `gifted_participation_count_grade_14` - Grade 14, through 2025
+
+### Category identification
+- `gifted_category_count_creative_or_divergent_thinking`
+- `gifted_category_count_general_intellectual_ability`
+- `gifted_category_count_primary_talent_pool`
+- `gifted_category_count_psychosocial_or_leadership_ability`
+- `gifted_category_count_specific_academic_aptitude_language_arts`
+- `gifted_category_count_specific_academic_aptitude_math`
+- `gifted_category_count_specific_academic_aptitude_science`
+- `gifted_category_count_specific_academic_aptitude_social_studies`
+- `gifted_category_count_visual_and_performing_arts_art`
+- `gifted_category_count_visual_and_performing_arts_dance`
+- `gifted_category_count_visual_and_performing_arts_drama`
+- `gifted_category_count_visual_and_performing_arts_music`
 
 **Demographics (via `student_group` column):**
 - All Students
 - Female / Male
 - Race/ethnicity groups (African American, Hispanic or Latino, etc.)
-- Economically Disadvantaged
-- Students with Disabilities (IEP)
-- English Learner
+- Economically Disadvantaged, English Learner, Students with Disabilities (IEP), Foster Care, Homeless, Migrant, Military Dependent
+- Consolidated Student Group on the 2019-2023 files
+- KYRC24-KYRC26 category files are All Students only
 
-**Data Sources**: KYRC25_EDOP_Gifted_Participation_by_Grade_Level.csv, KYRC24_EDOP_Gifted_Participation_by_Grade_Level.csv, gifted_and_talented_{year}.csv
-**Years Available**: 2021-2025
+**Data Sources**: `GIFTED_AND_TALENTED_18-19.xlsx`, `gifted_and_talented_2020.csv` through `gifted_and_talented_2023.csv`, KYRC24 through KYRC26 `EDOP_Gifted_Participation_by_Grade_Level.csv` and `EDOP_Gifted_Participation_by_Category.csv`
+**Years Available**: 2019-2026
 **Unit**: Count (non-negative integers)
 
 ---
