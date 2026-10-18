@@ -1,19 +1,27 @@
 """
 Secondary Enrollment ETL Module
 
-Handles Kentucky secondary enrollment data (Grades 6-12) across years 2020-2025.
-This is distinct from student_enrollment which captures all grades (PreK-12).
-Secondary enrollment tracks students enrolled in secondary programs at schools
-that offer secondary education.
+Students with a secondary (concurrent) enrollment at this school, by grade,
+for 2019-2026. KDE's cover sheet describes the total as "Count of unique
+students with secondary enrollment". Our interpretation of the data is a
+concurrent second enrollment at a school other than the student's main
+school, mostly at career and technical centers and regional academies.
+KDE pairs this series with primary enrollment.
 
-Data includes enrollment counts by grade level:
-- Grade 6 through Grade 12 enrollment counts
-- Total secondary student counts by demographic group
-- School-level and district-level aggregations
+All Grades counts unique students in every grade. KYRC files publish only
+grades 6-12 and 14, so All Grades can exceed those cells. Older files had
+preschool through grade 5 columns (0 or blank; 2019 has blanks), and their
+totals equal the grade sums for 2019-2024. KYRC25 has 37 rows where the
+total is higher (state gap 3). KYRC26 has 47 (state gap 63: East Jessamine
+Middle 61, Tates Creek Middle 1, Camden Station Elementary 1). Those
+students are in grades the file does not publish; cause unverified. 62 of
+the 63 are at East Jessamine Middle and Tates Creek Middle, both grades
+6-8 schools. On those rows middle, high school, and grade 14 will not sum
+to the total. The parser stores All Grades.
 """
 from pathlib import Path
 import pandas as pd
-from typing import Dict, Any
+from typing import Any, Dict
 import logging
 import sys
 
@@ -27,6 +35,42 @@ from base_etl import BaseETL, Config
 logger = logging.getLogger(__name__)
 
 
+def _is_string_like(series: pd.Series) -> bool:
+    """True for object text and for pandas StringDtype.
+
+    ``read_csv(..., dtype=str)`` on pandas 3 returns StringDtype, not object.
+    A comma in ``29,360`` has to be removed before ``to_numeric``.
+    pandas 2.3.3 still returns object, so the older ``dtype == object``
+    strip already keeps that count. pandas is unpinned.
+    """
+    return series.dtype == object or bool(pd.api.types.is_string_dtype(series))
+
+
+def _count_is_blank(value: Any) -> bool:
+    """True when a count is missing or zero.
+
+    ``value or fallback`` raises ``boolean value of NA is ambiguous`` on
+    pandas 2 when ``value`` is ``pd.NA``. ``np.nan`` is truthy, so the same
+    expression does not fall through on pandas 3. Treat both as blank, and
+    keep the old falsy fallback for a numeric zero.
+    """
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip() == ""
+    try:
+        if bool(pd.isna(value)):
+            return True
+    except (TypeError, ValueError):
+        return False
+    if isinstance(value, bool):
+        return False
+    try:
+        return float(value) == 0.0
+    except (TypeError, ValueError):
+        return False
+
+
 def clean_enrollment_data(df: pd.DataFrame) -> pd.DataFrame:
     """Clean and validate secondary enrollment count values."""
     grade_columns = [
@@ -36,9 +80,16 @@ def clean_enrollment_data(df: pd.DataFrame) -> pd.DataFrame:
 
     for col in grade_columns:
         if col in df.columns:
-            # Convert to numeric, handling commas in numbers
-            if df[col].dtype == 'object':
-                df[col] = df[col].astype(str).str.replace(',', '').str.replace('"', '')
+            # Convert to numeric, handling commas in numbers.
+            # astype("string") keeps missing values as <NA>. astype(str) turns
+            # them into the literal "nan", and to_numeric then yields NaN.
+            if _is_string_like(df[col]):
+                df[col] = (
+                    df[col]
+                    .astype("string")
+                    .str.replace(",", "", regex=False)
+                    .str.replace('"', "", regex=False)
+                )
 
             # Convert to numeric, errors='coerce' will make invalid values NaN
             df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -53,7 +104,18 @@ def clean_enrollment_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 class SecondaryEnrollmentETL(BaseETL):
-    """ETL module for processing secondary enrollment data."""
+    """ETL module for secondary (concurrent) enrollment by grade.
+
+    KYRC24, KYRC25, and KYRC26 share the same 23-column grade headers.
+    KYRC24 is registered on the datasets host. The 2020-2023 files use
+    the uppercase count names, which are already mapped. No temporary OAA
+    extract is registered for this directory, and the guessed temporary
+    names return 404, so there is no leftover filename to skip.
+    """
+
+    # Opt in here, in the same change that accepts the file. BaseETL skips
+    # every KYRC26_* CSV until this is True.
+    include_kyrc26 = True
 
     @property
     def module_column_mappings(self) -> Dict[str, str]:
@@ -80,7 +142,9 @@ class SecondaryEnrollmentETL(BaseETL):
             'GRADE12 COUNT': 'grade_12',
             'GRADE14 COUNT': 'grade_14',
 
-            # Historical files also have these columns (always 0 for secondary)
+            # Older files include preschool through grade 5. Those cells are
+            # 0 or blank (2019 has blanks) and are not emitted. All Grades
+            # still counts every grade.
             'PRESCHOOL COUNT': 'preschool',
             'KINDERGARTEN COUNT': 'k',
             'GRADE1 COUNT': 'grade_1',
@@ -133,13 +197,16 @@ class SecondaryEnrollmentETL(BaseETL):
             except Exception:
                 return pd.NA
 
-        # Total secondary enrollment
-        total_val = row.get('all_grades') or row.get('total_student_count', pd.NA)
+        # Total secondary enrollment. A blank All Grades cell is pd.NA after
+        # the Int64 cast in process(). ``or`` cannot test that value.
+        all_grades = row.get('all_grades', pd.NA)
+        total_count = row.get('total_student_count', pd.NA)
+        total_val = total_count if _count_is_blank(all_grades) else all_grades
         total_numeric = safe_numeric(total_val)
         if pd.notna(total_numeric) and total_numeric > 0:
             metrics['secondary_enrollment_total'] = total_numeric
 
-        # Individual grade levels (6-12 only)
+        # Published grade columns. Grade 14 is handled below.
         grade_metrics = {
             'secondary_enrollment_grade_6': safe_numeric(row.get('grade_6', pd.NA)),
             'secondary_enrollment_grade_7': safe_numeric(row.get('grade_7', pd.NA)),
@@ -150,7 +217,11 @@ class SecondaryEnrollmentETL(BaseETL):
             'secondary_enrollment_grade_12': safe_numeric(row.get('grade_12', pd.NA)),
         }
 
-        # Add individual grade metrics if they have values > 0
+        # A zero is an offered grade with a count of 0. It is omitted here
+        # (value > 0) and again in convert_to_kpi_format (value != 0). A
+        # blank grade never reaches this check. Whether a published zero
+        # should be a KPI row is a pre-existing design question, not
+        # suppression. Counts of 1 and 2 stay.
         for metric_name, value in grade_metrics.items():
             if pd.notna(value) and value > 0:
                 metrics[metric_name] = value

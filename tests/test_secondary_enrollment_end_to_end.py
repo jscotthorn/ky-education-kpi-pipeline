@@ -5,6 +5,7 @@ Tests that sample rows from each source file are correctly transformed to KPI fo
 import pytest
 import pandas as pd
 import numpy as np
+import yaml
 from etl.constants import KPI_COLUMNS
 from pathlib import Path
 from etl.secondary_enrollment import transform, SecondaryEnrollmentETL
@@ -352,3 +353,220 @@ class TestSecondaryEnrollmentEndToEnd:
         expected_recent_years = [2020, 2021, 2022, 2023, 2025]
         found_years = [y for y in expected_recent_years if y in years]
         assert len(found_years) >= 3, f"Expected at least 3 recent years, found: {found_years}"
+
+
+FIXTURE_DIR = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "secondary_enrollment"
+
+
+def _run_fixtures(tmp_path: Path, filenames: list) -> pd.DataFrame:
+    """Copy committed real-row excerpts into a raw directory and transform them."""
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "secondary_enrollment"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    for name in filenames:
+        (source_dir / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+    config = yaml.safe_load(
+        (Path(__file__).resolve().parents[1] / "config" / "mappings.yaml").read_text()
+    )
+    transform(raw_dir, proc_dir, config["sources"]["secondary_enrollment"])
+    output = proc_dir / "secondary_enrollment.csv"
+    assert output.exists(), filenames
+    return pd.read_csv(output, dtype=str)
+
+
+def _comparable(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop the processing timestamp and sort so two runs can be compared."""
+    columns = [column for column in df.columns if column != "last_updated"]
+    return df[columns].sort_values(columns).reset_index(drop=True)
+
+
+def _rows(df: pd.DataFrame, year: str, school_id: str, student_group: str) -> pd.DataFrame:
+    return df[
+        (df["year"] == year)
+        & (df["school_id"] == school_id)
+        & (df["student_group"] == student_group)
+    ]
+
+
+def _metric_value(df: pd.DataFrame, year: str, school_id: str, metric: str, student_group: str = "All Students"):
+    matches = _rows(df, year, school_id, student_group)
+    matches = matches[matches["metric"] == metric]
+    assert len(matches) == 1, (year, school_id, metric, student_group, len(matches))
+    return matches.iloc[0]
+
+
+def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
+    """2025-26 KPIs from real secondary-enrollment rows, with earlier-year anchors.
+
+    State All Students is 30,193. KPI year is 2026, from school year 20252026.
+    District is All Districts. The 2022-2025 anchors are the published source
+    values, including the comma-formatted 2024 state total 28,978 and the
+    2025 state total 29,360.
+    """
+    prior_names = [
+        "secondary_enrollment_2022.csv",
+        "secondary_enrollment_2023.csv",
+        "KYRC24_OVW_Secondary_Enrollment.csv",
+        "KYRC25_OVW_Secondary_Enrollment.csv",
+    ]
+    current_names = prior_names + ["KYRC26_OVW_Secondary_Enrollment.csv"]
+    prior_only = _run_fixtures(tmp_path / "prior", prior_names)
+    combined = _run_fixtures(tmp_path / "combined", current_names)
+
+    # Same-branch check only: adding the 2026 excerpt does not rewrite earlier rows.
+    # The fixed anchors below are the prior-year regression.
+    prior_slice = combined[combined["year"].isin(["2022", "2023", "2024", "2025"])]
+    assert _comparable(prior_slice).equals(_comparable(prior_only))
+
+    assert set(combined["source_file"]) == set(current_names)
+    assert "20252026" not in set(combined["year"])
+    assert set(combined.loc[combined["source_file"].str.startswith("KYRC26_"), "year"]) == {"2026"}
+
+    state = _metric_value(combined, "2026", "999000", "secondary_enrollment_total")
+    assert float(state["value"]) == 30193
+    assert state["suppressed"] == "N"
+    assert state["district"] == "All Districts"
+    assert state["school_name"] == "---District Total---"
+    assert state["year"] == "2026"
+    assert state["school_id"] == "999000"
+    assert state["source_file"] == "KYRC26_OVW_Secondary_Enrollment.csv"
+    assert float(_metric_value(combined, "2026", "999000", "secondary_enrollment_grade_6")["value"]) == 9
+    assert float(_metric_value(combined, "2026", "999000", "secondary_enrollment_grade_7")["value"]) == 95
+    assert float(_metric_value(combined, "2026", "999000", "secondary_enrollment_grade_8")["value"]) == 829
+    assert float(_metric_value(combined, "2026", "999000", "secondary_enrollment_grade_9")["value"]) == 6287
+    assert float(_metric_value(combined, "2026", "999000", "secondary_enrollment_grade_10")["value"]) == 7707
+    assert float(_metric_value(combined, "2026", "999000", "secondary_enrollment_grade_11")["value"]) == 8192
+    assert float(_metric_value(combined, "2026", "999000", "secondary_enrollment_grade_12")["value"]) == 6985
+    assert float(_metric_value(combined, "2026", "999000", "secondary_enrollment_grade_14")["value"]) == 26
+    assert float(_metric_value(combined, "2026", "999000", "secondary_enrollment_middle")["value"]) == 933
+    assert float(_metric_value(combined, "2026", "999000", "secondary_enrollment_high_school")["value"]) == 29171
+
+    district = _metric_value(combined, "2026", "165000", "secondary_enrollment_total")
+    # 97 is Tates Creek Middle 1 + Tates Creek High 16 + Frederick Douglass 70
+    # + Success Academy 10. The district grade cells sum to 96 because Tates
+    # Creek Middle's All Grades cell is 1 and its grade 6-8 cells are 0.
+    assert float(district["value"]) == 97
+    assert district["district"] == "Fayette County"
+    assert district["school_name"] == "---District Total---"
+    assert district["school_id"] == "165000"
+    assert district["co_op"] == "CKEC"
+    assert district["co_op_code"] == "901"
+    assert district["nces_id"] == "2101860"
+    assert district["county_name"] == "FAYETTE"
+    assert district["suppressed"] == "N"
+    assert float(_metric_value(combined, "2026", "165000", "secondary_enrollment_grade_7")["value"]) == 1
+    assert float(_metric_value(combined, "2026", "165000", "secondary_enrollment_grade_12")["value"]) == 15
+    assert float(_metric_value(combined, "2026", "165000", "secondary_enrollment_middle")["value"]) == 26
+    assert float(_metric_value(combined, "2026", "165000", "secondary_enrollment_high_school")["value"]) == 70
+    # Grade 6 and grade 14 are 0. A published zero is omitted by the existing
+    # value > 0 rule. Whether that zero should be a KPI row is a pre-existing
+    # design question, not suppression.
+    fayette = _rows(combined, "2026", "165000", "All Students")
+    assert "secondary_enrollment_grade_6" not in set(fayette["metric"])
+    assert "secondary_enrollment_grade_14" not in set(fayette["metric"])
+
+    school = _metric_value(combined, "2026", "035160", "secondary_enrollment_total")
+    assert float(school["value"]) == 1300
+    assert school["district"] == "Boone County"
+    assert school["school_name"] == "Ignite Institute"
+    assert school["state_school_id"] == "008035160"
+    assert school["nces_id"] == "210051002536"
+    assert school["school_type"] == "A2"
+    assert school["county_name"] == "BOONE"
+    assert school["co_op"] == "NKCES"
+    assert school["co_op_code"] == "905"
+    assert school["suppressed"] == "N"
+    assert float(_metric_value(combined, "2026", "035160", "secondary_enrollment_grade_8")["value"]) == 67
+    assert float(_metric_value(combined, "2026", "035160", "secondary_enrollment_grade_9")["value"]) == 454
+    assert float(_metric_value(combined, "2026", "035160", "secondary_enrollment_grade_12")["value"]) == 245
+    assert float(_metric_value(combined, "2026", "035160", "secondary_enrollment_middle")["value"]) == 67
+    assert float(_metric_value(combined, "2026", "035160", "secondary_enrollment_high_school")["value"]) == 1233
+    # Grades 6, 7, and 14 are blank. They are not in the All Grades sum
+    # (67 + 454 + 280 + 254 + 245 = 1,300). A blank grade is not offered.
+    ignite = _rows(combined, "2026", "035160", "All Students")
+    assert "secondary_enrollment_grade_6" not in set(ignite["metric"])
+    assert "secondary_enrollment_grade_7" not in set(ignite["metric"])
+    assert "secondary_enrollment_grade_14" not in set(ignite["metric"])
+
+    # Grade 6 is blank. Grades 9-12 and 14 are 0. Grade 7 is 1 and grade 8 is 15.
+    tates = _rows(combined, "2026", "165105", "All Students")
+    assert set(tates["metric"]) == {
+        "secondary_enrollment_total",
+        "secondary_enrollment_grade_7",
+        "secondary_enrollment_grade_8",
+        "secondary_enrollment_middle",
+    }
+    assert float(_metric_value(combined, "2026", "165105", "secondary_enrollment_total")["value"]) == 16
+    assert float(_metric_value(combined, "2026", "165105", "secondary_enrollment_grade_7")["value"]) == 1
+    assert float(_metric_value(combined, "2026", "165105", "secondary_enrollment_grade_8")["value"]) == 15
+    assert tates["school_name"].iloc[0] == "Tates Creek High School"
+    assert tates["nces_id"].iloc[0] == "210186000383"
+    assert (tates["suppressed"] == "N").all()
+
+    # Grades 6-8 are 0. Grades 9-12 and 14 are blank. The total of 1 is published.
+    middle = _rows(combined, "2026", "165100", "All Students")
+    assert set(middle["metric"]) == {"secondary_enrollment_total"}
+    assert float(middle["value"].iloc[0]) == 1
+    assert middle["school_name"].iloc[0] == "Tates Creek Middle School"
+    assert middle["suppressed"].iloc[0] == "N"
+
+    # There is no Suppressed column and no star. A count of 1 is published.
+    # Grades 8-11 are 0. Grades 6, 7, and 14 are blank. Grade 12 is 1, so the
+    # high-school aggregate is that same 1.
+    indigenous = _rows(combined, "2026", "035160", "American Indian or Alaska Native")
+    assert set(indigenous["metric"]) == {
+        "secondary_enrollment_total",
+        "secondary_enrollment_grade_12",
+        "secondary_enrollment_high_school",
+    }
+    assert float(_metric_value(combined, "2026", "035160", "secondary_enrollment_total", "American Indian or Alaska Native")["value"]) == 1
+    assert float(_metric_value(combined, "2026", "035160", "secondary_enrollment_grade_12", "American Indian or Alaska Native")["value"]) == 1
+    assert float(_metric_value(combined, "2026", "035160", "secondary_enrollment_high_school", "American Indian or Alaska Native")["value"]) == 1
+    assert (indigenous["suppressed"] == "N").all()
+
+    # Prior-year anchors. The 2024 and 2025 state totals are comma-formatted.
+    # 2024 All Grades equals the published grade cells: 822 + 28,140 + 16.
+    row = _metric_value(combined, "2024", "999000", "secondary_enrollment_total")
+    assert float(row["value"]) == 28978
+    assert row["district"] == "All Districts"
+    assert row["school_name"] == "---District Total---"
+    assert row["year"] == "2024"
+    assert row["suppressed"] == "N"
+    assert row["source_file"] == "KYRC24_OVW_Secondary_Enrollment.csv"
+    assert float(_metric_value(combined, "2024", "999000", "secondary_enrollment_grade_9")["value"]) == 6273
+    assert float(_metric_value(combined, "2024", "999000", "secondary_enrollment_middle")["value"]) == 822
+    assert float(_metric_value(combined, "2024", "999000", "secondary_enrollment_high_school")["value"]) == 28140
+    assert float(_metric_value(combined, "2024", "999000", "secondary_enrollment_grade_14")["value"]) == 16
+
+    row = _metric_value(combined, "2025", "999000", "secondary_enrollment_total")
+    assert float(row["value"]) == 29360
+    assert row["district"] == "All Districts"
+    assert row["school_name"] == "---District Total---"
+    assert row["suppressed"] == "N"
+    assert float(_metric_value(combined, "2025", "999000", "secondary_enrollment_grade_9")["value"]) == 6064
+    assert float(_metric_value(combined, "2025", "999000", "secondary_enrollment_grade_12")["value"]) == 6671
+    assert float(_metric_value(combined, "2025", "999000", "secondary_enrollment_middle")["value"]) == 959
+    assert float(_metric_value(combined, "2025", "999000", "secondary_enrollment_high_school")["value"]) == 28385
+    assert float(_metric_value(combined, "2025", "165000", "secondary_enrollment_total")["value"]) == 87
+    assert float(_metric_value(combined, "2025", "165105", "secondary_enrollment_total")["value"]) == 7
+    assert _metric_value(combined, "2025", "165105", "secondary_enrollment_total")["nces_id"] == "210186000000"
+    assert float(_metric_value(combined, "2025", "165105", "secondary_enrollment_grade_7")["value"]) == 1
+
+    # 2022 and 2023 state rows are district State and school ---State Total---,
+    # school code 999. Totals have no thousands separator in the source file.
+    for year, total in (("2023", 28723), ("2022", 28465)):
+        row = _metric_value(combined, year, "999", "secondary_enrollment_total")
+        assert float(row["value"]) == total
+        assert row["district"] == "State"
+        assert row["school_name"] == "---State Total---"
+        assert row["suppressed"] == "N"
+
+    # The 2023 Consolidated Student Group state row is empty in every count
+    # column. It is not a suppression. It emits no KPI row.
+    consolidated = combined[
+        (combined["year"] == "2023")
+        & (combined["student_group"] == "Consolidated Student Group")
+    ]
+    assert consolidated.empty

@@ -305,7 +305,10 @@ raw_directories:
     - "STUDENT_PRIMARY_ENROLLMENT_18-19.xlsx"
 
   secondary_enrollment:
-    # Secondary enrollment (grades 6-12) - separate from primary enrollment
+    # Students with a secondary (concurrent) enrollment at this school, by grade.
+    # The url key is the host, not the school year. KYRC24 is on datasets.
+    - url: "kyrc25"
+      file: "KYRC24_OVW_Secondary_Enrollment.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Secondary_Enrollment.csv"
     - url: "kyrc26"
