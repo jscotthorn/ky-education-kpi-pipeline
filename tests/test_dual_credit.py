@@ -372,6 +372,55 @@ class TestDualCreditKyrc26:
         assert (df["suppressed"] == "Y").all()
         assert (df["value"].fillna("") == "").all()
 
+    def test_published_zero_count_is_kept(self):
+        """A published 0 is a count. The registered files have none.
+
+        Dropping zeros would still pass the real-row fixtures. This row
+        keeps enrollment, completers, and qualifying at 0, suppressed N,
+        on both the participation metrics and a courses-offered subject.
+        """
+        participation = pd.DataFrame({
+            "School Year": ["20252026"],
+            "District Name": ["Adair County"],
+            "School Name": ["Adair County High School"],
+            "School Code": ["001010"],
+            "Demographic": ["All Students"],
+            "Advanced Course Type": ["Dual Credit"],
+            "Course Enrollment": ["0"],
+            "Course Completers": ["0"],
+            "Students With Qualifying Score": ["0"],
+        })
+        offered = pd.DataFrame({
+            "School Year": ["20252026"],
+            "District Name": ["Adair County"],
+            "School Name": ["Adair County High School"],
+            "School Code": ["001010"],
+            "Advanced Course Type": ["Dual Credit"],
+            "Subject": ["Mathematics"],
+            "Course Enrollment": ["12"],
+            "Course Completers": ["0"],
+            "Students With Qualifying Score": ["0"],
+        })
+        participation.to_csv(self.sample_dir / "zero_participation.csv", index=False)
+        offered.to_csv(self.sample_dir / "zero_offered.csv", index=False)
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        df = pd.read_csv(self.proc_dir / "dual_credit.csv", dtype=str)
+        counts = {
+            "dual_credit_enrollment": "0",
+            "dual_credit_completion_count": "0",
+            "dual_credit_qualifying_score_count": "0",
+            "dual_credit_course_enrollment_mathematics": "12",
+            "dual_credit_course_completion_count_mathematics": "0",
+            "dual_credit_course_qualifying_score_count_mathematics": "0",
+        }
+        for metric, expected in counts.items():
+            rows = df[df["metric"] == metric]
+            assert len(rows) == 1, metric
+            assert rows.iloc[0]["suppressed"] == "N"
+            assert float(rows.iloc[0]["value"]) == float(expected)
+        # A zero enrollment does not invent a rate.
+        assert "dual_credit_completion_rate" not in set(df["metric"])
+
     def test_repeated_school_key_keeps_the_larger_enrollment(self):
         """2023-2026 do not repeat a key. A synthetic pair must not both be stored.
 

@@ -553,7 +553,9 @@ raw_directories:
       file: "KYRC23_EDOP_Dual_Credit_Participation_and_Performance.csv"
     # Registered historical KYRC24. The courses-offered header is
     # "Couse Completers " with a trailing space. The datasets copy drops
-    # that space and fills 311 blank CO-OP cells with GREC. Measure cells
+    # that space and fills Jefferson County's blank CO-OP with GREC
+    # (311 offered rows, 522 participation rows). The historical file
+    # leaves Jefferson's co_op blank. That is a known gap. Measure cells
     # match. The historical file stays registered.
     - "KYRC24_EDOP_Dual_Credit_Courses_Offered.csv"
     - "KYRC24_EDOP_Dual_Credit_Participation_and_Performance.csv"

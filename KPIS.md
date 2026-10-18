@@ -567,7 +567,7 @@ Participation metrics (unduplicated students, `student_group` is the demographic
 - `dual_credit_qualifying_score_count` - Students with a qualifying grade of C or better in at least one dual credit course
 - `dual_credit_completion_rate` - Derived: completers divided by enrollment, times 100
 - `dual_credit_qualifying_score_rate` - Derived: qualifying grades divided by completers, times 100
-- `has_dual_credit_program` - 1 when enrollment is positive, 0 when enrollment is 0
+- `has_dual_credit_program` - 1 when enrollment is positive, suppressed Y when enrollment is starred. No registered enrollment is 0, so this flag is never 0
 
 Courses-offered metrics (duplicated course enrollments, `student_group` is All Students, subject is in the metric name):
 
@@ -581,7 +581,7 @@ The rates are derived. KDE does not publish a rate column. There is no gap metri
 
 There is no Suppressed column. A `*` cell is stored as value NA with suppressed Y. A blank cell is not stored. No registered file has a blank or a zero measure cell. A derived rate is omitted when either count is a star.
 
-State rows are district `All Districts` and school `All Schools`, stored as `---District Total---`, school code `999000`, for 2023-2026. On the courses-offered All Enrollments enrollment, district totals equal the state in 2024, 2025, and 2026. 2023 is off by 3 (117,586 versus 117,583) with no starred district. On the participation file, the sum of district All Students enrollment is above the state in every year (165, 212, 201, and 200 students). That is the same unduplicated-student definition in each year, not a 2026 break. Schools fall short of a district where a school cell is starred. Kenton County in 2026 is the large case: Scott High `291120` enrollment is starred, and the district enrollment 4,958 is 979 above the two published schools.
+State rows are district `All Districts` and school `All Schools`, stored as `---District Total---`, school code `999000`, for 2023-2026. On the courses-offered All Enrollments enrollment, district totals equal the state in 2024, 2025, and 2026. 2023 is off by 3 (117,586 versus 117,583) with no starred district. On the participation file, the sum of district All Students enrollment is above the state in every year (165, 212, 201, and 200 students). The state total is unduplicated across districts: a student in two districts counts twice in the district sum and once at the state. That is the same definition in each year, not a 2026 break. The same rule applies to schools. A student counted at more than one school counts once on the district row and more than once in the school sum, so the school sum exceeds the district total in 11, 12, 13, and 16 districts in 2023-2026 with no starred school cell. A starred school cell is a separate gap, and the published schools then fall short of the district. Kenton County courses offered in 2026 is the large case: Scott High `291120` enrollment is starred, and the district enrollment 4,958 is 979 above the two published schools.
 
 **Demographics (via `student_group` column, participation file only):**
 - All Students
