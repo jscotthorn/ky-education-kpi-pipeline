@@ -526,32 +526,49 @@ District-level financial and staffing metrics from KDE Financial Summary reports
 ## Advanced Coursework
 **Source**: `etl/advanced_coursework.py`
 
-Participation and performance metrics for advanced courses including AP, IB, and Cambridge programs. Note: Dual credit data is handled in a separate pipeline.
+KDE publishes three measures. Participation is an unduplicated student count by demographic and course type: a student in two AP courses counts once. A completer finished at least one course. A qualifying score is a qualifying exam score on at least one AP, Cambridge, or IB exam. Courses offered is a duplicated count of course enrollments: a student in two courses counts twice. The overview file is the CRDC advanced-coursework count, in total and by gender. The KPI year for an overview row is the CRDC collection year, not the report-card year printed on the file. The 2020-21 collection is stored once, as 2021, from `KYRC23_OVW_Advanced_Coursework.csv`. The 2021-22 collection is stored once, as 2022, from `KYRC26_OVW_Advanced_Coursework.csv`. KYRC24 and KYRC25 overview are the same 2020-21 collection and are not loaded. Dual credit is not loaded here. `dual_credit` owns that measure. Course type `DC` and `Dual Credit` are skipped. The 2020-2022 dual-credit counts are not stored in either module. [Issue #74](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/74) (b) holds whether to load that slice.
 
-### By Course Type (AP, IB, Cambridge)
-- `{prefix}_course_enrollment` - Number of students enrolled in courses
-- `{prefix}_completion_count` - Number of students completing courses
-- `{prefix}_tested_count` - Number of students tested
-- `{prefix}_qualifying_score_count` - Number of students earning qualifying scores
-- `{prefix}_qualifying_score_rate` - Percentage of tested students with qualifying scores
-- `{prefix}_participation_rate` - Overall participation rate (from overview files)
-- `{prefix}_participation_rate_female` - Participation rate for female students
-- `{prefix}_participation_rate_male` - Participation rate for male students
-- `num_{prefix}_courses_offered` - Count of courses offered (from offered files)
+Course type `ALL` is the only user of the `advanced_*` prefix. It is the unduplicated participation total across course types, including dual credit, or the courses-offered subject total. In 2023 the state ALL enrollment is 68,238. AP + IB + Cambridge is 34,777, and that sum plus the skipped DC enrollment of 45,873 is 80,650. 68,238 sits between those two sums because a student in more than one type counts once. Course type `CAI` is Cambridge. An unrecognized course type is skipped. `advanced_offered_*` is the subject total from course type `ALL`. Those rows are on the KYRC25 and KYRC26 courses-offered files only, so the metric exists for 2025 and 2026.
 
-**Prefixes**: `ap`, `ib`, `cambridge`, `advanced` (for unspecified course types)
+Participation metrics (unduplicated students, `student_group` is the demographic). `{prefix}` is `ap`, `ib`, `cambridge`, or `advanced`:
 
-**Demographics (via `student_group` column):**
+- `{prefix}_course_enrollment` - Students enrolled in one or more courses of that type
+- `{prefix}_completion_count` - Students who completed at least one course
+- `{prefix}_tested_count` - Students tested
+- `{prefix}_qualifying_score_count` - Students with a qualifying exam score
+- `{prefix}_qualifying_score_rate` - Derived for AP, IB, and Cambridge: qualifying scores divided by students tested, times 100. Not derived for `advanced`, because the ALL qualifying count includes dual-credit grades and the ALL tested count does not. Not derived for IB in 2026. In that file, tested equals qualifying on every row that publishes both numbers (state 42 and 42, Fayette County and Tates Creek High 24 and 24, Jefferson County and Atherton High 18 and 18). The same year's courses-offered state All Enrollments row is 240 tested and 172 qualifying. The counts stay. The offered rate stays. [Issue #78](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/78) holds whether to keep the 2026 IB tested count
+
+Courses-offered metrics (duplicated enrollments, `student_group` is All Students). The subject or the course code and course name is in the metric:
+
+- `{prefix}_offered_enrollment_{slug}` - Course enrollments. `all_enrollments` is that type's total. Course type `ALL` uses the subject, such as `mathematics`
+- `{prefix}_offered_completion_count_{slug}` - Course completers
+- `{prefix}_offered_tested_count_{slug}` - Students tested in that course
+- `{prefix}_offered_qualifying_score_count_{slug}` - Qualifying scores in that course
+- `{prefix}_offered_completion_rate_{slug}` - Derived: completers divided by enrollment, times 100
+- `{prefix}_offered_qualifying_score_rate_{slug}` - Derived: qualifying scores divided by students tested, times 100
+- `num_{prefix}_courses_offered` - Count of course rows at the school. Subject totals and `All Enrollments` are not counted
+
+Overview metrics (CRDC, published percents, not derived, KPI years 2021 and 2022 only). These names are not used by the participation file, so a 2021 or 2022 overview row does not collide with `ap_course_enrollment` or the other participation metrics:
+
+- `{prefix}_participation_count`, `{prefix}_participation_count_female`, `{prefix}_participation_count_male`
+- `{prefix}_participation_rate`, `{prefix}_participation_rate_female`, `{prefix}_participation_rate_male`
+
+State All Students AP enrollment is 37,212 in 2026. The district sum is 37,283 and the school sum is 37,319. Districts sit slightly above the state in every year from 2020 through 2026, because the state total is unduplicated across districts. 2026 IB enrollment is 1,006 and IB students tested is 42. The 2025 tested count was 234. Districts and schools that publish a number also have tested equal to qualifying. Cambridge enrollment is 248 in 2026 after 185 in 2025. The 2019 courses-offered state total is published with school code `000`. The participation workbook uses `999` for that same `---State Total---` row. The parser stores the offered state rows on `999`.
+
+There is no Suppressed column on the EDOP files. A `*` cell is stored as value NA with suppressed Y. A blank cell is not stored. The 2020-2026 participation files publish no 0 and no blank, and the smallest number is 3, so a Y in those years covers 0, 1, or 2, or a cell that does not apply. 2019 publishes both 0 and `*`. A Y in 2019 is not a published 0. A published 0 on the overview file is kept. KYRC23 overview is the edition that is stored. It matches KYRC25 on the shared cells. KYRC24 writes 0 on rows KYRC25 leaves blank, and that edition is not loaded.
+
+**Demographics (via `student_group` column, participation file):**
 - All Students
 - Female / Male
 - Race/ethnicity groups (African American, Hispanic or Latino, etc.)
 - Economically Disadvantaged
 - Students with Disabilities (IEP)
 - English Learner
+- Foster Care, Gifted and Talented, Homeless, Migrant, Military Dependent
 
-**Data Sources**: KYRC25_EDOP_Advanced_Courses_Participation_and_Performance.csv, KYRC24_EDOP_Advanced_Courses_Participation_and_Performance.csv, KYRC25_OVW_Advanced_Coursework.csv, advanced_courses_participation_and_performance_{year}.csv
-**Years Available**: 2021-2025
-**Unit**: Count (non-negative integers), Rate (0-100%)
+**Data Sources**: 2018-19 course and student workbooks, `advanced_courses_offered_{2020-2023}.csv`, `advanced_courses_participation_and_performance_{2020-2023}.csv`, `KYRC23_OVW_Advanced_Coursework.csv` (CRDC 2020-21, stored as 2021), `KYRC26_OVW_Advanced_Coursework.csv` (CRDC 2021-22, stored as 2022), and the KYRC24, KYRC25, and KYRC26 participation and courses-offered files. KYRC24 and KYRC25 overview are not loaded
+**Years Available**: 2019-2026
+**Unit**: Count (non-negative integers), Rate (published overview percents can exceed 100; two AP gender percents in the 2021-22 collection are 125 and 200)
 
 ---
 
@@ -609,14 +626,14 @@ State rows are district `All Districts` for 2024-2026 and `State` for 2019-2023.
 
 A `*` is stored as value NA with suppressed Y. A blank cell is not stored. Grade 14 is absent in 2026. The coversheet calls it the number of gifted and talented students in grade 14. Preschool is absent in 2025 and 2026. No registered preschool cell is a positive number.
 
-A published 0 is kept where the file publishes one. The 2018-19 workbook publishes 0, including most grade 14 cells. KYRC25 and KYRC26 schools that appear only on the category file publish 0. The 2020-2023 historical files publish no 0 and no blank. The smallest number in those files is 3, so a Y in those years covers a count of 0, 1, or 2 and a not-applicable cell, not only a privacy suppression. About two thirds of those rows are starred in all 28 measure cells. A Y row in those years is not evidence the group exists. Preschool, grade 14, and Consolidated Student Group are starred on every 2020-2023 row, including the state row. Those three slices are not written for those years. The skip is that year set and those slices. It is not a rule that drops every all-star column. The KYRC23 republication of 2022-23 leaves 16,277 of the 20,036 fully starred 2023 rows out, turns 135,421 starred grade cells into blanks, and turns 8,765 starred category cells into 0, so the omitted slices are not hidden counts. Every other 2020-2023 star is still stored. 2019 publishes real consolidated and grade 14 counts, and 2024 onward is unchanged. [Issue #77](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/77) is that decision. The output is 3,965,469 rows: published N 965,385 and suppressed Y 3,000,084. 2019 stays 628,434. 2020 and 2021 are each 729,742. 2022 is 730,184. 2023 is 732,836. 2024 stays 235,283, 2025 stays 89,814, and 2026 stays 89,434.
+A published 0 is kept where the file publishes one. The 2018-19 workbook publishes 0, including most grade 14 cells. KYRC25 and KYRC26 schools that appear only on the category file publish 0. The 2020-2023 historical files publish no 0 and no blank. The smallest number in those files is 3, so a Y in those years covers a count of 0, 1, or 2 and a not-applicable cell, not only a privacy suppression. About two thirds of those rows are starred in all 28 measure cells. A Y row in those years is not evidence the group exists. Preschool, grade 14, and Consolidated Student Group are starred on every row of `gifted_and_talented_2020.csv` through `gifted_and_talented_2023.csv`, including the state row. KDE did not report those slices in those files. A missing group row does not mean the group is empty. Only the stars are left unwritten, and only in those four files. A published number is kept. The skip is those filenames and those slices. It is not a rule that drops every all-star column. KDE's KYRC23 republication of 2022-23 has no preschool column and no Consolidated Student Group rows, and grade 14 is blank on all 13,567 rows. Not applicable or not reported is the likeliest meaning. Every other star in those files is still stored. 2019 publishes real consolidated and grade 14 counts, and 2024 onward is unchanged. [Issue #77](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/77) is that decision. The output is 3,965,469 rows: published N 965,385 and suppressed Y 3,000,084. 2019 stays 628,434. 2020 and 2021 are each 729,742. 2022 is 730,184. 2023 is 732,836. 2024 stays 235,283, 2025 stays 89,814, and 2026 stays 89,434.
 
 ### Grade participation
 - `gifted_participation_count_all_grades` - Unduplicated gifted students
-- `gifted_participation_count_preschool` - Preschool, when the file has the column. Not written for 2020-2023
+- `gifted_participation_count_preschool` - Preschool, when the file has the column. Stars on `gifted_and_talented_2020.csv` through `gifted_and_talented_2023.csv` are not written. A published number is kept
 - `gifted_participation_count_kindergarten` - Kindergarten
 - `gifted_participation_count_grade_1` through `gifted_participation_count_grade_12` - One grade
-- `gifted_participation_count_grade_14` - Grade 14 through 2025, except 2020-2023, where the column is starred on every row and is not written
+- `gifted_participation_count_grade_14` - Grade 14 through 2025. Stars on `gifted_and_talented_2020.csv` through `gifted_and_talented_2023.csv` are not written. A published number is kept
 
 ### Category identification
 - `gifted_category_count_creative_or_divergent_thinking`
@@ -637,7 +654,7 @@ A published 0 is kept where the file publishes one. The 2018-19 workbook publish
 - Female / Male
 - Race/ethnicity groups (African American, Hispanic or Latino, etc.)
 - Economically Disadvantaged, English Learner, Students with Disabilities (IEP), Foster Care, Homeless, Migrant, Military Dependent
-- Consolidated Student Group in 2019, read from `DGROUP` rather than from the code `CSG` (state 14,874). The group is starred on every 2020-2023 row and is not stored for those years. Code `CSG` in the shared map is Students with Disabilities, and code `ACD` is dropped. In this workbook `DGROUP` says `CSG` is Consolidated Student Group and `ACD` is `Studw/disab.`, the disability count (state 3,136). The 2020 disability count is 3,357. The shared map is unchanged. [Issue #76](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/76) tracks the same code swap in other 2018-19 workbooks
+- Consolidated Student Group in 2019, read from `DGROUP` rather than from the code `CSG` (state 14,874). The group is starred on every row of `gifted_and_talented_2020.csv` through `gifted_and_talented_2023.csv`. Those stars are not stored. KDE did not report the group in those files. A missing group row does not mean the group is empty. A published number is kept. Code `CSG` in the shared map is Students with Disabilities, and code `ACD` is dropped. In this workbook `DGROUP` says `CSG` is Consolidated Student Group and `ACD` is `Studw/disab.`, the disability count (state 3,136). The 2020 disability count is 3,357. The shared map is unchanged. [Issue #76](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/76) tracks the same code swap in other 2018-19 workbooks
 - KYRC24-KYRC26 category files are All Students only
 
 **Data Sources**: `GIFTED_AND_TALENTED_18-19.xlsx`, `gifted_and_talented_2020.csv` through `gifted_and_talented_2023.csv`, KYRC24 through KYRC26 `EDOP_Gifted_Participation_by_Grade_Level.csv` and `EDOP_Gifted_Participation_by_Category.csv`

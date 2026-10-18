@@ -473,103 +473,216 @@ class TestGiftedTalentedETL:
         assert kindergarten.iloc[0]["value"] == ""
 
     def test_2020_2023_always_starred_slices_are_not_written(self):
-        """Preschool, grade 14, and Consolidated Student Group are omitted only in 2020-2023.
+        """Starred preschool, grade 14, and Consolidated Student Group cells are omitted on four files.
 
-        The skip is the year and the slice. It does not drop a column
-        because every cell is a star, and it does not drop a star in
-        another group. Widening the year set, adding kindergarten to the
-        metric set, or dropping every star fails the keep assertions:
-        2019 Consolidated Student Group and grade 14, a 2020 kindergarten
-        star, a 2020 consolidated total that is a number, and a 2024
-        preschool star.
+        The skip is the filename and the slice, and only a star. A published
+        number is kept. Dropping grade 12, Students with Disabilities, every
+        star, or the same slices by year instead of by filename fails the
+        keep assertions below.
         """
-        rows = [
-            # year, school, group, total, preschool, kindergarten, grade 14
-            # One school code per year. A repeated school key collapses
-            # inside the file, and that collapse is not what this test checks.
-            ("20182019", "2019", "All Students", "10", "*", "2", "1"),
-            ("20182019", "2019", "Consolidated Student Group", "50", "*", "*", "0"),
-            ("20192020", "2020", "All Students", "40", "*", "*", "*"),
-            ("20192020", "2020", "Consolidated Student Group", "12", "*", "4", "*"),
-            ("20202021", "2021", "All Students", "5", "*", "*", "*"),
-            ("20212022", "2022", "All Students", "6", "*", "8", "*"),
-            ("20222023", "2023", "All Students", "9", "*", "7", "*"),
-            ("20222023", "2023", "Consolidated Student Group", "*", "*", "*", "*"),
-            ("20232024", "2024", "All Students", "11", "*", "*", "3"),
+        measure_headers = [
+            ("TOTAL COUNT", "gifted_participation_count_all_grades"),
+            ("PRESCHOOL COUNT", "gifted_participation_count_preschool"),
+            ("KINDERGARTEN COUNT", "gifted_participation_count_kindergarten"),
+            ("GRADE1 COUNT", "gifted_participation_count_grade_1"),
+            ("GRADE2 COUNT", "gifted_participation_count_grade_2"),
+            ("GRADE3 COUNT", "gifted_participation_count_grade_3"),
+            ("GRADE4 COUNT", "gifted_participation_count_grade_4"),
+            ("GRADE5 COUNT", "gifted_participation_count_grade_5"),
+            ("GRADE6 COUNT", "gifted_participation_count_grade_6"),
+            ("GRADE7 COUNT", "gifted_participation_count_grade_7"),
+            ("GRADE8 COUNT", "gifted_participation_count_grade_8"),
+            ("GRADE9 COUNT", "gifted_participation_count_grade_9"),
+            ("GRADE10 COUNT", "gifted_participation_count_grade_10"),
+            ("GRADE11 COUNT", "gifted_participation_count_grade_11"),
+            ("GRADE12 COUNT", "gifted_participation_count_grade_12"),
+            ("GRADE14 COUNT", "gifted_participation_count_grade_14"),
+            ("CREATIVE OR DIVERGENT THINKING", "gifted_category_count_creative_or_divergent_thinking"),
+            ("GENERAL INTELLECTUAL ABILITY", "gifted_category_count_general_intellectual_ability"),
+            ("PRIMARY TALENT POOL", "gifted_category_count_primary_talent_pool"),
+            ("PSYCHO SOCIAL LEADERSHIP", "gifted_category_count_psychosocial_or_leadership_ability"),
+            ("SPECIFIC ACADEMIC APTITUDE_LANGUAGE ARTS", "gifted_category_count_specific_academic_aptitude_language_arts"),
+            ("SPECIFIC ACADEMIC APTITUDE_MATH", "gifted_category_count_specific_academic_aptitude_math"),
+            ("SPECIFIC ACADEMIC APTITUDE_SCIENCE", "gifted_category_count_specific_academic_aptitude_science"),
+            ("SPECIFIC ACADEMIC APTITUDE_SOCIAL STUDIES", "gifted_category_count_specific_academic_aptitude_social_studies"),
+            ("VISUAL AND PERFORMING ARTS_ART", "gifted_category_count_visual_and_performing_arts_art"),
+            ("VISUAL AND PERFORMING ARTS_DANCE", "gifted_category_count_visual_and_performing_arts_dance"),
+            ("VISUAL AND PERFORMING ARTS_DRAMA", "gifted_category_count_visual_and_performing_arts_drama"),
+            ("VISUAL AND PERFORMING ARTS_MUSIC", "gifted_category_count_visual_and_performing_arts_music"),
         ]
-        frame = pd.DataFrame(rows, columns=[
-            "SCHOOL YEAR",
-            "SCHOOL CODE",
-            "DEMOGRAPHIC",
-            "TOTAL COUNT",
-            "PRESCHOOL COUNT",
-            "KINDERGARTEN COUNT",
-            "GRADE14 COUNT",
-        ])
-        frame.insert(1, "DISTRICT NAME", "Adair County")
-        frame.insert(2, "SCHOOL NAME", "Adair County High School")
-        frame.to_csv(self.sample_dir / "gifted_and_talented_years.csv", index=False)
+        omitted_metrics = {
+            "gifted_participation_count_preschool",
+            "gifted_participation_count_grade_14",
+        }
+        kept_metrics = {metric for _header, metric in measure_headers if metric not in omitted_metrics}
+        other_groups = [
+            "All Students",
+            "Female",
+            "Male",
+            "African American",
+            "American Indian or Alaska Native",
+            "Asian",
+            "Hispanic or Latino",
+            "Native Hawaiian or Pacific Islander",
+            "Two or More Races",
+            "White (non-Hispanic)",
+            "Economically Disadvantaged",
+            "English Learner",
+            "Students with Disabilities (IEP)",
+            "Foster Care",
+            "Homeless",
+            "Migrant",
+            "Military Dependent",
+        ]
+
+        def wide_row(year, school, group, values):
+            record = {
+                "SCHOOL YEAR": year,
+                "DISTRICT NAME": "Adair County",
+                "SCHOOL NAME": "Adair County High School",
+                "SCHOOL CODE": school,
+                "DEMOGRAPHIC": group,
+            }
+            record.update(values)
+            return record
+
+        def filled(total, kindergarten):
+            values = {header: "6" for header, _metric in measure_headers}
+            values["TOTAL COUNT"] = total
+            values["PRESCHOOL COUNT"] = "*"
+            values["KINDERGARTEN COUNT"] = kindergarten
+            values["GRADE12 COUNT"] = "15"
+            values["GRADE14 COUNT"] = "*"
+            return values
+
+        rows_2020 = []
+        for group in other_groups:
+            # All Students kindergarten is a star and is still stored.
+            # The other groups publish a number, including Students with Disabilities.
+            kindergarten = "*" if group == "All Students" else "3"
+            total = "40" if group == "All Students" else "21"
+            rows_2020.append(wide_row("20192020", "2020", group, filled(total, kindergarten)))
+        starred = {header: "*" for header, _metric in measure_headers}
+        starred["TOTAL COUNT"] = "12"
+        starred["KINDERGARTEN COUNT"] = "4"
+        rows_2020.append(wide_row("20192020", "2020", "Consolidated Student Group", starred))
+
+        def thin_row(year, school, group, total, preschool, kindergarten, grade_14):
+            return {
+                "SCHOOL YEAR": year,
+                "DISTRICT NAME": "Adair County",
+                "SCHOOL NAME": "Adair County High School",
+                "SCHOOL CODE": school,
+                "DEMOGRAPHIC": group,
+                "TOTAL COUNT": total,
+                "PRESCHOOL COUNT": preschool,
+                "KINDERGARTEN COUNT": kindergarten,
+                "GRADE14 COUNT": grade_14,
+            }
+
+        pd.DataFrame(rows_2020).to_csv(self.sample_dir / "gifted_and_talented_2020.csv", index=False)
+        pd.DataFrame([thin_row("20202021", "2021", "All Students", "5", "*", "*", "*")]).to_csv(
+            self.sample_dir / "gifted_and_talented_2021.csv", index=False
+        )
+        pd.DataFrame([thin_row("20212022", "2022", "All Students", "6", "*", "8", "*")]).to_csv(
+            self.sample_dir / "gifted_and_talented_2022.csv", index=False
+        )
+        pd.DataFrame([
+            thin_row("20222023", "2023", "All Students", "9", "*", "7", "*"),
+            thin_row("20222023", "2023", "Consolidated Student Group", "*", "*", "*", "*"),
+        ]).to_csv(self.sample_dir / "gifted_and_talented_2023.csv", index=False)
+        # Same school years, different filename. A year-only skip would drop these stars.
+        pd.DataFrame([
+            thin_row("20182019", "2019", "All Students", "10", "*", "2", "1"),
+            thin_row("20182019", "2019", "Consolidated Student Group", "50", "*", "*", "0"),
+            thin_row("20192020", "2099", "All Students", "30", "*", "9", "*"),
+            thin_row("20232024", "2024", "All Students", "11", "*", "*", "3"),
+        ]).to_csv(self.sample_dir / "gifted_and_talented_other.csv", index=False)
         transform(self.raw_dir, self.proc_dir, self._production_config())
         df = pd.read_csv(self.proc_dir / "gifted_talented.csv", dtype=str, keep_default_na=False)
 
-        def present(year, group, metric):
+        def present(year, school, group, metric):
             matched = df[
                 (df["year"] == year)
-                & (df["school_id"] == year)
+                & (df["school_id"] == school)
                 & (df["student_group"] == group)
                 & (df["metric"] == metric)
             ]
-            assert len(matched) == 1, (year, group, metric, len(matched))
+            assert len(matched) == 1, (year, school, group, metric, len(matched))
             return matched.iloc[0]
 
-        def missing(year, group, metric):
+        def missing(year, school, group, metric):
             matched = df[
                 (df["year"] == year)
-                & (df["school_id"] == year)
+                & (df["school_id"] == school)
                 & (df["student_group"] == group)
                 & (df["metric"] == metric)
             ]
-            assert len(matched) == 0, (year, group, metric, len(matched))
+            assert len(matched) == 0, (year, school, group, metric, len(matched))
 
-        assert float(present("2019", "All Students", "gifted_participation_count_grade_14")["value"]) == 1.0
-        preschool_2019 = present("2019", "All Students", "gifted_participation_count_preschool")
-        assert preschool_2019["suppressed"] == "Y"
-        assert float(present("2019", "Consolidated Student Group", "gifted_participation_count_all_grades")["value"]) == 50.0
-        assert float(present("2019", "Consolidated Student Group", "gifted_participation_count_grade_14")["value"]) == 0.0
+        def metrics_for(year, school, group):
+            matched = df[
+                (df["year"] == year)
+                & (df["school_id"] == school)
+                & (df["student_group"] == group)
+            ]
+            return set(matched["metric"])
 
-        assert float(present("2020", "All Students", "gifted_participation_count_all_grades")["value"]) == 40.0
-        kindergarten_2020 = present("2020", "All Students", "gifted_participation_count_kindergarten")
+        for group in other_groups:
+            assert metrics_for("2020", "2020", group) == kept_metrics, group
+        kindergarten_2020 = present("2020", "2020", "All Students", "gifted_participation_count_kindergarten")
         assert kindergarten_2020["suppressed"] == "Y"
         assert kindergarten_2020["value"] == ""
-        missing("2020", "All Students", "gifted_participation_count_preschool")
-        missing("2020", "All Students", "gifted_participation_count_grade_14")
-        for metric in (
+        grade_12 = present("2020", "2020", "All Students", "gifted_participation_count_grade_12")
+        assert float(grade_12["value"]) == 15.0
+        assert grade_12["suppressed"] == "N"
+        disability = present("2020", "2020", "Students with Disabilities (IEP)", "gifted_participation_count_all_grades")
+        assert float(disability["value"]) == 21.0
+        assert disability["suppressed"] == "N"
+        missing("2020", "2020", "All Students", "gifted_participation_count_preschool")
+        missing("2020", "2020", "All Students", "gifted_participation_count_grade_14")
+        consolidated_total = present(
+            "2020", "2020", "Consolidated Student Group", "gifted_participation_count_all_grades"
+        )
+        assert float(consolidated_total["value"]) == 12.0
+        assert consolidated_total["suppressed"] == "N"
+        consolidated_kindergarten = present(
+            "2020", "2020", "Consolidated Student Group", "gifted_participation_count_kindergarten"
+        )
+        assert float(consolidated_kindergarten["value"]) == 4.0
+        assert consolidated_kindergarten["suppressed"] == "N"
+        assert metrics_for("2020", "2020", "Consolidated Student Group") == {
             "gifted_participation_count_all_grades",
-            "gifted_participation_count_preschool",
             "gifted_participation_count_kindergarten",
-            "gifted_participation_count_grade_14",
-        ):
-            missing("2020", "Consolidated Student Group", metric)
+        }
 
         for year in ("2021", "2022", "2023"):
-            missing(year, "All Students", "gifted_participation_count_preschool")
-            missing(year, "All Students", "gifted_participation_count_grade_14")
-        kindergarten_2021 = present("2021", "All Students", "gifted_participation_count_kindergarten")
+            missing(year, year, "All Students", "gifted_participation_count_preschool")
+            missing(year, year, "All Students", "gifted_participation_count_grade_14")
+        kindergarten_2021 = present("2021", "2021", "All Students", "gifted_participation_count_kindergarten")
         assert kindergarten_2021["suppressed"] == "Y"
-        assert float(present("2022", "All Students", "gifted_participation_count_kindergarten")["value"]) == 8.0
-        assert float(present("2023", "All Students", "gifted_participation_count_kindergarten")["value"]) == 7.0
+        assert float(present("2022", "2022", "All Students", "gifted_participation_count_kindergarten")["value"]) == 8.0
+        assert float(present("2023", "2023", "All Students", "gifted_participation_count_kindergarten")["value"]) == 7.0
         for metric in (
             "gifted_participation_count_all_grades",
             "gifted_participation_count_preschool",
             "gifted_participation_count_kindergarten",
             "gifted_participation_count_grade_14",
         ):
-            missing("2023", "Consolidated Student Group", metric)
+            missing("2023", "2023", "Consolidated Student Group", metric)
 
-        preschool_2024 = present("2024", "All Students", "gifted_participation_count_preschool")
+        assert float(present("2019", "2019", "All Students", "gifted_participation_count_grade_14")["value"]) == 1.0
+        preschool_2019 = present("2019", "2019", "All Students", "gifted_participation_count_preschool")
+        assert preschool_2019["suppressed"] == "Y"
+        assert float(present("2019", "2019", "Consolidated Student Group", "gifted_participation_count_all_grades")["value"]) == 50.0
+        assert float(present("2019", "2019", "Consolidated Student Group", "gifted_participation_count_grade_14")["value"]) == 0.0
+        other_preschool = present("2020", "2099", "All Students", "gifted_participation_count_preschool")
+        assert other_preschool["suppressed"] == "Y"
+        assert other_preschool["source_file"] == "gifted_and_talented_other.csv"
+        preschool_2024 = present("2024", "2024", "All Students", "gifted_participation_count_preschool")
         assert preschool_2024["suppressed"] == "Y"
         assert preschool_2024["value"] == ""
-        assert float(present("2024", "All Students", "gifted_participation_count_grade_14")["value"]) == 3.0
+        assert float(present("2024", "2024", "All Students", "gifted_participation_count_grade_14")["value"]) == 3.0
 
     def test_comma_count_survives_string_dtype_and_int64(self):
         """pandas 3 dtype=str is StringDtype. ``90,464`` has to survive an Int64 cast.

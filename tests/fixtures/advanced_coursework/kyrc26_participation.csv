@@ -1,0 +1,8 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,Advanced Course Type,Course Enrollment,Course Completers,Number Tested,Earned Qualifying Score
+20252026,,,999,All Districts,,All Schools,999000,,,,,,All Students,Advanced Placement,"37,212","35,693","31,135","20,415"
+20252026,,,999,All Districts,,All Schools,999000,,,,,,All Students,Cambridge Advanced International,248,240,169,118
+20252026,,,999,All Districts,,All Schools,999000,,,,,,All Students,International Baccalaureate,"1,006",937,42,42
+20252026,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,African American,Advanced Placement,*,*,*,*
+20252026,003,ANDERSON,011,Anderson County,020,Anderson County High School,011020,003011020,210012000016,CKEC,901,A1,Asian,Advanced Placement,*,*,*,*
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,All Students,Advanced Placement,"3,450","3,341","2,774","2,253"
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,All Students,Advanced Placement,530,510,371,246
