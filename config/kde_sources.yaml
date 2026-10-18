@@ -609,14 +609,38 @@ raw_directories:
     - "career_readiness_indicators_2023.csv"
 
   school_courses:
-    - "KYRC24_EDOP_School_Courses_Summary.csv"
+    # Specialized courses (CTE, health/PE, visual and performing arts,
+    # world languages). There is no state row. The historical host returns
+    # 404 for KYRC24. datasets returns 200 and the school year is 20232024,
+    # which is not a republish of 2023 or 2025. The url key is the host.
+    - url: "kyrc25"
+      file: "KYRC24_EDOP_School_Courses_Summary.csv"
     - url: "kyrc25"
       file: "KYRC25_EDOP_School_Courses_Summary.csv"
     - url: "kyrc26"
       file: "KYRC26_EDOP_School_Courses_Summary.csv"
+    # KYRC23_EDOP_School_Courses_Summary.csv returns 200 on datasets and UAT
+    # and 404 on the historical host. School year is 20222023. It repeats
+    # school_courses_summary_2023.csv (30,677 shared course keys). 52 shared
+    # totals differ: 46 are a published count becoming *, and 6 differ only
+    # by a thousands comma. accepts_data_file skips that name so 2023 is
+    # not written twice. It is not registered.
+    # The historical host also has KYRC25 (5,649,305 bytes, 19 Feb 2026).
+    # The registered datasets object is 5,643,720 bytes (9 Oct 2026). The
+    # historical copy has one extra course and four totals that differ by
+    # one student. Same filename, so it is not a second registration.
+    # school_courses_summary_2020.csv and school_courses_summary_2022.csv
+    # return 200 on the historical host. School years are 20192020 and
+    # 20212022. They are the missing years. SCHOOL_COURSES_SUMMARY_17-18.xlsx
+    # returns 200 and is earlier than this series. It is not registered.
+    # Guessed OAA names School_Courses_Summary_2024.CSV, _2025, and _2026
+    # are 404 and were never registered.
     - "school_courses_summary_2023.csv"
+    - "school_courses_summary_2022.csv"
     - "school_courses_summary_2021.csv"
-    # Historical xlsx files (pre-2020)
+    - "school_courses_summary_2020.csv"
+    # Historical xlsx files (pre-2020). The DATA sheet has no DEMO or DGROUP
+    # column. The coversheet categories are CTE, HPE, VPA, and WL.
     - "SCHOOL_COURSES_SUMMARY_18-19.xlsx"
 
   gifted_talented:
