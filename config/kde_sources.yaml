@@ -351,7 +351,11 @@ raw_directories:
     - "STUDENT_TEACHER_RATIO_18-19.xlsx"
 
   novice_teachers:
-    # Institutional novice teacher percentages
+    # Institutional novice teacher percentages.
+    # KYRC23_OVW_Inexperienced_Teachers.csv returns 200 and is not
+    # registered. It republishes 2022-23. The parser skips that filename.
+    # The historical KYRC24 URL still returns 200. The datasets copy of
+    # the institutional file matches the rates. It is not swapped.
     - "KYRC24_OVW_Inexperienced_Teachers.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Inexperienced_Teachers.csv"
@@ -361,7 +365,17 @@ raw_directories:
     - "inexperienced_teachers_2022.csv"
     - "inexperienced_teachers_2021.csv"
     - "inexperienced_teachers_2020.csv"
-    # Equity: students taught by inexperienced teachers
+    # 2018-19 is the first-year (new teacher) rate only. It is not a republish.
+    - "NEW_TEACHER_COUNT_18-19.xlsx"
+    # Equity: students taught by inexperienced teachers.
+    # The same KYRC26 file is also registered under
+    # students_taught_by_inexperienced_teachers for download only.
+    # This ETL reads the copy in this directory.
+    # KYRC23_OVW_Students_Taught_by_Inexperienced_Teachers.csv republishes
+    # 2022-23 and is not registered. The parser skips that filename.
+    # The historical KYRC24 equity URL still returns 200. The datasets
+    # copy has different rates (state Title I All Students 66.0 versus
+    # 11.3 here) and is not swapped.
     - "KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Students_Taught_by_Inexperienced_Teachers.csv"

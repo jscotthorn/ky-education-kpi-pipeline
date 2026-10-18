@@ -1,0 +1,15 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Title_I_Status,All Students,Non-White,White,Economically Disadvantaged,Non-Economically Disadvantaged,Students with Disabilities (IEP),Student without Disabilities (IEP),English Learner,Non-English Learner
+20252026,,,999,All Districts,,All Schools,999000,,,,,,Equity Gap,31.6,33.4,30.8,34.3,28.4,27.6,32.6,34.8,31.4
+20252026,,,999,All Districts,,All Schools,999000,,,,,,Not Title 1,34.2,34.6,34.1,32.9,35.7,34.4,34.2,34.1,34.2
+20252026,,,999,All Districts,,All Schools,999000,,,,,,Title 1,65.8,68.0,64.9,67.2,64.0,62.0,66.8,68.9,65.6
+20252026,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,Equity Gap,-35.5,-34.1,-35.1,-41.2,-38.2,-43.6,-33.2,-42.2,-35.3
+20252026,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,Not Title 1,93.1,93.6,92.4,100.0,93.0,94.4,92.3,100.0,92.8
+20252026,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,Title 1,57.6,59.5,57.3,58.8,54.8,50.8,59.1,57.8,57.6
+20252026,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,Title 1,59.1,58.8,59.1,61.2,54.4,64.3,58.5,50.0,59.2
+20252026,090,NELSON,017,Bardstown Independent,,All Schools,017000,,2100270,CKEC,901,,Equity Gap,46.6,45.6,47.3,39.1,58.1,33.1,49.8,-3.6,46.8
+20252026,090,NELSON,017,Bardstown Independent,,All Schools,017000,,2100270,CKEC,901,,Not Title 1,13.8,14.9,13.2,18.3,6.2,13.9,13.8,75.0,13.1
+20252026,090,NELSON,017,Bardstown Independent,,All Schools,017000,,2100270,CKEC,901,,Title 1,60.4,60.5,60.4,57.4,64.2,47.0,63.6,71.4,60.0
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,Equity Gap,27.7,30.8,22.7,29.3,23.3,26.1,28.0,29.6,27.3
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,Not Title 1,29.6,29.5,29.7,31.5,28.7,30.2,29.5,28.7,29.7
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,Title 1,57.3,60.3,52.4,60.9,51.9,56.4,57.5,58.3,57.0
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,Title 1,80.0,81.0,76.8,80.8,77.9,79.6,80.1,80.2,79.9
