@@ -818,6 +818,79 @@ class TestTeacherCertificationKyrc26:
             "national_board_certified_count",
         ) == [7.0, 82.0]
 
+    def test_missing_national_board_loses_to_a_number_and_a_star_beats_a_blank(self):
+        """A number beats a ``*`` or a blank. A ``*`` beats a blank.
+
+        The missing count sorts below 0, so flipping ``na_position`` to
+        ``first`` would keep the blank or the star instead of the number.
+        When both copies are missing, the starred copy is kept even if the
+        blank copy is earlier in the file. File order does not decide that
+        tie.
+        """
+        header = (
+            "SCHOOL YEAR,COUNTY NUMBER,COUNTY NAME,DISTRICT NUMBER,DISTRICT NAME,"
+            "SCHOOL NUMBER,SCHOOL NAME,SCHOOL CODE,STATE SCHOOL ID,NCES ID,CO-OP,"
+            "CO-OP CODE,SCHOOL TYPE,TEACHER COUNT,EMERGENCY/PROVISIONAL TEACHER COUNT,"
+            "PERCENT EMERGENCY/PROVISIONAL TEACHERS,NATIONAL BOARD CERTIFIED COUNT,"
+            "PERCENT NATIONAL BOARD CERTIFIED TEACHERS\n"
+        )
+        row = (
+            "20202021,001,ADAIR,001,Adair County,010,{name},001010,001001010,"
+            "210003000001,GRREC,902,A1,40,0,0,{count},{percent}\n"
+        )
+        (self.sample_dir / "teacher_certifications_2021.csv").write_text(
+            header
+            # Blank is first. The published 0 is kept.
+            + row.format(name="Blank Copy", count="", percent="")
+            + row.format(name="Zero Copy", count="0", percent="0")
+            # Star is first. The published 4 is kept.
+            + row.format(name="Star Copy", count="*", percent="*").replace("001010", "001011")
+            + row.format(name="Number Copy", count="4", percent="10").replace("001010", "001011")
+            # Blank is first. The later star is kept.
+            + row.format(name="Blank First", count="", percent="").replace("001010", "001012")
+            + row.format(name="Star Second", count="*", percent="*").replace("001010", "001012")
+            # Equal counts. The later starred percent is kept over the blank.
+            + row.format(name="Percent Blank", count="3", percent="").replace("001010", "001013")
+            + row.format(name="Percent Star", count="3", percent="*").replace("001010", "001013")
+        )
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "teacher_certification.csv", dtype=str)
+
+        def rows_for(school_id, metric):
+            return result[
+                (result["school_id"] == school_id) & (result["metric"] == metric)
+            ]
+
+        zero = rows_for("001010", "national_board_certified_count")
+        assert len(zero) == 1
+        assert zero.iloc[0]["school_name"] == "Zero Copy"
+        assert float(zero.iloc[0]["value"]) == 0.0
+        assert zero.iloc[0]["suppressed"] == "N"
+
+        number = rows_for("001011", "national_board_certified_count")
+        assert len(number) == 1
+        assert number.iloc[0]["school_name"] == "Number Copy"
+        assert float(number.iloc[0]["value"]) == 4.0
+        assert number.iloc[0]["suppressed"] == "N"
+
+        starred = rows_for("001012", "national_board_certified_count")
+        assert len(starred) == 1
+        assert starred.iloc[0]["school_name"] == "Star Second"
+        assert starred.iloc[0]["suppressed"] == "Y"
+        assert pd.isna(starred.iloc[0]["value"]) or str(starred.iloc[0]["value"]).strip() == ""
+        rate = rows_for("001012", "national_board_certified_rate")
+        assert len(rate) == 1
+        assert rate.iloc[0]["suppressed"] == "Y"
+
+        percent = rows_for("001013", "national_board_certified_rate")
+        assert len(percent) == 1
+        assert percent.iloc[0]["school_name"] == "Percent Star"
+        assert percent.iloc[0]["suppressed"] == "Y"
+        count = rows_for("001013", "national_board_certified_count")
+        assert len(count) == 1
+        assert float(count.iloc[0]["value"]) == 3.0
+        assert count.iloc[0]["suppressed"] == "N"
+
 
 def test_registered_sources_are_the_permanent_files():
     """KYRC24, KYRC25, KYRC26, and 2020-2023 are registered.

@@ -151,6 +151,22 @@ def _flag_is_set(value: Any) -> bool:
     return bool(value)
 
 
+def _star_rank(df: pd.DataFrame, column: str) -> pd.Series:
+    """1 when the cell is a ``*``, otherwise 0.
+
+    ``standardize_missing_values`` has already turned the star into NA and
+    recorded it on ``_star_<column>``. A caller that still has the raw
+    ``*`` is ranked from the cell text. A blank is 0. ``bool(pd.NA)`` is
+    not used.
+    """
+    flag_name = _star_column_name(column)
+    if flag_name in df.columns:
+        return df[flag_name].map(lambda value: 1 if _flag_is_set(value) else 0).astype(int)
+    if column in df.columns:
+        return df[column].map(lambda value: 1 if _is_star_text(value) else 0).astype(int)
+    return pd.Series(0, index=df.index, dtype=int)
+
+
 def _metric_was_starred(row: pd.Series, column: str) -> bool:
     """True when this certification cell was a ``*``.
 
@@ -346,8 +362,13 @@ class TeacherCertificationETL(BaseETL):
         the National Board count and percent. The larger National Board
         count is the copy that sums to the state (3,168 in 2020, 3,147
         in 2021, 3,108 in 2022). A missing count sorts below a published
-        number, including 0. 2023-2026 do not repeat codes and are left
-        as published.
+        number, including 0, so a number beats a ``*`` and a blank. When
+        the counts tie, the larger percent is kept, and a missing percent
+        sorts below a published percent. When both the count and the
+        percent are missing, a starred cell is kept over a blank cell.
+        File order is the last resort, and only when both copies are
+        starred or both are blank. 2023-2026 do not repeat codes and are
+        left as published.
         """
         if Path(source_file).name.lower() not in _DUPLICATE_NB_FILES:
             return df
@@ -374,12 +395,23 @@ class TeacherCertificationETL(BaseETL):
             work["_nbp_sort"] = pd.Series(pd.NA, index=work.index, dtype="Float64")
         else:
             work["_nbp_sort"] = pd.to_numeric(percent, errors="coerce")
+        work["_nbc_star"] = _star_rank(work, "national_board_certified_count")
+        work["_nbp_star"] = _star_rank(work, "national_board_certified_percent")
         work["_orig"] = range(len(work))
         repeated_rows = work["_school_code_key"].isin(repeated)
         kept_unique = work.loc[~repeated_rows]
+        # na_position "last" puts a missing count below 0. The star ranks
+        # are 0 or 1, so they only decide a tie between a * and a blank.
         candidates = work.loc[repeated_rows].sort_values(
-            ["_school_code_key", "_nbc_sort", "_nbp_sort", "_orig"],
-            ascending=[True, False, False, True],
+            [
+                "_school_code_key",
+                "_nbc_sort",
+                "_nbp_sort",
+                "_nbc_star",
+                "_nbp_star",
+                "_orig",
+            ],
+            ascending=[True, False, False, False, False, True],
             na_position="last",
         )
         kept_repeated = candidates.drop_duplicates("_school_code_key", keep="first")
@@ -391,7 +423,16 @@ class TeacherCertificationETL(BaseETL):
         )
         combined = pd.concat([kept_unique, kept_repeated], ignore_index=False)
         combined = combined.sort_values("_orig")
-        return combined.drop(columns=["_school_code_key", "_nbc_sort", "_nbp_sort", "_orig"])
+        return combined.drop(
+            columns=[
+                "_school_code_key",
+                "_nbc_sort",
+                "_nbp_sort",
+                "_nbc_star",
+                "_nbp_star",
+                "_orig",
+            ]
+        )
 
     def should_skip_row(self, row: pd.Series) -> bool:
         """

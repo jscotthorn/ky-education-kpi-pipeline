@@ -49,19 +49,28 @@ class TestTeacherCertificationEndToEnd:
             pytest.skip(f"Source file {source_file.name} has no certification columns")
 
         has_data = source_df[cert_cols].notna().any(axis=1)
-        source_df_with_data = source_df[has_data]
+        if not bool(has_data.any()):
+            pytest.skip(f"Source file {source_file.name} has no rows with certification data")
 
-        if source_df_with_data.empty:
+        # Collapse 2020-2022 on the whole file before sampling. A sample
+        # that still contains the smaller National Board copy, such as
+        # 511320 with count 0, would not match the kept copy.
+        prepared = self.etl.normalize_column_names(source_df)
+        prepared = self.etl.standardize_missing_values(prepared)
+        prepared = self.etl._keep_larger_national_board_copy(prepared, source_file.name)
+        prepared = prepared.loc[prepared.index.isin(source_df.index[has_data])]
+        if prepared.empty:
             pytest.skip(f"Source file {source_file.name} has no rows with certification data")
 
         # Take 10 random rows (or all if less than 10)
-        sample_size = min(10, len(source_df_with_data))
-        sample_rows = source_df_with_data.sample(n=sample_size, random_state=42)
+        sample_size = min(10, len(prepared))
+        sample_rows = prepared.sample(n=sample_size, random_state=42)
 
         print(f"Testing {sample_size} rows from {source_file.name}")
 
-        # Process sample rows through the same transformation pipeline
-        processed_sample = self._process_sample_rows(sample_rows, source_file.name)
+        # The sample is already normalized. convert_to_kpi_format collapses
+        # again, which is a no-op once the smaller copy is gone.
+        processed_sample = self.etl.convert_to_kpi_format(sample_rows, source_file.name)
 
         if processed_sample.empty:
             print(f"  No KPI rows produced (likely all suppressed)")
@@ -70,23 +79,6 @@ class TestTeacherCertificationEndToEnd:
         # Validate each processed row exists in KPI data
         for _, expected_row in processed_sample.iterrows():
             self._validate_kpi_row_exists(expected_row, kpi_df, source_file.name)
-
-    def _process_sample_rows(self, sample_df: pd.DataFrame, source_filename: str) -> pd.DataFrame:
-        """Process sample rows through the transformation pipeline."""
-        # Apply the same transformations as the ETL pipeline
-        df = sample_df.copy()
-
-        # Apply normalization
-        df = self.etl.normalize_column_names(df)
-        df = self.etl.standardize_missing_values(df)
-
-        # Add source file for tracking
-        df['source_file'] = source_filename
-
-        # Convert to KPI format
-        kpi_df = self.etl.convert_to_kpi_format(df, source_filename)
-
-        return kpi_df
 
     def _validate_kpi_row_exists(self, expected_row: pd.Series, kpi_df: pd.DataFrame, source_filename: str):
         """Validate that a specific KPI row exists in the processed data."""
