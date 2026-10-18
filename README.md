@@ -222,7 +222,7 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
 - **Postsecondary Readiness** - College and career readiness rates
 - **Postsecondary Enrollment** - Post-graduation enrollment in Kentucky institutions
 - **Kentucky Summative Assessment** - Performance levels and content index by subject
-- **Out-of-School Suspension** - CRDC in-school and out-of-school suspension counts by disability status for report-card years 2024-2026, plus annual Safe Schools SSP3 counts for 2020-2023. The KPI year is the report-card year, not the CRDC collected year
+- **Out-of-School Suspension** - CRDC in-school and out-of-school suspension counts by disability status. The KPI year is the report-card year: 2026 is the 2021-22 CRDC collection and 2024 is the 2020-21 collection. The output has no collected-year column. Annual SSP3 counts stay in Safe Schools Discipline
 - **CTE Participation** - Career and technical education participation rates
 - **Safe Schools Climate** - School climate survey results and index scores
 - **Safe Schools Discipline** - Detailed discipline resolution tracking

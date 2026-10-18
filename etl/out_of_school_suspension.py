@@ -1,21 +1,33 @@
 """Out-of-School Suspension ETL Module
 
 Refactored to leverage :class:`BaseETL` for common processing.
-Handles two different measures that share this directory:
 
-- KYRC24, KYRC25, and KYRC26 ``OVW_Student_Suspensions`` files are the
-  biennial Civil Rights Data Collection (CRDC) counts: in-school and
-  out-of-school suspensions for students with and without disabilities.
-  KDE's report-card glossary calls this "Student Suspensions (CRDC)".
-  ``School Year`` is the report-card year. ``Collected School Year`` is
-  the CRDC year and is not the KPI year.
-- ``safe_schools_discipline_YYYY`` files are the annual Safe Schools
-  resolution ``OUT OF SCHOOL SUSPENSION SSP3``. ``All Students`` on that
-  file is a student count. ``Total Events`` is the incident count and is
-  skipped because it is not a demographic.
+This module reads the biennial Civil Rights Data Collection (CRDC) file
+``OVW_Student_Suspensions``. KDE's report-card glossary calls it Student
+Suspensions (CRDC): in-school and out-of-school suspension counts for
+students with and without disabilities.
+
+The KPI year is the report-card year in ``School Year``. It is not the
+CRDC collection year.
+
+- Report-card year 2024 (``KYRC24``, ``School Year`` ``20232024``) is the
+  2020-21 collection. ``Collected School Year`` is ``20202021`` on every
+  row. That column is not in the KPI output.
+- Report-card year 2026 (``KYRC26``, ``School Year`` ``20252026``) is the
+  2021-22 collection. ``Collected School Year`` is ``20212022`` on every
+  row. That column is not in the KPI output.
+
+``KYRC25_OVW_Student_Suspensions.csv`` is the same 2020-21 collection
+with ``School Year`` set to ``20242025``. It is not registered, and
+:meth:`accepts_data_file` skips it.
+
+The annual Safe Schools files ``safe_schools_discipline_YYYY.csv`` are
+not read here. ``safe_schools_discipline`` has published
+``out_of_school_suspension_count`` from ``OUT OF SCHOOL SUSPENSION SSP3``
+since commit ``e7d815a`` (4 Aug 2025).
 """
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Sequence
 import pandas as pd
 import logging
 import sys
@@ -35,6 +47,20 @@ logger = logging.getLogger(__name__)
 # Tokens that mean the cell was empty, not a privacy star.
 _BLANK_CELL_TOKENS = {"", "nan", "none", "<na>", "nat"}
 
+# The six CRDC count columns. Totals are computed from these.
+_CRDC_COUNT_COLUMNS = (
+    'in_school_with_disabilities',
+    'in_school_without_disabilities',
+    'single_out_of_school_with_disabilities',
+    'single_out_of_school_without_disabilities',
+    'multiple_out_of_school_with_disabilities',
+    'multiple_out_of_school_without_disabilities',
+)
+
+# KYRC25 republishes the KYRC24 CRDC 2020-21 extract under a later
+# report-card year. The filename guard rejects this name.
+_KYRC25_REPUBLISH = "KYRC25_OVW_STUDENT_SUSPENSIONS.CSV"
+
 
 def _cell_is_blank(value: Any) -> bool:
     """True when a measure cell is empty.
@@ -53,12 +79,57 @@ def _cell_is_blank(value: Any) -> bool:
         return False
 
 
-class OutOfSchoolSuspensionETL(BaseETL):
-    """ETL module for out-of-school suspension data."""
+def _sum_unless_suppressed(parts: Sequence[Any]) -> Any:
+    """Sum components. Any missing component makes the total missing.
 
-    # KYRC26 headers match KYRC25. Opt in in the pull request that accepts
-    # the file. The KPI year stays on School Year.
+    A ``*`` is NA after missing-value standardization. Summing only the
+    published parts is not the file's count: when every part is starred the
+    sum of an empty set is 0, and when one part is starred the sum is the
+    other part with a withheld student missing. notes/8: that total is
+    suppressed. ``pd.isna`` is used so ``pd.NA`` is never treated as a
+    boolean.
+    """
+    for part in parts:
+        if pd.isna(part):
+            return pd.NA
+    return sum(parts)
+
+
+class OutOfSchoolSuspensionETL(BaseETL):
+    """ETL module for CRDC out-of-school suspension data."""
+
+    # KYRC26 headers match the CRDC extract this module already maps.
+    # The KPI year stays on School Year.
     include_kyrc26 = True
+
+    def accepts_data_file(self, file_path: Path) -> bool:
+        """Skip a republished CRDC extract and the annual Safe Schools files.
+
+        ``KYRC25_OVW_Student_Suspensions.csv`` republishes CRDC 2020-21.
+        It matches the datasets copy of KYRC24 apart from ``School Year``
+        (collected year stays ``20202021``, and the same cells are starred).
+        Registering it would publish those counts again as 2025.
+
+        ``safe_schools_discipline_YYYY.csv`` is the annual Safe Schools
+        file. ``safe_schools_discipline`` owns ``OUT OF SCHOOL SUSPENSION
+        SSP3`` since ``e7d815a``. ``kpi_master`` concatenates without
+        deduping, so reading the file here duplicated that count.
+        """
+        name = file_path.name
+        upper = name.upper()
+        if upper == _KYRC25_REPUBLISH:
+            logger.info(
+                "Skipping %s; it republishes CRDC 2020-21 under School Year 20242025",
+                name,
+            )
+            return False
+        if upper.startswith("SAFE_SCHOOLS_DISCIPLINE_"):
+            logger.info(
+                "Skipping %s; safe_schools_discipline owns SSP3 since e7d815a",
+                name,
+            )
+            return False
+        return super().accepts_data_file(file_path)
 
     @property
     def module_column_mappings(self) -> Dict[str, str]:
@@ -70,45 +141,19 @@ class OutOfSchoolSuspensionETL(BaseETL):
             'Single Out-of-School Without Disabilities': 'single_out_of_school_without_disabilities',
             'Multiple Out-of-School With Disabilities': 'multiple_out_of_school_with_disabilities',
             'Multiple Out-of-School Without Disabilities': 'multiple_out_of_school_without_disabilities',
-            'Total Discipline Resolutions': 'total_discipline_resolutions',
-            'Expelled Receiving Services SSP1': 'expelled_receiving_services',
-            'Expelled Not Receiving Services SSP2': 'expelled_not_receiving_services',
-            'Out of School Suspension SSP3': 'out_of_school_suspension',
-            'OUT OF SCHOOL SUSPENSION SSP3': 'out_of_school_suspension',
-            'Corporal Punishment SSP5': 'corporal_punishment',
-            'In-School Removal INSR': 'in_school_removal',
-            'Restraint SSP7': 'restraint',
-            'Seclusion SSP8': 'seclusion',
-            'Unilateral Removal by School Personnel IAES1': 'unilateral_removal',
-            'Removal by Hearing Officer IAES2': 'removal_by_hearing_officer',
         }
 
     def _measure_columns(self, df: pd.DataFrame) -> list:
-        """Return count columns this module knows how to read."""
-        numeric_keywords = [
-            'out_of_school',
-            'in_school',
-            'expelled',
-            'corporal_punishment',
-            'restraint',
-            'seclusion',
-            'unilateral_removal',
-            'removal_by_hearing_officer',
-            'total_discipline_resolutions',
-        ]
-        return [
-            column for column in df.columns
-            if any(keyword in column.lower() for keyword in numeric_keywords)
-        ]
+        """Return the CRDC count columns present on this frame."""
+        return [column for column in _CRDC_COUNT_COLUMNS if column in df.columns]
 
     def _drop_blank_measure_rows(self, df: pd.DataFrame) -> pd.DataFrame:
         """Drop a row whose measure cells are all empty.
 
         notes/8: a row that is not suppressed and has every value empty is
         not offered. These files have no Suppressed column. A ``*`` is a
-        privacy suppression and stays. KYRC24, KYRC25, KYRC26, and the
-        2020-2023 files have no all-blank measure row, so this does not
-        change their counts.
+        privacy suppression and stays. KYRC24 and KYRC26 have no all-blank
+        measure row, so this does not change their counts.
         """
         measure_columns = self._measure_columns(df)
         if not measure_columns or df.empty:
@@ -127,7 +172,7 @@ class OutOfSchoolSuspensionETL(BaseETL):
         on pandas 2.3.3. This cleaner does not check ``dtype == object``.
         ``astype(str)`` then ``str.replace`` keeps a count such as
         ``1,300`` on both. The registered files have no thousands
-        separators. pandas is unpinned.
+        separators. A ``*`` becomes NA here. pandas is unpinned.
         """
         for col in self._measure_columns(df):
             df[col] = (
@@ -146,8 +191,11 @@ class OutOfSchoolSuspensionETL(BaseETL):
         df = self._numeric_clean(df)
 
         if 'suppressed' not in df.columns:
-            suspension_cols = [c for c in df.columns if 'out_of_school' in c.lower()]
-            df['suppressed'] = df[suspension_cols].isna().all(axis=1).map({True: 'Y', False: 'N'})
+            suspension_cols = self._measure_columns(df)
+            if suspension_cols:
+                df['suppressed'] = df[suspension_cols].isna().all(axis=1).map({True: 'Y', False: 'N'})
+            else:
+                df['suppressed'] = 'N'
         else:
             mapping = {
                 'Yes': 'Y', 'Y': 'Y', '1': 'Y', True: 'Y',
@@ -158,94 +206,52 @@ class OutOfSchoolSuspensionETL(BaseETL):
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics: Dict[str, Any] = {}
-        if 'single_out_of_school_with_disabilities' in row.index:
-            # KYRC24 format
-            swd = row.get('single_out_of_school_with_disabilities')
-            swod = row.get('single_out_of_school_without_disabilities')
-            mwd = row.get('multiple_out_of_school_with_disabilities')
-            mwod = row.get('multiple_out_of_school_without_disabilities')
+        if 'single_out_of_school_with_disabilities' not in row.index:
+            return metrics
 
-            metrics = {
-                'out_of_school_suspension_single_with_disabilities_count': swd,
-                'out_of_school_suspension_single_without_disabilities_count': swod,
-                'out_of_school_suspension_multiple_with_disabilities_count': mwd,
-                'out_of_school_suspension_multiple_without_disabilities_count': mwod,
-            }
+        swd = row.get('single_out_of_school_with_disabilities')
+        swod = row.get('single_out_of_school_without_disabilities')
+        mwd = row.get('multiple_out_of_school_with_disabilities')
+        mwod = row.get('multiple_out_of_school_without_disabilities')
 
-            single_total = sum(v for v in [swd, swod] if pd.notna(v))
-            multiple_total = sum(v for v in [mwd, mwod] if pd.notna(v))
-            metrics.update({
-                'out_of_school_suspension_single_total_count': single_total,
-                'out_of_school_suspension_multiple_total_count': multiple_total,
-                'out_of_school_suspension_total_count': single_total + multiple_total,
-            })
-        elif 'out_of_school_suspension' in row.index:
-            # Annual Safe Schools SSP3 column. A fully starred CRDC row does
-            # not take this branch: those files have the single/multiple
-            # columns and stay in the branch above.
-            metrics = {
-                'out_of_school_suspension_count': row.get('out_of_school_suspension')
-            }
+        single_total = _sum_unless_suppressed([swd, swod])
+        multiple_total = _sum_unless_suppressed([mwd, mwod])
+        metrics = {
+            'out_of_school_suspension_single_with_disabilities_count': swd,
+            'out_of_school_suspension_single_without_disabilities_count': swod,
+            'out_of_school_suspension_multiple_with_disabilities_count': mwd,
+            'out_of_school_suspension_multiple_without_disabilities_count': mwod,
+            'out_of_school_suspension_single_total_count': single_total,
+            'out_of_school_suspension_multiple_total_count': multiple_total,
+            'out_of_school_suspension_total_count': _sum_unless_suppressed(
+                [single_total, multiple_total]
+            ),
+        }
 
-        # Additional counts available in both formats
-        in_swd = row.get('in_school_with_disabilities') if 'in_school_with_disabilities' in row.index else None
-        in_swod = row.get('in_school_without_disabilities') if 'in_school_without_disabilities' in row.index else None
         if 'in_school_with_disabilities' in row.index or 'in_school_without_disabilities' in row.index:
+            in_swd = row.get('in_school_with_disabilities') if 'in_school_with_disabilities' in row.index else pd.NA
+            in_swod = row.get('in_school_without_disabilities') if 'in_school_without_disabilities' in row.index else pd.NA
             metrics['in_school_suspension_with_disabilities_count'] = in_swd
             metrics['in_school_suspension_without_disabilities_count'] = in_swod
-            ins_total = sum(v for v in [in_swd, in_swod] if pd.notna(v))
-            metrics['in_school_suspension_total_count'] = ins_total
-
-        count_map = {
-            'expelled_receiving_services': 'expelled_receiving_services_count',
-            'expelled_not_receiving_services': 'expelled_not_receiving_services_count',
-            'corporal_punishment': 'corporal_punishment_count',
-            'in_school_removal': 'in_school_removal_count',
-            'restraint': 'restraint_count',
-            'seclusion': 'seclusion_count',
-            'unilateral_removal': 'unilateral_removal_count',
-            'removal_by_hearing_officer': 'removal_by_hearing_officer_count',
-            'total_discipline_resolutions': 'discipline_resolution_total_count',
-        }
-        for src, metric_name in count_map.items():
-            if src in row.index:
-                metrics[metric_name] = row.get(src)
+            metrics['in_school_suspension_total_count'] = _sum_unless_suppressed([in_swd, in_swod])
 
         return metrics
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
-        if 'single_out_of_school_with_disabilities' in row.index:
-            defaults = {
-                'out_of_school_suspension_single_with_disabilities_count': pd.NA,
-                'out_of_school_suspension_single_without_disabilities_count': pd.NA,
-                'out_of_school_suspension_multiple_with_disabilities_count': pd.NA,
-                'out_of_school_suspension_multiple_without_disabilities_count': pd.NA,
-                'out_of_school_suspension_single_total_count': pd.NA,
-                'out_of_school_suspension_multiple_total_count': pd.NA,
-                'out_of_school_suspension_total_count': pd.NA,
-            }
-        else:
-            defaults = {'out_of_school_suspension_count': pd.NA}
-
-        extra_defaults = [
-            'in_school_suspension_with_disabilities_count',
-            'in_school_suspension_without_disabilities_count',
-            'in_school_suspension_total_count',
-            'expelled_receiving_services_count',
-            'expelled_not_receiving_services_count',
-            'corporal_punishment_count',
-            'in_school_removal_count',
-            'restraint_count',
-            'seclusion_count',
-            'unilateral_removal_count',
-            'removal_by_hearing_officer_count',
-            'discipline_resolution_total_count',
-        ]
-
-        for metric in extra_defaults:
-            defaults[metric] = pd.NA
-
-        return defaults
+        if 'single_out_of_school_with_disabilities' not in row.index:
+            return {}
+        return {
+            'out_of_school_suspension_single_with_disabilities_count': pd.NA,
+            'out_of_school_suspension_single_without_disabilities_count': pd.NA,
+            'out_of_school_suspension_multiple_with_disabilities_count': pd.NA,
+            'out_of_school_suspension_multiple_without_disabilities_count': pd.NA,
+            'out_of_school_suspension_single_total_count': pd.NA,
+            'out_of_school_suspension_multiple_total_count': pd.NA,
+            'out_of_school_suspension_total_count': pd.NA,
+            'in_school_suspension_with_disabilities_count': pd.NA,
+            'in_school_suspension_without_disabilities_count': pd.NA,
+            'in_school_suspension_total_count': pd.NA,
+        }
 
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
         """Override to apply metric-level suppression handling."""

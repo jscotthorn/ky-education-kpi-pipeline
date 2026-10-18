@@ -8,6 +8,12 @@ from etl.out_of_school_suspension import transform
 
 class TestOutOfSchoolSuspensionE2E:
     def test_kyrc24_and_safe_schools(self):
+        """KYRC24 emits CRDC counts. The annual file emits nothing.
+
+        safe_schools_discipline owns ``OUT OF SCHOOL SUSPENSION SSP3``
+        since e7d815a (4 Aug 2025). This module does not read
+        ``safe_schools_discipline_YYYY.csv``.
+        """
         with tempfile.TemporaryDirectory() as tmpdir:
             raw_dir = Path(tmpdir) / 'raw'
             proc_dir = Path(tmpdir) / 'proc'
@@ -17,6 +23,7 @@ class TestOutOfSchoolSuspensionE2E:
 
             kyrc24 = pd.DataFrame({
                 'School Year': ['20232024'],
+                'Collected School Year': ['20202021'],
                 'District Name': ['Test'],
                 'School Code': ['100'],
                 'School Name': ['Test School'],
@@ -42,17 +49,21 @@ class TestOutOfSchoolSuspensionE2E:
                 'EXPELLED RECEIVING SERVICES SSP1': [1],
                 'IN-SCHOOL REMOVAL INSR': [2]
             })
-            safe.to_csv(ky_dir / 'safe.csv', index=False)
+            safe.to_csv(ky_dir / 'safe_schools_discipline_2023.csv', index=False)
 
             transform(raw_dir, proc_dir, {'derive': {}})
 
             out_file = proc_dir / 'out_of_school_suspension.csv'
             df = pd.read_csv(out_file)
-            assert len(df) == 13
-            assert set(df['metric'].unique()) >= {
-                'out_of_school_suspension_count',
-                'out_of_school_suspension_single_with_disabilities_count'
-            }
+            assert len(df) == 10
+            assert set(df['source_file']) == {'kyrc24.csv'}
+            assert set(df['year'].astype(str)) == {'2024'}
+            assert 'collected_school_year' not in df.columns
+            assert 'out_of_school_suspension_count' not in set(df['metric'])
+            assert 'expelled_receiving_services_count' not in set(df['metric'])
+            assert 'discipline_resolution_total_count' not in set(df['metric'])
+            assert 'out_of_school_suspension_single_with_disabilities_count' in set(df['metric'])
+            assert '2021' not in set(df['year'].astype(str))
 
 
 FIXTURE_DIR = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "out_of_school_suspension"
@@ -102,34 +113,39 @@ def _is_empty(value) -> bool:
 
 
 def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
-    """2025-26 CRDC suspension KPIs from real rows, with earlier-year anchors.
+    """2025-26 CRDC suspension KPIs from real rows, with the 2024 anchor.
 
-    There is no school code 999000 in KYRC24, KYRC25, or KYRC26. The KPI
-    year comes from School Year. Collected School Year on the 2026 file is
-    20212022 on every row and is not the KPI year.
+    The KPI year is the report-card year. 2026 is the 2021-22 CRDC
+    collection and 2024 is the 2020-21 collection. Collected School Year
+    is not a KPI column. There is no school code 999000. KYRC25
+    republishes the 2020-21 collection and is not an input. The annual
+    Safe Schools file emits nothing from this module.
     """
-    prior_names = [
+    prior_names = ["KYRC24_OVW_Student_Suspensions.csv"]
+    current_names = prior_names + [
+        "KYRC26_OVW_Student_Suspensions.csv",
         "safe_schools_discipline_2023.csv",
-        "KYRC24_OVW_Student_Suspensions.csv",
-        "KYRC25_OVW_Student_Suspensions.csv",
     ]
-    current_names = prior_names + ["KYRC26_OVW_Student_Suspensions.csv"]
     prior_only = _run_fixtures(tmp_path / "prior", prior_names)
     combined = _run_fixtures(tmp_path / "combined", current_names)
 
-    # Same-branch check only: adding the 2026 excerpt does not rewrite earlier rows.
-    # The fixed anchors below are the prior-year regression.
-    prior_slice = combined[combined["year"].isin(["2023", "2024", "2025"])]
+    # Adding the 2026 excerpt does not rewrite the 2024 rows. The annual
+    # file contributes no rows. safe_schools_discipline owns SSP3.
+    prior_slice = combined[combined["year"] == "2024"]
     assert _comparable(prior_slice).equals(_comparable(prior_only))
-
-    assert set(combined["source_file"]) == set(current_names)
-    assert "20212022" not in set(combined["year"])
-    assert "20202021" not in set(combined["year"])
-    assert set(combined.loc[combined["source_file"].str.startswith("KYRC26_"), "year"]) == {"2026"}
-    assert set(combined.loc[combined["source_file"].str.startswith("KYRC25_"), "year"]) == {"2025"}
+    assert set(combined["source_file"]) == {
+        "KYRC24_OVW_Student_Suspensions.csv",
+        "KYRC26_OVW_Student_Suspensions.csv",
+    }
+    assert "collected_school_year" not in combined.columns
+    assert set(combined["year"]) == {"2024", "2026"}
+    assert "2022" not in set(combined["year"])
+    assert "2021" not in set(combined["year"])
+    assert "2025" not in set(combined["year"])
+    assert "2023" not in set(combined["year"])
 
     # Bryan Station High School, the school row. No state or district total
-    # exists in the CRDC file.
+    # exists in the CRDC file. Year 2026 is report-card year, CRDC 2021-22.
     state_like = combined[
         (combined["year"] == "2026")
         & (combined["school_id"].isin(["999", "999000"]))
@@ -186,8 +202,8 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert float(male_one["value"]) == 1
     assert male_one["suppressed"] == "N"
 
-    # American Indian at Bryan Station is a published 0 in every count.
-    # KYRC25 stored small groups as ``*``. KYRC26 publishes the zero.
+    # American Indian at Bryan Station is a published 0 in every count,
+    # including the totals. KYRC26 has no star.
     indigenous = _rows(combined, "2026", "165170", "American Indian or Alaska Native")
     assert set(indigenous["metric"]) == {
         "out_of_school_suspension_single_with_disabilities_count",
@@ -204,98 +220,63 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert (indigenous["suppressed"] == "N").all()
     assert (indigenous["value"].astype(float) == 0).all()
 
-    # KYRC24 and KYRC25 Bryan Station All Students are the same CRDC
-    # 2020-21 counts. The KPI year follows School Year.
-    for year, source in (("2024", "KYRC24_OVW_Student_Suspensions.csv"), ("2025", "KYRC25_OVW_Student_Suspensions.csv")):
-        row = _metric_value(combined, year, "165170", "out_of_school_suspension_total_count")
-        assert float(row["value"]) == 30
-        assert row["suppressed"] == "N"
-        assert row["year"] == year
-        assert row["source_file"] == source
-        assert row["district"] == "Fayette County"
-        assert float(_metric_value(combined, year, "165170", "out_of_school_suspension_single_with_disabilities_count")["value"]) == 5
-        assert float(_metric_value(combined, year, "165170", "out_of_school_suspension_single_without_disabilities_count")["value"]) == 2
-        assert float(_metric_value(combined, year, "165170", "out_of_school_suspension_multiple_without_disabilities_count")["value"]) == 20
-        assert float(_metric_value(combined, year, "165170", "in_school_suspension_without_disabilities_count")["value"]) == 36
+    # KYRC24 Bryan Station All Students is the 2020-21 collection filed
+    # under report-card year 2024.
+    row = _metric_value(combined, "2024", "165170", "out_of_school_suspension_total_count")
+    assert float(row["value"]) == 30
+    assert row["suppressed"] == "N"
+    assert row["year"] == "2024"
+    assert row["source_file"] == "KYRC24_OVW_Student_Suspensions.csv"
+    assert row["district"] == "Fayette County"
+    assert float(_metric_value(combined, "2024", "165170", "out_of_school_suspension_single_with_disabilities_count")["value"]) == 5
+    assert float(_metric_value(combined, "2024", "165170", "out_of_school_suspension_single_without_disabilities_count")["value"]) == 2
+    assert float(_metric_value(combined, "2024", "165170", "out_of_school_suspension_multiple_without_disabilities_count")["value"]) == 20
+    assert float(_metric_value(combined, "2024", "165170", "in_school_suspension_without_disabilities_count")["value"]) == 36
 
-    # Camp Taylor All Students is starred in every count. The component
-    # cells stay suppressed. KYRC24 leaves CO-OP blank. KYRC25 fills GREC.
-    # The count cells are otherwise the same file.
-    for year, co_op in (("2024", None), ("2025", "GREC")):
-        row = _metric_value(
-            combined, year, "275004", "out_of_school_suspension_single_with_disabilities_count"
-        )
-        assert row["suppressed"] == "Y"
-        assert _is_empty(row["value"])
-        assert row["school_name"] == "Camp Taylor Elementary"
-        assert row["district"] == "Jefferson County"
-        assert row["co_op_code"] == "909"
-        if co_op is None:
-            assert _is_empty(row["co_op"])
-        else:
-            assert row["co_op"] == co_op
-        for metric in (
-            "out_of_school_suspension_single_without_disabilities_count",
-            "out_of_school_suspension_multiple_with_disabilities_count",
-            "out_of_school_suspension_multiple_without_disabilities_count",
-            "in_school_suspension_with_disabilities_count",
-            "in_school_suspension_without_disabilities_count",
-        ):
-            starred = _metric_value(combined, year, "275004", metric)
-            assert starred["suppressed"] == "Y"
-            assert _is_empty(starred["value"])
+    # Camp Taylor All Students is starred in every count. Each component
+    # and each total is suppressed. CO-OP is blank. co_op_code is 909.
+    for metric in (
+        "out_of_school_suspension_single_with_disabilities_count",
+        "out_of_school_suspension_single_without_disabilities_count",
+        "out_of_school_suspension_multiple_with_disabilities_count",
+        "out_of_school_suspension_multiple_without_disabilities_count",
+        "out_of_school_suspension_single_total_count",
+        "out_of_school_suspension_multiple_total_count",
+        "out_of_school_suspension_total_count",
+        "in_school_suspension_with_disabilities_count",
+        "in_school_suspension_without_disabilities_count",
+        "in_school_suspension_total_count",
+    ):
+        starred = _metric_value(combined, "2024", "275004", metric)
+        assert starred["suppressed"] == "Y"
+        assert _is_empty(starred["value"])
+        assert starred["school_name"] == "Camp Taylor Elementary"
+        assert starred["district"] == "Jefferson County"
+        assert starred["co_op_code"] == "909"
+        assert _is_empty(starred["co_op"])
 
-    # South Hopkins Female is the one partial star: in-school without
-    # disabilities is ``*`` and the out-of-school cells are published.
+    # South Hopkins Female is the one partial star. In-school without
+    # disabilities is ``*`` and the other in-school cell is 0, so the
+    # in-school total is suppressed. The out-of-school cells are published:
     # 0 + 1 = 1 single, 0 + 1 = 1 multiple, total 2.
     partial = _metric_value(
-        combined, "2025", "265185", "in_school_suspension_without_disabilities_count", "Female"
+        combined, "2024", "265185", "in_school_suspension_without_disabilities_count", "Female"
     )
     assert partial["suppressed"] == "Y"
     assert _is_empty(partial["value"])
     assert partial["school_name"] == "South Hopkins Middle School"
-    assert float(_metric_value(combined, "2025", "265185", "in_school_suspension_with_disabilities_count", "Female")["value"]) == 0
-    assert float(_metric_value(combined, "2025", "265185", "out_of_school_suspension_single_without_disabilities_count", "Female")["value"]) == 1
-    assert float(_metric_value(combined, "2025", "265185", "out_of_school_suspension_multiple_without_disabilities_count", "Female")["value"]) == 1
-    assert float(_metric_value(combined, "2025", "265185", "out_of_school_suspension_total_count", "Female")["value"]) == 2
-
-    # Annual Safe Schools SSP3 anchors. School code 999 is the state row.
-    # There is no 999000. All Students is 40,768. Total Events is 75,620
-    # and is not a demographic, so it emits no row.
-    state = _metric_value(combined, "2023", "999", "out_of_school_suspension_count")
-    assert float(state["value"]) == 40768
-    assert state["suppressed"] == "N"
-    assert state["district"] == "State"
-    assert state["school_name"] == "---State Total---"
-    assert state["year"] == "2023"
-    assert state["source_file"] == "safe_schools_discipline_2023.csv"
-    events = combined[
-        (combined["year"] == "2023")
-        & (combined["student_group"] == "Total Events")
-    ]
-    assert events.empty
-    assert "75620" not in set(combined.loc[combined["year"] == "2023", "value"].dropna())
-    assert "75620.0" not in set(combined.loc[combined["year"] == "2023", "value"].dropna())
-
-    district = _metric_value(combined, "2023", "165", "out_of_school_suspension_count")
-    assert float(district["value"]) == 2667
-    assert district["district"] == "Fayette County"
-    assert district["school_name"] == "---District Total---"
-    assert district["school_id"] == "165"
-    assert district["co_op"] == "CKEC"
-    assert district["suppressed"] == "N"
-
-    assert float(_metric_value(combined, "2023", "165170", "out_of_school_suspension_count")["value"]) == 265
-    indigenous_2023 = _metric_value(
-        combined, "2023", "165170", "out_of_school_suspension_count", "American Indian or Alaska Native"
+    in_total = _metric_value(
+        combined, "2024", "265185", "in_school_suspension_total_count", "Female"
     )
-    assert indigenous_2023["suppressed"] == "Y"
-    assert _is_empty(indigenous_2023["value"])
-
-    # The 2023 file dates Breathitt County as 20022023. extract_year keeps 2023.
-    breathitt = _metric_value(combined, "2023", "061", "out_of_school_suspension_count")
-    assert float(breathitt["value"]) == 30
-    assert breathitt["district"] == "Breathitt County"
-    assert breathitt["school_name"] == "---District Total---"
-    assert breathitt["year"] == "2023"
-    assert "2002" not in set(combined["year"])
+    assert in_total["suppressed"] == "Y"
+    assert _is_empty(in_total["value"])
+    assert float(_metric_value(combined, "2024", "265185", "in_school_suspension_with_disabilities_count", "Female")["value"]) == 0
+    assert float(_metric_value(combined, "2024", "265185", "out_of_school_suspension_single_without_disabilities_count", "Female")["value"]) == 1
+    assert float(_metric_value(combined, "2024", "265185", "out_of_school_suspension_multiple_without_disabilities_count", "Female")["value"]) == 1
+    assert float(_metric_value(combined, "2024", "265185", "out_of_school_suspension_single_total_count", "Female")["value"]) == 1
+    assert float(_metric_value(combined, "2024", "265185", "out_of_school_suspension_multiple_total_count", "Female")["value"]) == 1
+    total = _metric_value(
+        combined, "2024", "265185", "out_of_school_suspension_total_count", "Female"
+    )
+    assert float(total["value"]) == 2
+    assert total["suppressed"] == "N"
