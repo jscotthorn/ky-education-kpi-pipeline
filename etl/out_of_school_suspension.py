@@ -1,11 +1,21 @@
 """Out-of-School Suspension ETL Module
 
 Refactored to leverage :class:`BaseETL` for common processing.
-Handles both the newer KYRC24 format and historical Safe Schools format
-and outputs standardized KPI metrics.
+Handles two different measures that share this directory:
+
+- KYRC24, KYRC25, and KYRC26 ``OVW_Student_Suspensions`` files are the
+  biennial Civil Rights Data Collection (CRDC) counts: in-school and
+  out-of-school suspensions for students with and without disabilities.
+  KDE's report-card glossary calls this "Student Suspensions (CRDC)".
+  ``School Year`` is the report-card year. ``Collected School Year`` is
+  the CRDC year and is not the KPI year.
+- ``safe_schools_discipline_YYYY`` files are the annual Safe Schools
+  resolution ``OUT OF SCHOOL SUSPENSION SSP3``. ``All Students`` on that
+  file is a student count. ``Total Events`` is the incident count and is
+  skipped because it is not a demographic.
 """
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 import pandas as pd
 import logging
 import sys
@@ -22,9 +32,33 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# Tokens that mean the cell was empty, not a privacy star.
+_BLANK_CELL_TOKENS = {"", "nan", "none", "<na>", "nat"}
+
+
+def _cell_is_blank(value: Any) -> bool:
+    """True when a measure cell is empty.
+
+    A ``*`` is suppression, not a blank. ``bool(pd.NA)`` raises, so missing
+    values go through ``pd.isna`` and this function never evaluates a NA as
+    a boolean.
+    """
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip().lower() in _BLANK_CELL_TOKENS
+    try:
+        return bool(pd.isna(value))
+    except (TypeError, ValueError):
+        return False
+
 
 class OutOfSchoolSuspensionETL(BaseETL):
     """ETL module for out-of-school suspension data."""
+
+    # KYRC26 headers match KYRC25. Opt in in the pull request that accepts
+    # the file. The KPI year stays on School Year.
+    include_kyrc26 = True
 
     @property
     def module_column_mappings(self) -> Dict[str, str]:
@@ -49,8 +83,8 @@ class OutOfSchoolSuspensionETL(BaseETL):
             'Removal by Hearing Officer IAES2': 'removal_by_hearing_officer',
         }
 
-    def _numeric_clean(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Remove commas and convert numeric columns to numeric types."""
+    def _measure_columns(self, df: pd.DataFrame) -> list:
+        """Return count columns this module knows how to read."""
         numeric_keywords = [
             'out_of_school',
             'in_school',
@@ -62,14 +96,44 @@ class OutOfSchoolSuspensionETL(BaseETL):
             'removal_by_hearing_officer',
             'total_discipline_resolutions',
         ]
-        numeric_cols = [
-            c for c in df.columns if any(k in c.lower() for k in numeric_keywords)
+        return [
+            column for column in df.columns
+            if any(keyword in column.lower() for keyword in numeric_keywords)
         ]
-        for col in numeric_cols:
+
+    def _drop_blank_measure_rows(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Drop a row whose measure cells are all empty.
+
+        notes/8: a row that is not suppressed and has every value empty is
+        not offered. These files have no Suppressed column. A ``*`` is a
+        privacy suppression and stays. KYRC24, KYRC25, KYRC26, and the
+        2020-2023 files have no all-blank measure row, so this does not
+        change their counts.
+        """
+        measure_columns = self._measure_columns(df)
+        if not measure_columns or df.empty:
+            return df
+        blank_row = pd.Series(True, index=df.index)
+        for column in measure_columns:
+            blank_row = blank_row & df[column].map(_cell_is_blank)
+        if not bool(blank_row.any()):
+            return df
+        return df.loc[~blank_row].copy()
+
+    def _numeric_clean(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Remove commas and convert numeric columns to numeric types.
+
+        ``read_csv(..., dtype=str)`` is StringDtype on pandas 3 and object
+        on pandas 2.3.3. This cleaner does not check ``dtype == object``.
+        ``astype(str)`` then ``str.replace`` keeps a count such as
+        ``1,300`` on both. The registered files have no thousands
+        separators. pandas is unpinned.
+        """
+        for col in self._measure_columns(df):
             df[col] = (
                 df[col]
                 .astype(str)
-                .str.replace(',', '')
+                .str.replace(',', '', regex=False)
                 .replace('nan', pd.NA)
             )
             df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -77,6 +141,7 @@ class OutOfSchoolSuspensionETL(BaseETL):
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         """Standardize missing values and create suppression indicator."""
+        df = self._drop_blank_measure_rows(df)
         df = super().standardize_missing_values(df)
         df = self._numeric_clean(df)
 
@@ -114,6 +179,13 @@ class OutOfSchoolSuspensionETL(BaseETL):
                 'out_of_school_suspension_multiple_total_count': multiple_total,
                 'out_of_school_suspension_total_count': single_total + multiple_total,
             })
+        elif 'out_of_school_suspension' in row.index:
+            # Annual Safe Schools SSP3 column. A fully starred CRDC row does
+            # not take this branch: those files have the single/multiple
+            # columns and stay in the branch above.
+            metrics = {
+                'out_of_school_suspension_count': row.get('out_of_school_suspension')
+            }
 
         # Additional counts available in both formats
         in_swd = row.get('in_school_with_disabilities') if 'in_school_with_disabilities' in row.index else None

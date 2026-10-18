@@ -113,6 +113,12 @@ raw_directories:
 
   out_of_school_suspension:
     - "KYRC24_OVW_Student_Suspensions.csv"
+    # The KYRC25 twin returns 200 on datasets and on the historical host.
+    # Those copies are the same bytes. It was not registered. School Year
+    # is 20242025. Collected School Year stays 20202021. The six count
+    # columns match the historical KYRC24 file.
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Student_Suspensions.csv"
     - url: "kyrc26"
       file: "KYRC26_OVW_Student_Suspensions.csv"
     - "safe_schools_discipline_2023.csv"
