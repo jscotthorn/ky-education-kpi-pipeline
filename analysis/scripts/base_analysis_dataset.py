@@ -341,7 +341,7 @@ class BaseAnalysisDataset(ABC):
         Load teacher quality metrics from processed KPI files.
 
         Metrics loaded:
-        - novice_teacher_rate (combined <1yr + 1-3yr)
+        - novice_teacher_rate (combined <1yr + 1-3yr; both parts required)
         - teacher_average_years_experience
         - student_teacher_ratio
         - teacher_turnover_rate
@@ -384,7 +384,12 @@ class BaseAnalysisDataset(ABC):
             rate_cols = ['novice_teacher_rate_less_than_1_year', 'novice_teacher_rate_1_to_3_years']
             existing_cols = [c for c in rate_cols if c in novice_pivot.columns]
             if existing_cols:
-                novice_pivot['novice_teacher_rate'] = novice_pivot[existing_cols].sum(axis=1, skipna=True)
+                # Both parts are required. skipna=True alone stores 2019's
+                # first-year rate as the combined 0-3 year rate. min_count=2
+                # leaves that year NaN. 2019 stays on the first-year metric.
+                novice_pivot['novice_teacher_rate'] = novice_pivot[existing_cols].sum(
+                    axis=1, min_count=2
+                )
                 teacher_metrics['novice_teachers'] = novice_pivot[key_cols + ['novice_teacher_rate']]
                 self.log(f"  Novice teachers: {len(novice_pivot):,} records")
 

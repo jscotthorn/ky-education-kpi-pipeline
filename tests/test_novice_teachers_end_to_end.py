@@ -62,7 +62,8 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     and 2,217. KPI year is 2026, from school year 20252026. District is
     All Districts. There is no Suppressed column and no starred cell.
     A published rate of 0 is kept. The 2022 blank district totals emit
-    nothing.
+    nothing. A 2018-19 blank percent with zero new teachers is stored
+    as 0.0.
     """
     prior_names = [
         "new_teacher_count_18-19.csv",
@@ -284,8 +285,8 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     )["school_name"] == "---State Total---"
 
     # 2018-19 publishes the first-year rate only. The state school code is
-    # built as 999000. A zero new-teacher count with a blank percent emits
-    # nothing.
+    # built as 999000. A blank NEWPCT with zero new teachers and a positive
+    # teacher count is 0 percent.
     first_year = _one(combined, "2019", "999000", "novice_teacher_rate_less_than_1_year")
     assert float(first_year["value"]) == 7.10346186
     assert first_year["district"] == "State"
@@ -295,4 +296,8 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert float(_one(combined, "2019", "165170", "novice_teacher_rate_less_than_1_year")["value"]) == 7.5
     assert float(_one(combined, "2019", "165000", "novice_teacher_rate_less_than_1_year")["value"]) == 7.2
     assert float(_one(combined, "2019", "001010", "novice_teacher_rate_less_than_1_year")["value"]) == 1.9
-    assert _rows(combined, "2019", "001012", "novice_teacher_rate_less_than_1_year").empty
+    learning = _one(combined, "2019", "001012", "novice_teacher_rate_less_than_1_year")
+    assert float(learning["value"]) == 0.0
+    assert learning["suppressed"] == "N"
+    assert learning["school_name"] == "Adair Learning Academy"
+    assert _rows(combined, "2019", "001012", "novice_teacher_rate_1_to_3_years").empty

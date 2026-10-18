@@ -338,9 +338,9 @@ The parser stores the published ratio, the number before the colon in `15:01`. I
 
 KDE's report-card glossary defines an inexperienced teacher as a teacher with 0-3 years of teaching experience. A teacher in the first year (less than 1 year) is a New Teacher. The 2021-22 report-card change note splits that group into less than one year and between one and three years. The quality-assurance worksheet says the counts come from the Kentucky Educator Credentialing System. The students-taught file is the comparison of students taught by those teachers.
 
-The parser stores the two published teacher rates separately. It does not add them into one total. The 2018-19 workbook cover sheet calls its rate the percentage of new teachers, so 2019 emits only the less-than-1-year rate. The 2020 file has a new-teacher count and no rate. The 2021 file has one combined inexperienced-teacher rate (`PERCENT INEXPIENCED TEACHERS`). Those columns are left unmapped so they are not written as either split rate.
+The parser stores the two published teacher rates separately. It does not add them into one total. The 2018-19 workbook cover sheet calls its rate the percentage of new teachers, so 2019 emits only the less-than-1-year rate. A blank percent on that file, with zero new teachers and a positive teacher count, is stored as 0.0. The 2020 file has a new-teacher count and no rate. The 2021 file has one combined inexperienced-teacher rate (`PERCENT INEXPIENCED TEACHERS`). Those columns are left unmapped so they are not written as either split rate.
 
-The registered files have no Suppressed column and no starred cell. A published rate of 0 is kept. An equity-gap cell can be negative, because it is the Title I rate minus the Not Title I rate. The parser still drops a cell below 0. That predates KYRC26. A follow-up should decide whether a negative gap is stored. State rows use district `All Districts` for 2024-2026 and district `State` for 2019-2023.
+The registered files have no Suppressed column and no starred cell. A published rate of 0 is kept. The equity gap is published two ways. 2020-2023 and KYRC26 publish a signed gap (Title I minus Not Title I). KYRC23, KYRC24, and KYRC25 publish the absolute value. The parser still drops a negative cell, so the signed years lose those gaps. That behavior is unchanged here. [Issue #59](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/59) tracks storing a signed gap for every year. [Issue #58](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/58) tracks the registered KYRC24 equity file against the datasets copy. State rows use district `All Districts` for 2024-2026 and district `State` for 2019-2023.
 
 ### Institutional Metrics
 - `novice_teacher_rate_less_than_1_year` - Percentage of teachers with less than 1 year of experience (a New Teacher)
@@ -349,7 +349,7 @@ The registered files have no Suppressed column and no starred cell. A published 
 ### Equity Metrics (Students Taught by Inexperienced Teachers)
 - `students_taught_by_inexperienced_teachers_rate_title_1` - Percentage of students taught by inexperienced teachers in Title I schools
 - `students_taught_by_inexperienced_teachers_rate_not_title_1` - Percentage of students taught by inexperienced teachers in non-Title I schools
-- `students_taught_by_inexperienced_teachers_rate_equity_gap` - Title I rate minus the non-Title I rate. A stored gap is the published non-negative difference
+- `students_taught_by_inexperienced_teachers_rate_equity_gap` - Equity gap. 2020-2023 and KYRC26 publish Title I minus Not Title I, and a negative cell is dropped ([#59](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/59)). KYRC23, KYRC24, and KYRC25 publish the absolute value. The registered KYRC24 copy is the historical file ([#58](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/58))
 
 **Demographics (via `student_group` column):**
 - All Students
@@ -360,7 +360,7 @@ The registered files have no Suppressed column and no starred cell. A published 
 
 **Data Sources**: KYRC26_OVW_Inexperienced_Teachers.csv, KYRC26_OVW_Students_Taught_by_Inexperienced_Teachers.csv, the KYRC25 and KYRC24 twins, inexperienced_teachers_{year}.csv, students_taught_by_inexperienced_teachers_{year}.csv, NEW_TEACHER_COUNT_18-19.xlsx
 **Years Available**: 2019-2026 for the first-year teacher rate (2019 when the workbook can be read); 2022-2026 for the 1-3 year rate; 2020-2026 for the student-equity rates. 2020 and 2021 have no institutional rate rows
-**Unit**: Rate (0-100). The equity gap is a difference of two rates
+**Unit**: Rate (0-100). The stored equity gap is non-negative. Signed years (2020-2023 and KYRC26) drop negatives. The registered 2024 and 2025 files publish the absolute value and are stored as published
 
 ---
 

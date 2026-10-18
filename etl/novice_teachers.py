@@ -17,8 +17,7 @@ Kentucky Educator Credentialing System. The students-taught file is the
 comparison of students taught by those teachers.
 
 The two published rates are stored separately. This module does not add them
-into one total. A total of the two rates is only a lower bound when either
-rate is missing.
+into one total.
 
 KYRC26 uses the same headers as KYRC24 and KYRC25. No temporary OAA extract
 is registered, and the guessed temporary names return 404, so there is no
@@ -29,10 +28,16 @@ skips those names.
 
 The 2018-19 workbook is a gap in the series. Its cover sheet calls the rate
 "Percentage of New Teachers." That is the first-year rate, not the 1-3 year
-rate, so only ``novice_teacher_rate_less_than_1_year`` is emitted. The
-2020 file has a new-teacher count and no rate. The 2021 file has one
-combined ``PERCENT INEXPIENCED TEACHERS`` rate. Those columns are not the
-two split rates, so they are not mapped onto either KPI.
+rate, so only ``novice_teacher_rate_less_than_1_year`` is emitted. On that
+file a blank ``NEWPCT`` with ``NEWTEACHERS`` 0 and ``TEACHERS`` above 0 is
+0 percent: every other row matches new teachers divided by teachers.
+Those rows are stored as 0.0 with ``suppressed`` ``N``. A blank percent
+without that zero count stays skipped. The 2020 file has a new-teacher
+count and no rate. The 2021 file has one combined ``PERCENT INEXPIENCED
+TEACHERS`` rate. Those columns are not the two split rates, so they are
+not mapped onto either KPI. The analysis dataset requires both split
+rates before it builds a combined series, so 2019 stays the first-year
+metric only.
 """
 from pathlib import Path
 import pandas as pd
@@ -290,9 +295,13 @@ class NoviceTeachersETL(BaseETL):
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics = {}
 
-        # Institutional rates. A published 0 is kept. A blank cell is not
-        # a rate. The 2018-19 workbook only has the less-than-1-year rate.
+        # Institutional rates. A published 0 is kept. The 2018-19 workbook
+        # leaves NEWPCT blank when the new-teacher count is 0. That blank
+        # is 0 percent when the teacher count is positive. Any other blank
+        # percent is not a rate. The workbook has no 1-3 year column.
         percent_less_than_1 = _parse_number(row.get('percent_new_teachers_less_than_1_year', pd.NA))
+        if pd.isna(percent_less_than_1) and self._blank_percent_is_zero_new_teachers(row):
+            percent_less_than_1 = 0.0
         if pd.notna(percent_less_than_1) and percent_less_than_1 >= 0:
             metrics['novice_teacher_rate_less_than_1_year'] = percent_less_than_1
 
@@ -301,12 +310,11 @@ class NoviceTeachersETL(BaseETL):
             metrics['novice_teacher_rate_1_to_3_years'] = percent_1_to_3
 
         # Equity rates. Title I, Not Title I, and Equity Gap are separate
-        # rows, and each demographic is its own KPI. An equity-gap cell can
-        # be negative: it is Title I minus Not Title I, not a rate bounded
-        # at 0. The ``>= 0`` check drops those cells. That predates KYRC26.
-        # It is a known deviation. A follow-up should decide whether a
-        # negative gap is stored. This pull request does not change it,
-        # because doing so would change the 2020-2023 and 2026 row counts.
+        # rows, and each demographic is its own KPI. 2020-2023 and KYRC26
+        # publish a signed gap (Title I minus Not Title I). KYRC24 and
+        # KYRC25 publish the absolute value. The ``>= 0`` check drops the
+        # signed negatives. That predates KYRC26. Issue #59 tracks storing
+        # a signed gap. This pull request does not change the drop.
         title_i_status = self._title_status(row)
         if title_i_status in _TITLE_STATUSES:
             title_i_suffix = title_i_status.lower().replace(' ', '_')
@@ -426,8 +434,31 @@ class NoviceTeachersETL(BaseETL):
         if has_equity and self._all_measures_blank(row, _DEMOGRAPHIC_KEYS):
             return True
         if has_institutional and not has_equity and self._all_measures_blank(row, _INSTITUTIONAL_RATES):
-            return True
+            # A blank 2018-19 percent with zero new teachers is 0%, not a
+            # missing rate. A blank percent with no zero count stays skipped.
+            return not self._blank_percent_is_zero_new_teachers(row)
         return False  # Don't call super() - may not have demographics in institutional file
+
+    def _blank_percent_is_zero_new_teachers(self, row: pd.Series) -> bool:
+        """True when a blank first-year percent is a published zero.
+
+        The 2018-19 workbook leaves ``NEWPCT`` blank on the rows where
+        ``NEWTEACHERS`` is 0 and ``TEACHERS`` is above 0. On every other
+        row the percent equals that count divided by the teacher count.
+        The 2022 blank district totals have empty counts, so they stay
+        skipped.
+        """
+        percent = _parse_number(row.get("percent_new_teachers_less_than_1_year", pd.NA))
+        if pd.notna(percent):
+            return False
+        new_teachers = _parse_number(row.get("new_teachers_less_than_1_year", pd.NA))
+        teachers = _parse_number(row.get("teacher_count", pd.NA))
+        return (
+            pd.notna(new_teachers)
+            and new_teachers == 0
+            and pd.notna(teachers)
+            and teachers > 0
+        )
 
     def _fill_workbook_school_code(self, df: pd.DataFrame) -> pd.DataFrame:
         """Build a 6-digit school code for the 2018-19 workbook.
