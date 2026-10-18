@@ -224,6 +224,7 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
 - **Kentucky Summative Assessment** - Performance levels and content index by subject
 - **Out-of-School Suspension** - CRDC in-school and out-of-school suspension counts by disability status. The KPI year is the report-card year: 2026 is the 2021-22 CRDC collection and 2024 is the 2020-21 collection. The output has no collected-year column. Annual SSP3 counts stay in Safe Schools Discipline
 - **CTE Participation** - Career and technical education participation rates
+- **Dual Credit** - Unduplicated dual credit students by demographic, and duplicated course enrollments by subject. KDE defines participation as one count per student and courses offered as one count per course. A qualifying grade is a C or better. State rows are district `All Districts` for 2023-2026. The 2026 state student enrollment is 55,553 and the 2026 state course enrollment is 143,848. District course enrollment equals the state in 2024-2026. District student counts sit about 200 above the state in every year, which is the unduplicated state total
 - **Safe Schools Climate** - School climate survey results and index scores
 - **Safe Schools Discipline** - Detailed discipline resolution tracking
 - **Student Enrollment** - Student enrollment counts by grade level (PreK-12) with primary, middle, and secondary aggregations

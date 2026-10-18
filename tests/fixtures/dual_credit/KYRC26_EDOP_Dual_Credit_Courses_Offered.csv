@@ -1,0 +1,6 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Advanced Course Type,Subject,Course Enrollment,Course Completers,Students With Qualifying Score
+20252026,,,999,All Districts,,All Schools,999000,,,,,,Dual Credit,All Enrollments,"143,848","132,208","124,596"
+20252026,,,999,All Districts,,All Schools,999000,,,,,,Dual Credit,Mathematics,945,819,754
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,Dual Credit,All Enrollments,"7,684","7,202","6,762"
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,Dual Credit,All Enrollments,886,844,739
+20252026,059,KENTON,291,Kenton County,120,Scott High School,291120,059291120,210309000823,NKCES,905,A1,Dual Credit,All Enrollments,*,927,834
