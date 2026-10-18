@@ -38,12 +38,13 @@ is the 2019-20 report card and is registered. It publishes counts and
 no percents. No temporary OAA name was registered, and the guessed
 temporary names return 404.
 
-These files have no Suppressed column. A ``*`` cell is dropped and the
-row is stored as ``suppressed`` ``N`` when another measure on the row is
-published. A fully starred row emits nothing. That is a deviation from
-notes/8. A follow-up should decide whether a starred cell is kept as
-``suppressed`` ``Y``. This module does not lock that choice in as the
-rule for later work.
+These files have no Suppressed column. A ``*`` on a certification cell
+is stored as value NA with ``suppressed`` ``Y``. A blank cell is not a
+star and is not stored. ``teacher_certifications_2020.csv``,
+``teacher_certifications_2021.csv``, and ``teacher_certifications_2022.csv``
+repeat school codes. The copies agree on the teacher count and the
+emergency/provisional cells and disagree on National Board. The copy
+with the larger National Board count is kept.
 """
 from pathlib import Path
 import pandas as pd
@@ -56,6 +57,10 @@ etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
 from base_etl import BaseETL, Config
+try:
+    from constants import KPI_COLUMNS
+except ImportError:  # pragma: no cover - allow running as a script
+    from etl.constants import KPI_COLUMNS
 
 logger = logging.getLogger(__name__)
 
@@ -78,13 +83,85 @@ _MEASURE_COLUMNS = (
     "national_board_certified_percent",
 )
 
-# A row with none of these parsed is not a certification record.
+# A row with none of these parsed, and no star, is not a certification record.
 _KPI_SOURCE_COLUMNS = (
     "emergency_provisional_count",
     "emergency_provisional_percent",
     "national_board_certified_count",
     "national_board_certified_percent",
 )
+
+# KPI name for each source column. Teacher count is the denominator and
+# is not in this map. Rank I and Rank II are not in this map.
+_METRIC_FOR_COLUMN = {
+    "emergency_provisional_percent": "emergency_provisional_teacher_rate",
+    "emergency_provisional_count": "emergency_provisional_teacher_count",
+    "national_board_certified_percent": "national_board_certified_rate",
+    "national_board_certified_count": "national_board_certified_count",
+}
+
+# 2020-2022 publish two or three rows for the same school code. The
+# copies agree on teacher count and emergency/provisional and disagree
+# on National Board. Later files do not repeat codes, so the rule is
+# limited to these filenames.
+_DUPLICATE_NB_FILES = frozenset({
+    "teacher_certifications_2020.csv",
+    "teacher_certifications_2021.csv",
+    "teacher_certifications_2022.csv",
+})
+
+
+def _star_column_name(column: str) -> str:
+    """Boolean column that remembers a ``*`` after the cell becomes NA."""
+    return f"_star_{column}"
+
+
+def _is_star_text(value: Any) -> bool:
+    """True when the cell text is a privacy star.
+
+    A blank is not a star. ``bool(pd.NA)`` is not used.
+    """
+    if isinstance(value, str):
+        return value.strip() in {"*", "**"}
+    return False
+
+
+def _star_mask(series: pd.Series) -> pd.Series:
+    """Boolean mask of ``*`` cells, false for blanks and numbers.
+
+    pandas 3 ``dtype=str`` is StringDtype. pandas 2.3.3 is object. Both
+    go through ``astype("string")``. A missing cell is false, not NA,
+    so later code never calls ``bool`` on ``pd.NA``.
+    """
+    if not _is_string_like(series):
+        return pd.Series(False, index=series.index)
+    stripped = series.astype("string").str.strip()
+    return stripped.isin(["*", "**"]).fillna(False).astype(bool)
+
+
+def _flag_is_set(value: Any) -> bool:
+    """True for a recorded star flag. Missing and false stay false."""
+    try:
+        if bool(pd.isna(value)):
+            return False
+    except (TypeError, ValueError):
+        return False
+    if isinstance(value, str):
+        return False
+    return bool(value)
+
+
+def _metric_was_starred(row: pd.Series, column: str) -> bool:
+    """True when this certification cell was a ``*``.
+
+    ``standardize_missing_values`` records the position before it turns
+    the star into NA. A caller that still has the raw ``*`` is recognized
+    from the cell text.
+    """
+    flag_name = _star_column_name(column)
+    if flag_name in row.index:
+        return _flag_is_set(row.get(flag_name))
+    return _is_star_text(row.get(column))
 
 
 def _is_string_like(series: pd.Series) -> bool:
@@ -240,33 +317,103 @@ class TeacherCertificationETL(BaseETL):
         }
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Replace missing tokens, then strip commas and percent signs.
+        """Record ``*`` positions, then strip commas and percent signs.
 
         The base method only rewrites ``dtype == object``. pandas 3
         ``dtype=str`` is StringDtype, so the cleaner here is
         dtype-agnostic. ``BaseETL.standardize_missing_values`` is not
-        changed.
+        changed. A ``*`` is recorded before it becomes NA, and that cell
+        is later written with ``suppressed`` ``Y``. A blank is not recorded.
         """
+        star_columns = {
+            column: _star_mask(df[column])
+            for column in _KPI_SOURCE_COLUMNS
+            if column in df.columns
+        }
         df = super().standardize_missing_values(df)
-        return _clean_measure_columns(df)
+        df = _clean_measure_columns(df)
+        for column, mask in star_columns.items():
+            df[_star_column_name(column)] = mask.to_numpy()
+        return df
+
+    def _keep_larger_national_board_copy(
+        self, df: pd.DataFrame, source_file: str
+    ) -> pd.DataFrame:
+        """Keep one row per school code in the 2020-2022 files.
+
+        Those files repeat school codes. The copies agree on the teacher
+        count and on both emergency/provisional cells. They disagree on
+        the National Board count and percent. The larger National Board
+        count is the copy that sums to the state (3,168 in 2020, 3,147
+        in 2021, 3,108 in 2022). A missing count sorts below a published
+        number, including 0. 2023-2026 do not repeat codes and are left
+        as published.
+        """
+        if Path(source_file).name.lower() not in _DUPLICATE_NB_FILES:
+            return df
+        if "school_code" not in df.columns or df.empty:
+            return df
+        code = df["school_code"].astype("string").str.strip()
+        coded = code.notna() & code.ne("")
+        if not bool(coded.any()):
+            return df
+        counts = code[coded].value_counts()
+        repeated = set(counts[counts > 1].index)
+        if not repeated:
+            return df
+
+        work = df.copy()
+        work["_school_code_key"] = code
+        nbc = work.get("national_board_certified_count")
+        if nbc is None:
+            work["_nbc_sort"] = pd.Series(pd.NA, index=work.index, dtype="Float64")
+        else:
+            work["_nbc_sort"] = pd.to_numeric(nbc, errors="coerce")
+        percent = work.get("national_board_certified_percent")
+        if percent is None:
+            work["_nbp_sort"] = pd.Series(pd.NA, index=work.index, dtype="Float64")
+        else:
+            work["_nbp_sort"] = pd.to_numeric(percent, errors="coerce")
+        work["_orig"] = range(len(work))
+        repeated_rows = work["_school_code_key"].isin(repeated)
+        kept_unique = work.loc[~repeated_rows]
+        candidates = work.loc[repeated_rows].sort_values(
+            ["_school_code_key", "_nbc_sort", "_nbp_sort", "_orig"],
+            ascending=[True, False, False, True],
+            na_position="last",
+        )
+        kept_repeated = candidates.drop_duplicates("_school_code_key", keep="first")
+        dropped = int(repeated_rows.sum() - len(kept_repeated))
+        logger.info(
+            "Kept the larger National Board copy in %s; dropped %s extra rows",
+            Path(source_file).name,
+            dropped,
+        )
+        combined = pd.concat([kept_unique, kept_repeated], ignore_index=False)
+        combined = combined.sort_values("_orig")
+        return combined.drop(columns=["_school_code_key", "_nbc_sort", "_nbp_sort", "_orig"])
 
     def should_skip_row(self, row: pd.Series) -> bool:
         """
         Skip a row that has no school code or no certification measure.
 
         Teacher certification has no demographic column. A row is not
-        skipped for that. A row whose certification cells are all blank
-        or starred has nothing to store. A published 0 is not blank, so a
-        0% is not skipped. The check looks at the count as well as the
-        percent: a blank percent with a positive count is not skipped.
+        skipped for that. A published 0 is not blank, so a 0% is not
+        skipped. A ``*`` is a measure and is not skipped: it is stored
+        as suppressed. A row whose certification cells are all blank
+        has nothing to store. The check looks at the count as well as
+        the percent: a blank percent with a positive count is not skipped.
         """
         school_code = row.get('school_code', '')
         if _is_missing(school_code) or school_code == '':
             return True
 
         present = [name for name in _KPI_SOURCE_COLUMNS if name in row.index]
-        if not present:
+        starred = [name for name in _KPI_SOURCE_COLUMNS if _metric_was_starred(row, name)]
+        if not present and not starred:
             return True
+        for name in starred:
+            return False
         for name in present:
             if not _is_missing(_parse_number(row.get(name, pd.NA))):
                 return False
@@ -312,28 +459,54 @@ class TeacherCertificationETL(BaseETL):
 
         The rate is the published percent. It is not
         ``count / teacher_count``. Rank I and Rank II are not read.
-        A ``*`` cell is missing here. These files have no Suppressed
-        column, so a dropped star is not marked ``suppressed`` ``Y``.
+        A ``*`` cell is included as NA. ``convert_to_kpi_format`` writes
+        that metric with ``suppressed`` ``Y``. A blank cell is omitted.
         """
         metrics: Dict[str, Any] = {}
-
-        ep_percent = self._metric_value(row.get('emergency_provisional_percent', pd.NA))
-        if not _is_missing(ep_percent):
-            metrics['emergency_provisional_teacher_rate'] = ep_percent
-
-        ep_count = self._metric_value(row.get('emergency_provisional_count', pd.NA))
-        if not _is_missing(ep_count):
-            metrics['emergency_provisional_teacher_count'] = ep_count
-
-        nbc_percent = self._metric_value(row.get('national_board_certified_percent', pd.NA))
-        if not _is_missing(nbc_percent):
-            metrics['national_board_certified_rate'] = nbc_percent
-
-        nbc_count = self._metric_value(row.get('national_board_certified_count', pd.NA))
-        if not _is_missing(nbc_count):
-            metrics['national_board_certified_count'] = nbc_count
-
+        for column, metric_name in _METRIC_FOR_COLUMN.items():
+            if column not in row.index and not _metric_was_starred(row, column):
+                continue
+            if _metric_was_starred(row, column):
+                metrics[metric_name] = pd.NA
+                continue
+            value = self._metric_value(row.get(column, pd.NA))
+            if not _is_missing(value):
+                metrics[metric_name] = value
         return metrics
+
+    def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """Write a published cell as ``N`` and a ``*`` cell as ``Y``.
+
+        The 2020-2022 files are reduced to the larger National Board copy
+        before the rows are written. A blank certification cell is not a
+        row. A fully starred row writes one suppressed metric per star.
+        """
+        df = self._keep_larger_national_board_copy(df, source_file)
+        kpi_rows = []
+        for _, row in df.iterrows():
+            if self.should_skip_row(row):
+                continue
+            kpi_template = self.create_kpi_template(row, source_file)
+            if kpi_template is None:
+                continue
+            metrics = self.extract_metrics(row)
+            for metric_name, value in metrics.items():
+                kpi_record = kpi_template.copy()
+                kpi_record["metric"] = metric_name
+                if _is_missing(value):
+                    kpi_record["value"] = pd.NA
+                    kpi_record["suppressed"] = "Y"
+                else:
+                    kpi_record["value"] = float(value)
+                    kpi_record["suppressed"] = "N"
+                kpi_rows.append(kpi_record)
+
+        if not kpi_rows:
+            logger.warning("No valid KPI rows created")
+            return pd.DataFrame()
+        kpi_df = pd.DataFrame(kpi_rows)
+        available_columns = [col for col in KPI_COLUMNS if col in kpi_df.columns]
+        return kpi_df[available_columns]
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         """Get default metrics for suppressed teacher certification records."""

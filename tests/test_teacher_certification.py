@@ -118,12 +118,11 @@ class TestTeacherCertificationETL:
         assert metrics['national_board_certified_count'] == 5.0
 
     def test_extract_metrics_with_suppressed_values(self):
-        """A ``*`` cell is not stored.
+        """A ``*`` cell is stored as value NA with suppressed Y.
 
-        These files have no Suppressed column, so the dropped star is not
-        marked ``suppressed`` ``Y``. That deviates from notes/8. The
-        follow-up is the same shape as issues #44 and #46. This test
-        records the current behavior. It is not a rule for later modules.
+        These files have no Suppressed column. ``standardize_missing_values``
+        records the star, and the KPI row keeps it. A published cell on
+        the same row stays suppressed N.
         """
         data = pd.DataFrame({
             'School Year': ['20232024'],
@@ -144,12 +143,18 @@ class TestTeacherCertificationETL:
         row = data.iloc[0]
         metrics = self.etl.extract_metrics(row)
 
-        # Suppressed values should not be in metrics
-        assert 'emergency_provisional_teacher_rate' not in metrics
-        assert 'emergency_provisional_teacher_count' not in metrics
-        # Non-suppressed values should be present
-        assert 'national_board_certified_rate' in metrics
-        assert 'national_board_certified_count' in metrics
+        assert pd.isna(metrics['emergency_provisional_teacher_rate'])
+        assert pd.isna(metrics['emergency_provisional_teacher_count'])
+        assert metrics['national_board_certified_rate'] == 30.0
+        assert metrics['national_board_certified_count'] == 3.0
+
+        kpi = self.etl.convert_to_kpi_format(data, "KYRC24_OVW_Teacher_Certification_Data.csv")
+        starred = kpi[kpi['metric'] == 'emergency_provisional_teacher_count'].iloc[0]
+        assert starred['suppressed'] == 'Y'
+        assert pd.isna(starred['value'])
+        published = kpi[kpi['metric'] == 'national_board_certified_count'].iloc[0]
+        assert published['suppressed'] == 'N'
+        assert published['value'] == 3.0
 
     def test_extract_metrics_with_missing_data(self):
         """Test that rows with all missing data return empty metrics."""
@@ -338,8 +343,7 @@ class TestTeacherCertificationKyrc26:
 
     Fixtures are verbatim rows from the downloaded files. The KYRC24
     headers keep their trailing spaces, the rate cells keep ``%``, and
-    ``0.0`` is not rewritten to a blank. The co-op cell ``-84.21926253``
-    is the historical value.
+    ``0.0`` is not rewritten to a blank.
     """
 
     def setup_method(self):
@@ -416,17 +420,19 @@ class TestTeacherCertificationKyrc26:
     def test_real_rows_match_the_downloaded_files(self):
         """State, district, school, a real zero, a placeholder, and a blank.
 
-        There is no Suppressed column. A starred cell is not stored, which
-        deviates from notes/8 (see the star test above). A blank National
-        Board cell is not stored as 0. A 0% with teachers is a real zero.
-        A 0% with a teacher count of 0 is a placeholder and is still stored.
-        Rank I and Rank II are not metrics. The 2026 emergency percent is
-        the published 14.3, not a rebuilt ratio.
+        There is no Suppressed column. A starred cell is value NA and
+        suppressed Y. A blank National Board cell is not stored as 0.
+        A 0% with teachers is a real zero. A 0% with a teacher count of 0
+        is a placeholder and is still stored. Rank I and Rank II are not
+        metrics. The 2026 emergency percent is the published 14.3, not a
+        rebuilt ratio.
         """
         self._copy_fixtures()
         transform(self.raw_dir, self.proc_dir, self._production_config())
         result = pd.read_csv(self.proc_dir / "teacher_certification.csv", dtype=str)
-        assert (result["suppressed"] == "N").all()
+        published = result["value"].fillna("").ne("")
+        assert (result.loc[published, "suppressed"] == "N").all()
+        assert (result.loc[~published, "suppressed"] == "Y").all()
         assert (result["student_group"] == "All Students").all()
         assert set(result["metric"]) == {
             "emergency_provisional_teacher_rate",
@@ -434,16 +440,9 @@ class TestTeacherCertificationKyrc26:
             "national_board_certified_rate",
             "national_board_certified_count",
         }
-        # 001010 is absent in 2025 (starred) and present in other years.
-        assert "011030" not in set(result["school_id"])
-        assert "015070" not in set(result["school_id"])
-        assert "197002" not in set(result["school_id"])
-        assert "121026" not in set(result["school_id"])
+        # Allen County Career and Technical Center is blank on every measure.
         assert not (
             (result["year"] == "2026") & (result["school_id"] == "005901")
-        ).any()
-        assert not (
-            (result["year"] == "2025") & (result["school_id"] == "001010")
         ).any()
 
         def cell(year, school_id, metric):
@@ -462,6 +461,11 @@ class TestTeacherCertificationKyrc26:
                 & (result["metric"] == metric)
             ]
             assert len(rows) == 0, f"{year} {school_id} {metric} was stored"
+
+        def suppressed(year, school_id, metric):
+            row = cell(year, school_id, metric)
+            assert row["suppressed"] == "Y", f"{year} {school_id} {metric}"
+            assert pd.isna(row["value"]) or str(row["value"]).strip() == ""
 
         state = cell("2026", "999000", "emergency_provisional_teacher_rate")
         assert float(state["value"]) == 14.3
@@ -513,9 +517,20 @@ class TestTeacherCertificationKyrc26:
         assert float(cell("2025", "165000", "national_board_certified_rate")["value"]) == 5.8
         assert cell("2025", "165170", "national_board_certified_rate")["nces_id"] == "210186000000"
         assert float(cell("2025", "165170", "national_board_certified_count")["value"]) == 6.0
-        missing("2025", "165170", "emergency_provisional_teacher_rate")
+        # Emergency cells are *. National Board on the same row stays published.
+        suppressed("2025", "165170", "emergency_provisional_teacher_rate")
+        suppressed("2025", "165170", "emergency_provisional_teacher_count")
         assert float(cell("2025", "001000", "emergency_provisional_teacher_rate")["value"]) == 3.3
-        missing("2025", "001000", "national_board_certified_count")
+        suppressed("2025", "001000", "national_board_certified_count")
+        suppressed("2025", "001000", "national_board_certified_rate")
+        # Adair County High is starred on all four certification cells.
+        for metric in (
+            "emergency_provisional_teacher_rate",
+            "emergency_provisional_teacher_count",
+            "national_board_certified_rate",
+            "national_board_certified_count",
+        ):
+            suppressed("2025", "001010", metric)
 
         # 0.0 with a blank teacher count and a blank emergency count.
         # The percent is a placeholder and is stored. The blank count is not.
@@ -536,6 +551,15 @@ class TestTeacherCertificationKyrc26:
         assert float(cell("2024", "165000", "emergency_provisional_teacher_count")["value"]) == 31.0
         missing("2024", "165000", "national_board_certified_rate")
         missing("2024", "165000", "national_board_certified_count")
+        # Baker Intermediate is starred on every certification cell, including
+        # the teacher count. All four KPI metrics are stored as Y.
+        for metric in (
+            "emergency_provisional_teacher_rate",
+            "emergency_provisional_teacher_count",
+            "national_board_certified_rate",
+            "national_board_certified_count",
+        ):
+            suppressed("2024", "121026", metric)
 
         breathitt = cell("2023", "061", "emergency_provisional_teacher_rate")
         assert float(breathitt["value"]) == 5.22
@@ -552,7 +576,12 @@ class TestTeacherCertificationKyrc26:
         assert float(cell("2023", "001010", "emergency_provisional_teacher_rate")["value"]) == 0.0
         assert float(cell("2023", "001010", "emergency_provisional_teacher_count")["value"]) == 0.0
         assert float(cell("2023", "001010", "national_board_certified_rate")["value"]) == 9.62
-        missing("2023", "005901", "emergency_provisional_teacher_rate")
+        # Allen County Career and Technical Center: the percents are * and
+        # both counts are blank. Only the starred percents are stored.
+        suppressed("2023", "005901", "emergency_provisional_teacher_rate")
+        suppressed("2023", "005901", "national_board_certified_rate")
+        missing("2023", "005901", "emergency_provisional_teacher_count")
+        missing("2023", "005901", "national_board_certified_count")
 
         assert float(cell("2022", "999", "emergency_provisional_teacher_rate")["value"]) == 6.98
         assert float(cell("2022", "999", "national_board_certified_count")["value"]) == 3108.0
@@ -586,6 +615,20 @@ class TestTeacherCertificationKyrc26:
         assert float(cell("2020", "001010", "emergency_provisional_teacher_count")["value"]) == 3.0
         assert float(cell("2020", "001010", "national_board_certified_count")["value"]) == 4.0
         missing("2020", "001010", "emergency_provisional_teacher_rate")
+
+        # KYRC26 stars the emergency cells and leaves National Board blank.
+        suppressed("2026", "011030", "emergency_provisional_teacher_rate")
+        suppressed("2026", "011030", "emergency_provisional_teacher_count")
+        missing("2026", "011030", "national_board_certified_rate")
+        missing("2026", "011030", "national_board_certified_count")
+        suppressed("2026", "015070", "emergency_provisional_teacher_rate")
+        suppressed("2026", "015070", "emergency_provisional_teacher_count")
+        missing("2026", "015070", "national_board_certified_count")
+        # Teacher count 0, emergency count *, emergency percent blank.
+        suppressed("2026", "197002", "emergency_provisional_teacher_count")
+        missing("2026", "197002", "emergency_provisional_teacher_rate")
+        missing("2026", "197002", "national_board_certified_count")
+        missing("2026", "197002", "national_board_certified_rate")
 
     def test_comma_and_percent_sign_survive_an_int64_cast(self):
         """Comma counts and a ``%`` rate survive StringDtype and Int64.
@@ -632,9 +675,10 @@ class TestTeacherCertificationKyrc26:
     def test_number_parsing_is_dtype_agnostic(self):
         """pandas 3 StringDtype and pandas 2 object follow the same rules.
 
-        ``*`` and a blank stay missing. ``0`` stays 0. A comma and a percent
-        sign are stripped. ``bool(pd.NA)`` is not used to detect the dtype.
-        A blank percent is not turned into 0 when the count is positive.
+        A ``*`` is included as NA. A blank is omitted. ``0`` stays 0. A
+        comma and a percent sign are stripped. ``bool(pd.NA)`` is not used
+        to detect the dtype. A blank percent is not turned into 0 when the
+        count is positive.
         """
         frame = pd.DataFrame({
             "school_code": pd.Series(
@@ -668,7 +712,9 @@ class TestTeacherCertificationKyrc26:
         assert blank["emergency_provisional_teacher_count"] == 11.0
         assert self.etl.extract_metrics(frame.iloc[3])["emergency_provisional_teacher_rate"] == 1.0
         starred = self.etl.extract_metrics(frame.iloc[3])
-        assert "national_board_certified_count" not in starred
+        assert pd.isna(starred["national_board_certified_count"])
+        assert pd.isna(starred["national_board_certified_rate"])
+        assert self.etl.should_skip_row(frame.iloc[3]) is False
         assert self.etl.should_skip_row(frame.iloc[4]) is False
         assert self.etl.extract_metrics(frame.iloc[4]) == {
             "national_board_certified_rate": 0.0,
@@ -679,6 +725,98 @@ class TestTeacherCertificationKyrc26:
         assert self.etl.extract_metrics(as_object.iloc[2])["emergency_provisional_teacher_rate"] == 21.2
         assert "national_board_certified_rate" not in self.etl.extract_metrics(as_object.iloc[2])
         assert self.etl.extract_metrics(as_object.iloc[1])["emergency_provisional_teacher_rate"] == 0.0
+        object_star = self.etl.extract_metrics(as_object.iloc[3])
+        assert pd.isna(object_star["national_board_certified_count"])
+        assert pd.isna(object_star["national_board_certified_rate"])
+
+    def test_repeated_school_codes_keep_the_larger_national_board_count(self):
+        """2020-2022 repeat school codes. The larger National Board copy stays.
+
+        The copies agree on the teacher count and on emergency/provisional.
+        They disagree on National Board. Keeping the larger count is what
+        makes the district National Board sum equal the state. A later
+        filename that repeats a code is left as published. When the counts
+        tie, the larger percent is kept.
+        """
+        header_2020 = (
+            "SCHOOL YEAR,COUNTY NUMBER,COUNTY NAME,DISTRICT NUMBER,DISTRICT NAME,"
+            "SCHOOL NUMBER,SCHOOL NAME,SCHOOL CODE,STATE SCHOOL ID,NCES ID,CO-OP,"
+            "CO-OP CODE,TEACHER COUNT,EMERGENCY/PROVISIONAL TEACHER COUNT,"
+            "NATIONAL BOARD CERTIFIED COUNT\n"
+        )
+        (self.sample_dir / "teacher_certifications_2020.csv").write_text(
+            header_2020
+            + "20192020,090,NELSON,017,Bardstown Independent,012,"
+            "Bardstown Primary School,017012,090017012,210027002050,CKEC,901,36,0,6\n"
+            + "20192020,090,NELSON,017,Bardstown Independent,012,"
+            "Bardstown Primary School,017012,090017012,210027002050,CKEC,901,36,0,0\n"
+        )
+        header_2021 = (
+            "SCHOOL YEAR,COUNTY NUMBER,COUNTY NAME,DISTRICT NUMBER,DISTRICT NAME,"
+            "SCHOOL NUMBER,SCHOOL NAME,SCHOOL CODE,STATE SCHOOL ID,NCES ID,CO-OP,"
+            "CO-OP CODE,SCHOOL TYPE,TEACHER COUNT,EMERGENCY/PROVISIONAL TEACHER COUNT,"
+            "PERCENT EMERGENCY/PROVISIONAL TEACHERS,NATIONAL BOARD CERTIFIED COUNT,"
+            "PERCENT NATIONAL BOARD CERTIFIED TEACHERS\n"
+        )
+        boone = (
+            '20202021,008,BOONE,035,Boone County,"",---District Total---,035,"","",'
+            "NKCES,905,\"\",1358,26,1.91,{count},{percent}\n"
+        )
+        # Same National Board count, so the larger percent is the tie-break.
+        tie = (
+            '20202021,001,ADAIR,001,Adair County,"",---District Total---,001,"","",'
+            "GRREC,902,\"\",10,1,1.00,5,{percent}\n"
+        )
+        (self.sample_dir / "teacher_certifications_2021.csv").write_text(
+            header_2021
+            + boone.format(count=82, percent="6.04")
+            + boone.format(count=7, percent="0.52")
+            + tie.format(percent="1.00")
+            + tie.format(percent="9.00")
+        )
+        barren = (
+            '20212022,005,BARREN,021,Barren County,"",---District Total---,021,"","",'
+            "GRREC,902,\"\",335,25,7.46,{count},{percent}\n"
+        )
+        (self.sample_dir / "teacher_certifications_2022.csv").write_text(
+            header_2021
+            + barren.format(count=0, percent="0")
+            + barren.format(count=1, percent="0.30")
+            + barren.format(count=24, percent="7.16")
+        )
+        # The same Boone pair under a later filename is not collapsed.
+        (self.sample_dir / "KYRC26_OVW_Teacher_Certification_Data.csv").write_text(
+            header_2021
+            + boone.format(count=82, percent="6.04")
+            + boone.format(count=7, percent="0.52")
+        )
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "teacher_certification.csv", dtype=str)
+
+        def values(source, school_id, metric):
+            rows = result[
+                (result["source_file"] == source)
+                & (result["school_id"] == school_id)
+                & (result["metric"] == metric)
+            ]
+            return sorted(float(value) for value in rows["value"])
+
+        assert values("teacher_certifications_2020.csv", "017012", "national_board_certified_count") == [6.0]
+        assert values("teacher_certifications_2020.csv", "017012", "emergency_provisional_teacher_count") == [0.0]
+        assert values("teacher_certifications_2021.csv", "035", "national_board_certified_count") == [82.0]
+        assert values("teacher_certifications_2021.csv", "035", "national_board_certified_rate") == [6.04]
+        assert values("teacher_certifications_2021.csv", "035", "emergency_provisional_teacher_count") == [26.0]
+        assert values("teacher_certifications_2021.csv", "035", "emergency_provisional_teacher_rate") == [1.91]
+        assert values("teacher_certifications_2021.csv", "001", "national_board_certified_count") == [5.0]
+        assert values("teacher_certifications_2021.csv", "001", "national_board_certified_rate") == [9.0]
+        assert values("teacher_certifications_2022.csv", "021", "national_board_certified_count") == [24.0]
+        assert values("teacher_certifications_2022.csv", "021", "national_board_certified_rate") == [7.16]
+        assert values("teacher_certifications_2022.csv", "021", "emergency_provisional_teacher_count") == [25.0]
+        assert values(
+            "KYRC26_OVW_Teacher_Certification_Data.csv",
+            "035",
+            "national_board_certified_count",
+        ) == [7.0, 82.0]
 
 
 def test_registered_sources_are_the_permanent_files():
