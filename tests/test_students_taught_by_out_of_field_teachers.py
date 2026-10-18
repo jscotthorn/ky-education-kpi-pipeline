@@ -5,11 +5,14 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
 from etl.students_taught_by_out_of_field_teachers import (
     transform, StudentsTaughtByOutOfFieldTeachersETL
 )
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestStudentsTaughtByOutOfFieldTeachersETL:
@@ -336,7 +339,16 @@ class TestStudentsTaughtByOutOfFieldTeachersETL:
         assert len(student_groups) >= 5  # Should have multiple demographics
 
     def test_negative_equity_gap_values(self):
-        """Test that negative values in equity gap are handled correctly."""
+        """A published negative equity-gap cell is stored.
+
+        In 2021-2023 and in KYRC26 the published gap is Title I minus Not
+        Title I, so a negative cell is one where Title I is lower. The
+        registered 2024 and 2025 files publish the absolute value and have
+        no negatives. Issue #59
+        (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/59)
+        tracks the signed gap. This module stores the published cell,
+        including this constructed -2.5. The drop is not suppression ``Y``.
+        """
         data = pd.DataFrame({
             'School Year': ['20242025'],
             'County Number': ['001'],
@@ -408,3 +420,259 @@ class TestStudentsTaughtByOutOfFieldTeachersETL:
         # Zero values should be included
         assert len(kpi_df) == 9  # 9 demographic groups
         assert all(kpi_df['value'] == 0.0)
+
+    def _production_config(self) -> dict:
+        config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+        return config["sources"]["students_taught_by_out_of_field_teachers"]
+
+    def test_kyrc26_file_is_accepted(self):
+        """The permanent KYRC files and the 2021-2023 names stay in scope.
+
+        The 2019-20 file is not accepted. Issue #66 holds whether to bring
+        it back. A leftover copy must not be discovered as a data file.
+        """
+        assert self.etl.include_kyrc26 is True
+        assert self.etl.module_column_mappings["Title_I_Status"] == "title_i_status"
+        assert self.etl.module_column_mappings["All Students"] == "all_students"
+        assert self.etl.module_column_mappings["Non-White"] == "non_white"
+        assert self.etl.module_column_mappings["Unnamed: 13"] == "title_i_status"
+        assert self.etl.module_column_mappings["Inexperienced Value"] == "all_students"
+        assert self.etl.module_column_mappings["% STUDENTS TAUGHT BY OUT OF FIELD TCHRS"] == "all_students"
+
+        accepted = [
+            "KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+            "KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+            "KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+            "students_taught_by_out_of_field_teachers_2023.csv",
+            "students_taught_by_out_of_field_teachers_2022.csv",
+            "students_taught_by_out_of_field_teachers_2021.csv",
+        ]
+        for name in accepted:
+            (self.sample_dir / name).write_text(
+                "School Year,School Code,Title I Status,All Students\n20252026,999000,Title 1,7.3\n"
+            )
+        (self.sample_dir / "KYRC23_OVW_Students_Taught_by_Out_of_Field_Teachers.csv").write_text(
+            "School Year,School Code,Title I Status,All Students\n20222023,001010,Title 1,6.6\n"
+        )
+        (self.sample_dir / "students_taught_by_out_of_field_teachers_2020.csv").write_text(
+            "SCHOOL YEAR,SCHOOL CODE,TITLE I STATUS,% STUDENTS TAUGHT BY OUT OF FIELD TCHRS\n"
+            "20192020,999,Title 1,1.41\n"
+        )
+
+        found = sorted(path.name for path, _sheet in self.etl._find_data_files(self.sample_dir))
+        assert found == sorted(accepted)
+        assert "students_taught_by_out_of_field_teachers_2020.csv" not in found
+
+    def test_kyrc23_republish_is_skipped(self):
+        """A leftover KYRC23 file must not write a second copy of 2023.
+
+        The datasets file is school year 20222023. The school codes match
+        the historical 2023 extract once district codes are padded. Many
+        cells differ. Accepting it would write 2023 twice.
+        """
+        republish = (
+            "School Year,District Name,School Name,School Code,Title I Status,All Students\n"
+            "20222023,Adair County,Adair County High School,001010,Title 1,6.6\n"
+        )
+        (self.sample_dir / "KYRC23_OVW_Students_Taught_by_Out_of_Field_Teachers.csv").write_text(republish)
+        (self.sample_dir / "KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv").write_text(
+            "School Year,District Name,School Name,School Code,Title I Status,All Students\n"
+            "20252026,All Districts,All Schools,999000,Title 1,7.3\n"
+        )
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "students_taught_by_out_of_field_teachers.csv", dtype=str)
+        assert set(result["year"]) == {"2026"}
+        assert set(result["source_file"]) == {"KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"}
+        assert float(result["value"].iloc[0]) == 7.3
+        assert result["school_id"].iloc[0] == "999000"
+        assert result["district"].iloc[0] == "All Districts"
+
+    def test_2020_zero_fill_file_is_not_loaded(self):
+        """A leftover 2019-20 file does not write year 2020.
+
+        The file is genuine school year 20192020. 1,680 of 1,831 Title I
+        and Not Title I rows are all zero, and 122 of 177 districts are
+        entirely zero. State Title I is 1.41 against 8.88 in 2021. That
+        coverage is not comparable, so the file is not registered.
+        Issue #66 (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/66)
+        holds whether to bring it back. The 1.41 cell must not appear.
+        """
+        (self.sample_dir / "students_taught_by_out_of_field_teachers_2020.csv").write_text(
+            "SCHOOL YEAR,DISTRICT NAME,SCHOOL NAME,SCHOOL CODE,TITLE I STATUS,"
+            "% STUDENTS TAUGHT BY OUT OF FIELD TCHRS\n"
+            "20192020,State,---State Total---,999,Title 1,1.41\n"
+        )
+        (self.sample_dir / "KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv").write_text(
+            "School Year,District Name,School Name,School Code,Title I Status,All Students\n"
+            "20252026,All Districts,All Schools,999000,Title 1,7.3\n"
+        )
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "students_taught_by_out_of_field_teachers.csv", dtype=str)
+        assert set(result["year"]) == {"2026"}
+        assert not result["source_file"].str.contains("2020").any()
+        assert float(result["value"].iloc[0]) == 7.3
+        assert "1.41" not in set(result["value"])
+
+    def test_na_row_emits_nothing_and_zero_is_kept(self):
+        """N/A is not a percent. A published 0 is kept.
+
+        No registered file uses N/A, #N/A, or a blank measure cell. There
+        is no student-count column, so that text is not a zero. notes/8: a
+        row that is not suppressed and has an empty value emits nothing.
+        A sibling cell of 0 does not fill the N/A cells. A published 0,
+        including an all-zero Title I row, is kept.
+        """
+        text = (
+            "School Year,District Name,School Name,School Code,Title I Status,All Students,Non-White\n"
+            "20222023,Example District,Empty School,012012,Not Title 1,N/A,N/A\n"
+            "20202021,Example District,Hash School,011030,Not Title 1,#N/A,#N/A\n"
+            "20192020,Example District,Partial School,236021,Not Title 1,N/A,0.00\n"
+            "20252026,Adair County,Adair County High School,001010,Title 1,0.0,0.0\n"
+        )
+        (self.sample_dir / "KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv").write_text(text)
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "students_taught_by_out_of_field_teachers.csv", dtype=str)
+        assert "012012" not in set(result["school_id"])
+        assert "011030" not in set(result["school_id"])
+        partial = result[result["school_id"] == "236021"]
+        assert set(partial["student_group"]) == {"Non-White"}
+        assert float(partial["value"].iloc[0]) == 0.0
+        assert partial["suppressed"].iloc[0] == "N"
+        assert "All Students" not in set(partial["student_group"])
+        adair = result[result["school_id"] == "001010"]
+        assert len(adair) == 2
+        assert set(adair["value"].astype(float)) == {0.0}
+        assert set(adair["suppressed"]) == {"N"}
+        assert set(adair["year"]) == {"2026"}
+
+    def test_disability_only_zero_is_kept(self):
+        """A students-with-disabilities 0 is kept when the other cells are N/A.
+
+        The 2020 ineffective-teacher file skips a row whose only number is
+        students with disabilities 0.00. This source's 2019-20 file is a
+        different problem: it is largely zero-fill, and it is not loaded.
+        Issue #66. A constructed row on a later year still stores the
+        published 0. Dropping it would invent the ineffective-teacher rule.
+        """
+        text = (
+            "School Year,District Name,School Name,School Code,Title I Status,"
+            "All Students,Non-White,White (non-Hispanic),"
+            "Students with Disabilities (IEP)\n"
+            "20202021,Example District,Placeholder School,236021,Not Title 1,N/A,N/A,N/A,0.00\n"
+            "20252026,Fayette County,Bryan Station High School,165170,Title 1,N/A,N/A,N/A,0.0\n"
+        )
+        (self.sample_dir / "KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv").write_text(text)
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(
+            self.proc_dir / "students_taught_by_out_of_field_teachers.csv", dtype=str
+        )
+
+        def kept(school_id: str) -> pd.Series:
+            rows = result[result["school_id"] == school_id]
+            assert len(rows) == 1
+            return rows.iloc[0]
+
+        for school_id, metric in (
+            ("236021", "students_taught_by_out_of_field_teachers_rate_not_title_1"),
+            ("165170", "students_taught_by_out_of_field_teachers_rate_title_1"),
+        ):
+            row = kept(school_id)
+            assert row["student_group"] == "Students with Disabilities (IEP)"
+            assert float(row["value"]) == 0.0
+            assert row["suppressed"] == "N"
+            assert row["metric"] == metric
+
+    def test_suppressed_row_is_kept_empty(self):
+        """A suppressed Title I row is stored with an empty value.
+
+        These files have no Suppressed column and no starred cell. The
+        constructed Y row is the notes/8 shape: the value is empty and the
+        row is not dropped.
+        """
+        text = (
+            "School Year,District Name,School Name,School Code,Title I Status,All Students,Suppressed\n"
+            "20252026,All Districts,All Schools,999000,Title 1,,Y\n"
+            "20252026,Fayette County,Bryan Station High School,165170,Title 1,37.8,N\n"
+        )
+        (self.sample_dir / "KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv").write_text(text)
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "students_taught_by_out_of_field_teachers.csv", dtype=str)
+        suppressed = result[result["suppressed"] == "Y"]
+        assert len(suppressed) == 1
+        assert suppressed.iloc[0]["school_id"] == "999000"
+        assert suppressed.iloc[0]["metric"] == "students_taught_by_out_of_field_teachers_rate_title_1"
+        assert pd.isna(suppressed.iloc[0]["value"]) or suppressed.iloc[0]["value"] == ""
+        kept = result[result["school_id"] == "165170"].iloc[0]
+        assert float(kept["value"]) == 37.8
+        assert kept["suppressed"] == "N"
+
+    def test_percent_parsing_is_dtype_agnostic(self):
+        """pandas 3 StringDtype and pandas 2 object follow the same rules.
+
+        ``read_csv(..., dtype=str)`` returns StringDtype on pandas 3 and
+        object on pandas 2.3.3. ``N/A`` and ``#N/A`` stay missing. ``0``
+        stays 0. A negative stays negative. A comma is stripped.
+        ``bool(pd.NA)`` is not used to detect the dtype. No registered
+        percent contains a comma.
+        """
+        frame = pd.DataFrame({
+            "title_i_status": pd.Series(
+                ["Title 1", "Title 1", "Not Title 1", "Title 1", "Equity Gap", "Equity Gap"],
+                dtype="string",
+            ),
+            "all_students": pd.Series(["7.3", "0", "N/A", "1,234.5", "#N/A", "-6.0"], dtype="string"),
+            "suppressed": pd.Series(["N", "N", "N", "N", "N", "N"], dtype="string"),
+        })
+        assert not self.etl.should_skip_row(frame.iloc[0])
+        assert not self.etl.should_skip_row(frame.iloc[1])
+        assert self.etl.should_skip_row(frame.iloc[2])
+        assert not self.etl.should_skip_row(frame.iloc[3])
+        assert self.etl.should_skip_row(frame.iloc[4])
+        assert not self.etl.should_skip_row(frame.iloc[5])
+        assert self.etl.extract_metrics(frame.iloc[0]) == {
+            "students_taught_by_out_of_field_teachers_rate_title_1__all_students": 7.3
+        }
+        assert self.etl.extract_metrics(frame.iloc[1]) == {
+            "students_taught_by_out_of_field_teachers_rate_title_1__all_students": 0.0
+        }
+        assert self.etl.extract_metrics(frame.iloc[2]) == {}
+        assert self.etl.extract_metrics(frame.iloc[3]) == {
+            "students_taught_by_out_of_field_teachers_rate_title_1__all_students": 1234.5
+        }
+        assert self.etl.extract_metrics(frame.iloc[4]) == {}
+        assert self.etl.extract_metrics(frame.iloc[5]) == {
+            "students_taught_by_out_of_field_teachers_rate_equity_gap__all_students": -6.0
+        }
+
+        as_object = frame.astype(object)
+        assert self.etl.should_skip_row(as_object.iloc[2])
+        assert self.etl.extract_metrics(as_object.iloc[1])[
+            "students_taught_by_out_of_field_teachers_rate_title_1__all_students"
+        ] == 0.0
+        assert self.etl.extract_metrics(as_object.iloc[5])[
+            "students_taught_by_out_of_field_teachers_rate_equity_gap__all_students"
+        ] == -6.0
+
+
+def test_registered_sources_are_the_permanent_files():
+    """KYRC24, KYRC25, KYRC26, and 2021-2023 are registered.
+
+    The 2019-20 file and the KYRC23 republish are not. Issue #66 holds the
+    2019-20 decision.
+    """
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["students_taught_by_out_of_field_teachers"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert names == [
+        "KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+        "KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+        "KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+        "students_taught_by_out_of_field_teachers_2023.csv",
+        "students_taught_by_out_of_field_teachers_2022.csv",
+        "students_taught_by_out_of_field_teachers_2021.csv",
+    ]
+    assert "students_taught_by_out_of_field_teachers_2020.csv" not in names
+    assert not any("KYRC23" in name for name in names)
+    assert not any(name.startswith("Students_Taught_by_Out_of_Field") for name in names)
