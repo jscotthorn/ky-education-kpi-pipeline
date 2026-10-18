@@ -12,7 +12,8 @@ dependencies = [
     "ruamel-yaml",
     "pytest",
     "tabulate",
-    "requests"
+    "requests",
+    "openpyxl"
 ]
 
 

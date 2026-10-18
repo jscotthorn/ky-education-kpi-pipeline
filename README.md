@@ -233,7 +233,7 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
 - **Spending Per Student** - Per-pupil spending by funding source (federal, state/local, combined)
 - **Benchmark Assessment** - Interim assessment performance data
 - **ACT Scores** - College admission test performance
-- **Students Taught by Inexperienced Teachers** - Teacher quality metrics
+- **Students Taught by Inexperienced Teachers** - KDE defines an inexperienced teacher as a teacher with 0-3 years of experience. A first-year teacher is a New Teacher. The novice_teachers ETL stores both teacher rates (less than 1 year, and 1 to 3 years) and the share of students taught by inexperienced teachers by Title I status. State rows are district `All Districts` for 2024-2026 and `State` for 2019-2023
 - **Student Retention** - Grade retention rates (grades 4-12)
 - **Dropout Rate** - Student dropout tracking
 - **Homeless Students** - Homeless student population metrics

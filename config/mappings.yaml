@@ -130,10 +130,12 @@ sources:
       school_number: "str"
       school_year: "str"
       teacher_count: "Int64"
-      total_new_teachers_with_1_3_years_experience: "Int64"
-      total_new_teachers_with_less_than_1_year_experience: "Int64"
-      percent_new_teachers_with_1_3_years_experience: "float64"
-      percent_new_teachers_with_less_than_1_year_experience: "float64"
+      # Names match the columns the ETL writes. The old keys used the
+      # source header text and never matched, so the Int64 cast did not run.
+      new_teachers_1_to_3_years: "Int64"
+      new_teachers_less_than_1_year: "Int64"
+      percent_new_teachers_1_to_3_years: "float64"
+      percent_new_teachers_less_than_1_year: "float64"
       title_i_status: "str"
       all_students: "float64"
       non_white: "float64"
