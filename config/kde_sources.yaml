@@ -518,9 +518,16 @@ raw_directories:
 
   # School Programs and Offerings
   advanced_coursework:
+    # 2018-19 workbooks. School year 20182019. Not a republish of 2020.
+    # The student sheet labels ACD as Students with Disability with IEP.
+    # CSG is Consolidated Student Group. The parser reads DISAGGGROUP.
+    - "ADVANCED_COURSES_EXAMS_BY_COURSE_18-19.xlsx"
+    - "ADVANCED_COURSES_EXAMS_BY_STUDENT_18-19.xlsx"
+    # 2019-20. School year 20192020. Not a republish of 2021.
+    - "advanced_courses_offered_2020.csv"
+    - "advanced_courses_participation_and_performance_2020.csv"
     - "KYRC24_EDOP_Advanced_Courses_Offered.csv"
     - "KYRC24_EDOP_Advanced_Courses_Participation_and_Performance.csv"
-    - "KYRC24_OVW_Advanced_Coursework.csv"
     - url: "kyrc25"
       file: "KYRC25_EDOP_Advanced_Courses_Offered.csv"
     - url: "kyrc26"
@@ -529,17 +536,32 @@ raw_directories:
       file: "KYRC25_EDOP_Advanced_Courses_Participation_and_Performance.csv"
     - url: "kyrc26"
       file: "KYRC26_EDOP_Advanced_Courses_Participation_and_Performance.csv"
+    # CRDC overview, one file per collection. KYRC23 is the 2020-21
+    # collection (collected year 20202021, report-card year 20222023).
+    # It matches KYRC25 on all 36,612 shared measure cells and has 15
+    # schools KYRC25 does not, including FCPS Virtual Academy 165645
+    # AP total 66. The historical host returns 404. datasets returns
+    # 200. KYRC24 and KYRC25 overview are the same collection. KYRC24
+    # zero-fills rows KYRC25 leaves blank and splits Hawaiian Pacific.
+    # accepts_data_file skips those two names. They are not registered.
+    # The parser stores this file as KPI year 2021.
     - url: "kyrc25"
-      file: "KYRC25_OVW_Advanced_Coursework.csv"
+      file: "KYRC23_OVW_Advanced_Coursework.csv"
+    # CRDC 2021-22 collection. Report-card year on the file is 20252026.
+    # The parser stores it as KPI year 2022.
     - url: "kyrc26"
       file: "KYRC26_OVW_Advanced_Coursework.csv"
     - "advanced_courses_offered_2023.csv"
     - "advanced_courses_participation_and_performance_2023.csv"
+    # The two KYRC23 EDOP names return 200. They repeat the historical
+    # 2023 AP/IB/Cambridge rows, and accepts_data_file skips those
+    # filenames. They are not registered.
     - "advanced_courses_offered_2022.csv"
     - "advanced_courses_participation_and_performance_2022.csv"
     - "advanced_courses_offered_2021.csv"
     - "advanced_courses_participation_and_performance_2021.csv"
-    # Note: ADVANCED_COURSES_EXAMS_*.xlsx have different schema (course type codes, column names)
+    # The 2018-19 workbooks are registered above. COURSE_TYPE and
+    # DISAGGGROUP are mapped in the parser. DEMO_ABBREV is not read.
 
   dual_credit:
     # KYRC23 is school year 20222023. The historical host returns 404.
