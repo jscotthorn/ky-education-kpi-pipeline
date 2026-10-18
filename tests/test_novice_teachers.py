@@ -1,6 +1,7 @@
 """
 Tests for Novice Teachers ETL module
 """
+import importlib.util
 import pytest
 from pathlib import Path
 import pandas as pd
@@ -563,6 +564,125 @@ class TestKyrc26NoviceTeachers:
         assert float(bardstown.loc[bardstown["student_group"] == "All Students", "value"].iloc[0]) == 46.6
         assert set(bardstown["suppressed"]) == {"N"}
         assert set(bardstown["metric"]) == {"students_taught_by_inexperienced_teachers_rate_equity_gap"}
+
+    def test_blank_percent_is_zero_only_for_a_positive_teacher_count(self):
+        """A blank 2018-19 NEWPCT is 0 only when new teachers are 0 and teachers are above 0.
+
+        The zero-fill is not applied when TEACHERS is 0, when NEWTEACHERS is
+        above 0, or when either count is missing. Those rows emit nothing.
+        The control row (5 teachers, 0 new teachers) is stored as 0.0.
+        """
+        text = (
+            "SCH_YEAR,CNTYNO,CNTYNAME,DIST_NUMBER,DIST_NAME,SCH_NUMBER,SCH_NAME,"
+            "STATE_SCH_ID,NCESID,COOP,COOP_CODE,TEACHERS,NEWTEACHERS,NEWPCT\n"
+            "20182019,001,ADAIR,801,Zero Teachers,001,Zero Teacher School,,,,902,0,0,\n"
+            "20182019,001,ADAIR,802,Some New,002,Some New Teachers,,,,902,12,3,\n"
+            "20182019,001,ADAIR,803,Missing New,003,Missing New Count,,,,902,8,,\n"
+            "20182019,001,ADAIR,804,Missing Teachers,004,Missing Teacher Count,,,,902,,0,\n"
+            "20182019,001,ADAIR,805,Real Zero,005,Real Zero School,,,,902,5,0,\n"
+        )
+        (self.sample_dir / "NEW_TEACHER_COUNT_18-19.csv").write_text(text)
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "novice_teachers.csv", dtype=str)
+        absent = {"801001", "802002", "803003", "804004"}
+        assert absent.isdisjoint(set(result["school_id"]))
+        assert list(result["school_id"]) == ["805005"]
+        row = result.iloc[0]
+        assert row["year"] == "2019"
+        assert row["metric"] == "novice_teacher_rate_less_than_1_year"
+        assert float(row["value"]) == 0.0
+        assert row["suppressed"] == "N"
+        assert row["school_name"] == "Real Zero School"
+
+
+def _load_base_analysis_dataset():
+    path = ROOT / "analysis" / "scripts" / "base_analysis_dataset.py"
+    spec = importlib.util.spec_from_file_location("base_analysis_dataset", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_combined_novice_rate_requires_both_parts(tmp_path):
+    """The combined novice rate is the sum only when both split rates exist.
+
+    ``load_teacher_quality_metrics`` is what the graduation and
+    postsecondary-enrollment analyses call. ``sum(min_count=0)`` is the
+    pandas default. It stores a first-year-only school as that one rate and
+    stores a school with neither rate as 0. Both of those combined values
+    are NaN. A school with neither split rate still has to appear, which is
+    why that school is present through an equity metric.
+    """
+    processed = tmp_path / "processed"
+    processed.mkdir()
+    output = tmp_path / "output"
+    rows = pd.DataFrame([
+        {
+            "year": 2022,
+            "school_id": "111111",
+            "district": "Both District",
+            "school_name": "Both High",
+            "student_group": "All Students",
+            "suppressed": "N",
+            "metric": "novice_teacher_rate_less_than_1_year",
+            "value": 5.0,
+        },
+        {
+            "year": 2022,
+            "school_id": "111111",
+            "district": "Both District",
+            "school_name": "Both High",
+            "student_group": "All Students",
+            "suppressed": "N",
+            "metric": "novice_teacher_rate_1_to_3_years",
+            "value": 15.0,
+        },
+        {
+            "year": 2019,
+            "school_id": "222222",
+            "district": "First Year District",
+            "school_name": "First Year High",
+            "student_group": "All Students",
+            "suppressed": "N",
+            "metric": "novice_teacher_rate_less_than_1_year",
+            "value": 7.5,
+        },
+        {
+            "year": 2021,
+            "school_id": "333333",
+            "district": "Neither District",
+            "school_name": "Neither High",
+            "student_group": "All Students",
+            "suppressed": "N",
+            "metric": "students_taught_by_inexperienced_teachers_rate_title_1",
+            "value": 55.65,
+        },
+    ])
+    rows.to_csv(processed / "novice_teachers.csv", index=False)
+
+    module = _load_base_analysis_dataset()
+
+    class _Probe(module.BaseAnalysisDataset):
+        OUTCOME_NAME = "graduation_rate"
+        OUTPUT_FILENAME = "probe.csv"
+        PROCESSED_DIR = processed
+        OUTPUT_DIR = output
+
+        def load_outcome_data(self):
+            return pd.DataFrame()
+
+    result = _Probe(verbose=False).load_teacher_quality_metrics()
+    result["school_id"] = result["school_id"].astype(str)
+    assert set(result["school_id"]) == {"111111", "222222", "333333"}
+
+    def _rate(school_id: str) -> float:
+        match = result.loc[result["school_id"] == school_id, "novice_teacher_rate"]
+        assert len(match) == 1
+        return match.iloc[0]
+
+    assert _rate("111111") == 20.0
+    assert pd.isna(_rate("222222"))
+    assert pd.isna(_rate("333333"))
 
 
 def test_registered_sources_are_the_permanent_files():
