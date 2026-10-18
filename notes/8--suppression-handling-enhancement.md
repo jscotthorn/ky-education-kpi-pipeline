@@ -273,3 +273,15 @@ district,school_id,school_name,year,student_group,metric,value,suppressed,source
 - ✅ **Documentation complete**: Full implementation guide and rationale documented
 
 This enhancement transforms the ETL pipeline from a data-reduction approach to a data-transparency approach, maintaining privacy while providing complete visibility into the scope and patterns of available demographic data.
+
+## Named exception: gifted preschool, grade 14, and Consolidated Student Group in 2020-2023
+
+The rule above still holds. A starred cell is stored as value NA with suppressed Y, and a blank is not stored. Gifted and talented participation is the one named exception, and the exception is three slices in four years.
+
+`gifted_and_talented_2020.csv` through `gifted_and_talented_2023.csv` publish no 0 and no blank. The smallest value in those files is 3. Preschool, grade 14, and Consolidated Student Group are starred on every row in those files, including the state row. A Y on those slices cannot be a hidden count of 1 or 2, a privacy suppression of a real group, or a not-applicable cell, because the same star is on the state row and on every school. Those three slices are not written for 2020, 2021, 2022, and 2023.
+
+The skip is that year set and those slices. It does not look at whether a column is all stars. Kindergarten and the talent categories in the same files are still stored as NA/Y when the cell is a star. 2019 is not in the exception: that workbook publishes real Consolidated Student Group counts and real grade 14 counts, including zeros. 2024 onward is not in the exception: a preschool or grade 14 star in those years is still stored.
+
+KYRC23's republication of 2022-23 shows the same cells without the star. Of the 20,036 rows that are starred in every measure cell in 2023, 16,277 are absent from the KYRC23 grade file. On rows that do exist, 135,421 starred grade cells are blank there, and 8,765 starred category cells are 0. Most of the omitted stars become blank, 0, or absent, so they are not hidden counts.
+
+Scott chose this exception on [issue #77](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/77). Every other star, in these years and in every other module, stays NA/Y.

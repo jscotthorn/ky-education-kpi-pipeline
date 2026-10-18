@@ -31,12 +31,14 @@ schools that appear only on the category file publish 0. The 2020-2023
 historical files publish no 0 and no blank. The smallest number in those
 files is 3, so a Y covers a count of 0, 1, or 2 and a not-applicable
 cell, not only a privacy suppression. Preschool, grade 14, and
-Consolidated Student Group are starred on every 2020-2023 row. About two
-thirds of those rows are starred in all 28 measure cells. A Y row in
-those years is not evidence the group exists. The KYRC23 republication
+Consolidated Student Group are starred on every 2020-2023 row, including
+the state row. Those three slices are not written for 2020-2023. Every
+other star in those years is still stored. 2019 and 2024 onward are
+unchanged: 2019 publishes real consolidated and grade 14 counts, and a
+later preschool or grade 14 star is still stored. The KYRC23 republication
 of 2022-23 leaves 16,277 of the 20,036 fully starred 2023 rows out,
 turns 135,421 starred grade cells into blanks, and turns 8,765 starred
-category cells into 0.
+category cells into 0, so the omitted slices are not hidden counts.
 
 The 2018-19 workbook's disability count is ``DGROUP`` ``Studw/disab.``
 (DEMO code ``ACD``). DEMO code ``CSG`` is Consolidated Student Group.
@@ -139,6 +141,17 @@ _SKIP_EXACT_NAMES = {
 _WORKBOOK_2019 = "gifted_and_talented_18-19.xlsx"
 _ALL_STUDENTS_LABELS = {"all students", "tst"}
 _ALL_GRADES_METRIC = "gifted_participation_count_all_grades"
+
+# Named exception to notes/8. These four files star preschool, grade 14,
+# and Consolidated Student Group on every row, state included. The skip
+# is this year set and these slices. It does not look at whether a
+# column is all stars, and it does not apply to any other year.
+_OMIT_UNINFORMATIVE_YEARS = {"2020", "2021", "2022", "2023"}
+_OMIT_UNINFORMATIVE_METRICS = {
+    "gifted_participation_count_preschool",
+    "gifted_participation_count_grade_14",
+}
+_OMIT_UNINFORMATIVE_GROUP = "Consolidated Student Group"
 
 
 def _star_column_name(column: str) -> str:
@@ -327,7 +340,10 @@ class GiftedTalentedETL(BaseETL):
     A Y on those 2020-2023 files is not evidence the group exists. Those
     files publish no 0 and no blank, and the smallest number is 3.
     Preschool, grade 14, and Consolidated Student Group are starred on
-    every row. The 2018-19 disability group is read from ``DGROUP``.
+    every row, including the state row. Those three slices are not
+    written for 2020-2023. Every other star in those years is still
+    stored. 2019 and 2024 onward are unchanged. The 2018-19 disability
+    group is read from ``DGROUP``.
     """
 
     # Opt in here, in the same change that accepts the file. BaseETL skips
@@ -774,6 +790,24 @@ class GiftedTalentedETL(BaseETL):
         key = (str(template.get("year", "")), str(template.get("school_id", "")))
         return key in self._grade_all_students_keys
 
+    def _omit_2020_2023_uninformative_slice(
+        self, year: Any, student_group: Any, metric_name: str
+    ) -> bool:
+        """Skip preschool, grade 14, and Consolidated Student Group for 2020-2023.
+
+        The decision is the year set and these slices. The cell is not
+        inspected, so a number on Consolidated Student Group in those
+        years is omitted with the stars. A column that happens to be all
+        stars is not enough: kindergarten stars in the same files are
+        written. 2019 and 2024 onward return False, including a preschool
+        or grade 14 star.
+        """
+        if str(year) not in _OMIT_UNINFORMATIVE_YEARS:
+            return False
+        if student_group == _OMIT_UNINFORMATIVE_GROUP:
+            return True
+        return metric_name in _OMIT_UNINFORMATIVE_METRICS
+
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
         """Write a published cell as ``N`` and a ``*`` cell as ``Y``.
 
@@ -781,12 +815,14 @@ class GiftedTalentedETL(BaseETL):
         The 2018-19 group is the ``DGROUP`` label. The category total
         uses the grade metric name, and the talent categories use
         ``gifted_category_count_*``. A category All Students total that
-        the grade file already holds is not written.
+        the grade file already holds is not written. Preschool, grade 14,
+        and Consolidated Student Group are not written for 2020-2023.
         """
         df = self._apply_2019_workbook_labels(df, source_file)
         df = self._collapse_repeated_keys(df, source_file)
         kpi_rows: List[Dict[str, Any]] = []
         skipped_category_totals = 0
+        omitted_uninformative = 0
         for _, row in df.iterrows():
             if self.should_skip_row(row):
                 continue
@@ -801,6 +837,13 @@ class GiftedTalentedETL(BaseETL):
                 ):
                     skipped_category_totals += 1
                     continue
+                if self._omit_2020_2023_uninformative_slice(
+                    kpi_template.get("year"),
+                    kpi_template.get("student_group"),
+                    metric_name,
+                ):
+                    omitted_uninformative += 1
+                    continue
                 kpi_record = kpi_template.copy()
                 kpi_record["metric"] = metric_name
                 if _is_missing(value):
@@ -814,6 +857,13 @@ class GiftedTalentedETL(BaseETL):
             logger.info(
                 "Left %s category All Students totals off %s; the grade file already has them",
                 skipped_category_totals,
+                Path(source_file).name,
+            )
+        if omitted_uninformative:
+            logger.info(
+                "Left %s preschool, grade 14, and Consolidated Student Group cells off %s; "
+                "those slices are starred on every 2020-2023 row",
+                omitted_uninformative,
                 Path(source_file).name,
             )
 

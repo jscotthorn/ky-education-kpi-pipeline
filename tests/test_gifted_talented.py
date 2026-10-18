@@ -453,15 +453,123 @@ class TestGiftedTalentedETL:
         assert len(grade_1) == 1
         assert float(grade_1.iloc[0]["value"]) == 6.0
         assert grade_1.iloc[0]["suppressed"] == "N"
-        # The 3-row's preschool star is the same star as the 105 row.
+        # Preschool is starred on every 2022 row, so it is not written.
+        # Kindergarten on the 105 row is also a star and is still stored.
+        # Dropping every 2022 star would fail that assertion.
         preschool = df[
             (df["year"] == "2022")
             & (df["school_id"] == "134")
             & (df["metric"] == "gifted_participation_count_preschool")
         ]
-        assert len(preschool) == 1
-        assert preschool.iloc[0]["suppressed"] == "Y"
-        assert preschool.iloc[0]["value"] == ""
+        assert len(preschool) == 0
+        kindergarten = df[
+            (df["year"] == "2022")
+            & (df["school_id"] == "134")
+            & (df["student_group"] == "All Students")
+            & (df["metric"] == "gifted_participation_count_kindergarten")
+        ]
+        assert len(kindergarten) == 1
+        assert kindergarten.iloc[0]["suppressed"] == "Y"
+        assert kindergarten.iloc[0]["value"] == ""
+
+    def test_2020_2023_always_starred_slices_are_not_written(self):
+        """Preschool, grade 14, and Consolidated Student Group are omitted only in 2020-2023.
+
+        The skip is the year and the slice. It does not drop a column
+        because every cell is a star, and it does not drop a star in
+        another group. Widening the year set, adding kindergarten to the
+        metric set, or dropping every star fails the keep assertions:
+        2019 Consolidated Student Group and grade 14, a 2020 kindergarten
+        star, a 2020 consolidated total that is a number, and a 2024
+        preschool star.
+        """
+        rows = [
+            # year, school, group, total, preschool, kindergarten, grade 14
+            # One school code per year. A repeated school key collapses
+            # inside the file, and that collapse is not what this test checks.
+            ("20182019", "2019", "All Students", "10", "*", "2", "1"),
+            ("20182019", "2019", "Consolidated Student Group", "50", "*", "*", "0"),
+            ("20192020", "2020", "All Students", "40", "*", "*", "*"),
+            ("20192020", "2020", "Consolidated Student Group", "12", "*", "4", "*"),
+            ("20202021", "2021", "All Students", "5", "*", "*", "*"),
+            ("20212022", "2022", "All Students", "6", "*", "8", "*"),
+            ("20222023", "2023", "All Students", "9", "*", "7", "*"),
+            ("20222023", "2023", "Consolidated Student Group", "*", "*", "*", "*"),
+            ("20232024", "2024", "All Students", "11", "*", "*", "3"),
+        ]
+        frame = pd.DataFrame(rows, columns=[
+            "SCHOOL YEAR",
+            "SCHOOL CODE",
+            "DEMOGRAPHIC",
+            "TOTAL COUNT",
+            "PRESCHOOL COUNT",
+            "KINDERGARTEN COUNT",
+            "GRADE14 COUNT",
+        ])
+        frame.insert(1, "DISTRICT NAME", "Adair County")
+        frame.insert(2, "SCHOOL NAME", "Adair County High School")
+        frame.to_csv(self.sample_dir / "gifted_and_talented_years.csv", index=False)
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        df = pd.read_csv(self.proc_dir / "gifted_talented.csv", dtype=str, keep_default_na=False)
+
+        def present(year, group, metric):
+            matched = df[
+                (df["year"] == year)
+                & (df["school_id"] == year)
+                & (df["student_group"] == group)
+                & (df["metric"] == metric)
+            ]
+            assert len(matched) == 1, (year, group, metric, len(matched))
+            return matched.iloc[0]
+
+        def missing(year, group, metric):
+            matched = df[
+                (df["year"] == year)
+                & (df["school_id"] == year)
+                & (df["student_group"] == group)
+                & (df["metric"] == metric)
+            ]
+            assert len(matched) == 0, (year, group, metric, len(matched))
+
+        assert float(present("2019", "All Students", "gifted_participation_count_grade_14")["value"]) == 1.0
+        preschool_2019 = present("2019", "All Students", "gifted_participation_count_preschool")
+        assert preschool_2019["suppressed"] == "Y"
+        assert float(present("2019", "Consolidated Student Group", "gifted_participation_count_all_grades")["value"]) == 50.0
+        assert float(present("2019", "Consolidated Student Group", "gifted_participation_count_grade_14")["value"]) == 0.0
+
+        assert float(present("2020", "All Students", "gifted_participation_count_all_grades")["value"]) == 40.0
+        kindergarten_2020 = present("2020", "All Students", "gifted_participation_count_kindergarten")
+        assert kindergarten_2020["suppressed"] == "Y"
+        assert kindergarten_2020["value"] == ""
+        missing("2020", "All Students", "gifted_participation_count_preschool")
+        missing("2020", "All Students", "gifted_participation_count_grade_14")
+        for metric in (
+            "gifted_participation_count_all_grades",
+            "gifted_participation_count_preschool",
+            "gifted_participation_count_kindergarten",
+            "gifted_participation_count_grade_14",
+        ):
+            missing("2020", "Consolidated Student Group", metric)
+
+        for year in ("2021", "2022", "2023"):
+            missing(year, "All Students", "gifted_participation_count_preschool")
+            missing(year, "All Students", "gifted_participation_count_grade_14")
+        kindergarten_2021 = present("2021", "All Students", "gifted_participation_count_kindergarten")
+        assert kindergarten_2021["suppressed"] == "Y"
+        assert float(present("2022", "All Students", "gifted_participation_count_kindergarten")["value"]) == 8.0
+        assert float(present("2023", "All Students", "gifted_participation_count_kindergarten")["value"]) == 7.0
+        for metric in (
+            "gifted_participation_count_all_grades",
+            "gifted_participation_count_preschool",
+            "gifted_participation_count_kindergarten",
+            "gifted_participation_count_grade_14",
+        ):
+            missing("2023", "Consolidated Student Group", metric)
+
+        preschool_2024 = present("2024", "All Students", "gifted_participation_count_preschool")
+        assert preschool_2024["suppressed"] == "Y"
+        assert preschool_2024["value"] == ""
+        assert float(present("2024", "All Students", "gifted_participation_count_grade_14")["value"]) == 3.0
 
     def test_comma_count_survives_string_dtype_and_int64(self):
         """pandas 3 dtype=str is StringDtype. ``90,464`` has to survive an Int64 cast.
@@ -507,6 +615,15 @@ class TestGiftedTalentedETL:
             ]
             assert len(rows) == 1, (year, school_id, group, metric, len(rows))
             return rows.iloc[0]
+
+        def absent(year, school_id, group, metric):
+            rows = df[
+                (df["year"] == year)
+                & (df["school_id"] == school_id)
+                & (df["student_group"] == group)
+                & (df["metric"] == metric)
+            ]
+            assert len(rows) == 0, (year, school_id, group, metric, len(rows))
 
         state = cell("2026", "999000", "All Students", "gifted_participation_count_all_grades")
         assert float(state["value"]) == 90464.0
@@ -586,15 +703,23 @@ class TestGiftedTalentedETL:
             "All Students",
             "gifted_category_count_creative_or_divergent_thinking",
         )["value"]) == 6039.0
-        preschool = cell("2023", "999", "All Students", "gifted_participation_count_preschool")
-        assert preschool["suppressed"] == "Y"
-        assert preschool["value"] == ""
+        absent("2023", "999", "All Students", "gifted_participation_count_preschool")
+        absent("2023", "999", "All Students", "gifted_participation_count_grade_14")
 
         breathitt = cell("2023", "061", "All Students", "gifted_participation_count_all_grades")
         assert float(breathitt["value"]) == 239.0
         assert breathitt["district"] == "Breathitt County"
         assert breathitt["school_name"] == "---District Total---"
         assert float(cell("2023", "061", "All Students", "gifted_participation_count_kindergarten")["value"]) == 17.0
+        # Dance is a star on this 2023 row and is not one of the omitted slices.
+        dance = cell(
+            "2023",
+            "061",
+            "All Students",
+            "gifted_category_count_visual_and_performing_arts_dance",
+        )
+        assert dance["suppressed"] == "Y"
+        assert dance["value"] == ""
 
     def test_collapse_repeated_keys_overlays_a_number_from_the_smaller_row(self):
         """The merge itself keeps 105 and overlays a number the 105 row starred.
