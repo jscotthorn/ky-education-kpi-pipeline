@@ -423,6 +423,12 @@ raw_directories:
     - "TEACHER_TURNOVER_18-19.xlsx"
 
   teacher_certification:
+    # KYRC23_OVW_Teacher_Certification_Data.csv returns 200 and is not
+    # registered. It republishes 2022-23, rounds percents to one decimal,
+    # and stars most counts. The parser skips that filename. The historical
+    # KYRC24 URL still returns 200. Its published counts match the datasets
+    # copy. The datasets copy fills blank percents with 0 and adds district
+    # 880000 as zeros. It is not swapped. KYRC25 bytes match the UAT copy.
     - "KYRC24_OVW_Teacher_Certification_Data.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Teacher_Certification_Data.csv"
@@ -431,6 +437,10 @@ raw_directories:
     - "teacher_certifications_2023.csv"
     - "teacher_certifications_2022.csv"
     - "teacher_certifications_2021.csv"
+    # 2019-20 report card. School year 20192020. Counts only; there is no
+    # percent column. State emergency count is 2,031 against 2,118 in the
+    # 2020-21 file. Not a republish.
+    - "teacher_certifications_2020.csv"
 
   educator_qualifications:
     - "KYRC24_OVW_Educator_Qualifications.csv"

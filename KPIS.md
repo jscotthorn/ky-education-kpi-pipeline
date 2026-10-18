@@ -387,17 +387,21 @@ In 2021, 15 rows publish 100 where the turnover count is larger than the teacher
 ## Teacher Certification
 **Source**: `etl/teacher_certification.py`
 
-Teacher certification status metrics showing emergency/provisional certification and National Board certification rates.
+KDE's report-card glossary defines Teachers with Emergency/Provisional Credentials as the percentage of teachers granted an emergency or provisional certificate under 16 KAR 2:120 and 16 KAR 2:010, from EPSB data. National Board certification is the number of teachers certified by the National Board for Professional Teaching Standards. There is no demographic column. The ETL stores the published percent and does not rebuild it from the counts. Teacher count is the denominator and is not a KPI. KYRC26 adds Rank I and Rank II. Those columns are not stored. State Rank I is 27.0 and state Rank II is 27.7.
 
-- `emergency_provisional_teacher_rate` - Percentage of teachers on emergency/provisional certification
+KYRC26 emergency/provisional certification is a different level from 2020-2025. Do not read the state percent 14.3 as the next point after 1.9. State emergency/provisional counts and percents: 2021 is 2,118 / 4.98, 2022 is 3,033 / 6.98, 2023 is 1,128 / 2.61, 2024 is 1,276 / 3.0, 2025 is 826 / 1.9, and 2026 is 6,133 / 14.3. In 2026 the district rows sum to 6,130, off by 3 from the state, and the school rows sum to 5,896. On 76 schools with a published percent in both 2025 and 2026, the median goes from 7.70 to 23.00. The median change is +13.70 points. Teacher counts on 1,317 schools with a positive 2025 count stay at a median of 31. National Board does not make that jump. State National Board percents are 2.6 in 2024, 2.9 in 2025, and 2.7 in 2026. The drop from 2023 (2,086 / 4.83) to 2024 (1,139 / 2.6) is already in the registered files. [#70](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/70).
+
+A 0% with a positive teacher count is a real zero. Adair County Middle `001014` in 2021 is teacher count 40, emergency count 0, percent 0. A 0% with a teacher count of 0 is a placeholder, not a real zero, and it is still stored. Virtual Academy `042020` in 2021 is teacher count 0, emergency count 2, percent 0. Campbell County Area Technology Center `777108` in KYRC25 publishes percent 0.0 with a blank teacher count and a blank emergency count. A blank percent is not stored as 0. KYRC26 publishes no 0%. A `*` cell is dropped. These files have no Suppressed column, so a row that still has another published measure stays `suppressed` `N`, and a fully starred row emits nothing. That is a known deviation from the suppression rules in `notes/8--data-transformation-findings.md`.
+
+- `emergency_provisional_teacher_rate` - Published emergency/provisional percent
 - `emergency_provisional_teacher_count` - Number of teachers on emergency/provisional certification
-- `national_board_certified_rate` - Percentage of teachers with National Board certification
+- `national_board_certified_rate` - Published National Board percent
 - `national_board_certified_count` - Number of teachers with National Board certification
 
-**Data Sources**: KYRC25_OVW_Teacher_Certification_Data.csv, KYRC24_OVW_Teacher_Certification_Data.csv, teacher_certifications_{year}.csv
-**Years Available**: 2021-2025
-**Unit**: Rate (0-100%), Count (non-negative integers)
-**Demographics**: School-level only (All Students)
+**Data Sources**: KYRC26_OVW_Teacher_Certification_Data.csv, KYRC25_OVW_Teacher_Certification_Data.csv, KYRC24_OVW_Teacher_Certification_Data.csv, teacher_certifications_{year}.csv
+**Years Available**: 2020-2026. 2020 publishes counts and no percents. National Board for 2024-2026 continues at the 2024 level. The 2026 emergency/provisional percent is a different level from 2020-2025
+**Unit**: Published percent, Count (non-negative). A 0% with a teacher count of 0 is a stored placeholder, not a real zero. A blank percent stays missing
+**Demographics**: School-level only (All Students). State rows are district `All Districts` for 2024-2026 and `State` for 2020-2023
 
 ---
 

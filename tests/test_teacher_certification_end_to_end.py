@@ -233,8 +233,8 @@ class TestTeacherCertificationEndToEnd:
 
         kpi_df = pd.read_csv(processed_file)
 
-        # Expected years (2021-2025)
-        expected_years = {'2021', '2022', '2023', '2024', '2025'}
+        # 2020 is counts only. 2026 is the report-card year.
+        expected_years = {'2020', '2021', '2022', '2023', '2024', '2025', '2026'}
         actual_years = set(kpi_df['year'].astype(str).unique())
 
         for year in expected_years:
