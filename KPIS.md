@@ -471,18 +471,18 @@ Equity metrics showing the percentage of students taught by out-of-field teacher
 ## Teacher Working Conditions
 **Source**: `etl/teacher_working_conditions.py`
 
-Survey-based index scores measuring teacher perceptions of working conditions. Each school has scores for different impact measures.
+Percent favorable from the Impact Kentucky working conditions survey. KDE's report-card glossary defines the Impact Value as the percentage of respondents who selected a favorable answer, most often the top two of five choices. The constructs are connected to teacher retention and student achievement. Each school has one row per construct.
 
-- `teacher_working_conditions_managing_student_behavior` - Index score for managing student behavior (0-100)
-- `teacher_working_conditions_school_climate` - Index score for school climate (0-100)
-- `teacher_working_conditions_school_leadership` - Index score for school leadership (0-100)
-- `teacher_working_conditions_teaching_environment` - Index score for teaching environment (0-100, historical data only)
+- `teacher_working_conditions_managing_student_behavior` - Percent favorable for managing student behavior (0-100)
+- `teacher_working_conditions_school_climate` - Percent favorable for school climate (0-100, KYRC24 through KYRC26)
+- `teacher_working_conditions_school_leadership` - Percent favorable for school leadership (0-100)
+- `teacher_working_conditions_teaching_environment` - Percent favorable for teaching environment (0-100, 2020-2023 files only)
 
-**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns. State rows use district `All Districts` for 2024-2026 and `State` for 2020-2023. A published 0 is kept. The text `N/A` has no response count beside it, so those rows are omitted rather than stored as zero.
 
-**Data Sources**: KYRC25_OVW_Teacher_Working_Conditions.csv, KYRC24_OVW_Teacher_Working_Conditions.csv, teacher_working_conditions_{year}.csv
-**Years Available**: 2021-2025
-**Unit**: Index score (0-100)
+**Data Sources**: KYRC26_OVW_Teacher_Working_Conditions.csv, KYRC25_OVW_Teacher_Working_Conditions.csv, KYRC24_OVW_Teacher_Working_Conditions.csv, teacher_working_conditions_{year}.csv
+**Years Available**: 2020-2026
+**Unit**: Percent favorable (0-100)
 **Demographics**: School-level only (All Students)
 
 ---

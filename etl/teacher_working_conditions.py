@@ -1,21 +1,39 @@
 """
 Teacher Working Conditions ETL Module
 
-Processes Kentucky teacher working conditions survey data showing index scores
-for different impact measures.
+Processes Kentucky Impact survey results. KDE's report-card glossary calls
+the measure Teacher Working Conditions: three constructs from the Impact
+Kentucky working conditions survey that are connected to teacher retention
+and student achievement. The Impact Value is the percent favorable, the
+share of respondents who selected a favorable answer. Most often that is the
+top two of five choices. The glossary's older "Teaching Working Conditions"
+entry uses the same definition for the 2020 survey.
 
-The data is pivoted with one row per school-measure combination:
-- Managing Student Behavior
-- School Climate
-- School Leadership
-- Teaching Environment (historical only)
+The file is one row per school and construct. There is no demographic
+column. ``student_group`` is ``All Students``.
 
-Each measure's impact value becomes a separate KPI metric. This is school-level
-data with no demographic breakdowns.
+2020-2023 publish Managing Student Behavior, School Leadership, and Teaching
+Environment, with a "Composite" suffix. KYRC24, KYRC25, and KYRC26 publish
+Managing Student Behavior, School Climate, and School Leadership. This module
+keeps those labels on separate metrics and does not bridge Teaching
+Environment into School Climate. KDE's KYRC23 file relabels the 2023 Teaching
+Environment values, unchanged on all 1,539 schools, as School Climate. The
+2020 Impact Kentucky topic list says "School climate". School-level
+correlation across the label change (0.66) is in line with same-label
+wave-to-wave correlations (0.67-0.73). Issue #62 tracks whether to bridge
+the series.
+
+KYRC26 uses the same headers as KYRC25. No temporary OAA extract is
+registered, and the guessed temporary names return 404, so there is no
+leftover temporary filename to skip. ``KYRC23_OVW_Teacher_Working_Conditions.csv``
+returns 200 and republishes 2022-23. It turns 945 ``N/A`` cells into 0. It is
+not registered, and ``accepts_data_file`` skips that name.
+``teacher_working_conditions_2020.csv`` is the 2019-20 report card and is
+registered.
 """
 from pathlib import Path
 import pandas as pd
-from typing import Dict, Any
+from typing import Any, Dict
 import logging
 import sys
 
@@ -23,14 +41,74 @@ import sys
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
-from constants import KPI_COLUMNS
 from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
 
+# KYRC23 is the 2022-23 extract again. School year is 20222023 on every row.
+# It relabels Teaching Environment as School Climate and turns 945 N/A cells into 0.
+_KYRC23_REPUBLISH = "KYRC23_OVW_TEACHER_WORKING_CONDITIONS.CSV"
+
+# Text that is not a percent. These files have no count column, so N/A is
+# not a zero. A published 0 is a real percent and is not in this set.
+_NOT_A_PERCENT = {"", "N/A", "NA", "n/a", "*", "**", "---", "--", "<10"}
+
+
+def _is_missing(value: Any) -> bool:
+    """True for None and for pandas missing values.
+
+    ``bool(pd.NA)`` raises. ``pd.isna`` on a scalar returns a real bool.
+    A blank string is missing. The text ``N/A`` is handled by the parser.
+    """
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip() == ""
+    try:
+        return bool(pd.isna(value))
+    except (TypeError, ValueError):
+        return True
+
 
 class TeacherWorkingConditionsETL(BaseETL):
-    """ETL module for processing teacher working conditions survey data."""
+    """ETL module for Impact Kentucky percent-favorable scores.
+
+    KYRC26 uses the same headers as KYRC24 and KYRC25. The 2020-2023 files
+    use the uppercase names, which are already mapped. No temporary OAA
+    extract is registered for this directory.
+    """
+
+    # Opt in here, in the same change that accepts the file. BaseETL skips
+    # every KYRC26_* CSV until this is True.
+    include_kyrc26 = True
+
+    def accepts_data_file(self, file_path: Path) -> bool:
+        """Skip the KYRC23 republish of the 2022-23 extract.
+
+        ``KYRC23_OVW_Teacher_Working_Conditions.csv`` returns 200 on the
+        datasets host. School year is ``20222023`` on every row, and the
+        school-code set matches ``teacher_working_conditions_2023.csv``.
+        The historical file labels the third construct Teaching Environment
+        and stores an insufficient result as ``N/A`` (945 cells). KYRC23
+        relabels that construct School Climate. Those Teaching Environment
+        values are unchanged on all 1,539 schools. KYRC23 stores the 945
+        ``N/A`` cells as 0. Loading both files would write 2023 twice. The
+        guessed OAA names are 404 and were never registered, so they are
+        not skipped here.
+
+        ``TELL_EQUITY_17-18.xlsx`` and ``TELL_EQUITY_18-19.xlsx`` return
+        200. Both are school year ``20172018``, and their measure column
+        is ``EQUITY_MEASURE``, not Impact Measure. Without an alias the
+        parser emits nothing, so those names are not skipped here.
+        """
+        if file_path.name.upper() == _KYRC23_REPUBLISH:
+            logger.info(
+                "Skipping %s; it republishes 2022-23 already loaded from "
+                "teacher_working_conditions_2023.csv",
+                file_path.name,
+            )
+            return False
+        return super().accepts_data_file(file_path)
 
     @property
     def module_column_mappings(self) -> Dict[str, str]:
@@ -38,11 +116,10 @@ class TeacherWorkingConditionsETL(BaseETL):
         Map columns to standardized names.
 
         Handles column name variations across years:
-        - 2021-2023: Uppercase (IMPACT MEASURE, IMPACT VALUE)
+        - 2020-2023: Uppercase (IMPACT MEASURE, IMPACT VALUE)
         - 2024+: Title case (Impact Measure, Impact Value)
         """
         return {
-            # Impact measure and value columns
             'Impact Measure': 'impact_measure',
             'IMPACT MEASURE': 'impact_measure',
             'Impact Value': 'impact_value',
@@ -51,56 +128,76 @@ class TeacherWorkingConditionsETL(BaseETL):
 
     # Mapping from impact measure names to metric suffixes
     IMPACT_MEASURE_MAP = {
-        # KYRC24/25 format
+        # KYRC24/25/26 format
         'Managing Student Behavior': 'managing_student_behavior',
         'School Climate': 'school_climate',
         'School Leadership': 'school_leadership',
-        # Historical format (2021-2023) with "Composite" suffix
+        # Historical format (2020-2023) with "Composite" suffix
         'Managing Student Behavior Composite': 'managing_student_behavior',
         'School Climate Composite': 'school_climate',
         'School Leadership Composite': 'school_leadership',
         'Teaching Environment Composite': 'teaching_environment',
     }
 
+    def _parse_impact_value(self, value: Any) -> Any:
+        """Parse a percent favorable that may be text.
+
+        ``N/A`` and a blank are missing. These files have no response count,
+        so a blank percent is not turned into 0. A published ``0`` stays 0.
+        A comma is removed so pandas 3 StringDtype does not drop the cell.
+        No registered value contains a comma. ``bool(pd.NA)`` is not used.
+        """
+        if isinstance(value, str):
+            cleaned = value.replace("%", "").replace(",", "").strip()
+            if cleaned in _NOT_A_PERCENT or cleaned.upper() == "N/A":
+                return pd.NA
+            try:
+                return float(cleaned)
+            except ValueError:
+                return pd.NA
+        if isinstance(value, bool):
+            return pd.NA
+        if _is_missing(value):
+            return pd.NA
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return pd.NA
+
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         """
         Extract metrics from a data row.
 
-        Each row represents one impact measure for a school. We create a metric
-        based on the impact measure type.
+        Each row represents one impact measure for a school. A percent of 0
+        is kept. ``N/A`` contributes no metric.
         """
-        metrics = {}
+        metrics: Dict[str, Any] = {}
 
-        # Helper function to safely convert to numeric
-        def safe_numeric(value):
-            if pd.isna(value):
-                return pd.NA
-            try:
-                if isinstance(value, str):
-                    value = value.replace('%', '').replace(',', '').strip()
-                return pd.to_numeric(value, errors='coerce')
-            except:
-                return pd.NA
-
-        # Get impact measure and value
         impact_measure = row.get('impact_measure', '')
-        impact_value = safe_numeric(row.get('impact_value', pd.NA))
+        if not isinstance(impact_measure, str):
+            if _is_missing(impact_measure):
+                return metrics
+            impact_measure = str(impact_measure)
 
-        if pd.notna(impact_value) and impact_measure:
-            # Map the impact measure to a metric suffix
-            metric_suffix = self.IMPACT_MEASURE_MAP.get(impact_measure)
+        metric_suffix = self.IMPACT_MEASURE_MAP.get(impact_measure)
+        if not metric_suffix:
+            return metrics
 
-            if metric_suffix:
-                metric_name = f'teacher_working_conditions_{metric_suffix}'
-                metrics[metric_name] = impact_value
+        impact_value = self._parse_impact_value(row.get('impact_value', pd.NA))
+        if _is_missing(impact_value):
+            return metrics
 
+        metric_name = f'teacher_working_conditions_{metric_suffix}'
+        metrics[metric_name] = impact_value
         return metrics
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         """Get default metrics for suppressed records."""
-        defaults = {}
+        defaults: Dict[str, Any] = {}
 
         impact_measure = row.get('impact_measure', '')
+        if not isinstance(impact_measure, str):
+            return defaults
         metric_suffix = self.IMPACT_MEASURE_MAP.get(impact_measure)
 
         if metric_suffix:
@@ -110,16 +207,26 @@ class TeacherWorkingConditionsETL(BaseETL):
         return defaults
 
     def should_skip_row(self, row: pd.Series) -> bool:
-        """Skip rows that don't have valid working conditions data."""
-        # Check if we have a valid impact measure
-        impact_measure = row.get('impact_measure', '')
-        has_measure = impact_measure in self.IMPACT_MEASURE_MAP
+        """Skip a construct that is not one of the published measures.
 
-        # Skip if no valid measure
-        if not has_measure:
+        notes/8: a row that is not suppressed and has an empty value emits
+        nothing. ``N/A`` is that empty value. There is no count column to
+        show that the blank is a true zero. A row marked suppressed is kept
+        so the empty value can be stored with ``suppressed`` ``Y``. A
+        published 0 is not skipped. These files have no demographic column,
+        so the base demographic check is not used.
+        """
+        impact_measure = row.get('impact_measure', '')
+        if not isinstance(impact_measure, str) or impact_measure not in self.IMPACT_MEASURE_MAP:
             return True
 
-        # Don't call super() - this data doesn't have traditional demographics column
+        suppressed = row.get('suppressed', 'N')
+        if isinstance(suppressed, str) and suppressed == 'Y':
+            return False
+
+        impact_value = self._parse_impact_value(row.get('impact_value', pd.NA))
+        if _is_missing(impact_value):
+            return True
         return False
 
     def create_kpi_template(self, row: pd.Series, source_file: str) -> Dict[str, Any]:
@@ -132,8 +239,9 @@ class TeacherWorkingConditionsETL(BaseETL):
         school_id = self.extract_school_id(row)
         year = self.extract_year(row, source_file)
 
-        # Check if record is suppressed
-        is_suppressed = row.get('suppressed', 'N') == 'Y'
+        # Check if record is suppressed. A missing flag is N, not a boolean test of NA.
+        suppressed_flag = row.get('suppressed', 'N')
+        is_suppressed = isinstance(suppressed_flag, str) and suppressed_flag == 'Y'
 
         return {
             'district': row.get('district_name', 'Unknown District'),
