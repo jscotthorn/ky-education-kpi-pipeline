@@ -426,8 +426,8 @@ class TestKyrc26TeacherWorkingConditions:
     def test_kyrc23_republish_is_skipped(self):
         """A leftover KYRC23 file must not write a second copy of 2023.
 
-        The datasets file is school year 20222023. It labels the third
-        construct School Climate and stores the historical N/A cells as 0.
+        The datasets file is school year 20222023. It relabels the third
+        construct School Climate and turns the 945 historical N/A cells into 0.
         Accepting it would add school_climate rows beside teaching_environment.
         """
         republish = (
@@ -453,7 +453,8 @@ class TestKyrc26TeacherWorkingConditions:
         The historical files store an insufficient result as the text N/A.
         There is no response-count column, so that text is not a zero.
         notes/8: a row that is not suppressed and has an empty value emits
-        nothing. Boys & Girls Haven publishes School Leadership 0.
+        nothing. Boys & Girls Haven publishes School Leadership 0 in 2024
+        and 2025, the same survey twice. The school is not in the 2026 file.
         """
         text = (
             "School Year,District Name,School Name,School Code,Impact Measure,Impact Value\n"

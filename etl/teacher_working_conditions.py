@@ -14,16 +14,22 @@ column. ``student_group`` is ``All Students``.
 
 2020-2023 publish Managing Student Behavior, School Leadership, and Teaching
 Environment, with a "Composite" suffix. KYRC24, KYRC25, and KYRC26 publish
-Managing Student Behavior, School Climate, and School Leadership. Those
-labels stay on separate metrics. The files do not say that School Climate
-replaced Teaching Environment.
+Managing Student Behavior, School Climate, and School Leadership. This module
+keeps those labels on separate metrics and does not bridge Teaching
+Environment into School Climate. KDE's KYRC23 file relabels the 2023 Teaching
+Environment values, unchanged on all 1,539 schools, as School Climate. The
+2020 Impact Kentucky topic list says "School climate". School-level
+correlation across the label change (0.66) is in line with same-label
+wave-to-wave correlations (0.67-0.73). Issue #62 tracks whether to bridge
+the series.
 
 KYRC26 uses the same headers as KYRC25. No temporary OAA extract is
 registered, and the guessed temporary names return 404, so there is no
 leftover temporary filename to skip. ``KYRC23_OVW_Teacher_Working_Conditions.csv``
-returns 200 and republishes 2022-23. It is not registered, and
-``accepts_data_file`` skips that name. ``teacher_working_conditions_2020.csv``
-is the 2019-20 report card and is registered.
+returns 200 and republishes 2022-23. It turns 945 ``N/A`` cells into 0. It is
+not registered, and ``accepts_data_file`` skips that name.
+``teacher_working_conditions_2020.csv`` is the 2019-20 report card and is
+registered.
 """
 from pathlib import Path
 import pandas as pd
@@ -40,7 +46,7 @@ from base_etl import BaseETL, Config
 logger = logging.getLogger(__name__)
 
 # KYRC23 is the 2022-23 extract again. School year is 20222023 on every row.
-# Teaching Environment is labeled School Climate, and N/A cells are stored as 0.
+# It relabels Teaching Environment as School Climate and turns 945 N/A cells into 0.
 _KYRC23_REPUBLISH = "KYRC23_OVW_TEACHER_WORKING_CONDITIONS.CSV"
 
 # Text that is not a percent. These files have no count column, so N/A is
@@ -83,10 +89,12 @@ class TeacherWorkingConditionsETL(BaseETL):
         datasets host. School year is ``20222023`` on every row, and the
         school-code set matches ``teacher_working_conditions_2023.csv``.
         The historical file labels the third construct Teaching Environment
-        and stores an insufficient result as ``N/A``. KYRC23 labels that
-        construct School Climate and stores those cells as 0. Loading both
-        files would write 2023 twice. The guessed OAA names are 404 and
-        were never registered, so they are not skipped here.
+        and stores an insufficient result as ``N/A`` (945 cells). KYRC23
+        relabels that construct School Climate. Those Teaching Environment
+        values are unchanged on all 1,539 schools. KYRC23 stores the 945
+        ``N/A`` cells as 0. Loading both files would write 2023 twice. The
+        guessed OAA names are 404 and were never registered, so they are
+        not skipped here.
 
         ``TELL_EQUITY_17-18.xlsx`` and ``TELL_EQUITY_18-19.xlsx`` return
         200. Both are school year ``20172018``, and their measure column

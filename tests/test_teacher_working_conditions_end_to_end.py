@@ -371,7 +371,8 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     KPI year is 2026, from school year 20252026. District is All Districts.
     There is no Suppressed column and no starred cell. The 2023 Ashland
     Head Start rows are the text N/A, kept verbatim in the fixture, and
-    emit nothing. Boys & Girls Haven leadership is the published 0.
+    emit nothing. Boys & Girls Haven leadership is the published 0 in 2024
+    and 2025, the same survey twice. The school is not in the 2026 file.
     """
     fixture_dir = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "teacher_working_conditions"
     na_text = (fixture_dir / "teacher_working_conditions_2023.csv").read_text(encoding="utf-8")
