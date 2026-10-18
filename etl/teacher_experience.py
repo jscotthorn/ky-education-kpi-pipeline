@@ -137,9 +137,11 @@ class TeacherExperienceETL(BaseETL):
                 return pd.NA
 
         # Average years of experience (primary metric).
-        # A published 0.00 is omitted by this comparison. Those rows have an
-        # educator count of 1 and no star. Whether a published zero should be
-        # a KPI row is a pre-existing design question, not suppression.
+        # An average of 0.00 is omitted by this comparison. All 20 of those
+        # rows have an educator count of 1 and total years of 0, mostly at
+        # area technology centers and alternative schools. They look like
+        # missing experience records and are unexplained (issue #54). The
+        # omission is not a rule to preserve.
         avg_years = safe_numeric(row.get('average_years_experience', pd.NA))
         if pd.notna(avg_years) and avg_years > 0:
             metrics['teacher_average_years_experience'] = avg_years
