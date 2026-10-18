@@ -5,11 +5,14 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
 from etl.teacher_working_conditions import (
     transform, TeacherWorkingConditionsETL
 )
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestTeacherWorkingConditionsETL:
@@ -371,3 +374,190 @@ class TestTeacherWorkingConditionsETL:
         assert len(kpi_df) == 1
         assert kpi_df.iloc[0]['metric'] == 'teacher_working_conditions_school_leadership'
         assert kpi_df.iloc[0]['value'] == 70.0
+
+
+class TestKyrc26TeacherWorkingConditions:
+    """KYRC26 opt-in. KYRC23 republishes 2022-23 and is skipped."""
+
+    def setup_method(self):
+        self.test_dir = Path(tempfile.mkdtemp())
+        self.raw_dir = self.test_dir / "raw"
+        self.proc_dir = self.test_dir / "processed"
+        self.proc_dir.mkdir(parents=True)
+        self.sample_dir = self.raw_dir / "teacher_working_conditions"
+        self.sample_dir.mkdir(parents=True)
+        self.etl = TeacherWorkingConditionsETL("teacher_working_conditions")
+
+    def teardown_method(self):
+        shutil.rmtree(self.test_dir)
+
+    def _production_config(self) -> dict:
+        config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+        return config["sources"]["teacher_working_conditions"]
+
+    def test_kyrc26_file_is_accepted(self):
+        """The permanent KYRC files and the historical names stay in scope."""
+        assert self.etl.include_kyrc26 is True
+        assert self.etl.module_column_mappings["Impact Measure"] == "impact_measure"
+        assert self.etl.module_column_mappings["Impact Value"] == "impact_value"
+        assert self.etl.module_column_mappings["IMPACT MEASURE"] == "impact_measure"
+        assert self.etl.module_column_mappings["IMPACT VALUE"] == "impact_value"
+
+        accepted = [
+            "KYRC26_OVW_Teacher_Working_Conditions.csv",
+            "KYRC25_OVW_Teacher_Working_Conditions.csv",
+            "KYRC24_OVW_Teacher_Working_Conditions.csv",
+            "teacher_working_conditions_2023.csv",
+            "teacher_working_conditions_2022.csv",
+            "teacher_working_conditions_2021.csv",
+            "teacher_working_conditions_2020.csv",
+        ]
+        for name in accepted:
+            (self.sample_dir / name).write_text(
+                "School Year,Impact Measure,Impact Value\n20252026,School Climate,67\n"
+            )
+        (self.sample_dir / "KYRC23_OVW_Teacher_Working_Conditions.csv").write_text(
+            "School Year,Impact Measure,Impact Value\n20222023,School Climate,60\n"
+        )
+
+        found = sorted(path.name for path, _sheet in self.etl._find_data_files(self.sample_dir))
+        assert found == sorted(accepted)
+
+    def test_kyrc23_republish_is_skipped(self):
+        """A leftover KYRC23 file must not write a second copy of 2023.
+
+        The datasets file is school year 20222023. It labels the third
+        construct School Climate and stores the historical N/A cells as 0.
+        Accepting it would add school_climate rows beside teaching_environment.
+        """
+        republish = (
+            "School Year,District Name,School Name,School Code,Impact Measure,Impact Value\n"
+            "20222023,Adair County,Adair County High School,001010,School Climate,0\n"
+            "20222023,Adair County,Adair County High School,001010,Managing Student Behavior,76\n"
+        )
+        (self.sample_dir / "KYRC23_OVW_Teacher_Working_Conditions.csv").write_text(republish)
+        (self.sample_dir / "KYRC26_OVW_Teacher_Working_Conditions.csv").write_text(
+            "School Year,District Name,School Name,School Code,Impact Measure,Impact Value\n"
+            "20252026,All Districts,All Schools,999000,Managing Student Behavior,69\n"
+        )
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "teacher_working_conditions.csv", dtype=str)
+        assert set(result["year"]) == {"2026"}
+        assert set(result["source_file"]) == {"KYRC26_OVW_Teacher_Working_Conditions.csv"}
+        assert float(result["value"].iloc[0]) == 69.0
+        assert "teacher_working_conditions_school_climate" not in set(result["metric"])
+
+    def test_na_row_emits_nothing_and_zero_is_kept(self):
+        """N/A is not offered. A published 0 is a real percent favorable.
+
+        The historical files store an insufficient result as the text N/A.
+        There is no response-count column, so that text is not a zero.
+        notes/8: a row that is not suppressed and has an empty value emits
+        nothing. Boys & Girls Haven publishes School Leadership 0.
+        """
+        text = (
+            "School Year,District Name,School Name,School Code,Impact Measure,Impact Value\n"
+            "20222023,Ashland Independent,Ashland Head Start,012012,School Leadership,N/A\n"
+            "20222023,Ashland Independent,Ashland Head Start,012012,Managing Student Behavior,N/A\n"
+            "20222023,Ashland Independent,Ashland Head Start,012012,Teaching Environment Composite,N/A\n"
+            "20242025,Jefferson County,Boys & Girls Haven,275028,School Leadership,0\n"
+            "20242025,Jefferson County,Boys & Girls Haven,275028,School Climate,28\n"
+            "20252026,Fayette County,Bryan Station High School,165170,Managing Student Behavior,69\n"
+        )
+        (self.sample_dir / "KYRC26_OVW_Teacher_Working_Conditions.csv").write_text(text)
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "teacher_working_conditions.csv", dtype=str)
+        assert "012012" not in set(result["school_id"])
+        assert set(result["school_id"]) == {"275028", "165170"}
+        zero = result[result["school_id"] == "275028"]
+        assert set(zero["metric"]) == {
+            "teacher_working_conditions_school_leadership",
+            "teacher_working_conditions_school_climate",
+        }
+        leadership = zero[zero["metric"] == "teacher_working_conditions_school_leadership"].iloc[0]
+        assert float(leadership["value"]) == 0.0
+        assert leadership["suppressed"] == "N"
+        assert leadership["year"] == "2025"
+        assert (result["suppressed"] == "N").all()
+
+    def test_suppressed_row_is_kept_empty(self):
+        """A suppressed construct is stored with an empty value.
+
+        These files have no Suppressed column and no starred cell. The
+        constructed Y row is the notes/8 shape: the value is empty and the
+        row is not dropped.
+        """
+        text = (
+            "School Year,District Name,School Name,School Code,Impact Measure,Impact Value,Suppressed\n"
+            "20252026,All Districts,All Schools,999000,School Climate,,Y\n"
+            "20252026,Fayette County,Bryan Station High School,165170,School Leadership,74,N\n"
+        )
+        (self.sample_dir / "KYRC26_OVW_Teacher_Working_Conditions.csv").write_text(text)
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "teacher_working_conditions.csv", dtype=str)
+        suppressed = result[result["suppressed"] == "Y"]
+        assert len(suppressed) == 1
+        assert suppressed.iloc[0]["school_id"] == "999000"
+        assert suppressed.iloc[0]["metric"] == "teacher_working_conditions_school_climate"
+        assert pd.isna(suppressed.iloc[0]["value"]) or suppressed.iloc[0]["value"] == ""
+        kept = result[result["school_id"] == "165170"].iloc[0]
+        assert float(kept["value"]) == 74.0
+        assert kept["suppressed"] == "N"
+
+    def test_percent_parsing_is_dtype_agnostic(self):
+        """pandas 3 StringDtype and pandas 2 object follow the same rules.
+
+        ``read_csv(..., dtype=str)`` returns StringDtype on pandas 3 and
+        object on pandas 2.3.3. ``N/A`` stays missing. ``0`` stays 0.
+        A comma is stripped. ``bool(pd.NA)`` is not used to detect the dtype.
+        No registered percent contains a comma.
+        """
+        frame = pd.DataFrame({
+            "impact_measure": pd.Series(
+                ["School Climate", "School Leadership", "Managing Student Behavior", "School Climate"],
+                dtype="string",
+            ),
+            "impact_value": pd.Series(["69", "0", "N/A", "1,00"], dtype="string"),
+            "suppressed": pd.Series(["N", "N", "N", "N"], dtype="string"),
+        })
+        assert not self.etl.should_skip_row(frame.iloc[0])
+        assert not self.etl.should_skip_row(frame.iloc[1])
+        assert self.etl.should_skip_row(frame.iloc[2])
+        assert not self.etl.should_skip_row(frame.iloc[3])
+        assert self.etl.extract_metrics(frame.iloc[0]) == {
+            "teacher_working_conditions_school_climate": 69.0
+        }
+        assert self.etl.extract_metrics(frame.iloc[1]) == {
+            "teacher_working_conditions_school_leadership": 0.0
+        }
+        assert self.etl.extract_metrics(frame.iloc[2]) == {}
+        assert self.etl.extract_metrics(frame.iloc[3]) == {
+            "teacher_working_conditions_school_climate": 100.0
+        }
+
+        as_object = frame.astype(object)
+        assert self.etl.should_skip_row(as_object.iloc[2])
+        assert self.etl.extract_metrics(as_object.iloc[1])[
+            "teacher_working_conditions_school_leadership"
+        ] == 0.0
+
+
+def test_registered_sources_are_the_permanent_files():
+    """KYRC24, KYRC25, KYRC26, and 2020-2023 are registered. KYRC23 is not."""
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["teacher_working_conditions"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert names == [
+        "KYRC24_OVW_Teacher_Working_Conditions.csv",
+        "KYRC25_OVW_Teacher_Working_Conditions.csv",
+        "KYRC26_OVW_Teacher_Working_Conditions.csv",
+        "teacher_working_conditions_2023.csv",
+        "teacher_working_conditions_2022.csv",
+        "teacher_working_conditions_2021.csv",
+        "teacher_working_conditions_2020.csv",
+    ]
+    assert not any("KYRC23" in name for name in names)
+    assert not any("Teacher_Working_Conditions_20" in name for name in names)
+    assert not any(name.startswith("TELL_EQUITY") for name in names)

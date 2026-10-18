@@ -1,0 +1,13 @@
+SCHOOL YEAR,COUNTY NUMBER,COUNTY NAME,DISTRICT NUMBER,DISTRICT NAME,SCHOOL NUMBER,SCHOOL NAME,SCHOOL CODE,STATE SCHOOL ID,NCES ID,CO-OP,CO-OP CODE,SCHOOL TYPE,IMPACT MEASURE,IMPACT VALUE
+20222023,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,Managing Student Behavior Composite,76
+20222023,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,School Leadership Composite,74
+20222023,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,Teaching Environment Composite,59
+20222023,010,BOYD,012,Ashland Independent,012,Ashland Head Start,012012,010012012,210015002023,KEDC,903,A4,School Leadership Composite,N/A
+20222023,010,BOYD,012,Ashland Independent,012,Ashland Head Start,012012,010012012,210015002023,KEDC,903,A4,Managing Student Behavior Composite,N/A
+20222023,010,BOYD,012,Ashland Independent,012,Ashland Head Start,012012,010012012,210015002023,KEDC,903,A4,Teaching Environment Composite,N/A
+20022023,013,BREATHITT,061,Breathitt County,"",---District Total---,061,"","",KVEC,904,"",Teaching Environment Composite,74
+20022023,013,BREATHITT,061,Breathitt County,"",---District Total---,061,"","",KVEC,904,"",Managing Student Behavior Composite,77
+20022023,013,BREATHITT,061,Breathitt County,"",---District Total---,061,"","",KVEC,904,"",School Leadership Composite,76
+20222023,"","",999,State,"",---State Total---,999,"","","","","",School Leadership Composite,64
+20222023,"","",999,State,"",---State Total---,999,"","","","","",Teaching Environment Composite,60
+20222023,"","",999,State,"",---State Total---,999,"","","","","",Managing Student Behavior Composite,65
