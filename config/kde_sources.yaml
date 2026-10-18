@@ -449,6 +449,13 @@ raw_directories:
     - "students_taught_by_ineffective_teachers_2020.csv"
 
   students_taught_by_out_of_field_teachers:
+    # KYRC23_OVW_Students_Taught_by_Out_of_Field_Teachers.csv returns 200
+    # and is not registered. It republishes 2022-23. The parser skips that
+    # filename. The datasets KYRC24 object repairs the headers and changes
+    # school cells. The historical file registered below is the extract
+    # whose headers are Unnamed: 13 and Inexperienced Value. It is not swapped.
+    # The UAT KYRC25 object negates some equity-gap cells. datasets has no
+    # Content-MD5, so the downloader keeps the datasets object.
     - "KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"
@@ -457,6 +464,9 @@ raw_directories:
     - "students_taught_by_out_of_field_teachers_2023.csv"
     - "students_taught_by_out_of_field_teachers_2022.csv"
     - "students_taught_by_out_of_field_teachers_2021.csv"
+    # 2019-20 report card. School year 20192020. State Title I is 1.41.
+    # The 2020-21 file is 8.88.
+    - "students_taught_by_out_of_field_teachers_2020.csv"
 
   teacher_working_conditions:
     # KYRC23_OVW_Teacher_Working_Conditions.csv returns 200 and is not

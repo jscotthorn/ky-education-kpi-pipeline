@@ -449,11 +449,11 @@ Per-pupil spending metrics broken down by funding source. All spending values ar
 ## Students Taught by Out-of-Field Teachers
 **Source**: `etl/students_taught_by_out_of_field_teachers.py`
 
-Equity metrics showing the percentage of students taught by out-of-field teachers (teaching outside their certification area), broken down by Title I status and demographics.
+KRS 161.1221 requires the Education Professional Standards Board to identify teachers assigned out of field. 16 KAR 2:120 classifies that assignment as an emergency, probationary, or temporary provisional certificate, or as a teacher with no certificate, an expired certificate, or a certificate that does not cover the subject or the grade. KDE's School Report Card catalogue describes the measure as the comparison of students taught by those teachers in Title I schools and in schools that are not Title I. The published figure is a percent. The group columns are within-group rates: the percent of that group taught by an out-of-field teacher. Non-White plus White does not equal All Students. The ETL stores the published percent, including a published 0 and a published negative equity gap.
 
 - `students_taught_by_out_of_field_teachers_rate_title_1` - Percentage of students taught by out-of-field teachers in Title I schools
 - `students_taught_by_out_of_field_teachers_rate_not_title_1` - Percentage of students taught by out-of-field teachers in non-Title I schools
-- `students_taught_by_out_of_field_teachers_rate_equity_gap` - Difference in rate between Title I and non-Title I schools
+- `students_taught_by_out_of_field_teachers_rate_equity_gap` - Published difference between the Title I and non-Title I rates
 
 **Demographics (via `student_group` column):**
 - All Students
@@ -462,9 +462,9 @@ Equity metrics showing the percentage of students taught by out-of-field teacher
 - Students with Disabilities (IEP) / Student without Disabilities (IEP)
 - English Learner / Non-English Learner
 
-**Data Sources**: KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv, KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv, students_taught_by_out_of_field_teachers_{year}.csv
-**Years Available**: 2021-2025
-**Unit**: Percentage (can be negative for equity gap)
+**Data Sources**: KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv, KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv, KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv, students_taught_by_out_of_field_teachers_{year}.csv
+**Years Available**: 2020-2026
+**Unit**: Percentage. The equity gap can be negative. State rows are district `All Districts` for 2024-2026 and `State` for 2020-2023
 
 ---
 

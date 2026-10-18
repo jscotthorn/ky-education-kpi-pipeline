@@ -5,11 +5,15 @@ Tests that sample rows from each source file are correctly transformed to KPI fo
 import pytest
 import pandas as pd
 import numpy as np
+import yaml
 from etl.constants import KPI_COLUMNS
 from pathlib import Path
 from etl.students_taught_by_out_of_field_teachers import (
     transform, StudentsTaughtByOutOfFieldTeachersETL
 )
+
+ROOT = Path(__file__).resolve().parents[1]
+FIXTURE_DIR = ROOT / "tests" / "fixtures" / "students_taught_by_out_of_field_teachers"
 
 
 class TestStudentsTaughtByOutOfFieldTeachersEndToEnd:
@@ -320,6 +324,237 @@ class TestStudentsTaughtByOutOfFieldTeachersEndToEnd:
         assert any('title_1' in m for m in metrics_2024), "KYRC24 data should have Title 1 metrics"
 
         print(f"✓ KYRC24 corrupted headers handled: {len(kyrc24_data):,} rows from 2024")
+
+
+def _run_fixtures(tmp_path: Path, filenames: list) -> pd.DataFrame:
+    """Copy committed real-row excerpts into a raw directory and transform them."""
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "students_taught_by_out_of_field_teachers"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    for name in filenames:
+        (source_dir / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+    config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+    transform(raw_dir, proc_dir, config["sources"]["students_taught_by_out_of_field_teachers"])
+    output = proc_dir / "students_taught_by_out_of_field_teachers.csv"
+    assert output.exists(), filenames
+    return pd.read_csv(output, dtype=str)
+
+
+def _comparable(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop the processing timestamp and sort so two runs can be compared."""
+    columns = [column for column in df.columns if column != "last_updated"]
+    return df[columns].sort_values(columns).reset_index(drop=True)
+
+
+def _one(df: pd.DataFrame, year: str, school_id: str, metric: str, group: str = "All Students") -> pd.Series:
+    matches = df[
+        (df["year"] == year)
+        & (df["school_id"] == school_id)
+        & (df["metric"] == metric)
+        & (df["student_group"] == group)
+    ]
+    assert len(matches) == 1, (year, school_id, metric, group, len(matches))
+    row = matches.iloc[0]
+    assert row["suppressed"] == "N"
+    return row
+
+
+def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
+    """2025-26 KPIs from real rows, with earlier-year anchors.
+
+    Values are the published percents. State Title I All Students is 7.3
+    and Not Title I is 6.4. The English learner equity gap is the published
+    -6.0. Students with disabilities on that gap row is the published 3.0.
+    KPI year is 2026, from school year 20252026. District is All Districts.
+    There is no Suppressed column and no starred cell. A published 0 is kept.
+    """
+    names = [
+        "students_taught_by_out_of_field_teachers_2020.csv",
+        "students_taught_by_out_of_field_teachers_2021.csv",
+        "students_taught_by_out_of_field_teachers_2022.csv",
+        "students_taught_by_out_of_field_teachers_2023.csv",
+        "KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+        "KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+    ]
+    prior_only = _run_fixtures(tmp_path / "prior", names)
+    combined = _run_fixtures(tmp_path / "combined", names + [
+        "KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+    ])
+    prior_years = ["2020", "2021", "2022", "2023", "2024", "2025"]
+    prior_slice = combined[combined["year"].isin(prior_years)]
+    assert _comparable(prior_slice).equals(_comparable(prior_only))
+
+    kyrc26 = combined[combined["source_file"].str.startswith("KYRC26_")]
+    assert set(kyrc26["year"]) == {"2026"}
+    assert set(kyrc26["suppressed"]) == {"N"}
+
+    state = _one(combined, "2026", "999000", "students_taught_by_out_of_field_teachers_rate_title_1")
+    assert float(state["value"]) == 7.3
+    assert state["district"] == "All Districts"
+    assert state["school_name"] == "---District Total---"
+    assert state["district_number"] == "999"
+    groups = {
+        "Non-White": 8.0,
+        "White (non-Hispanic)": 7.0,
+        "Economically Disadvantaged": 7.4,
+        "Non-Economically Disadvantaged": 7.1,
+        "Students with Disabilities (IEP)": 7.4,
+        "Student without Disabilities (IEP)": 7.3,
+        "English Learner": 8.0,
+        "Non-English Learner": 7.2,
+    }
+    for group, value in groups.items():
+        row = _one(
+            combined, "2026", "999000",
+            "students_taught_by_out_of_field_teachers_rate_title_1", group,
+        )
+        assert float(row["value"]) == value
+
+    not_title = _one(
+        combined, "2026", "999000",
+        "students_taught_by_out_of_field_teachers_rate_not_title_1",
+    )
+    assert float(not_title["value"]) == 6.4
+    gap = _one(
+        combined, "2026", "999000",
+        "students_taught_by_out_of_field_teachers_rate_equity_gap",
+    )
+    assert float(gap["value"]) == 0.9
+    # Published cell. Title I 8.0 minus Not Title I 14.0 is -6.0.
+    assert float(_one(
+        combined, "2026", "999000",
+        "students_taught_by_out_of_field_teachers_rate_equity_gap", "English Learner",
+    )["value"]) == -6.0
+    # Published 3.0. Title I 7.4 minus Not Title I 4.5 is 2.9. The file is off by 0.1.
+    assert float(_one(
+        combined, "2026", "999000",
+        "students_taught_by_out_of_field_teachers_rate_equity_gap",
+        "Students with Disabilities (IEP)",
+    )["value"]) == 3.0
+
+    fayette = _one(
+        combined, "2026", "165000", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )
+    assert float(fayette["value"]) == 20.3
+    assert fayette["district"] == "Fayette County"
+    assert fayette["nces_id"] == "2101860"
+    assert fayette["co_op"] == "CKEC"
+    assert fayette["co_op_code"] == "901"
+    assert fayette["county_name"] == "FAYETTE"
+    assert fayette["district_number"] == "165"
+    assert float(_one(
+        combined, "2026", "165000",
+        "students_taught_by_out_of_field_teachers_rate_not_title_1",
+    )["value"]) == 29.5
+    assert float(_one(
+        combined, "2026", "165000",
+        "students_taught_by_out_of_field_teachers_rate_equity_gap",
+    )["value"]) == -9.2
+
+    bryan = _one(
+        combined, "2026", "165170", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )
+    assert float(bryan["value"]) == 37.8
+    assert bryan["school_name"] == "Bryan Station High School"
+    assert bryan["state_school_id"] == "034165170"
+    assert bryan["nces_id"] == "210186000388"
+    assert bryan["school_type"] == "A1"
+    bryan_rows = combined[(combined["year"] == "2026") & (combined["school_id"] == "165170")]
+    assert set(bryan_rows["metric"]) == {"students_taught_by_out_of_field_teachers_rate_title_1"}
+
+    adair_high = _one(
+        combined, "2026", "001010", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )
+    assert float(adair_high["value"]) == 0.1
+    assert adair_high["nces_id"] == "210003000001"
+    adair = _one(
+        combined, "2026", "001000", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )
+    assert float(adair["value"]) == 0.0
+    assert float(_one(
+        combined, "2026", "001000",
+        "students_taught_by_out_of_field_teachers_rate_title_1", "Non-White",
+    )["value"]) == 0.3
+
+    # Prior-year anchors from the downloaded files.
+    assert float(_one(
+        combined, "2025", "999000", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )["value"]) == 8.9
+    assert float(_one(
+        combined, "2025", "999000", "students_taught_by_out_of_field_teachers_rate_not_title_1",
+    )["value"]) == 7.2
+    assert float(_one(
+        combined, "2025", "165000", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )["value"]) == 22.5
+    assert float(_one(
+        combined, "2025", "165170", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )["value"]) == 44.8
+    assert _one(
+        combined, "2025", "165170", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )["nces_id"] == "210186000000"
+
+    assert float(_one(
+        combined, "2024", "999000", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )["value"]) == 8.7
+    assert float(_one(
+        combined, "2024", "999000", "students_taught_by_out_of_field_teachers_rate_not_title_1",
+    )["value"]) == 5.6
+    assert float(_one(
+        combined, "2024", "999000",
+        "students_taught_by_out_of_field_teachers_rate_title_1", "Non-White",
+    )["value"]) == 9.7
+    state_2024 = _one(
+        combined, "2024", "999000", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )
+    assert state_2024["district"] == "All Districts"
+    assert state_2024["school_name"] == "---District Total---"
+
+    state_2023 = _one(
+        combined, "2023", "999", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )
+    assert float(state_2023["value"]) == 6.54
+    assert state_2023["district"] == "State"
+    assert state_2023["school_name"] == "---State Total---"
+    assert float(_one(
+        combined, "2023", "999", "students_taught_by_out_of_field_teachers_rate_not_title_1",
+    )["value"]) == 4.36
+    assert float(_one(
+        combined, "2023", "999", "students_taught_by_out_of_field_teachers_rate_equity_gap",
+    )["value"]) == 2.18
+    breathitt = _one(
+        combined, "2023", "061", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )
+    assert float(breathitt["value"]) == 0.0
+    assert breathitt["district"] == "Breathitt County"
+
+    assert float(_one(
+        combined, "2022", "999", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )["value"]) == 7.8
+    assert float(_one(
+        combined, "2022", "999", "students_taught_by_out_of_field_teachers_rate_not_title_1",
+    )["value"]) == 3.64
+    assert float(_one(
+        combined, "2021", "999", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )["value"]) == 8.88
+    assert float(_one(
+        combined, "2021", "999", "students_taught_by_out_of_field_teachers_rate_not_title_1",
+    )["value"]) == 3.56
+
+    state_2020 = _one(
+        combined, "2020", "999", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )
+    assert float(state_2020["value"]) == 1.41
+    assert state_2020["district"] == "State"
+    assert state_2020["school_name"] == "---State Total---"
+    assert state_2020["school_id"] == "999"
+    assert float(_one(
+        combined, "2020", "999", "students_taught_by_out_of_field_teachers_rate_not_title_1",
+    )["value"]) == 0.51
+    assert float(_one(
+        combined, "2020", "999", "students_taught_by_out_of_field_teachers_rate_equity_gap",
+    )["value"]) == 0.90
 
 
 if __name__ == "__main__":

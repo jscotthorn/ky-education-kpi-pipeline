@@ -1,0 +1,11 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Title_I_Status,All Students,Non-White,White,Economically Disadvantaged,Non-Economically Disadvantaged,Students with Disabilities (IEP),Student without Disabilities (IEP),English Learner,Non-English Learner
+20242025,,,999,All Districts,,All Schools,999000,,,,,,Equity Gap,1.7,1.7,1.7,2.9,0.7,2.9,1.5,5.9,2.0
+20242025,,,999,All Districts,,All Schools,999000,,,,,,Not Title 1,7.2,7.5,7.1,6.2,7.9,7.1,7.2,15.2,6.8
+20242025,,,999,All Districts,,All Schools,999000,,,,,,Title 1,8.9,9.1,8.8,9.0,8.6,10.0,8.6,9.3,8.8
+20242025,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,Equity Gap,2.2,1.6,2.7,20.4,1.2,0.0,3.2,7.9,2.4
+20242025,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,Not Title 1,7.1,6.8,7.6,25.0,6.9,5.3,8.1,0.0,7.3
+20242025,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,Title 1,4.9,5.2,4.9,4.6,5.7,5.2,4.9,7.9,4.8
+20242025,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,Equity Gap,4.5,2.5,7.1,5.4,10.9,9.7,6.8,9.3,4.3
+20242025,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,Not Title 1,27.0,26.3,27.4,18.6,31.0,22.8,27.7,35.9,25.7
+20242025,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,Title 1,22.5,23.9,20.3,24.0,20.1,32.5,20.9,26.7,21.4
+20242025,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000000,CKEC,901,A1,Title 1,44.8,43.9,47.6,45.4,43.3,74.1,42.0,57.4,41.7
