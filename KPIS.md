@@ -558,25 +558,42 @@ Participation and performance metrics for advanced courses including AP, IB, and
 ## Dual Credit
 **Source**: `etl/dual_credit.py`
 
-Participation and performance metrics specifically for dual credit courses.
+KDE publishes two different measures. The participation file is an unduplicated student count by demographic: a student in more than one dual credit course counts once. A completer finished at least one course. A qualifying grade is a C or better in at least one course. The courses-offered file is a duplicated count of course enrollments by subject: a student in two courses counts twice. The two files do not share metric names. State All Students enrollment is 55,553 in 2026. State All Enrollments course enrollment is 143,848 in 2026.
 
-- `dual_credit_enrollment` - Number of students enrolled in dual credit courses
-- `dual_credit_completion_count` - Number of students completing dual credit courses
-- `dual_credit_qualifying_score_count` - Number of students earning qualifying scores
-- `dual_credit_completion_rate` - Percentage of enrolled students completing courses
-- `dual_credit_qualifying_score_rate` - Percentage of completers with qualifying scores
-- `has_dual_credit_program` - Boolean indicator (1=yes, 0=no) if school has dual credit program
+Participation metrics (unduplicated students, `student_group` is the demographic):
 
-**Demographics (via `student_group` column):**
+- `dual_credit_enrollment` - Students enrolled in one or more dual credit courses
+- `dual_credit_completion_count` - Students who completed at least one dual credit course
+- `dual_credit_qualifying_score_count` - Students with a qualifying grade of C or better in at least one dual credit course
+- `dual_credit_completion_rate` - Derived: completers divided by enrollment, times 100
+- `dual_credit_qualifying_score_rate` - Derived: qualifying grades divided by completers, times 100
+- `has_dual_credit_program` - 1 when enrollment is positive, suppressed Y when enrollment is starred. No registered enrollment is 0, so this flag is never 0
+
+Courses-offered metrics (duplicated course enrollments, `student_group` is All Students, subject is in the metric name):
+
+- `dual_credit_course_enrollment_{subject}` - Course enrollments in that subject. `all_enrollments` is the total
+- `dual_credit_course_completion_count_{subject}` - Course completions in that subject
+- `dual_credit_course_qualifying_score_count_{subject}` - Course qualifying grades in that subject
+- `dual_credit_course_completion_rate_{subject}` - Derived: completions divided by enrollments, times 100
+- `dual_credit_course_qualifying_score_rate_{subject}` - Derived: qualifying grades divided by completions, times 100
+
+The rates are derived. KDE does not publish a rate column. There is no gap metric. Gender counts partition All Students. The race counts are within-group counts, not shares, and the published state race sum sits a few students above All Students (8, 19, 12, and 15 in 2023-2026). Overlapping groups such as economically disadvantaged are within-group counts.
+
+There is no Suppressed column. A `*` cell is stored as value NA with suppressed Y. A blank cell is not stored. No registered file has a blank or a zero measure cell. A derived rate is omitted when either count is a star.
+
+State rows are district `All Districts` and school `All Schools`, stored as `---District Total---`, school code `999000`, for 2023-2026. On the courses-offered All Enrollments enrollment, district totals equal the state in 2024, 2025, and 2026. 2023 is off by 3 (117,586 versus 117,583) with no starred district. On the participation file, the sum of district All Students enrollment is above the state in every year (165, 212, 201, and 200 students). The state total is unduplicated across districts: a student in two districts counts twice in the district sum and once at the state. That is the same definition in each year, not a 2026 break. The same rule applies to schools. A student counted at more than one school counts once on the district row and more than once in the school sum, so the school sum exceeds the district total in 11, 12, 13, and 16 districts in 2023-2026 with no starred school cell. A starred school cell is a separate gap, and the published schools then fall short of the district. Kenton County courses offered in 2026 is the large case: Scott High `291120` enrollment is starred, and the district enrollment 4,958 is 979 above the two published schools.
+
+**Demographics (via `student_group` column, participation file only):**
 - All Students
 - Female / Male
 - Race/ethnicity groups (African American, Hispanic or Latino, etc.)
 - Economically Disadvantaged
 - Students with Disabilities (IEP)
 - English Learner
+- Foster Care, Gifted and Talented, Homeless, Migrant, Military Dependent
 
-**Data Sources**: KYRC25_EDOP_Dual_Credit_Participation_and_Performance.csv, KYRC24_EDOP_Dual_Credit_Participation_and_Performance.csv, KYRC25_EDOP_Dual_Credit_Courses_Offered.csv, KYRC24_EDOP_Dual_Credit_Courses_Offered.csv
-**Years Available**: 2024-2025
+**Data Sources**: KYRC23, KYRC24, KYRC25, and KYRC26 `EDOP_Dual_Credit_Participation_and_Performance.csv` and `EDOP_Dual_Credit_Courses_Offered.csv`
+**Years Available**: 2023-2026
 **Unit**: Count (non-negative integers), Rate (0-100%), Boolean (0/1)
 
 ---

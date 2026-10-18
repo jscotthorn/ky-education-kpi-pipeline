@@ -542,7 +542,21 @@ raw_directories:
     # Note: ADVANCED_COURSES_EXAMS_*.xlsx have different schema (course type codes, column names)
 
   dual_credit:
-    # Dual credit is only available in KYRC24/KYRC25 formats
+    # KYRC23 is school year 20222023. The historical host returns 404.
+    # datasets and UAT are byte-identical. It is not a republish of KYRC24
+    # (school year 20232024, and only 31 of 451 shared All Students codes
+    # have the same enrollment text). The guessed OAA names are 404 and
+    # were never registered, so they are not skipped.
+    - url: "kyrc25"
+      file: "KYRC23_EDOP_Dual_Credit_Courses_Offered.csv"
+    - url: "kyrc25"
+      file: "KYRC23_EDOP_Dual_Credit_Participation_and_Performance.csv"
+    # Registered historical KYRC24. The courses-offered header is
+    # "Couse Completers " with a trailing space. The datasets copy drops
+    # that space and fills Jefferson County's blank CO-OP with GREC
+    # (311 offered rows, 522 participation rows). The historical file
+    # leaves Jefferson's co_op blank. That is a known gap. Measure cells
+    # match. The historical file stays registered.
     - "KYRC24_EDOP_Dual_Credit_Courses_Offered.csv"
     - "KYRC24_EDOP_Dual_Credit_Participation_and_Performance.csv"
     - url: "kyrc25"
