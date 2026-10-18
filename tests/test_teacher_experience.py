@@ -5,9 +5,12 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
 from etl.teacher_experience import transform, TeacherExperienceETL
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestTeacherExperienceETL:
@@ -259,3 +262,147 @@ class TestTeacherExperienceETL:
         assert len(kpi_df) == 2
         assert 12.5 in kpi_df['value'].values
         assert 8.3 in kpi_df['value'].values
+
+
+class TestKyrc26TeacherExperience:
+    """KYRC26 opt-in. KYRC23 republishes 2022-23 and is skipped."""
+
+    def setup_method(self):
+        self.test_dir = Path(tempfile.mkdtemp())
+        self.raw_dir = self.test_dir / "raw"
+        self.proc_dir = self.test_dir / "processed"
+        self.proc_dir.mkdir(parents=True)
+        self.sample_dir = self.raw_dir / "teacher_experience"
+        self.sample_dir.mkdir(parents=True)
+        self.etl = TeacherExperienceETL("teacher_experience")
+
+    def teardown_method(self):
+        shutil.rmtree(self.test_dir)
+
+    def test_kyrc26_file_is_accepted(self):
+        """The permanent KYRC files and the historical names stay in scope."""
+        assert self.etl.include_kyrc26 is True
+        assert self.etl.module_column_mappings["Educator Count"] == "educator_count"
+        assert self.etl.module_column_mappings["Average Years of Experience"] == "average_years_experience"
+        assert self.etl.module_column_mappings["EDUCATOR COUNT"] == "educator_count"
+        assert self.etl.module_column_mappings["CNTEXP"] == "educator_count"
+
+        accepted = [
+            "KYRC26_OVW_Average_Years_School_Experience.csv",
+            "KYRC25_OVW_Average_Years_School_Experience.csv",
+            "KYRC24_OVW_Average_Years_School_Experience.csv",
+            "average_years_school_experience_2023.csv",
+            "average_years_school_experience_2022.csv",
+            "average_years_school_experience_2021.csv",
+            "average_years_school_experience_2020.csv",
+        ]
+        for name in accepted:
+            (self.sample_dir / name).write_text("School Year,Educator Count\n20252026,10\n")
+        (self.sample_dir / "KYRC23_OVW_Average_Years_School_Experience.csv").write_text(
+            "School Year,Educator Count,Average Years of Experience\n20222023,10,12.0\n"
+        )
+
+        found = sorted(path.name for path, _sheet in self.etl._find_data_files(self.sample_dir))
+        assert found == sorted(accepted)
+
+    def test_kyrc23_republish_is_skipped(self):
+        """A leftover KYRC23 file must not write a second copy of 2023.
+
+        The datasets file matches the registered 2022-23 extract on educator
+        count and average years. School codes are the same, so accepting it
+        would duplicate those KPI rows.
+        """
+        republish = (
+            "School Year,District Name,School Name,School Code,Educator Count,"
+            "Average Years of Experience\n"
+            "20222023,Adair County,Adair County High School,001010,55,15.60\n"
+        )
+        (self.sample_dir / "KYRC23_OVW_Average_Years_School_Experience.csv").write_text(republish)
+        (self.sample_dir / "KYRC26_OVW_Average_Years_School_Experience.csv").write_text(
+            "School Year,District Name,School Name,School Code,Educator Count,"
+            "Average Years of Experience\n"
+            "20252026,All Districts,All Schools,999000,54,12.20\n"
+        )
+        config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+        transform(self.raw_dir, self.proc_dir, config["sources"]["teacher_experience"])
+        result = pd.read_csv(self.proc_dir / "teacher_experience.csv", dtype=str)
+        assert set(result["year"]) == {"2026"}
+        assert set(result["source_file"]) == {"KYRC26_OVW_Average_Years_School_Experience.csv"}
+        assert float(result["value"].iloc[0]) == 12.20
+
+    def test_blank_row_emits_nothing(self):
+        """An empty measure row is not offered and emits no KPI row.
+
+        notes/8: a row that is not suppressed and has every value empty is
+        the absence of a row. These files have no Suppressed column and no
+        all-blank measure row. The configured Int64 cast stores the empty
+        count as pd.NA. The lookup uses pd.isna so that value is not
+        evaluated as a boolean.
+        """
+        text = (
+            "School Year,District Name,School Name,School Code,Educator Count,"
+            "Average Years of Experience\n"
+            "20252026,All Districts,All Schools,999000,,\n"
+            "20252026,Adair County,Adair County High School,001010,54,\n"
+            "20252026,Fayette County,Bryan Station High School,165170,133,14.29\n"
+        )
+        (self.sample_dir / "KYRC26_OVW_Average_Years_School_Experience.csv").write_text(text)
+        config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+        transform(self.raw_dir, self.proc_dir, config["sources"]["teacher_experience"])
+        result = pd.read_csv(self.proc_dir / "teacher_experience.csv", dtype=str)
+        assert list(result["school_id"]) == ["165170"]
+        assert float(result["value"].iloc[0]) == 14.29
+        assert result["suppressed"].iloc[0] == "N"
+        assert result["year"].iloc[0] == "2026"
+
+    def test_comma_removal_string_dtype(self):
+        """pandas 3 StringDtype keeps a thousands separator until it is stripped.
+
+        ``read_csv(..., dtype=str)`` returns StringDtype on pandas 3 and
+        object on pandas 2.3.3. The state count ``39,242`` has to survive
+        both, including the production Int64 cast. ``bool(pd.NA)`` is not
+        used to detect that dtype.
+        """
+        frame = pd.DataFrame({
+            "educator_count": pd.Series(["39,242", "2,919", pd.NA], dtype="string"),
+            "average_years_experience": pd.Series(["12.20", "13.38", ""], dtype="string"),
+        })
+        cleaned = self.etl.standardize_missing_values(frame)
+        assert cleaned["educator_count"].iloc[0] == 39242
+        assert cleaned["educator_count"].iloc[1] == 2919
+        assert pd.isna(cleaned["educator_count"].iloc[2])
+        assert cleaned["average_years_experience"].iloc[0] == 12.20
+        assert cleaned["average_years_experience"].iloc[1] == 13.38
+        assert pd.isna(cleaned["average_years_experience"].iloc[2])
+
+        cleaned["educator_count"] = pd.to_numeric(
+            cleaned["educator_count"], errors="coerce"
+        ).astype("Int64")
+        cleaned["average_years_experience"] = pd.to_numeric(
+            cleaned["average_years_experience"], errors="coerce"
+        ).astype("float64")
+        assert not self.etl.should_skip_row(cleaned.iloc[0])
+        assert self.etl.should_skip_row(cleaned.iloc[2])
+        metrics = self.etl.extract_metrics(cleaned.iloc[0])
+        assert metrics["teacher_average_years_experience"] == 12.20
+
+
+def test_registered_sources_are_the_permanent_files():
+    """KYRC24, KYRC25, and KYRC26 are registered. KYRC23 is not."""
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["teacher_experience"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert names == [
+        "KYRC24_OVW_Average_Years_School_Experience.csv",
+        "KYRC25_OVW_Average_Years_School_Experience.csv",
+        "KYRC26_OVW_Average_Years_School_Experience.csv",
+        "average_years_school_experience_2023.csv",
+        "average_years_school_experience_2022.csv",
+        "average_years_school_experience_2021.csv",
+        "average_years_school_experience_2020.csv",
+        "SCHOOL_EXPERIENCE_18-19.xlsx",
+    ]
+    assert not any("KYRC23" in name for name in names)
+    assert not any("Average_Years_School_Experience_20" in name for name in names)

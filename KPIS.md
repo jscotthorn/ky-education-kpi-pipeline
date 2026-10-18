@@ -309,7 +309,16 @@ All Grades counts unique students in every grade. KYRC files publish only grades
 ---
 ## Teacher Experience
 **Source**: `etl/teacher_experience.py`
-- `teacher_average_years_experience` - Average years of professional experience for teachers at the school
+
+Average years of teaching experience for classroom teachers at the school or district. KDE's report-card glossary calls this Average School Experience: the total years of teaching experience divided by the number of teachers. The 2018-19 workbook cover sheet describes the average as "Average number of years' experience by teachers" and the educator count as the teachers who contribute to that total. 703 KAR 5:140 limits the average to classroom teachers and excludes administrators, guidance counselors, and media specialists. It is not the number of years a teacher has worked in that building.
+
+The parser stores the published average. The educator count is the denominator in the source file and is not a separate KPI. There is no demographic breakdown and no Suppressed column. A school with one teacher publishes its average.
+
+- `teacher_average_years_experience` - Average years of teaching experience for classroom teachers at the school
+
+**Data Sources**: KYRC26_OVW_Average_Years_School_Experience.csv, KYRC25_OVW_Average_Years_School_Experience.csv, KYRC24_OVW_Average_Years_School_Experience.csv, average_years_school_experience_{year}.csv, SCHOOL_EXPERIENCE_18-19.xlsx  
+**Years Available**: 2019-2026 (2019 when the workbook can be read)  
+**Unit**: Years
 
 ## Student-Teacher Ratio
 **Source**: `etl/student_teacher_ratio.py`

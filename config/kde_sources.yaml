@@ -323,6 +323,8 @@ raw_directories:
     - "STUDENT_SECONDARY_ENROLLMENT_18-19.xlsx"
 
   teacher_experience:
+    # KYRC23_OVW_Average_Years_School_Experience.csv returns 200 and is not
+    # registered. It republishes 2022-23. The parser skips that filename.
     - "KYRC24_OVW_Average_Years_School_Experience.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Average_Years_School_Experience.csv"
