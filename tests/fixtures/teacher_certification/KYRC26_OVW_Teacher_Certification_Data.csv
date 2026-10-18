@@ -1,0 +1,10 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Teacher Count,Emergency Provisional Teacher Count,Percent Emergency Provisional Teachers,National Board Certified Count,Percent National Board Certified Teacher,Rank I Teacher Count,Percent Rank I Teachers,Rank II Teacher Count,Percent Rank II Teachers
+20252026,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,180,31,17.2,,,61,33.9,45,25.0
+20252026,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,52,11,21.2,,,28,53.8,14,26.9
+20252026,002,ALLEN,005,Allen County,901,Allen County Career and Technical Center,005901,002005901,210007002061,GRREC,902,A2,,,,,,,,,
+20252026,003,ANDERSON,011,Anderson County,030,The Anderson County Learning Academy,011030,003011030,210012002371,CKEC,901,A5,3,*,*,,,*,*,*,*
+20252026,004,BALLARD,015,Ballard County,070,Ballard Co. Preschool/Headstart Center,015070,004015070,210021000040,WKEC,908,A4,5,*,*,,,*,*,*,*
+20252026,005,BARREN,197,Glasgow Independent,002,Success Academy,197002,005197002,210222002215,GRREC,902,A5,0,*,,,,*,,*,
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,"3,221",375,11.6,159,4.9,807,25.1,811,25.2
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,129,20,15.5,5,3.9,50,38.8,43,33.3
+20252026,,,999,All Districts,,All Schools,999000,,,,,,"43,037","6,133",14.3,"1,172",2.7,"11,613",27.0,"11,903",27.7

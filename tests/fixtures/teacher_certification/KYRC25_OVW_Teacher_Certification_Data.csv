@@ -1,0 +1,7 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Teacher Count,Emergency Provisional Teacher Count,Percent Emergency Provisional Teachers,National Board Certified Count,Percent National Board Certified Teacher
+20242025,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,184,6,3.3,*,*
+20242025,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000000,GRREC,902,A1,55,*,*,*,*
+20242025,001,ADAIR,777,Kentucky Tech System,108,Campbell County Area Technology Center,777108,001777108,210029000000,,,C2,,,0.0,,0.0
+20242025,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,"3,090",38,1.2,178,5.8
+20242025,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000000,CKEC,901,A1,124,*,*,6,4.8
+20242025,,,999,All Districts,,All Schools,999000,,,,,,"42,805",826,1.9,"1,234",2.9
