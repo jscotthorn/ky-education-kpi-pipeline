@@ -146,9 +146,10 @@ _ALL_GRADES_METRIC = "gifted_participation_count_all_grades"
 
 # Named exception to notes/8. These four files star preschool, grade 14,
 # and Consolidated Student Group on every row, state included. The skip
-# is these filenames and these slices, and only a star. A published
-# number is kept. It does not look at whether a column is all stars,
-# and it does not apply to any other file.
+# is these filenames and these slices, and only a star. The filename
+# match is case-insensitive, so GIFTED_AND_TALENTED_2021.CSV is included.
+# A published number is kept. It does not look at whether a column is
+# all stars, and it does not apply to any other file.
 _OMIT_UNINFORMATIVE_FILES = {
     "gifted_and_talented_2020.csv",
     "gifted_and_talented_2021.csv",
@@ -805,13 +806,14 @@ class GiftedTalentedETL(BaseETL):
         """Skip a starred preschool, grade 14, or consolidated cell on four files.
 
         The decision is ``gifted_and_talented_2020.csv`` through
-        ``gifted_and_talented_2023.csv`` and these slices. ``_is_missing``
-        keeps a published number. A column that happens to be all stars
-        is not enough: kindergarten stars in the same files are written.
-        Any other filename returns False, including a preschool or grade
-        14 star in 2020.
+        ``gifted_and_talented_2023.csv`` and these slices. The filename
+        comparison is case-insensitive. ``_is_missing`` keeps a published
+        number. A column that happens to be all stars is not enough:
+        kindergarten stars in the same files are written. Any other
+        filename returns False, including a preschool or grade 14 star
+        in 2020.
         """
-        if Path(source_file).name not in _OMIT_UNINFORMATIVE_FILES:
+        if Path(source_file).name.lower() not in _OMIT_UNINFORMATIVE_FILES:
             return False
         return _is_missing(value) and (
             student_group == _OMIT_UNINFORMATIVE_GROUP

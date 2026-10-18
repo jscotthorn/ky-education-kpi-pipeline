@@ -8,7 +8,7 @@ import tempfile
 import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
-from etl.gifted_talented import transform, GiftedTalentedETL
+from etl.gifted_talented import transform, GiftedTalentedETL, _OMIT_UNINFORMATIVE_FILES
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_DIR = ROOT / "tests" / "fixtures" / "gifted_talented"
@@ -476,9 +476,11 @@ class TestGiftedTalentedETL:
         """Starred preschool, grade 14, and Consolidated Student Group cells are omitted on four files.
 
         The skip is the filename and the slice, and only a star. A published
-        number is kept. Dropping grade 12, Students with Disabilities, every
-        star, or the same slices by year instead of by filename fails the
-        keep assertions below.
+        number is kept. Every other 2020 metric and group in this fixture
+        is a star and is stored as NA/Y, including grade 12 and Students
+        with Disabilities. Adding either of those to the skip, or dropping
+        only grade-12 stars, removes a Y row and fails. A year-only skip
+        fails the other-filename preschool star.
         """
         measure_headers = [
             ("TOTAL COUNT", "gifted_participation_count_all_grades"),
@@ -546,22 +548,13 @@ class TestGiftedTalentedETL:
             record.update(values)
             return record
 
-        def filled(total, kindergarten):
-            values = {header: "6" for header, _metric in measure_headers}
-            values["TOTAL COUNT"] = total
-            values["PRESCHOOL COUNT"] = "*"
-            values["KINDERGARTEN COUNT"] = kindergarten
-            values["GRADE12 COUNT"] = "15"
-            values["GRADE14 COUNT"] = "*"
-            return values
-
-        rows_2020 = []
-        for group in other_groups:
-            # All Students kindergarten is a star and is still stored.
-            # The other groups publish a number, including Students with Disabilities.
-            kindergarten = "*" if group == "All Students" else "3"
-            total = "40" if group == "All Students" else "21"
-            rows_2020.append(wide_row("20192020", "2020", group, filled(total, kindergarten)))
+        # Every kept cell is a star. A published number on grade 12 or
+        # Students with Disabilities would survive a skip that drops only stars.
+        starred_kept = {header: "*" for header, _metric in measure_headers}
+        rows_2020 = [
+            wide_row("20192020", "2020", group, starred_kept)
+            for group in other_groups
+        ]
         starred = {header: "*" for header, _metric in measure_headers}
         starred["TOTAL COUNT"] = "12"
         starred["KINDERGARTEN COUNT"] = "4"
@@ -582,7 +575,7 @@ class TestGiftedTalentedETL:
 
         pd.DataFrame(rows_2020).to_csv(self.sample_dir / "gifted_and_talented_2020.csv", index=False)
         pd.DataFrame([thin_row("20202021", "2021", "All Students", "5", "*", "*", "*")]).to_csv(
-            self.sample_dir / "gifted_and_talented_2021.csv", index=False
+            self.sample_dir / "GIFTED_AND_TALENTED_2021.CSV", index=False
         )
         pd.DataFrame([thin_row("20212022", "2022", "All Students", "6", "*", "8", "*")]).to_csv(
             self.sample_dir / "gifted_and_talented_2022.csv", index=False
@@ -628,17 +621,18 @@ class TestGiftedTalentedETL:
             ]
             return set(matched["metric"])
 
+        assert _OMIT_UNINFORMATIVE_FILES == {
+            "gifted_and_talented_2020.csv",
+            "gifted_and_talented_2021.csv",
+            "gifted_and_talented_2022.csv",
+            "gifted_and_talented_2023.csv",
+        }
         for group in other_groups:
             assert metrics_for("2020", "2020", group) == kept_metrics, group
-        kindergarten_2020 = present("2020", "2020", "All Students", "gifted_participation_count_kindergarten")
-        assert kindergarten_2020["suppressed"] == "Y"
-        assert kindergarten_2020["value"] == ""
-        grade_12 = present("2020", "2020", "All Students", "gifted_participation_count_grade_12")
-        assert float(grade_12["value"]) == 15.0
-        assert grade_12["suppressed"] == "N"
-        disability = present("2020", "2020", "Students with Disabilities (IEP)", "gifted_participation_count_all_grades")
-        assert float(disability["value"]) == 21.0
-        assert disability["suppressed"] == "N"
+            for metric in kept_metrics:
+                cell = present("2020", "2020", group, metric)
+                assert cell["suppressed"] == "Y", (group, metric)
+                assert cell["value"] == "", (group, metric)
         missing("2020", "2020", "All Students", "gifted_participation_count_preschool")
         missing("2020", "2020", "All Students", "gifted_participation_count_grade_14")
         consolidated_total = present(
@@ -661,6 +655,7 @@ class TestGiftedTalentedETL:
             missing(year, year, "All Students", "gifted_participation_count_grade_14")
         kindergarten_2021 = present("2021", "2021", "All Students", "gifted_participation_count_kindergarten")
         assert kindergarten_2021["suppressed"] == "Y"
+        assert kindergarten_2021["source_file"] == "GIFTED_AND_TALENTED_2021.CSV"
         assert float(present("2022", "2022", "All Students", "gifted_participation_count_kindergarten")["value"]) == 8.0
         assert float(present("2023", "2023", "All Students", "gifted_participation_count_kindergarten")["value"]) == 7.0
         for metric in (
