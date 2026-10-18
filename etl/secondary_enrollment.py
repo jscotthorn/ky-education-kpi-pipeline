@@ -2,18 +2,22 @@
 Secondary Enrollment ETL Module
 
 Students with a secondary (concurrent) enrollment at this school, by grade,
-for 2019-2026. A secondary enrollment is a concurrent second enrollment at a
-school other than the student's main school, mostly at career and technical
-centers and regional academies. KDE pairs this series with primary enrollment.
+for 2019-2026. KDE's cover sheet describes the total as "Count of unique
+students with secondary enrollment". Our interpretation of the data is a
+concurrent second enrollment at a school other than the student's main
+school, mostly at career and technical centers and regional academies.
+KDE pairs this series with primary enrollment.
 
 All Grades counts unique students in every grade. KYRC files publish only
 grades 6-12 and 14, so All Grades can exceed those cells. Older files had
-preschool through grade 5 columns (always 0), and their totals equal the
-grade sums for 2019-2024. KYRC25 has 37 rows where the total is higher
-(state gap 3). KYRC26 has 47 (state gap 63: East Jessamine Middle 61,
-Tates Creek Middle 1, Camden Station Elementary 1). Those students are
-most likely below grade 6, which is unproven. On those rows middle, high
-school, and grade 14 will not sum to the total. The parser stores All Grades.
+preschool through grade 5 columns (0 or blank; 2019 has blanks), and their
+totals equal the grade sums for 2019-2024. KYRC25 has 37 rows where the
+total is higher (state gap 3). KYRC26 has 47 (state gap 63: East Jessamine
+Middle 61, Tates Creek Middle 1, Camden Station Elementary 1). Those
+students are in grades the file does not publish; cause unverified. 62 of
+the 63 are at East Jessamine Middle and Tates Creek Middle, both grades
+6-8 schools. On those rows middle, high school, and grade 14 will not sum
+to the total. The parser stores All Grades.
 """
 from pathlib import Path
 import pandas as pd
@@ -138,8 +142,9 @@ class SecondaryEnrollmentETL(BaseETL):
             'GRADE12 COUNT': 'grade_12',
             'GRADE14 COUNT': 'grade_14',
 
-            # Older files include preschool through grade 5. Those cells are 0
-            # and are not emitted. All Grades still counts every grade.
+            # Older files include preschool through grade 5. Those cells are
+            # 0 or blank (2019 has blanks) and are not emitted. All Grades
+            # still counts every grade.
             'PRESCHOOL COUNT': 'preschool',
             'KINDERGARTEN COUNT': 'k',
             'GRADE1 COUNT': 'grade_1',
