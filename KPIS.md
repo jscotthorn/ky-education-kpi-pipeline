@@ -601,25 +601,47 @@ State rows are district `All Districts` and school `All Schools`, stored as `---
 ## Gifted and Talented
 **Source**: `etl/gifted_talented.py`
 
-Participation counts for gifted and talented programs by grade level.
+KDE's 2018-19 coversheet calls `GT_CNT` the number of gifted and talented students enrolled. That all-grades count is unduplicated. Female plus Male equals All Students wherever all three cells are numbers. The seven race counts also add to All Students on the state row in 2019, 2020, 2022, 2023, 2025, and 2026. 2021 and 2024 are each short by 1. Kindergarten through grade 12 add to the state total in 2026. Earlier years leave preschool or grade 14 as a star or a blank, and the published grade cells are then short of the total by 0, 1, or 2.
 
-### Grade Level Participation
-- `gifted_participation_count_all_grades` - Total students in gifted programs
-- `gifted_participation_count_preschool` - Students in preschool
-- `gifted_participation_count_kindergarten` - Students in kindergarten
-- `gifted_participation_count_grade_1` through `gifted_participation_count_grade_12` - Students by grade level
-- `gifted_participation_count_grade_14` - Students in post-secondary transition
+A talent-category count is the number of students identified in that category. A student may be identified in more than one category, so the categories overlap and do not sum to the grade total. The category file's All Students cell is the same unduplicated total as All Grades. It is stored as `gifted_participation_count_all_grades`, not as a second metric. The 2018-19 coversheet labels `AcademicArts` "Art Students." The state count lines up with later language arts (20,827 in 2019, 20,183 in 2024), and `VisPerfArt` lines up with visual art (5,245 in 2019, 5,515 in 2024). Language arts stays on `specific_academic_aptitude_language_arts`.
+
+State rows are district `All Districts` for 2024-2026 and `State` for 2019-2023. The 2026 state total is 90,464. District totals equal that state total. The 2025 state total is 90,490 and the districts sum to 90,492. In 2019 and 2020 the district sum sits about 1,000 above the state. School sums do not exceed the district total except Garrard County in 2021 (149 against 147). A short school sum is suppressed cells, or a few students in 2026 (Corbin Independent 4, Hardin County 1, Paintsville Independent 2, Warren County 5). There is no gap metric.
+
+A `*` is stored as value NA with suppressed Y. A blank cell is not stored. Grade 14 is absent in 2026. The coversheet calls it the number of gifted and talented students in grade 14. Preschool is absent in 2025 and 2026. No registered preschool cell is a positive number.
+
+A published 0 is kept where the file publishes one. The 2018-19 workbook publishes 0, including most grade 14 cells. KYRC25 and KYRC26 schools that appear only on the category file publish 0. The 2020-2023 historical files publish no 0 and no blank. The smallest number in those files is 3, so a Y in those years covers a count of 0, 1, or 2 and a not-applicable cell, not only a privacy suppression. Preschool, grade 14, and Consolidated Student Group are starred on every 2020-2023 row. About two thirds of those rows are starred in all 28 measure cells. A Y row in those years is not evidence the group exists. The KYRC23 republication of 2022-23 leaves 16,277 of the 20,036 fully starred 2023 rows out, turns 135,421 starred grade cells into blanks, and turns 8,765 starred category cells into 0. Preschool, grade 14, and Consolidated Student Group in those years are still written. [Issue #77](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/77) asks whether those always-starred cells should stay.
+
+### Grade participation
+- `gifted_participation_count_all_grades` - Unduplicated gifted students
+- `gifted_participation_count_preschool` - Preschool, when the file has the column
+- `gifted_participation_count_kindergarten` - Kindergarten
+- `gifted_participation_count_grade_1` through `gifted_participation_count_grade_12` - One grade
+- `gifted_participation_count_grade_14` - Grade 14, through 2025
+
+### Category identification
+- `gifted_category_count_creative_or_divergent_thinking`
+- `gifted_category_count_general_intellectual_ability`
+- `gifted_category_count_primary_talent_pool`
+- `gifted_category_count_psychosocial_or_leadership_ability`
+- `gifted_category_count_specific_academic_aptitude_language_arts`
+- `gifted_category_count_specific_academic_aptitude_math`
+- `gifted_category_count_specific_academic_aptitude_science`
+- `gifted_category_count_specific_academic_aptitude_social_studies`
+- `gifted_category_count_visual_and_performing_arts_art`
+- `gifted_category_count_visual_and_performing_arts_dance`
+- `gifted_category_count_visual_and_performing_arts_drama`
+- `gifted_category_count_visual_and_performing_arts_music`
 
 **Demographics (via `student_group` column):**
 - All Students
 - Female / Male
 - Race/ethnicity groups (African American, Hispanic or Latino, etc.)
-- Economically Disadvantaged
-- Students with Disabilities (IEP)
-- English Learner
+- Economically Disadvantaged, English Learner, Students with Disabilities (IEP), Foster Care, Homeless, Migrant, Military Dependent
+- Consolidated Student Group on the 2020-2023 files. The 2019 workbook has the group too, read from `DGROUP` rather than from the code `CSG`. Code `CSG` in the shared map is Students with Disabilities, and code `ACD` is dropped. In this workbook `DGROUP` says `CSG` is Consolidated Student Group (state 14,874) and `ACD` is `Studw/disab.`, the disability count (state 3,136). The 2020 disability count is 3,357. The shared map is unchanged. [Issue #76](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/76) tracks the same code swap in other 2018-19 workbooks
+- KYRC24-KYRC26 category files are All Students only
 
-**Data Sources**: KYRC25_EDOP_Gifted_Participation_by_Grade_Level.csv, KYRC24_EDOP_Gifted_Participation_by_Grade_Level.csv, gifted_and_talented_{year}.csv
-**Years Available**: 2021-2025
+**Data Sources**: `GIFTED_AND_TALENTED_18-19.xlsx`, `gifted_and_talented_2020.csv` through `gifted_and_talented_2023.csv`, KYRC24 through KYRC26 `EDOP_Gifted_Participation_by_Grade_Level.csv` and `EDOP_Gifted_Participation_by_Category.csv`
+**Years Available**: 2019-2026
 **Unit**: Count (non-negative integers)
 
 ---

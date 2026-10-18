@@ -5,9 +5,13 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
 from etl.gifted_talented import transform, GiftedTalentedETL
+
+ROOT = Path(__file__).resolve().parents[1]
+FIXTURE_DIR = ROOT / "tests" / "fixtures" / "gifted_talented"
 
 
 class TestGiftedTalentedETL:
@@ -289,17 +293,527 @@ class TestGiftedTalentedETL:
         transform(self.raw_dir, self.proc_dir, config)
 
         output_file = self.proc_dir / "gifted_talented.csv"
+        df = pd.read_csv(output_file, dtype=str, keep_default_na=False)
+        assert len(df) == 15
+        assert set(df["metric"]) == {
+            "gifted_participation_count_all_grades",
+            "gifted_participation_count_kindergarten",
+            "gifted_participation_count_grade_1",
+            "gifted_participation_count_grade_2",
+            "gifted_participation_count_grade_3",
+            "gifted_participation_count_grade_4",
+            "gifted_participation_count_grade_5",
+            "gifted_participation_count_grade_6",
+            "gifted_participation_count_grade_7",
+            "gifted_participation_count_grade_8",
+            "gifted_participation_count_grade_9",
+            "gifted_participation_count_grade_10",
+            "gifted_participation_count_grade_11",
+            "gifted_participation_count_grade_12",
+            "gifted_participation_count_grade_14",
+        }
+        assert (df["suppressed"] == "Y").all()
+        assert (df["value"] == "").all()
+        assert set(df["year"]) == {"2025"}
 
-        # When all values are suppressed, file might not be created or have no data
-        if output_file.exists() and output_file.stat().st_size > 0:
-            try:
-                df = pd.read_csv(output_file)
-                # If file has data, values should be NA
-                if len(df) > 0:
-                    # Suppressed values should be NA
-                    pass  # Logic is correct
-            except pd.errors.EmptyDataError:
-                pass
+
+    def _production_config(self) -> dict:
+        config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+        return config["sources"]["gifted_talented"]
+
+    def _copy_fixtures(self) -> None:
+        for path in FIXTURE_DIR.glob("*.csv"):
+            (self.sample_dir / path.name).write_bytes(path.read_bytes())
+
+    def test_kyrc26_file_is_accepted(self):
+        """KYRC26 is in scope. Grade 14 stays mapped for the years that have it."""
+        assert self.etl.include_kyrc26 is True
+        assert self.etl.accepts_data_file(Path("KYRC26_EDOP_Gifted_Participation_by_Grade_Level.csv"))
+        assert self.etl.accepts_data_file(Path("KYRC26_EDOP_Gifted_Participation_by_Category.csv"))
+        assert self.etl.accepts_data_file(Path("gifted_and_talented_2020.csv"))
+        assert self.etl.accepts_data_file(Path("KYRC24_EDOP_Gifted_Participation_by_Grade_Level.csv"))
+        mappings = self.etl.module_column_mappings
+        assert mappings["TOTAL COUNT"] == "all_grades"
+        assert mappings["Grade 14"] == "grade_14"
+        assert mappings["ACADEMICARTS_CNT"] == "specific_academic_aptitude_language_arts"
+        assert mappings["VISPERFART_CNT"] == "visual_and_performing_arts_art"
+
+    def test_kyrc23_same_year_file_is_not_loaded(self):
+        """KYRC23 is school year 20222023, already loaded from the historical file.
+
+        A leftover copy must not write 2023 a second time. The guessed OAA
+        names were never registered, so they are not skipped by name.
+        """
+        assert not self.etl.accepts_data_file(Path("KYRC23_EDOP_Gifted_Participation_by_Grade_Level.csv"))
+        assert not self.etl.accepts_data_file(Path("KYRC23_EDOP_Gifted_Participation_by_Category.csv"))
+        assert self.etl.accepts_data_file(Path("Gifted_Talented_2026.CSV"))
+        data = pd.DataFrame({
+            "School Year": ["20222023"],
+            "District Name": ["All Districts"],
+            "School Name": ["All Schools"],
+            "School Code": ["999000"],
+            "Demographic": ["All Students"],
+            "All Grades": ["87,613"],
+        })
+        data.to_csv(
+            self.sample_dir / "KYRC23_EDOP_Gifted_Participation_by_Grade_Level.csv",
+            index=False,
+        )
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        assert not (self.proc_dir / "gifted_talented.csv").exists()
+
+    def test_blank_row_is_skipped_in_every_year(self):
+        """A blank measure row is not stored. The skip is not limited to one year.
+
+        A starred cell on the same shape is stored. No registered grade file
+        has a row whose measure cells are all blank.
+        """
+        blank = pd.DataFrame({
+            "School Year": ["20232024", "20252026"],
+            "District Name": ["Adair County", "Adair County"],
+            "School Name": ["Adair County High School", "Adair County High School"],
+            "School Code": ["001010", "001010"],
+            "Demographic": ["All Students", "All Students"],
+            "All Grades": ["", ""],
+            "K": ["", ""],
+            "Grade 12": ["", ""],
+        })
+        starred = pd.DataFrame({
+            "School Year": ["20252026"],
+            "District Name": ["Adair County"],
+            "School Name": ["Adair County High School"],
+            "School Code": ["001010"],
+            "Demographic": ["Homeless"],
+            "All Grades": ["*"],
+            "K": ["*"],
+            "Grade 12": ["*"],
+        })
+        blank.to_csv(self.sample_dir / "blank_rows.csv", index=False)
+        starred.to_csv(self.sample_dir / "starred_2026.csv", index=False)
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        df = pd.read_csv(self.proc_dir / "gifted_talented.csv", dtype=str, keep_default_na=False)
+        assert set(df["year"]) == {"2026"}
+        assert set(df["student_group"]) == {"Homeless"}
+        assert (df["suppressed"] == "Y").all()
+        assert (df["value"] == "").all()
+
+    def test_published_zero_count_is_kept(self):
+        """A published 0 is a count. Adair Learning Academy's category total is 0.
+
+        Dropping zeros would still pass a fixture that only has positive
+        state totals. This row keeps 0, suppressed N, on the grade total
+        and on a talent category.
+        """
+        self._copy_fixtures()
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        df = pd.read_csv(self.proc_dir / "gifted_talented.csv", dtype=str, keep_default_na=False)
+        total = df[
+            (df["year"] == "2026")
+            & (df["school_id"] == "001012")
+            & (df["metric"] == "gifted_participation_count_all_grades")
+        ]
+        assert len(total) == 1
+        assert total.iloc[0]["suppressed"] == "N"
+        assert float(total.iloc[0]["value"]) == 0.0
+        assert total.iloc[0]["source_file"] == "KYRC26_EDOP_Gifted_Participation_by_Category.csv"
+        creative = df[
+            (df["year"] == "2026")
+            & (df["school_id"] == "001012")
+            & (df["metric"] == "gifted_category_count_creative_or_divergent_thinking")
+        ]
+        assert len(creative) == 1
+        assert creative.iloc[0]["suppressed"] == "N"
+        assert float(creative.iloc[0]["value"]) == 0.0
+
+    def test_repeated_school_key_keeps_the_larger_total(self):
+        """2022 repeats Covington Independent 134. Keep total 105, not 3.
+
+        The grade cells on the 105 row are the ones the previous parser
+        stored. The 3 row is stars on those grades. A number beats a star.
+        """
+        self._copy_fixtures()
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        df = pd.read_csv(self.proc_dir / "gifted_talented.csv", dtype=str, keep_default_na=False)
+        keys = ["year", "school_id", "student_group", "metric"]
+        assert df.groupby(keys).size().max() == 1
+        total = df[
+            (df["year"] == "2022")
+            & (df["school_id"] == "134")
+            & (df["student_group"] == "All Students")
+            & (df["metric"] == "gifted_participation_count_all_grades")
+        ]
+        assert len(total) == 1
+        assert float(total.iloc[0]["value"]) == 105.0
+        assert total.iloc[0]["suppressed"] == "N"
+        grade_1 = df[
+            (df["year"] == "2022")
+            & (df["school_id"] == "134")
+            & (df["metric"] == "gifted_participation_count_grade_1")
+        ]
+        assert len(grade_1) == 1
+        assert float(grade_1.iloc[0]["value"]) == 6.0
+        assert grade_1.iloc[0]["suppressed"] == "N"
+        # The 3-row's preschool star is the same star as the 105 row.
+        preschool = df[
+            (df["year"] == "2022")
+            & (df["school_id"] == "134")
+            & (df["metric"] == "gifted_participation_count_preschool")
+        ]
+        assert len(preschool) == 1
+        assert preschool.iloc[0]["suppressed"] == "Y"
+        assert preschool.iloc[0]["value"] == ""
+
+    def test_comma_count_survives_string_dtype_and_int64(self):
+        """pandas 3 dtype=str is StringDtype. ``90,464`` has to survive an Int64 cast.
+
+        Production mappings.yaml has no dtype cast for this source. The
+        cleaner still strips the comma so a later cast does not drop the
+        state total.
+        """
+        raw = pd.Series(["90,464", "0", "*", ""], dtype="string")
+        frame = pd.DataFrame({"all_grades": raw, "grade_1": raw})
+        cleaned = self.etl.standardize_missing_values(frame.copy())
+        assert cleaned["all_grades"].iloc[0] == "90464"
+        assert bool(cleaned["_star_all_grades"].iloc[2])
+        assert not bool(cleaned["_star_all_grades"].iloc[0])
+        assert not bool(cleaned["_star_all_grades"].iloc[1])
+        assert not bool(cleaned["_star_all_grades"].iloc[3])
+        cast = cleaned["all_grades"].astype("Int64")
+        assert int(cast.iloc[0]) == 90464
+        assert int(cast.iloc[1]) == 0
+        assert pd.isna(cast.iloc[2])
+        assert pd.isna(cast.iloc[3])
+
+    def test_real_rows_match_the_downloaded_files(self):
+        """State, district, school, a partial star, a published 0, and prior anchors.
+
+        Category All Students is the same total as All Grades, so it is
+        stored once. Talent categories use a different metric name.
+        KYRC26 has no Grade 14 column. A blank grade cell is not stored.
+        ``20022023`` on the Breathitt district total is year 2023.
+        """
+        self._copy_fixtures()
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        df = pd.read_csv(self.proc_dir / "gifted_talented.csv", dtype=str, keep_default_na=False)
+        keys = ["year", "school_id", "student_group", "metric"]
+        assert df.groupby(keys).size().max() == 1
+
+        def cell(year, school_id, group, metric):
+            rows = df[
+                (df["year"] == year)
+                & (df["school_id"] == school_id)
+                & (df["student_group"] == group)
+                & (df["metric"] == metric)
+            ]
+            assert len(rows) == 1, (year, school_id, group, metric, len(rows))
+            return rows.iloc[0]
+
+        state = cell("2026", "999000", "All Students", "gifted_participation_count_all_grades")
+        assert float(state["value"]) == 90464.0
+        assert state["suppressed"] == "N"
+        assert state["district"] == "All Districts"
+        assert state["school_name"] == "---District Total---"
+        assert state["source_file"] == "KYRC26_EDOP_Gifted_Participation_by_Grade_Level.csv"
+        assert float(cell("2026", "999000", "All Students", "gifted_participation_count_kindergarten")["value"]) == 2616.0
+        assert float(cell("2026", "999000", "All Students", "gifted_participation_count_grade_12")["value"]) == 7380.0
+        assert "gifted_participation_count_grade_14" not in set(df.loc[df["year"] == "2026", "metric"])
+        creative = cell("2026", "999000", "All Students", "gifted_category_count_creative_or_divergent_thinking")
+        assert float(creative["value"]) == 7030.0
+        assert creative["suppressed"] == "N"
+        assert creative["source_file"] == "KYRC26_EDOP_Gifted_Participation_by_Category.csv"
+
+        fayette = cell("2026", "165000", "All Students", "gifted_participation_count_all_grades")
+        assert float(fayette["value"]) == 10937.0
+        assert fayette["district"] == "Fayette County"
+        assert fayette["nces_id"] == "2101860"
+        assert fayette["co_op"] == "CKEC"
+        assert fayette["co_op_code"] == "901"
+        assert fayette["school_name"] == "---District Total---"
+        bryan = cell("2026", "165170", "All Students", "gifted_participation_count_all_grades")
+        assert float(bryan["value"]) == 238.0
+        assert bryan["school_name"] == "Bryan Station High School"
+        assert bryan["nces_id"] == "210186000388"
+        assert bryan["state_school_id"] == "034165170"
+        assert bryan["school_type"] == "A1"
+        # High school grades are published. K through grade 8 are blank, not zero.
+        assert float(cell("2026", "165170", "All Students", "gifted_participation_count_grade_9")["value"]) == 64.0
+        assert "gifted_participation_count_kindergarten" not in set(
+            df.loc[(df["year"] == "2026") & (df["school_id"] == "165170"), "metric"]
+        )
+
+        native = cell(
+            "2026",
+            "999000",
+            "American Indian or Alaska Native",
+            "gifted_participation_count_all_grades",
+        )
+        assert float(native["value"]) == 105.0
+        assert native["suppressed"] == "N"
+        starred = cell(
+            "2026",
+            "999000",
+            "American Indian or Alaska Native",
+            "gifted_participation_count_kindergarten",
+        )
+        assert starred["value"] == ""
+        assert starred["suppressed"] == "Y"
+        assert float(cell(
+            "2026",
+            "999000",
+            "American Indian or Alaska Native",
+            "gifted_participation_count_grade_1",
+        )["value"]) == 10.0
+
+        # Prior-year anchors. Published values, not a same-branch diff.
+        prior = cell("2025", "999000", "All Students", "gifted_participation_count_all_grades")
+        assert float(prior["value"]) == 90490.0
+        assert prior["source_file"] == "KYRC25_EDOP_Gifted_Participation_by_Grade_Level.csv"
+        # KYRC25 still publishes Grade 14. The state cell is a star.
+        grade_14 = cell("2025", "999000", "All Students", "gifted_participation_count_grade_14")
+        assert grade_14["suppressed"] == "Y"
+        assert grade_14["value"] == ""
+        assert float(cell("2025", "999000", "All Students", "gifted_participation_count_kindergarten")["value"]) == 2785.0
+
+        historical = cell("2023", "999", "All Students", "gifted_participation_count_all_grades")
+        assert float(historical["value"]) == 87613.0
+        assert historical["district"] == "State"
+        assert historical["school_name"] == "---State Total---"
+        assert historical["source_file"] == "gifted_and_talented_2023.csv"
+        assert float(cell("2023", "999", "All Students", "gifted_participation_count_kindergarten")["value"]) == 3025.0
+        assert float(cell(
+            "2023",
+            "999",
+            "All Students",
+            "gifted_category_count_creative_or_divergent_thinking",
+        )["value"]) == 6039.0
+        preschool = cell("2023", "999", "All Students", "gifted_participation_count_preschool")
+        assert preschool["suppressed"] == "Y"
+        assert preschool["value"] == ""
+
+        breathitt = cell("2023", "061", "All Students", "gifted_participation_count_all_grades")
+        assert float(breathitt["value"]) == 239.0
+        assert breathitt["district"] == "Breathitt County"
+        assert breathitt["school_name"] == "---District Total---"
+        assert float(cell("2023", "061", "All Students", "gifted_participation_count_kindergarten")["value"]) == 17.0
+
+    def test_collapse_repeated_keys_overlays_a_number_from_the_smaller_row(self):
+        """The merge itself keeps 105 and overlays a number the 105 row starred.
+
+        This calls ``_collapse_repeated_keys`` on one frame. It does not
+        go through ``process``. A later per-metric dedupe cannot hide a
+        no-op here: two rows would remain, and grade 1 would stay a star.
+        """
+        frame = pd.DataFrame([
+            {
+                "school_code": "134",
+                "school_name": "smaller copy",
+                "demographic": "All Students",
+                "all_grades": "3",
+                "grade_1": "6",
+                "_star_all_grades": False,
+                "_star_grade_1": False,
+            },
+            {
+                "school_code": "134",
+                "school_name": "larger copy",
+                "demographic": "All Students",
+                "all_grades": "105",
+                "grade_1": pd.NA,
+                "_star_all_grades": False,
+                "_star_grade_1": True,
+            },
+        ])
+        collapsed = self.etl._collapse_repeated_keys(frame, "gifted_and_talented_2022.csv")
+        assert len(collapsed) == 1
+        row = collapsed.iloc[0]
+        assert row["school_name"] == "larger copy"
+        assert row["all_grades"] == "105"
+        assert row["grade_1"] == "6"
+        assert not bool(row["_star_grade_1"])
+
+    def test_star_text_fallback_does_not_treat_a_blank_as_a_star(self):
+        """A row with no ``_star_`` column uses the cell text.
+
+        ``*`` is stored as suppressed Y. A blank is skipped. Treating the
+        blank as a star would keep the row.
+        """
+        blank = pd.Series({
+            "demographic": "All Students",
+            "all_grades": "",
+            "school_code": "001010",
+            "school_year": "20252026",
+            "district_name": "Adair County",
+            "school_name": "Adair County High School",
+        })
+        assert self.etl.should_skip_row(blank)
+        assert self.etl.extract_metrics(blank) == {}
+
+        star = blank.copy()
+        star["all_grades"] = "*"
+        assert not self.etl.should_skip_row(star)
+        metrics = self.etl.extract_metrics(star)
+        assert "gifted_participation_count_all_grades" in metrics
+        assert pd.isna(metrics["gifted_participation_count_all_grades"])
+
+        kpi = self.etl.convert_to_kpi_format(pd.DataFrame([star]), "star_fallback.csv")
+        assert len(kpi) == 1
+        assert kpi.iloc[0]["suppressed"] == "Y"
+        assert pd.isna(kpi.iloc[0]["value"])
+
+    def test_wide_kyrc24_category_file(self):
+        """KYRC24 category rows are wide. The count sits on the diagonal.
+
+        All Students uses All Grades. Creative uses its own column. The
+        other columns on that row are blank and are not stored as zeros.
+        """
+        self._copy_fixtures()
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        df = pd.read_csv(self.proc_dir / "gifted_talented.csv", dtype=str, keep_default_na=False)
+        year = df[
+            (df["year"] == "2024")
+            & (df["school_id"] == "999000")
+            & (df["source_file"] == "KYRC24_EDOP_Gifted_Participation_by_Category.csv")
+        ]
+        assert set(year["metric"]) == {
+            "gifted_participation_count_all_grades",
+            "gifted_category_count_creative_or_divergent_thinking",
+        }
+        total = year[year["metric"] == "gifted_participation_count_all_grades"].iloc[0]
+        assert float(total["value"]) == 88706.0
+        assert total["suppressed"] == "N"
+        assert total["student_group"] == "All Students"
+        creative = year[year["metric"] == "gifted_category_count_creative_or_divergent_thinking"].iloc[0]
+        assert float(creative["value"]) == 6277.0
+        assert creative["suppressed"] == "N"
+        assert "gifted_category_count_general_intellectual_ability" not in set(year["metric"])
+
+    def test_2019_workbook_maps_disability_from_dgroup(self):
+        """2019 Students with Disabilities is ``Studw/disab.``, not code CSG.
+
+        The shared map sends CSG to Students with Disabilities and drops
+        ACD. This workbook's DGROUP says CSG is Consolidated Student Group
+        and ACD is the disability count. A CSV that still carries the code
+        CSG keeps the shared map.
+        """
+        workbook = pd.DataFrame([
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "TST",
+                "DGROUP": "All Students",
+                "GT_CNT": "94644",
+            },
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "CSG",
+                "DGROUP": "Consolidated Student Group",
+                "GT_CNT": "14874",
+            },
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "ACD",
+                "DGROUP": "Studw/disab.",
+                "GT_CNT": "3136",
+            },
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "LEP",
+                "DGROUP": "EL",
+                "GT_CNT": "797",
+            },
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "LUP",
+                "DGROUP": "Free/Reduced",
+                "GT_CNT": "34919",
+            },
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "ETH",
+                "DGROUP": "Hispanic",
+                "GT_CNT": "3616",
+            },
+            {
+                "SCH_YEAR": "20182019",
+                "DIST_NAME": "State",
+                "SCH_NAME": "---State Total---",
+                "SCH_CD": "999",
+                "DEMO": "MIL",
+                "DGROUP": "Military Connected",
+                "GT_CNT": "215",
+            },
+        ])
+        workbook.to_excel(
+            self.sample_dir / "GIFTED_AND_TALENTED_18-19.xlsx",
+            sheet_name="DATA",
+            index=False,
+        )
+        coded = pd.DataFrame({
+            "SCHOOL YEAR": ["20182019"],
+            "DISTRICT NAME": ["State"],
+            "SCHOOL NAME": ["---State Total---"],
+            "SCHOOL CODE": ["999"],
+            "DEMOGRAPHIC": ["CSG"],
+            "TOTAL COUNT": ["14874"],
+        })
+        coded.to_csv(self.sample_dir / "gifted_codes_2019.csv", index=False)
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        df = pd.read_csv(self.proc_dir / "gifted_talented.csv", dtype=str, keep_default_na=False)
+        book = df[df["source_file"] == "GIFTED_AND_TALENTED_18-19.xlsx"]
+        metric = "gifted_participation_count_all_grades"
+
+        def value_for(group: str) -> float:
+            rows = book[(book["student_group"] == group) & (book["metric"] == metric)]
+            assert len(rows) == 1, (group, len(rows))
+            return float(rows.iloc[0]["value"])
+
+        assert value_for("All Students") == 94644.0
+        assert value_for("Consolidated Student Group") == 14874.0
+        assert value_for("Students with Disabilities (IEP)") == 3136.0
+        assert value_for("English Learner") == 797.0
+        assert value_for("Economically Disadvantaged") == 34919.0
+        assert value_for("Hispanic or Latino") == 3616.0
+        assert value_for("Military Dependent") == 215.0
+        coded_rows = df[df["source_file"] == "gifted_codes_2019.csv"]
+        assert set(coded_rows["student_group"]) == {"Students with Disabilities (IEP)"}
+        assert float(coded_rows.iloc[0]["value"]) == 14874.0
+
+
+def test_registered_sources_are_the_permanent_files():
+    """KYRC24 through KYRC26 and the 2020-2023 historical files are registered.
+
+    KYRC23 is not registered. ``gifted_and_talented_2020.csv`` is the
+    2019-20 gap. The 2017-18 workbook is earlier than the series.
+    """
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["gifted_talented"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert "KYRC26_EDOP_Gifted_Participation_by_Grade_Level.csv" in names
+    assert "KYRC26_EDOP_Gifted_Participation_by_Category.csv" in names
+    assert "gifted_and_talented_2020.csv" in names
+    assert "GIFTED_AND_TALENTED_18-19.xlsx" in names
+    assert not any(name.startswith("KYRC23_") for name in names)
+    assert not any(name.startswith("Gifted_") for name in names)
+    assert "GIFTED_AND_TALENTED_17-18.xlsx" not in names
 
 
 class TestGiftedTalentedHelpers:
@@ -322,13 +836,23 @@ class TestGiftedTalentedHelpers:
         assert pd.isna(defaults['gifted_participation_count_all_grades'])
 
     def test_should_skip_row_with_valid_demographic(self):
-        """Test that rows with valid demographics are not skipped."""
-        row = pd.Series({
+        """A demographic with a count is kept. A demographic with no measure is not.
+
+        A blank measure cell is not a star. The row is skipped when every
+        grade and category cell is blank, in every year.
+        """
+        empty = pd.Series({
             'demographic': 'All Students',
             'source_file': 'test.csv'
         })
+        assert self.etl.should_skip_row(empty)
 
-        assert not self.etl.should_skip_row(row)
+        published = pd.Series({
+            'demographic': 'All Students',
+            'all_grades': '12',
+            'source_file': 'test.csv'
+        })
+        assert not self.etl.should_skip_row(published)
 
     def test_should_skip_row_without_demographic(self):
         """Test that rows without demographics are skipped."""
@@ -348,7 +872,11 @@ class TestGiftedTalentedHelpers:
 
         df_clean = self.etl.standardize_missing_values(df)
 
-        # Check that commas are removed
+        # Check that commas are removed on object and on StringDtype.
         assert df_clean.loc[0, 'all_grades'] == '1000'
-        # Suppression markers are converted to pd.NA by base_etl (string '<NA>')
+        # The star is recorded before the cell becomes NA.
+        assert bool(df_clean.loc[1, '_star_all_grades'])
+        assert not bool(df_clean.loc[0, '_star_all_grades'])
+        assert not bool(df_clean.loc[3, '_star_all_grades'])
+        # Suppression markers are converted to pd.NA (string '<NA>' on some builds)
         assert df_clean.loc[1, 'all_grades'] is pd.NA or str(df_clean.loc[1, 'all_grades']) == '<NA>'

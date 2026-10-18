@@ -64,6 +64,41 @@ class TestGiftedTalentedEndToEnd:
             if len(values) > 0:
                 assert values.min() >= 0, "Counts should be non-negative"
 
+        # KYRC26 anchors from the downloaded grade and category files.
+        grade_file = data_dir / "KYRC26_EDOP_Gifted_Participation_by_Grade_Level.csv"
+        if grade_file.exists():
+            state = df[
+                (df["year"].astype(str) == "2026")
+                & (df["school_id"].astype(str) == "999000")
+                & (df["student_group"] == "All Students")
+                & (df["metric"] == "gifted_participation_count_all_grades")
+            ]
+            assert len(state) == 1
+            assert float(state.iloc[0]["value"]) == 90464.0
+            assert state.iloc[0]["suppressed"] == "N"
+            assert "gifted_participation_count_grade_14" not in set(
+                df.loc[df["year"].astype(str) == "2026", "metric"]
+            )
+            starred = df[
+                (df["year"].astype(str) == "2026")
+                & (df["school_id"].astype(str) == "999000")
+                & (df["student_group"] == "American Indian or Alaska Native")
+                & (df["metric"] == "gifted_participation_count_kindergarten")
+            ]
+            assert len(starred) == 1
+            assert starred.iloc[0]["suppressed"] == "Y"
+            assert pd.isna(starred.iloc[0]["value"]) or str(starred.iloc[0]["value"]) == ""
+        category_file = data_dir / "KYRC26_EDOP_Gifted_Participation_by_Category.csv"
+        if category_file.exists():
+            zero = df[
+                (df["year"].astype(str) == "2026")
+                & (df["school_id"].astype(str) == "001012")
+                & (df["metric"] == "gifted_participation_count_all_grades")
+            ]
+            assert len(zero) == 1
+            assert float(zero.iloc[0]["value"]) == 0.0
+            assert zero.iloc[0]["suppressed"] == "N"
+
     def test_e2e_demographics_present(self):
         """Test that demographics are properly processed."""
         data_dir = self.raw_dir / "gifted_talented"
