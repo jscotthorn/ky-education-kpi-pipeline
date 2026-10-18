@@ -5,11 +5,15 @@ Tests that sample rows from each source file are correctly transformed to KPI fo
 import pytest
 import pandas as pd
 import numpy as np
+import yaml
 from etl.constants import KPI_COLUMNS
 from pathlib import Path
 from etl.students_taught_by_ineffective_teachers import (
     transform, StudentsTaughtByIneffectiveTeachersETL
 )
+
+ROOT = Path(__file__).resolve().parents[1]
+FIXTURE_DIR = ROOT / "tests" / "fixtures" / "students_taught_by_ineffective_teachers"
 
 
 class TestStudentsTaughtByIneffectiveTeachersEndToEnd:
@@ -256,8 +260,8 @@ class TestStudentsTaughtByIneffectiveTeachersEndToEnd:
 
         kpi_df = pd.read_csv(processed_file)
 
-        # Expected years (2021-2025)
-        expected_years = {'2021', '2022', '2023', '2024', '2025'}
+        # Expected years. 2020 is the 2019-20 file. 2026 is KYRC26.
+        expected_years = {'2020', '2021', '2022', '2023', '2024', '2025', '2026'}
         actual_years = set(kpi_df['year'].astype(str).unique())
 
         for year in expected_years:
@@ -290,6 +294,240 @@ class TestStudentsTaughtByIneffectiveTeachersEndToEnd:
         print(f"✓ Title I stratification validated:")
         print(f"  Title 1 rows: {title_1_count:,}")
         print(f"  Not Title 1 rows: {not_title_1_count:,}")
+
+
+def _run_fixtures(tmp_path: Path, filenames: list) -> pd.DataFrame:
+    """Copy committed real-row excerpts into a raw directory and transform them."""
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "students_taught_by_ineffective_teachers"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    for name in filenames:
+        (source_dir / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+    config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+    transform(raw_dir, proc_dir, config["sources"]["students_taught_by_ineffective_teachers"])
+    output = proc_dir / "students_taught_by_ineffective_teachers.csv"
+    assert output.exists(), filenames
+    return pd.read_csv(output, dtype=str)
+
+
+def _comparable(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop the processing timestamp and sort so two runs can be compared."""
+    columns = [column for column in df.columns if column != "last_updated"]
+    return df[columns].sort_values(columns).reset_index(drop=True)
+
+
+def _one(df: pd.DataFrame, year: str, school_id: str, metric: str, group: str = "All Students") -> pd.Series:
+    matches = df[
+        (df["year"] == year)
+        & (df["school_id"] == school_id)
+        & (df["metric"] == metric)
+        & (df["student_group"] == group)
+    ]
+    assert len(matches) == 1, (year, school_id, metric, group, len(matches))
+    row = matches.iloc[0]
+    assert row["suppressed"] == "N"
+    return row
+
+
+def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
+    """2025-26 KPIs from real rows, with earlier-year anchors.
+
+    Values are the published percents. State Title I All Students is 0.5
+    and Not Title I is 0.1. English learners in Title I schools are the
+    published 0.0. KPI year is 2026, from school year 20252026. District
+    is All Districts. There is no Suppressed column and no starred cell.
+    The text N/A and #N/A emit nothing. A published 0 is kept.
+    """
+    names = [
+        "students_taught_by_ineffective_teachers_2020.csv",
+        "students_taught_by_ineffective_teachers_2021.csv",
+        "students_taught_by_ineffective_teachers_2022.csv",
+        "students_taught_by_ineffective_teachers_2023.csv",
+        "KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv",
+        "KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv",
+    ]
+    prior_only = _run_fixtures(tmp_path / "prior", names)
+    combined = _run_fixtures(tmp_path / "combined", names + [
+        "KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv",
+    ])
+    prior_years = ["2020", "2021", "2022", "2023", "2024", "2025"]
+    prior_slice = combined[combined["year"].isin(prior_years)]
+    assert _comparable(prior_slice).equals(_comparable(prior_only))
+
+    kyrc26 = combined[combined["source_file"].str.startswith("KYRC26_")]
+    assert set(kyrc26["year"]) == {"2026"}
+    assert set(kyrc26["suppressed"]) == {"N"}
+
+    state = _one(combined, "2026", "999000", "students_taught_by_ineffective_teachers_rate_title_1")
+    assert float(state["value"]) == 0.5
+    assert state["district"] == "All Districts"
+    assert state["school_name"] == "---District Total---"
+    assert state["district_number"] == "999"
+    groups = {
+        "Non-White": 0.2,
+        "White (non-Hispanic)": 0.4,
+        "Economically Disadvantaged": 0.3,
+        "Non-Economically Disadvantaged": 0.2,
+        "Students with Disabilities (IEP)": 0.1,
+        "Student without Disabilities (IEP)": 0.4,
+        "English Learner": 0.0,
+        "Non-English Learner": 0.4,
+    }
+    for group, value in groups.items():
+        row = _one(
+            combined, "2026", "999000",
+            "students_taught_by_ineffective_teachers_rate_title_1", group,
+        )
+        assert float(row["value"]) == value
+
+    not_title = _one(
+        combined, "2026", "999000",
+        "students_taught_by_ineffective_teachers_rate_not_title_1",
+    )
+    assert float(not_title["value"]) == 0.1
+    assert float(_one(
+        combined, "2026", "999000",
+        "students_taught_by_ineffective_teachers_rate_not_title_1", "Non-White",
+    )["value"]) == 0.0
+
+    fayette = _one(
+        combined, "2026", "165000", "students_taught_by_ineffective_teachers_rate_title_1",
+    )
+    assert float(fayette["value"]) == 1.2
+    assert fayette["district"] == "Fayette County"
+    assert fayette["nces_id"] == "2101860"
+    assert fayette["co_op"] == "CKEC"
+    assert fayette["co_op_code"] == "901"
+    assert fayette["county_name"] == "FAYETTE"
+    assert fayette["district_number"] == "165"
+    assert float(_one(
+        combined, "2026", "165000",
+        "students_taught_by_ineffective_teachers_rate_not_title_1",
+    )["value"]) == 0.0
+
+    bryan = _one(
+        combined, "2026", "165170", "students_taught_by_ineffective_teachers_rate_title_1",
+    )
+    assert float(bryan["value"]) == 0.0
+    assert bryan["school_name"] == "Bryan Station High School"
+    assert bryan["state_school_id"] == "034165170"
+    assert bryan["nces_id"] == "210186000388"
+    assert bryan["school_type"] == "A1"
+
+    adair_high = _one(
+        combined, "2026", "001010", "students_taught_by_ineffective_teachers_rate_title_1",
+    )
+    assert float(adair_high["value"]) == 0.0
+    assert adair_high["nces_id"] == "210003000001"
+
+    # Prior-year anchors from the downloaded files. KYRC25 Bryan Station's
+    # NCES id is the published 210186000000. It is not rewritten.
+    assert float(_one(
+        combined, "2025", "999000", "students_taught_by_ineffective_teachers_rate_title_1",
+    )["value"]) == 0.8
+    assert float(_one(
+        combined, "2025", "999000", "students_taught_by_ineffective_teachers_rate_not_title_1",
+    )["value"]) == 0.0
+    assert float(_one(
+        combined, "2025", "165000", "students_taught_by_ineffective_teachers_rate_title_1",
+    )["value"]) == 4.3
+    assert _one(
+        combined, "2025", "165170", "students_taught_by_ineffective_teachers_rate_title_1",
+    )["nces_id"] == "210186000000"
+    adair_2025 = combined[
+        (combined["year"] == "2025")
+        & (combined["school_id"] == "001000")
+        & (combined["metric"] == "students_taught_by_ineffective_teachers_rate_title_1")
+        & (combined["student_group"] == "All Students")
+    ]
+    assert len(adair_2025) == 1
+    assert float(adair_2025["value"].iloc[0]) == 0.0
+
+    assert float(_one(
+        combined, "2024", "999000", "students_taught_by_ineffective_teachers_rate_title_1",
+    )["value"]) == 0.7
+    non_white_2024 = combined[
+        (combined["year"] == "2024")
+        & (combined["school_id"] == "999000")
+        & (combined["student_group"] == "Non-White")
+    ]
+    assert non_white_2024.empty
+    bath = combined[(combined["year"] == "2024") & (combined["school_id"] == "025000")]
+    assert float(_one(
+        combined, "2024", "025000",
+        "students_taught_by_ineffective_teachers_rate_not_title_1",
+    )["value"]) == 0.0
+    assert "White (non-Hispanic)" not in set(bath["student_group"])
+
+    state_2023 = _one(
+        combined, "2023", "999", "students_taught_by_ineffective_teachers_rate_title_1",
+    )
+    assert float(state_2023["value"]) == 0.88
+    assert state_2023["district"] == "State"
+    assert state_2023["school_name"] == "---State Total---"
+    assert float(_one(
+        combined, "2023", "999", "students_taught_by_ineffective_teachers_rate_not_title_1",
+    )["value"]) == 0.04
+    gap_2023 = combined[
+        (combined["year"] == "2023")
+        & (combined["school_id"] == "999")
+        & (combined["metric"] == "students_taught_by_ineffective_teachers_rate_equity_gap")
+    ]
+    assert gap_2023.empty
+    breathitt = _one(
+        combined, "2023", "061", "students_taught_by_ineffective_teachers_rate_title_1",
+    )
+    assert float(breathitt["value"]) == 0.0
+    assert breathitt["district"] == "Breathitt County"
+    assert "012012" not in set(combined["school_id"])
+    shelby = _one(
+        combined, "2023", "275610", "students_taught_by_ineffective_teachers_rate_title_1",
+    )
+    assert float(shelby["value"]) == 0.91
+    shelby_rows = combined[combined["school_id"] == "275610"]
+    assert "White (non-Hispanic)" not in set(shelby_rows["student_group"])
+    assert float(_one(
+        combined, "2023", "275610",
+        "students_taught_by_ineffective_teachers_rate_title_1", "Non-White",
+    )["value"]) == 20.45
+
+    assert float(_one(
+        combined, "2022", "999", "students_taught_by_ineffective_teachers_rate_title_1",
+    )["value"]) == 0.69
+    assert float(_one(
+        combined, "2022", "999", "students_taught_by_ineffective_teachers_rate_not_title_1",
+    )["value"]) == 0.30
+    assert float(_one(
+        combined, "2021", "999", "students_taught_by_ineffective_teachers_rate_title_1",
+    )["value"]) == 0.43
+    assert "011030" not in set(combined["school_id"])
+
+    state_2020 = _one(
+        combined, "2020", "999", "students_taught_by_ineffective_teachers_rate_title_1",
+    )
+    assert float(state_2020["value"]) == 0.29
+    assert state_2020["district"] == "State"
+    assert state_2020["school_name"] == "---State Total---"
+    assert state_2020["school_id"] == "999"
+    gap = _one(
+        combined, "2020", "999",
+        "students_taught_by_ineffective_teachers_rate_equity_gap", "Non-White",
+    )
+    assert float(gap["value"]) == 0.09
+    gap_all = combined[
+        (combined["year"] == "2020")
+        & (combined["school_id"] == "999")
+        & (combined["metric"] == "students_taught_by_ineffective_teachers_rate_equity_gap")
+        & (combined["student_group"] == "All Students")
+    ]
+    assert gap_all.empty
+    # Sunshine School 236021 is a 2020 placeholder: every percent is N/A
+    # except students with disabilities, which is 0.00. All Students is N/A,
+    # so that 0 is not a measured rate. The row writes nothing.
+    sunshine = combined[combined["school_id"] == "236021"]
+    assert sunshine.empty
 
 
 if __name__ == "__main__":
