@@ -19,18 +19,27 @@ keeps them on different metric names.
   from landing on one metric.
 - The overview file is the CRDC advanced-coursework count, in total and
   by gender, for AP, IB, and dual credit. The percent columns are the
-  published rates. The KPI year is the report-card year. ``Collected
-  School Year`` is the CRDC collection and is not a KPI column.
+  published rates. The KPI year for an overview row is the CRDC
+  collection year (the last four digits of ``Collected School Year``),
+  not the report-card year on ``School Year``. The 2020-21 collection
+  is stored once, as 2021, from ``KYRC23_OVW_Advanced_Coursework.csv``.
+  The 2021-22 collection is stored once, as 2022, from the KYRC26
+  overview file. Participation and courses offered keep the report-card
+  year.
 
 Dual credit is not loaded here. ``dual_credit`` owns that measure.
 Course type ``DC`` and ``Dual Credit`` are skipped in every file,
 including the 2021-2023 historical files that label it ``DC`` and the
-overview file that labels it ``Dual Credit``.
+overview file that labels it ``Dual Credit``. The 2020-2022 dual-credit
+counts are not in ``dual_credit`` either. Issue #74 (b) holds that gap.
 
 Course type ``CAI`` and ``Cambridge Advanced International`` are
 Cambridge. Course type ``ALL`` is the unduplicated participation total
-across course types, or the courses-offered subject total. Nothing else
-uses the ``advanced_*`` prefix. ``ALL`` and ``CAI`` do not share a name.
+across course types, including dual credit, or the courses-offered
+subject total. Nothing else uses the ``advanced_*`` prefix. ``ALL``
+and ``CAI`` do not share a name. An unrecognized course type is
+skipped. ``advanced_offered_*`` is the subject total, and those ``ALL``
+rows exist only on the KYRC25 and KYRC26 courses-offered files.
 
 There is no Suppressed column on the EDOP files. A ``*`` on a measure
 cell is stored as value NA with suppressed Y. A blank cell is not a
@@ -102,14 +111,17 @@ _LOCAL_DEMOGRAPHICS = {
 # KYRC23 participation is the AP/IB/Cambridge slice of the historical
 # 2023 file, with more cells starred. KYRC23 courses offered repeats
 # those course rows and adds subject totals. Loading either file would
-# write 2023 twice. KYRC23 overview is the CRDC 2020-21 extract already
-# registered as KYRC25: 36,612 shared keys, 0 measure differences.
-# KYRC23 adds 15 schools. It is not registered. These three names are
-# skipped so a copy in the raw directory does not write the year twice.
+# write 2023 twice. KYRC24 and KYRC25 overview are the same 2020-21
+# CRDC collection as the registered KYRC23 overview. KYRC23 matches
+# KYRC25 on all 36,612 shared measure cells and has 15 schools KYRC25
+# does not. KYRC24 zero-fills rows KYRC25 leaves blank and splits
+# Hawaiian Pacific out of Asian. Those two overview names are skipped
+# so a copy in the raw directory does not write the collection again.
 _SKIP_EXACT_NAMES = {
     "KYRC23_EDOP_Advanced_Courses_Offered.csv",
     "KYRC23_EDOP_Advanced_Courses_Participation_and_Performance.csv",
-    "KYRC23_OVW_Advanced_Coursework.csv",
+    "KYRC24_OVW_Advanced_Coursework.csv",
+    "KYRC25_OVW_Advanced_Coursework.csv",
 }
 
 _PARTICIPATION_METRICS = {
@@ -405,6 +417,11 @@ class AdvancedCourseworkETL(BaseETL):
             "COOP_CODE": "co_op_code",
             "DISAGGGROUP": "demographic",
 
+            # Overview collection year. The report-card year stays on
+            # school_year. extract_year uses this column for overview rows.
+            "Collected School Year": "collected_school_year",
+            "COLLECTED SCHOOL YEAR": "collected_school_year",
+
             # Overview file. Counts and the published percents.
             "Total": "total_count",
             "TOTAL": "total_count",
@@ -421,25 +438,17 @@ class AdvancedCourseworkETL(BaseETL):
         }
 
     def accepts_data_file(self, file_path: Path) -> bool:
-        """Skip the two KYRC23 EDOP files that repeat 2022-23.
+        """Skip republished files that would write a year twice.
 
-        ``advanced_courses_participation_and_performance_2023.csv`` is
-        the registered 2022-23 participation file. The KYRC23
-        participation name returns 200 on datasets and on UAT and 404
-        on the historical host. After the 3-digit district codes are
-        padded, all 6,444 AP, IB, and Cambridge keys match. KYRC23
-        stars cells the historical file publishes (34 enrollment cells,
-        including Asian AP counts of 3, 4, and 6). The courses-offered
-        twin repeats the course rows and adds the ``ALL`` subject
-        totals. The overview name is the CRDC 2020-21 extract already
-        registered as ``KYRC25_OVW_Advanced_Coursework.csv``: every
-        shared measure cell matches, and KYRC23 has 15 schools KYRC25
-        does not. The guessed OAA names are 404 and were never
-        registered, so they are not listed here.
+        The two KYRC23 EDOP names return 200 and repeat the historical
+        2023 participation and course rows. ``KYRC23_OVW`` is the
+        registered 2020-21 CRDC edition, so the KYRC24 and KYRC25
+        overview names are the ones skipped. The guessed OAA names are
+        404 and were never registered, so they are not listed here.
         """
         if file_path.name in _SKIP_EXACT_NAMES:
             logger.info(
-                "Skipping %s; the historical 2023 advanced files already hold 2022-23",
+                "Skipping %s; another registered file already holds that year",
                 file_path.name,
             )
             return False
@@ -466,6 +475,42 @@ class AdvancedCourseworkETL(BaseETL):
             df[_star_column_name(column)] = mask.to_numpy()
         if "demographic" in df.columns:
             df["demographic"] = df["demographic"].map(self._local_demographic)
+        return self._normalize_2019_state_offered_code(df)
+
+    @staticmethod
+    def _normalize_2019_state_offered_code(df: pd.DataFrame) -> pd.DataFrame:
+        """Rewrite the 2019 courses-offered state code ``000`` to ``999``.
+
+        The participation workbook uses ``999`` for ``---State Total---``.
+        The courses-offered workbook uses ``000`` for that same row.
+        ``000`` is not a school: the 95 rows are district ``State``.
+        District totals in both workbooks already use the 3-digit
+        district code. A school code that is not the state total is
+        left as written.
+        """
+        if "school_code" not in df.columns:
+            return df
+        code = df["school_code"].astype("string").str.strip()
+        is_zero = code.isin(["000", "0"]).fillna(False)
+        if not bool(is_zero.any()):
+            return df
+        if "school_name" in df.columns:
+            name = df["school_name"].astype("string").str.strip().str.lower()
+            state_name = name.str.contains("state total", na=False).fillna(False)
+        else:
+            state_name = pd.Series(False, index=df.index)
+        if "district_name" in df.columns:
+            district = df["district_name"].astype("string").str.strip().str.lower()
+            state_district = district.eq("state").fillna(False)
+        else:
+            state_district = pd.Series(False, index=df.index)
+        mask = is_zero & (state_name | state_district)
+        if bool(mask.any()):
+            df.loc[mask, "school_code"] = "999"
+            logger.info(
+                "Rewrote %s state offered rows from school code 000 to 999",
+                int(mask.sum()),
+            )
         return df
 
     @staticmethod
@@ -474,6 +519,26 @@ class AdvancedCourseworkETL(BaseETL):
         if not isinstance(value, str):
             return value
         return _LOCAL_DEMOGRAPHICS.get(value.strip(), value)
+
+    def extract_year(self, row: pd.Series, source_file: str = "") -> str:
+        """Use the CRDC collection year for an overview row.
+
+        Participation and courses offered keep the report-card year
+        from ``school_year``. An overview row uses the last four digits
+        of ``Collected School Year``. KYRC23 overview is report-card
+        year 2023 and collection ``20202021``, stored as 2021. KYRC26
+        overview is report-card year 2026 and collection ``20212022``,
+        stored as 2022. A row with no 8-digit collection year falls
+        back to the report-card year.
+        """
+        if self._kind(row) == "overview":
+            collected = row.get("collected_school_year", "")
+            text = "" if _is_missing(collected) else str(collected).strip()
+            if text.endswith(".0"):
+                text = text[:-2]
+            if len(text) == 8 and text.isdigit():
+                return text[-4:]
+        return super().extract_year(row, source_file)
 
     def _kind(self, row: pd.Series) -> str:
         """Return ``overview``, ``offered``, or ``participation``.
@@ -716,9 +781,19 @@ class AdvancedCourseworkETL(BaseETL):
             tested = parsed.get("number_tested", pd.NA)
             qualifying = parsed.get("qualifying_score", pd.NA)
             prefix = _prefix_for_type(_course_type_text(row))
+            # Issue #78. KYRC26 participation has IB tested equal to
+            # qualifying at every level (state 42 and 42). The courses
+            # offered file that year is 942 tested and 657 qualifying.
+            # The derived participation rate of 100.0 is not stored.
+            # The two counts stay. The offered rate is a different
+            # metric and is still derived. Other years still derive
+            # this participation rate.
+            year = self.extract_year(row)
+            skip_ib_2026_rate = prefix == "ib" and year == "2026"
             if (
                 prefix is not None
                 and prefix != "advanced"
+                and not skip_ib_2026_rate
                 and not _is_missing(tested)
                 and not _is_missing(qualifying)
                 and tested > 0
@@ -761,7 +836,9 @@ class AdvancedCourseworkETL(BaseETL):
         defaults = {metric_name: pd.NA for metric_name in names.values()}
         prefix = _prefix_for_type(_course_type_text(row))
         if prefix is not None and self._kind(row) == "participation":
-            defaults[f"{prefix}_qualifying_score_rate"] = pd.NA
+            # The 2026 IB participation rate is not a stored metric.
+            if not (prefix == "ib" and self.extract_year(row) == "2026"):
+                defaults[f"{prefix}_qualifying_score_rate"] = pd.NA
         return defaults
 
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:

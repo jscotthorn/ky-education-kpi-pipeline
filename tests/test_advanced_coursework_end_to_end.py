@@ -75,11 +75,32 @@ class TestAdvancedCourseworkEndToEnd:
                 rate_values = pd.to_numeric(non_suppressed_rates['value'], errors='coerce').dropna()
                 if len(rate_values) > 0:
                     assert rate_values.min() >= 0, "Participation rates should be non-negative"
-                    # Published CRDC percents. Dual credit is not stored.
-                    # Two KYRC26 AP gender percents are above 100:
-                    # Hopkinsville High 115050 Asian female 125, and
-                    # Christian County High 115030 Asian male 200.
+                    # Published CRDC percents, stored under the collection year.
+                    # Two AP gender percents in the 2021-22 collection are
+                    # above 100: Hopkinsville High 115050 Asian female 125,
+                    # and Christian County High 115030 Asian male 200.
                     assert rate_values.max() <= 200, "Participation rates should be <= 200%"
+
+        # The 2026 IB participation rate is not stored. The counts are.
+        ib_rate = df[(df["year"].astype(str) == "2026") & (df["metric"] == "ib_qualifying_score_rate")]
+        assert ib_rate.empty
+        ib_qualifying = df[
+            (df["year"].astype(str) == "2026")
+            & (df["school_id"].astype(str) == "999000")
+            & (df["student_group"] == "All Students")
+            & (df["metric"] == "ib_qualifying_score_count")
+        ]
+        assert float(ib_qualifying["value"].iloc[0]) == 42.0
+
+        # Each CRDC collection is one KPI year. 2024 and 2025 are not overview years.
+        overview_years = set(
+            df.loc[df["metric"].str.contains("participation_"), "year"].astype(str)
+        )
+        assert overview_years == {"2021", "2022"}
+
+        # The 2019 courses-offered state total is stored on 999, not 000.
+        state_2019 = df[(df["year"].astype(str) == "2019") & (df["school_id"].astype(str) == "000")]
+        assert state_2019.empty
 
     def test_e2e_demographics_present(self):
         """Test that demographics are properly processed."""

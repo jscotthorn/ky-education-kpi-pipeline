@@ -343,15 +343,22 @@ class TestAdvancedCourseworkKyrc26:
         target.write_bytes((FIXTURES / name).read_bytes())
 
     def test_kyrc26_file_is_accepted(self):
-        """The module opts into KYRC26 and still skips the repeated KYRC23 EDOP names."""
+        """KYRC26 is accepted. The repeated overview editions are not.
+
+        KYRC23 overview is the registered 2020-21 collection. The two
+        KYRC23 EDOP names, and the KYRC24 and KYRC25 overview names,
+        repeat a year this module already loads.
+        """
         assert self.etl.include_kyrc26 is True
         assert self.etl.accepts_data_file(Path("KYRC26_EDOP_Advanced_Courses_Participation_and_Performance.csv"))
         assert self.etl.accepts_data_file(Path("KYRC26_OVW_Advanced_Coursework.csv"))
+        assert self.etl.accepts_data_file(Path("KYRC23_OVW_Advanced_Coursework.csv"))
         assert not self.etl.accepts_data_file(Path("KYRC23_EDOP_Advanced_Courses_Offered.csv"))
         assert not self.etl.accepts_data_file(
             Path("KYRC23_EDOP_Advanced_Courses_Participation_and_Performance.csv")
         )
-        assert not self.etl.accepts_data_file(Path("KYRC23_OVW_Advanced_Coursework.csv"))
+        assert not self.etl.accepts_data_file(Path("KYRC24_OVW_Advanced_Coursework.csv"))
+        assert not self.etl.accepts_data_file(Path("KYRC25_OVW_Advanced_Coursework.csv"))
 
     def test_dc_is_skipped_and_all_does_not_share_a_name_with_cai(self):
         """Course type DC is not stored. ALL and CAI use different metrics.
@@ -438,47 +445,47 @@ class TestAdvancedCourseworkKyrc26:
         """A published 0 stays 0. Dual credit overview rows are not loaded."""
         self._copy("kyrc26_overview.csv")
         df = _run(self.raw_dir, self.proc_dir)
-        assert "2026" in set(df["year"].astype(str))
-        total = _cell(df, "2026", "001010", "All Students", "ap_participation_count")
+        # Collected year 20212022, report-card year 20252026. Stored as 2022.
+        assert set(df["year"].astype(str)) == {"2022"}
+        total = _cell(df, "2022", "001010", "All Students", "ap_participation_count")
         assert float(total["value"]) == 63.0
-        rate = _cell(df, "2026", "001010", "All Students", "ap_participation_rate")
+        rate = _cell(df, "2022", "001010", "All Students", "ap_participation_rate")
         assert float(rate["value"]) == 8.1
-        female = _cell(df, "2026", "001010", "All Students", "ap_participation_rate_female")
+        female = _cell(df, "2022", "001010", "All Students", "ap_participation_rate_female")
         assert float(female["value"]) == 9.1
-        zero = _cell(df, "2026", "001010", "American Indian or Alaska Native", "ap_participation_count")
+        zero = _cell(df, "2022", "001010", "American Indian or Alaska Native", "ap_participation_count")
         assert float(zero["value"]) == 0.0
         assert zero["suppressed"] == "N"
-        zero_rate = _cell(df, "2026", "001010", "American Indian or Alaska Native", "ap_participation_rate")
+        zero_rate = _cell(df, "2022", "001010", "American Indian or Alaska Native", "ap_participation_rate")
         assert float(zero_rate["value"]) == 0.0
-        two = _cell(df, "2026", "001010", "Two or More Races", "ap_participation_count")
+        two = _cell(df, "2022", "001010", "Two or More Races", "ap_participation_count")
         assert float(two["value"]) == 1.0
         assert not df["metric"].str.startswith("dual_credit").any()
         assert "999000" not in set(df["school_id"])
 
     def test_blank_overview_row_is_skipped_and_a_zero_is_kept(self):
-        """A blank row is not offered, in 2025 and in a constructed 2022 row.
+        """A blank row is not offered, in either collection year.
 
         The skip is not limited to one year. A published 0 on the same
-        school is a different course type and is stored.
+        school is a different course type and is stored. The KPI year
+        is the collection year, so collected ``20202021`` is 2021.
         """
         self._copy("kyrc25_overview_blank_and_zero.csv")
-        # Same blank pattern under a 2022 school year, so the skip is not
-        # a 2025-only rule.
         blank_2022 = pd.read_csv(FIXTURES / "kyrc25_overview_blank_and_zero.csv", dtype=str)
         blank_2022 = blank_2022.iloc[[0]].copy()
-        blank_2022["School Year"] = "20212022"
+        blank_2022["School Year"] = "20252026"
+        blank_2022["Collected School Year"] = "20212022"
         blank_2022.to_csv(self.sample_dir / "overview_blank_2022.csv", index=False)
-        shutil.copy(FIXTURES / "kyrc25_overview_blank_and_zero.csv", self.sample_dir / "kyrc25_overview_blank_and_zero.csv")
         df = _run(self.raw_dir, self.proc_dir)
         ib = df[(df["school_id"] == "001010") & (df["metric"].str.startswith("ib_"))]
         assert ib.empty
         assert "2022" not in set(df["year"].astype(str))
-        zero = _cell(df, "2025", "001010", "African American", "ap_participation_count")
+        zero = _cell(df, "2021", "001010", "African American", "ap_participation_count")
         assert float(zero["value"]) == 0.0
         assert zero["suppressed"] == "N"
-        rate = _cell(df, "2025", "001010", "African American", "ap_participation_rate")
+        rate = _cell(df, "2021", "001010", "African American", "ap_participation_rate")
         assert float(rate["value"]) == 0.0
-        kept = _cell(df, "2025", "001010", "All Students", "ap_participation_count")
+        kept = _cell(df, "2021", "001010", "All Students", "ap_participation_count")
         assert float(kept["value"]) == 61.0
 
     def test_published_zero_count_is_kept_on_participation(self):
@@ -609,15 +616,162 @@ class TestAdvancedCourseworkKyrc26:
         count = _cell(df, "2023", "999", "All Students", "num_ap_courses_offered")
         assert float(count["value"]) == 2.0
 
+    def test_unrecognized_course_type_is_not_advanced(self):
+        """A course type this module does not know is not written as advanced_*.
+
+        HONORS is not AP, IB, Cambridge, ALL, or dual credit. Folding it
+        into advanced would store the enrollment 40 on
+        advanced_course_enrollment.
+        """
+        frame = pd.DataFrame({
+            "School Year": ["20222023", "20222023"],
+            "District Name": ["Adair County", "Adair County"],
+            "School Name": ["Adair County High School", "Adair County High School"],
+            "School Code": ["001010", "001010"],
+            "Demographic": ["All Students", "All Students"],
+            "Advanced Course Type": ["HONORS", "AP"],
+            "Course Enrollment": ["40", "10"],
+            "Course Completers": ["30", "9"],
+            "Number Tested": ["20", "8"],
+            "Earned Qualifying Score": ["10", "4"],
+        })
+        frame.to_csv(self.sample_dir / "honors.csv", index=False)
+        df = _run(self.raw_dir, self.proc_dir)
+        assert df[df["metric"].str.startswith("advanced_")].empty
+        assert float(_cell(df, "2023", "001010", "All Students", "ap_course_enrollment")["value"]) == 10.0
+        assert 40.0 not in set(pd.to_numeric(df["value"], errors="coerce").dropna())
+
+    def test_2019_state_offered_code_000_is_stored_as_999(self):
+        """The 2019 courses-offered state total uses 000. Participation uses 999.
+
+        A district total on the same sheet keeps its own code.
+        """
+        frame = pd.DataFrame({
+            "SCH_YEAR": ["20182019", "20182019"],
+            "DIST_NAME": ["State", "Adair County"],
+            "SCH_NAME": ["---State Total---", "---District Total---"],
+            "SCH_CD": ["000", "001"],
+            "COURSE_TYPE": ["AP", "AP"],
+            "STATE_COURSE_CODE": ["110701", "110701"],
+            "STATE_COURSE_NAME": ["AP Computer Science A", "AP Computer Science A"],
+            "SUBJECT": ["Information Technology", "Information Technology"],
+            "TOTAL_ENROLLMENT_CNT": ["419", "12"],
+            "COMPLETERS_CNT": ["400", "10"],
+            "TEST_TAKERS_CNT": ["268", "8"],
+            "EARNED_QUALIFYING_SCORE_CNT": ["171", "4"],
+        })
+        frame.to_csv(self.sample_dir / "offered_2019_state.csv", index=False)
+        df = _run(self.raw_dir, self.proc_dir)
+        state = _cell(
+            df, "2019", "999", "All Students", "ap_offered_enrollment_110701_ap_computer_science_a"
+        )
+        assert float(state["value"]) == 419.0
+        assert state["school_code"] == "999"
+        assert "000" not in set(df["school_id"].astype(str))
+        district = _cell(
+            df, "2019", "001", "All Students", "ap_offered_enrollment_110701_ap_computer_science_a"
+        )
+        assert float(district["value"]) == 12.0
+
+    def test_2026_ib_qualifying_rate_is_not_stored(self):
+        """KYRC26 IB tested equals qualifying. The derived 100.0 is not stored.
+
+        A 2025 IB row still gets a rate. The courses-offered rate is a
+        different metric and is still derived. The published KYRC26
+        state All Enrollments cells are 240 tested and 172 qualifying.
+        """
+        self._copy("kyrc26_participation.csv")
+        earlier = pd.DataFrame({
+            "School Year": ["20242025"],
+            "District Name": ["Adair County"],
+            "School Name": ["Adair County High School"],
+            "School Code": ["001010"],
+            "Demographic": ["All Students"],
+            "Advanced Course Type": ["IB"],
+            "Course Enrollment": ["20"],
+            "Course Completers": ["18"],
+            "Number Tested": ["10"],
+            "Earned Qualifying Score": ["8"],
+        })
+        earlier.to_csv(self.sample_dir / "ib_2025.csv", index=False)
+        offered = pd.DataFrame({
+            "School Year": ["20252026"],
+            "District Name": ["All Districts"],
+            "School Name": ["All Schools"],
+            "School Code": ["999000"],
+            "State Course Code": ["N/A"],
+            "State Course Name": ["International Baccalaureate"],
+            "Advanced Course Type": ["IB"],
+            "Subject": ["All Enrollments"],
+            "Course Enrollment": ["2104"],
+            "Course Completers": ["1990"],
+            "Number Tested": ["240"],
+            "Students With Qualifying Score": ["172"],
+        })
+        offered.to_csv(self.sample_dir / "ib_offered_2026.csv", index=False)
+        df = _run(self.raw_dir, self.proc_dir)
+        tested = _cell(df, "2026", "999000", "All Students", "ib_tested_count")
+        qualifying = _cell(df, "2026", "999000", "All Students", "ib_qualifying_score_count")
+        assert float(tested["value"]) == 42.0
+        assert float(qualifying["value"]) == 42.0
+        rate_2026 = df[(df["year"].astype(str) == "2026") & (df["metric"] == "ib_qualifying_score_rate")]
+        assert rate_2026.empty
+        rate_2025 = _cell(df, "2025", "001010", "All Students", "ib_qualifying_score_rate")
+        assert float(rate_2025["value"]) == 80.0
+        offered_rate = _cell(
+            df, "2026", "999000", "All Students", "ib_offered_qualifying_score_rate_all_enrollments"
+        )
+        assert float(offered_rate["value"]) == round(172 / 240 * 100, 1)
+
+    def test_overview_collection_year_does_not_collide_with_participation(self):
+        """2020-21 overview is year 2021 and does not reuse a participation name.
+
+        The report-card year on the KYRC23 row is 2023. The collection
+        year is 2021. Participation for that school stays on
+        ap_course_enrollment.
+        """
+        self._copy("kyrc23_overview_collection.csv")
+        participation = pd.DataFrame({
+            "School Year": ["20202021"],
+            "District Name": ["Fayette County"],
+            "School Name": ["FCPS Virtual Academy"],
+            "School Code": ["165645"],
+            "Demographic": ["All Students"],
+            "Advanced Course Type": ["AP"],
+            "Course Enrollment": ["70"],
+            "Course Completers": ["60"],
+            "Number Tested": ["40"],
+            "Earned Qualifying Score": ["20"],
+        })
+        participation.to_csv(self.sample_dir / "participation_2021_school.csv", index=False)
+        df = _run(self.raw_dir, self.proc_dir)
+        keys = df.groupby(["year", "school_id", "student_group", "metric"]).size()
+        assert int(keys.max()) == 1
+        overview = _cell(df, "2021", "165645", "All Students", "ap_participation_count")
+        assert float(overview["value"]) == 66.0
+        assert overview["year"] == "2021" or str(overview["year"]) == "2021"
+        enrolled = _cell(df, "2021", "165645", "All Students", "ap_course_enrollment")
+        assert float(enrolled["value"]) == 70.0
+        adair = _cell(df, "2021", "001010", "All Students", "ap_participation_count")
+        assert float(adair["value"]) == 61.0
+        assert df[df["metric"].str.startswith("dual_credit")].empty
+        assert "2023" not in set(df["year"].astype(str))
+        school = df[(df["year"].astype(str) == "2021") & (df["school_id"].astype(str) == "165645")]
+        overview_names = set(school.loc[school["metric"].str.contains("participation_"), "metric"])
+        participation_names = set(school.loc[~school["metric"].str.contains("participation_"), "metric"])
+        assert "ap_participation_count" in overview_names
+        assert "ap_course_enrollment" in participation_names
+        assert overview_names.isdisjoint(participation_names)
+
     def test_real_rows_match_the_downloaded_files(self):
         """Every committed fixture is a verbatim row from a downloaded file."""
         for name in (
             "kyrc26_participation.csv",
             "kyrc26_offered.csv",
             "kyrc26_overview.csv",
+            "kyrc23_overview_collection.csv",
             "participation_2023_state.csv",
             "participation_2020_state.csv",
-            "kyrc25_overview_blank_and_zero.csv",
             "kyrc24_offered_state_ap.csv",
         ):
             self._copy(name)
@@ -629,21 +783,27 @@ class TestAdvancedCourseworkKyrc26:
         assert float(_cell(df, "2020", "999", "All Students", "advanced_course_enrollment")["value"]) == 65555.0
         assert float(_cell(df, "2020", "999", "All Students", "cambridge_course_enrollment")["value"]) == 171.0
         assert float(_cell(df, "2020", "999", "All Students", "ap_course_enrollment")["value"]) == 40582.0
+        overview = _cell(df, "2022", "001010", "All Students", "ap_participation_count")
+        assert float(overview["value"]) == 63.0
+        collection = _cell(df, "2021", "165645", "All Students", "ap_participation_count")
+        assert float(collection["value"]) == 66.0
         dc_2020 = df[(df["year"].astype(str) == "2020") & (df["metric"].str.startswith("dual_credit"))]
         assert dc_2020.empty
 
 
 def test_registered_sources_are_the_permanent_files():
-    """2020 and the 2018-19 workbooks are registered. The KYRC23 EDOP names are not."""
+    """KYRC23 overview is the 2020-21 edition. KYRC24 and KYRC25 overview are not."""
     config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
     names = []
     for entry in config["raw_directories"]["advanced_coursework"]:
         names.append(entry["file"] if isinstance(entry, dict) else entry)
     assert "KYRC26_EDOP_Advanced_Courses_Participation_and_Performance.csv" in names
     assert "KYRC26_OVW_Advanced_Coursework.csv" in names
+    assert "KYRC23_OVW_Advanced_Coursework.csv" in names
     assert "advanced_courses_participation_and_performance_2020.csv" in names
     assert "ADVANCED_COURSES_EXAMS_BY_STUDENT_18-19.xlsx" in names
-    assert "KYRC23_OVW_Advanced_Coursework.csv" not in names
+    assert "KYRC24_OVW_Advanced_Coursework.csv" not in names
+    assert "KYRC25_OVW_Advanced_Coursework.csv" not in names
     assert "KYRC23_EDOP_Advanced_Courses_Offered.csv" not in names
     assert "KYRC23_EDOP_Advanced_Courses_Participation_and_Performance.csv" not in names
     assert not any(name.startswith("Advanced_Coursework_") for name in names)

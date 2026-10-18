@@ -526,9 +526,9 @@ District-level financial and staffing metrics from KDE Financial Summary reports
 ## Advanced Coursework
 **Source**: `etl/advanced_coursework.py`
 
-KDE publishes three measures. Participation is an unduplicated student count by demographic and course type: a student in two AP courses counts once. A completer finished at least one course. A qualifying score is a qualifying exam score on at least one AP, Cambridge, or IB exam. Courses offered is a duplicated count of course enrollments: a student in two courses counts twice. The overview file is the CRDC advanced-coursework count, in total and by gender. Dual credit is not loaded here. `dual_credit` owns that measure. Course type `DC` and `Dual Credit` are skipped.
+KDE publishes three measures. Participation is an unduplicated student count by demographic and course type: a student in two AP courses counts once. A completer finished at least one course. A qualifying score is a qualifying exam score on at least one AP, Cambridge, or IB exam. Courses offered is a duplicated count of course enrollments: a student in two courses counts twice. The overview file is the CRDC advanced-coursework count, in total and by gender. The KPI year for an overview row is the CRDC collection year, not the report-card year printed on the file. The 2020-21 collection is stored once, as 2021, from `KYRC23_OVW_Advanced_Coursework.csv`. The 2021-22 collection is stored once, as 2022, from `KYRC26_OVW_Advanced_Coursework.csv`. KYRC24 and KYRC25 overview are the same 2020-21 collection and are not loaded. Dual credit is not loaded here. `dual_credit` owns that measure. Course type `DC` and `Dual Credit` are skipped. The 2020-2022 dual-credit counts are not stored in either module. [Issue #74](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/74) (b) holds whether to load that slice.
 
-Course type `ALL` is the only user of the `advanced_*` prefix. It is the unduplicated participation total across course types, or the courses-offered subject total. Course type `CAI` is Cambridge. An unrecognized course type is skipped.
+Course type `ALL` is the only user of the `advanced_*` prefix. It is the unduplicated participation total across course types, including dual credit, or the courses-offered subject total. In 2023 the state ALL enrollment is 68,238. AP + IB + Cambridge is 34,777, and that sum plus the skipped DC enrollment of 45,873 is 80,650. 68,238 sits between those two sums because a student in more than one type counts once. Course type `CAI` is Cambridge. An unrecognized course type is skipped. `advanced_offered_*` is the subject total from course type `ALL`. Those rows are on the KYRC25 and KYRC26 courses-offered files only, so the metric exists for 2025 and 2026.
 
 Participation metrics (unduplicated students, `student_group` is the demographic). `{prefix}` is `ap`, `ib`, `cambridge`, or `advanced`:
 
@@ -536,7 +536,7 @@ Participation metrics (unduplicated students, `student_group` is the demographic
 - `{prefix}_completion_count` - Students who completed at least one course
 - `{prefix}_tested_count` - Students tested
 - `{prefix}_qualifying_score_count` - Students with a qualifying exam score
-- `{prefix}_qualifying_score_rate` - Derived for AP, IB, and Cambridge: qualifying scores divided by students tested, times 100. Not derived for `advanced`, because the ALL qualifying count includes dual-credit grades and the ALL tested count does not
+- `{prefix}_qualifying_score_rate` - Derived for AP, IB, and Cambridge: qualifying scores divided by students tested, times 100. Not derived for `advanced`, because the ALL qualifying count includes dual-credit grades and the ALL tested count does not. Not derived for IB in 2026. In that file, tested equals qualifying on every row that publishes both numbers (state 42 and 42, Fayette County and Tates Creek High 24 and 24, Jefferson County and Atherton High 18 and 18). The same year's courses-offered state All Enrollments row is 240 tested and 172 qualifying. The counts stay. The offered rate stays. [Issue #78](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/78) holds whether to keep the 2026 IB tested count
 
 Courses-offered metrics (duplicated enrollments, `student_group` is All Students). The subject or the course code and course name is in the metric:
 
@@ -548,14 +548,14 @@ Courses-offered metrics (duplicated enrollments, `student_group` is All Students
 - `{prefix}_offered_qualifying_score_rate_{slug}` - Derived: qualifying scores divided by students tested, times 100
 - `num_{prefix}_courses_offered` - Count of course rows at the school. Subject totals and `All Enrollments` are not counted
 
-Overview metrics (CRDC, published percents, not derived):
+Overview metrics (CRDC, published percents, not derived, KPI years 2021 and 2022 only). These names are not used by the participation file, so a 2021 or 2022 overview row does not collide with `ap_course_enrollment` or the other participation metrics:
 
 - `{prefix}_participation_count`, `{prefix}_participation_count_female`, `{prefix}_participation_count_male`
 - `{prefix}_participation_rate`, `{prefix}_participation_rate_female`, `{prefix}_participation_rate_male`
 
-State All Students AP enrollment is 37,212 in 2026. The district sum is 37,283 and the school sum is 37,319. Districts sit slightly above the state in every year from 2020 through 2026, because the state total is unduplicated across districts. 2026 IB enrollment is 1,006 and IB students tested is 42. The 2025 tested count was 234. Districts and schools sum to the same 42. Cambridge enrollment is 248 in 2026 after 185 in 2025.
+State All Students AP enrollment is 37,212 in 2026. The district sum is 37,283 and the school sum is 37,319. Districts sit slightly above the state in every year from 2020 through 2026, because the state total is unduplicated across districts. 2026 IB enrollment is 1,006 and IB students tested is 42. The 2025 tested count was 234. Districts and schools that publish a number also have tested equal to qualifying. Cambridge enrollment is 248 in 2026 after 185 in 2025. The 2019 courses-offered state total is published with school code `000`. The participation workbook uses `999` for that same `---State Total---` row. The parser stores the offered state rows on `999`.
 
-There is no Suppressed column on the EDOP files. A `*` cell is stored as value NA with suppressed Y. A blank cell is not stored. The 2020-2026 participation files publish no 0 and no blank, and the smallest number is 3, so a Y in those years covers 0, 1, or 2, or a cell that does not apply. 2019 publishes both 0 and `*`. A Y in 2019 is not a published 0. A published 0 on the overview file is kept. KYRC24 overview writes 0 on 12,184 rows that KYRC25 leaves blank.
+There is no Suppressed column on the EDOP files. A `*` cell is stored as value NA with suppressed Y. A blank cell is not stored. The 2020-2026 participation files publish no 0 and no blank, and the smallest number is 3, so a Y in those years covers 0, 1, or 2, or a cell that does not apply. 2019 publishes both 0 and `*`. A Y in 2019 is not a published 0. A published 0 on the overview file is kept. KYRC23 overview is the edition that is stored. It matches KYRC25 on the shared cells. KYRC24 writes 0 on rows KYRC25 leaves blank, and that edition is not loaded.
 
 **Demographics (via `student_group` column, participation file):**
 - All Students
@@ -566,9 +566,9 @@ There is no Suppressed column on the EDOP files. A `*` cell is stored as value N
 - English Learner
 - Foster Care, Gifted and Talented, Homeless, Migrant, Military Dependent
 
-**Data Sources**: 2018-19 course and student workbooks, `advanced_courses_offered_{2020-2023}.csv`, `advanced_courses_participation_and_performance_{2020-2023}.csv`, KYRC24 and KYRC25 overview, and the KYRC24, KYRC25, and KYRC26 participation and courses-offered files
+**Data Sources**: 2018-19 course and student workbooks, `advanced_courses_offered_{2020-2023}.csv`, `advanced_courses_participation_and_performance_{2020-2023}.csv`, `KYRC23_OVW_Advanced_Coursework.csv` (CRDC 2020-21, stored as 2021), `KYRC26_OVW_Advanced_Coursework.csv` (CRDC 2021-22, stored as 2022), and the KYRC24, KYRC25, and KYRC26 participation and courses-offered files. KYRC24 and KYRC25 overview are not loaded
 **Years Available**: 2019-2026
-**Unit**: Count (non-negative integers), Rate (published overview percents can exceed 100; two KYRC26 AP gender percents are 125 and 200)
+**Unit**: Count (non-negative integers), Rate (published overview percents can exceed 100; two AP gender percents in the 2021-22 collection are 125 and 200)
 
 ---
 
