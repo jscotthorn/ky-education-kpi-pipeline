@@ -402,11 +402,13 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
 
     State All Students is 30,193. KPI year is 2026, from school year 20252026.
     District is All Districts. The 2022-2025 anchors are the published source
-    values, including the comma-formatted 2025 state total 29,360.
+    values, including the comma-formatted 2024 state total 28,978 and the
+    2025 state total 29,360.
     """
     prior_names = [
         "secondary_enrollment_2022.csv",
         "secondary_enrollment_2023.csv",
+        "KYRC24_OVW_Secondary_Enrollment.csv",
         "KYRC25_OVW_Secondary_Enrollment.csv",
     ]
     current_names = prior_names + ["KYRC26_OVW_Secondary_Enrollment.csv"]
@@ -415,7 +417,7 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
 
     # Same-branch check only: adding the 2026 excerpt does not rewrite earlier rows.
     # The fixed anchors below are the prior-year regression.
-    prior_slice = combined[combined["year"].isin(["2022", "2023", "2025"])]
+    prior_slice = combined[combined["year"].isin(["2022", "2023", "2024", "2025"])]
     assert _comparable(prior_slice).equals(_comparable(prior_only))
 
     assert set(combined["source_file"]) == set(current_names)
@@ -442,6 +444,9 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert float(_metric_value(combined, "2026", "999000", "secondary_enrollment_high_school")["value"]) == 29171
 
     district = _metric_value(combined, "2026", "165000", "secondary_enrollment_total")
+    # 97 is Tates Creek Middle 1 + Tates Creek High 16 + Frederick Douglass 70
+    # + Success Academy 10. The district grade cells sum to 96 because Tates
+    # Creek Middle's All Grades cell is 1 and its grade 6-8 cells are 0.
     assert float(district["value"]) == 97
     assert district["district"] == "Fayette County"
     assert district["school_name"] == "---District Total---"
@@ -521,7 +526,20 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert float(_metric_value(combined, "2026", "035160", "secondary_enrollment_high_school", "American Indian or Alaska Native")["value"]) == 1
     assert (indigenous["suppressed"] == "N").all()
 
-    # Prior-year anchors. The 2025 state total is comma-formatted in the file.
+    # Prior-year anchors. The 2024 and 2025 state totals are comma-formatted.
+    # 2024 All Grades equals the published grade cells: 822 + 28,140 + 16.
+    row = _metric_value(combined, "2024", "999000", "secondary_enrollment_total")
+    assert float(row["value"]) == 28978
+    assert row["district"] == "All Districts"
+    assert row["school_name"] == "---District Total---"
+    assert row["year"] == "2024"
+    assert row["suppressed"] == "N"
+    assert row["source_file"] == "KYRC24_OVW_Secondary_Enrollment.csv"
+    assert float(_metric_value(combined, "2024", "999000", "secondary_enrollment_grade_9")["value"]) == 6273
+    assert float(_metric_value(combined, "2024", "999000", "secondary_enrollment_middle")["value"]) == 822
+    assert float(_metric_value(combined, "2024", "999000", "secondary_enrollment_high_school")["value"]) == 28140
+    assert float(_metric_value(combined, "2024", "999000", "secondary_enrollment_grade_14")["value"]) == 16
+
     row = _metric_value(combined, "2025", "999000", "secondary_enrollment_total")
     assert float(row["value"]) == 29360
     assert row["district"] == "All Districts"

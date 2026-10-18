@@ -462,6 +462,7 @@ class TestKyrc26SecondaryEnrollment:
         accepted = [
             "KYRC26_OVW_Secondary_Enrollment.csv",
             "KYRC25_OVW_Secondary_Enrollment.csv",
+            "KYRC24_OVW_Secondary_Enrollment.csv",
             "secondary_enrollment_2023.csv",
             "secondary_enrollment_2022.csv",
             "secondary_enrollment_2021.csv",
@@ -502,13 +503,14 @@ class TestKyrc26SecondaryEnrollment:
 
 
 def test_registered_sources_are_the_permanent_files():
-    """2024-25 is already the permanent KYRC25 file. No temporary name is registered."""
+    """KYRC24, KYRC25, and KYRC26 are the permanent datasets files."""
     config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
     names = []
     for entry in config["raw_directories"]["secondary_enrollment"]:
         names.append(entry["file"] if isinstance(entry, dict) else entry)
 
     assert names == [
+        "KYRC24_OVW_Secondary_Enrollment.csv",
         "KYRC25_OVW_Secondary_Enrollment.csv",
         "KYRC26_OVW_Secondary_Enrollment.csv",
         "secondary_enrollment_2023.csv",

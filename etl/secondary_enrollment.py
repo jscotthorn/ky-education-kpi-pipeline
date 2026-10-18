@@ -1,15 +1,19 @@
 """
 Secondary Enrollment ETL Module
 
-Handles Kentucky secondary enrollment data (Grades 6-12) across years 2019-2026.
-This is distinct from student_enrollment which captures all grades (PreK-12).
-Secondary enrollment tracks students enrolled in secondary programs at schools
-that offer secondary education.
+Students with a secondary (concurrent) enrollment at this school, by grade,
+for 2019-2026. A secondary enrollment is a concurrent second enrollment at a
+school other than the student's main school, mostly at career and technical
+centers and regional academies. KDE pairs this series with primary enrollment.
 
-Data includes enrollment counts by grade level:
-- Grade 6 through Grade 12 enrollment counts
-- Total secondary student counts by demographic group
-- School-level and district-level aggregations
+All Grades counts unique students in every grade. KYRC files publish only
+grades 6-12 and 14, so All Grades can exceed those cells. Older files had
+preschool through grade 5 columns (always 0), and their totals equal the
+grade sums for 2019-2024. KYRC25 has 37 rows where the total is higher
+(state gap 3). KYRC26 has 47 (state gap 63: East Jessamine Middle 61,
+Tates Creek Middle 1, Camden Station Elementary 1). Those students are
+most likely below grade 6, which is unproven. On those rows middle, high
+school, and grade 14 will not sum to the total. The parser stores All Grades.
 """
 from pathlib import Path
 import pandas as pd
@@ -96,9 +100,10 @@ def clean_enrollment_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 class SecondaryEnrollmentETL(BaseETL):
-    """ETL module for processing secondary enrollment data.
+    """ETL module for secondary (concurrent) enrollment by grade.
 
-    KYRC26 uses the same grade headers as KYRC25. The 2020-2023 files use
+    KYRC24, KYRC25, and KYRC26 share the same 23-column grade headers.
+    KYRC24 is registered on the datasets host. The 2020-2023 files use
     the uppercase count names, which are already mapped. No temporary OAA
     extract is registered for this directory, and the guessed temporary
     names return 404, so there is no leftover filename to skip.
@@ -133,7 +138,8 @@ class SecondaryEnrollmentETL(BaseETL):
             'GRADE12 COUNT': 'grade_12',
             'GRADE14 COUNT': 'grade_14',
 
-            # Historical files also have these columns (always 0 for secondary)
+            # Older files include preschool through grade 5. Those cells are 0
+            # and are not emitted. All Grades still counts every grade.
             'PRESCHOOL COUNT': 'preschool',
             'KINDERGARTEN COUNT': 'k',
             'GRADE1 COUNT': 'grade_1',
@@ -195,7 +201,7 @@ class SecondaryEnrollmentETL(BaseETL):
         if pd.notna(total_numeric) and total_numeric > 0:
             metrics['secondary_enrollment_total'] = total_numeric
 
-        # Individual grade levels (6-12 only)
+        # Published grade columns. Grade 14 is handled below.
         grade_metrics = {
             'secondary_enrollment_grade_6': safe_numeric(row.get('grade_6', pd.NA)),
             'secondary_enrollment_grade_7': safe_numeric(row.get('grade_7', pd.NA)),

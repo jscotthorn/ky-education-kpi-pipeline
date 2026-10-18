@@ -72,7 +72,8 @@ sources:
       data_quality_flag: "reviewed"
 
   secondary_enrollment:
-    # Secondary enrollment (grades 6-12) - separate from student_enrollment
+    # Students with a secondary (concurrent) enrollment at this school, by grade.
+    # Paired with primary enrollment. All Grades can exceed the published grade cells.
     rename: {}
     dtype:
       county_number: "str"

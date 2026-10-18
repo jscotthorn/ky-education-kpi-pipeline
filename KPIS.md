@@ -283,27 +283,29 @@ All above metrics are also available with `_by_demo` suffix for demographic grou
 ## Secondary Enrollment
 **Source**: `etl/secondary_enrollment.py`
 
-Secondary-program enrollment (grades 6-12), separate from the all-grades student enrollment file.
+Students with a secondary (concurrent) enrollment at this school, by grade. A secondary enrollment is a concurrent second enrollment at a school other than the student's main school, mostly at career and technical centers and regional academies. KDE pairs this series with primary enrollment.
+
+All Grades counts unique students in every grade. KYRC files publish only grades 6-12 and 14, so All Grades can exceed the sum of those cells. Older files also had preschool through grade 5 columns, and those cells are 0. For 2019-2024 the All Grades total equals the sum of the published grade cells. KYRC25 has 37 rows where it does not (state gap 3). KYRC26 has 47 rows (state gap 63: East Jessamine Middle 61, Tates Creek Middle 1, Camden Station Elementary 1). Those students are most likely below grade 6, which is unproven. On those rows, middle + high school + grade 14 will not equal the total. The parser stores All Grades.
 
 ### Total Enrollment Metrics
-- `secondary_enrollment_total` - Total students in the secondary-enrollment extract
+- `secondary_enrollment_total` - Students with a secondary (concurrent) enrollment at this school, all grades
 
 ### Grade-Level Enrollment Metrics
-- `secondary_enrollment_grade_6` - Number of students enrolled in Grade 6
-- `secondary_enrollment_grade_7` - Number of students enrolled in Grade 7
-- `secondary_enrollment_grade_8` - Number of students enrolled in Grade 8
-- `secondary_enrollment_grade_9` - Number of students enrolled in Grade 9
-- `secondary_enrollment_grade_10` - Number of students enrolled in Grade 10
-- `secondary_enrollment_grade_11` - Number of students enrolled in Grade 11
-- `secondary_enrollment_grade_12` - Number of students enrolled in Grade 12
-- `secondary_enrollment_grade_14` - Number of students enrolled in Grade 14
+- `secondary_enrollment_grade_6` - Students with a secondary enrollment in Grade 6
+- `secondary_enrollment_grade_7` - Students with a secondary enrollment in Grade 7
+- `secondary_enrollment_grade_8` - Students with a secondary enrollment in Grade 8
+- `secondary_enrollment_grade_9` - Students with a secondary enrollment in Grade 9
+- `secondary_enrollment_grade_10` - Students with a secondary enrollment in Grade 10
+- `secondary_enrollment_grade_11` - Students with a secondary enrollment in Grade 11
+- `secondary_enrollment_grade_12` - Students with a secondary enrollment in Grade 12
+- `secondary_enrollment_grade_14` - Students with a secondary enrollment in Grade 14
 
 ### School-Level Aggregations
-- `secondary_enrollment_middle` - Combined enrollment for Grades 6-8
-- `secondary_enrollment_high_school` - Combined enrollment for Grades 9-12
+- `secondary_enrollment_middle` - Combined secondary enrollment for Grades 6-8
+- `secondary_enrollment_high_school` - Combined secondary enrollment for Grades 9-12
 
-**Data Sources**: KYRC26_OVW_Secondary_Enrollment.csv, KYRC25_OVW_Secondary_Enrollment.csv, secondary_enrollment_{year}.csv, STUDENT_SECONDARY_ENROLLMENT_18-19.xlsx  
-**Years Available**: 2020-2026 (2019 when the workbook can be read)  
+**Data Sources**: KYRC26_OVW_Secondary_Enrollment.csv, KYRC25_OVW_Secondary_Enrollment.csv, KYRC24_OVW_Secondary_Enrollment.csv, secondary_enrollment_{year}.csv, STUDENT_SECONDARY_ENROLLMENT_18-19.xlsx  
+**Years Available**: 2019-2026 (2019 when the workbook can be read)  
 **Unit**: Student count (non-negative integers)
 
 ---

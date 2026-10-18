@@ -227,7 +227,7 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
 - **Safe Schools Climate** - School climate survey results and index scores
 - **Safe Schools Discipline** - Detailed discipline resolution tracking
 - **Student Enrollment** - Student enrollment counts by grade level (PreK-12) with primary, middle, and secondary aggregations
-- **Secondary Enrollment** - Secondary-program enrollment counts for grades 6-12, with middle and high school aggregations
+- **Secondary Enrollment** - Students with a secondary (concurrent) enrollment at this school, by grade, with middle and high school aggregations
 - **Spending Per Student** - Per-pupil spending by funding source (federal, state/local, combined)
 - **Benchmark Assessment** - Interim assessment performance data
 - **ACT Scores** - College admission test performance
