@@ -526,32 +526,49 @@ District-level financial and staffing metrics from KDE Financial Summary reports
 ## Advanced Coursework
 **Source**: `etl/advanced_coursework.py`
 
-Participation and performance metrics for advanced courses including AP, IB, and Cambridge programs. Note: Dual credit data is handled in a separate pipeline.
+KDE publishes three measures. Participation is an unduplicated student count by demographic and course type: a student in two AP courses counts once. A completer finished at least one course. A qualifying score is a qualifying exam score on at least one AP, Cambridge, or IB exam. Courses offered is a duplicated count of course enrollments: a student in two courses counts twice. The overview file is the CRDC advanced-coursework count, in total and by gender. Dual credit is not loaded here. `dual_credit` owns that measure. Course type `DC` and `Dual Credit` are skipped.
 
-### By Course Type (AP, IB, Cambridge)
-- `{prefix}_course_enrollment` - Number of students enrolled in courses
-- `{prefix}_completion_count` - Number of students completing courses
-- `{prefix}_tested_count` - Number of students tested
-- `{prefix}_qualifying_score_count` - Number of students earning qualifying scores
-- `{prefix}_qualifying_score_rate` - Percentage of tested students with qualifying scores
-- `{prefix}_participation_rate` - Overall participation rate (from overview files)
-- `{prefix}_participation_rate_female` - Participation rate for female students
-- `{prefix}_participation_rate_male` - Participation rate for male students
-- `num_{prefix}_courses_offered` - Count of courses offered (from offered files)
+Course type `ALL` is the only user of the `advanced_*` prefix. It is the unduplicated participation total across course types, or the courses-offered subject total. Course type `CAI` is Cambridge. An unrecognized course type is skipped.
 
-**Prefixes**: `ap`, `ib`, `cambridge`, `advanced` (for unspecified course types)
+Participation metrics (unduplicated students, `student_group` is the demographic). `{prefix}` is `ap`, `ib`, `cambridge`, or `advanced`:
 
-**Demographics (via `student_group` column):**
+- `{prefix}_course_enrollment` - Students enrolled in one or more courses of that type
+- `{prefix}_completion_count` - Students who completed at least one course
+- `{prefix}_tested_count` - Students tested
+- `{prefix}_qualifying_score_count` - Students with a qualifying exam score
+- `{prefix}_qualifying_score_rate` - Derived for AP, IB, and Cambridge: qualifying scores divided by students tested, times 100. Not derived for `advanced`, because the ALL qualifying count includes dual-credit grades and the ALL tested count does not
+
+Courses-offered metrics (duplicated enrollments, `student_group` is All Students). The subject or the course code and course name is in the metric:
+
+- `{prefix}_offered_enrollment_{slug}` - Course enrollments. `all_enrollments` is that type's total. Course type `ALL` uses the subject, such as `mathematics`
+- `{prefix}_offered_completion_count_{slug}` - Course completers
+- `{prefix}_offered_tested_count_{slug}` - Students tested in that course
+- `{prefix}_offered_qualifying_score_count_{slug}` - Qualifying scores in that course
+- `{prefix}_offered_completion_rate_{slug}` - Derived: completers divided by enrollment, times 100
+- `{prefix}_offered_qualifying_score_rate_{slug}` - Derived: qualifying scores divided by students tested, times 100
+- `num_{prefix}_courses_offered` - Count of course rows at the school. Subject totals and `All Enrollments` are not counted
+
+Overview metrics (CRDC, published percents, not derived):
+
+- `{prefix}_participation_count`, `{prefix}_participation_count_female`, `{prefix}_participation_count_male`
+- `{prefix}_participation_rate`, `{prefix}_participation_rate_female`, `{prefix}_participation_rate_male`
+
+State All Students AP enrollment is 37,212 in 2026. The district sum is 37,283 and the school sum is 37,319. Districts sit slightly above the state in every year from 2020 through 2026, because the state total is unduplicated across districts. 2026 IB enrollment is 1,006 and IB students tested is 42. The 2025 tested count was 234. Districts and schools sum to the same 42. Cambridge enrollment is 248 in 2026 after 185 in 2025.
+
+There is no Suppressed column on the EDOP files. A `*` cell is stored as value NA with suppressed Y. A blank cell is not stored. The 2020-2026 participation files publish no 0 and no blank, and the smallest number is 3, so a Y in those years covers 0, 1, or 2, or a cell that does not apply. 2019 publishes both 0 and `*`. A Y in 2019 is not a published 0. A published 0 on the overview file is kept. KYRC24 overview writes 0 on 12,184 rows that KYRC25 leaves blank.
+
+**Demographics (via `student_group` column, participation file):**
 - All Students
 - Female / Male
 - Race/ethnicity groups (African American, Hispanic or Latino, etc.)
 - Economically Disadvantaged
 - Students with Disabilities (IEP)
 - English Learner
+- Foster Care, Gifted and Talented, Homeless, Migrant, Military Dependent
 
-**Data Sources**: KYRC25_EDOP_Advanced_Courses_Participation_and_Performance.csv, KYRC24_EDOP_Advanced_Courses_Participation_and_Performance.csv, KYRC25_OVW_Advanced_Coursework.csv, advanced_courses_participation_and_performance_{year}.csv
-**Years Available**: 2021-2025
-**Unit**: Count (non-negative integers), Rate (0-100%)
+**Data Sources**: 2018-19 course and student workbooks, `advanced_courses_offered_{2020-2023}.csv`, `advanced_courses_participation_and_performance_{2020-2023}.csv`, KYRC24 and KYRC25 overview, and the KYRC24, KYRC25, and KYRC26 participation and courses-offered files
+**Years Available**: 2019-2026
+**Unit**: Count (non-negative integers), Rate (published overview percents can exceed 100; two KYRC26 AP gender percents are 125 and 200)
 
 ---
 

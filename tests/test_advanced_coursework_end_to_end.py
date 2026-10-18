@@ -75,8 +75,11 @@ class TestAdvancedCourseworkEndToEnd:
                 rate_values = pd.to_numeric(non_suppressed_rates['value'], errors='coerce').dropna()
                 if len(rate_values) > 0:
                     assert rate_values.min() >= 0, "Participation rates should be non-negative"
-                    # Participation rates should be between 0-100 (with small margin for data timing)
-                    assert rate_values.max() <= 110, "Participation rates should be <= 110%"
+                    # Published CRDC percents. Dual credit is not stored.
+                    # Two KYRC26 AP gender percents are above 100:
+                    # Hopkinsville High 115050 Asian female 125, and
+                    # Christian County High 115030 Asian male 200.
+                    assert rate_values.max() <= 200, "Participation rates should be <= 200%"
 
     def test_e2e_demographics_present(self):
         """Test that demographics are properly processed."""
