@@ -322,7 +322,16 @@ The parser stores the published average. The educator count is the denominator i
 
 ## Student-Teacher Ratio
 **Source**: `etl/student_teacher_ratio.py`
-- `student_teacher_ratio` - Number of students per teacher (e.g., 15.0 means 15:1 ratio)
+
+Students per one teacher at the school. KDE's report-card glossary defines Student to Teacher Ratio as 6/30 SAAR membership divided by full-time-equivalent teachers, excluding administrators, guidance counselors, media specialists, and resource teachers. 703 KAR 5:140 calls it the average student/teacher ratio: end-of-year membership divided by FTE teachers, excluding administrators, guidance counselors, and media specialists. The 2018-19 cover sheet describes the field as the number of students enrolled compared with the number of teachers on staff.
+
+The parser stores the published ratio, the number before the colon in `15:01`. It does not recompute membership divided by FTE. There is no demographic breakdown and no Suppressed column. KYRC26 publishes school rows only. It does not include the state row or the district totals, and this pipeline does not rebuild them. The glossary excludes the Kentucky School for the Blind, the Kentucky School for the Deaf, and the Model Laboratory schools from the state total.
+
+- `student_teacher_ratio` - Students per one teacher (15.0 is the published ratio `15:01`)
+
+**Data Sources**: KYRC26_OVW_Student_to_Teacher_Ratio.csv, KYRC25_OVW_Student_to_Teacher_Ratio.csv, KYRC24_OVW_Student_to_Teacher_Ratio.csv, student_teacher_ratio_{year}.csv, STUDENT_TEACHER_RATIO_18-19.xlsx  
+**Years Available**: 2019-2026 (2019 when the workbook can be read)  
+**Unit**: Students per teacher
 
 ## Novice Teachers
 **Source**: `etl/novice_teachers.py`

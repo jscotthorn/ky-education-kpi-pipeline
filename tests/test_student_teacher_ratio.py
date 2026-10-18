@@ -5,9 +5,12 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
 from etl.student_teacher_ratio import transform, parse_ratio, StudentTeacherRatioETL
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class TestParseRatio:
@@ -28,6 +31,27 @@ class TestParseRatio:
         """Test parsing plain numbers (in case format changes)."""
         assert parse_ratio("15") == 15.0
         assert parse_ratio("20.5") == 20.5
+
+    def test_one_teacher_denominator(self):
+        """The figure before the colon is students per one teacher.
+
+        2018-19 uses ``15:1``. The 2019-20 file stores seven ratios as
+        ``48:01:00``. The numerator is the published ratio.
+        """
+        assert parse_ratio("15:1") == 15.0
+        assert parse_ratio("48:01:00") == 48.0
+        assert parse_ratio("28:01:00") == 28.0
+        assert parse_ratio("0:01") == 0.0
+        assert parse_ratio("0:00") == 0.0
+
+    def test_comma_numerator(self):
+        """A thousands separator in the numerator is not part of the ratio.
+
+        No registered file contains one. The strip still has to work when
+        ``dtype=str`` is StringDtype.
+        """
+        assert parse_ratio("1,015:01") == 1015.0
+        assert parse_ratio(pd.Series(["1,015:01"], dtype="string").iloc[0]) == 1015.0
     
     def test_missing_value(self):
         """Test handling of missing values."""
@@ -247,3 +271,142 @@ class TestStudentTeacherRatioETL:
         assert 15.0 in kpi_df['value'].values
         assert 20.5 in kpi_df['value'].values
         assert 12.0 in kpi_df['value'].values
+
+
+class TestKyrc26OptIn:
+    """KYRC26 acceptance, the KYRC23 republish, and blank rows."""
+
+    def setup_method(self):
+        self.test_dir = Path(tempfile.mkdtemp())
+        self.raw_dir = self.test_dir / "raw"
+        self.proc_dir = self.test_dir / "processed"
+        self.proc_dir.mkdir(parents=True)
+        self.sample_dir = self.raw_dir / "student_teacher_ratio"
+        self.sample_dir.mkdir(parents=True)
+        self.etl = StudentTeacherRatioETL("student_teacher_ratio")
+
+    def teardown_method(self):
+        shutil.rmtree(self.test_dir)
+
+    def test_kyrc26_file_is_accepted(self):
+        """The permanent KYRC files and the historical names stay in scope."""
+        assert self.etl.include_kyrc26 is True
+        assert self.etl.module_column_mappings["Student Teacher Ratio"] == "ratio"
+        assert self.etl.module_column_mappings["STDNT_TCH_RATIO"] == "ratio"
+        assert (
+            self.etl.module_column_mappings["STUDENT TO TEACHER RATIOSTUDENT TO TEACHER RATIO"]
+            == "ratio"
+        )
+
+        accepted = [
+            "KYRC26_OVW_Student_to_Teacher_Ratio.csv",
+            "KYRC25_OVW_Student_to_Teacher_Ratio.csv",
+            "KYRC24_OVW_Student_to_Teacher_Ratio.csv",
+            "student_teacher_ratio_2023.csv",
+            "student_teacher_ratio_2022.csv",
+            "student_teacher_ratio_2021.csv",
+            "student_teacher_ratio_2020.csv",
+        ]
+        for name in accepted:
+            (self.sample_dir / name).write_text(
+                "School Year,School Code,Student Teacher Ratio\n20252026,165170,15:01\n"
+            )
+        (self.sample_dir / "KYRC23_OVW_Student_to_Teacher_Ratio.csv").write_text(
+            "School Year,School Code,Student Teacher Ratio\n20222023,001010,15:01\n"
+        )
+
+        found = sorted(path.name for path, _sheet in self.etl._find_data_files(self.sample_dir))
+        assert found == sorted(accepted)
+
+    def test_kyrc23_republish_is_skipped(self):
+        """A leftover KYRC23 file must not write a second copy of 2023.
+
+        The datasets file matches the registered 2022-23 extract on school
+        code and ratio numerator. Accepting it would duplicate those KPI rows.
+        """
+        republish = (
+            "School Year,District Name,School Name,School Code,Student Teacher Ratio\n"
+            "20222023,Adair County,Adair County High School,001010,15:01\n"
+        )
+        (self.sample_dir / "KYRC23_OVW_Student_to_Teacher_Ratio.csv").write_text(republish)
+        (self.sample_dir / "KYRC26_OVW_Student_to_Teacher_Ratio.csv").write_text(
+            "School Year,District Name,School Name,School Code,Student Teacher Ratio\n"
+            "20252026,Fayette County,Bryan Station High School,165170,15:01\n"
+        )
+        config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+        transform(self.raw_dir, self.proc_dir, config["sources"]["student_teacher_ratio"])
+        result = pd.read_csv(self.proc_dir / "student_teacher_ratio.csv", dtype=str)
+        assert set(result["year"]) == {"2026"}
+        assert set(result["source_file"]) == {"KYRC26_OVW_Student_to_Teacher_Ratio.csv"}
+        assert float(result["value"].iloc[0]) == 15.0
+        assert result["school_id"].iloc[0] == "165170"
+
+    def test_blank_row_emits_nothing(self):
+        """An empty ratio is not offered and emits no KPI row.
+
+        notes/8: a row that is not suppressed and has every value empty is
+        the absence of a row. These files have no Suppressed column and no
+        all-blank ratio. The production config casts ``ratio`` to str.
+        ``pd.NA`` is not evaluated as a boolean.
+        """
+        text = (
+            "School Year,District Name,School Name,School Code,Student Teacher Ratio\n"
+            "20252026,Fayette County,Bryan Station High School,165170,\n"
+            "20252026,Fayette County,,165000,\n"
+            "20252026,Adair County,Adair County High School,001010,15:01\n"
+        )
+        (self.sample_dir / "KYRC26_OVW_Student_to_Teacher_Ratio.csv").write_text(text)
+        config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+        transform(self.raw_dir, self.proc_dir, config["sources"]["student_teacher_ratio"])
+        result = pd.read_csv(self.proc_dir / "student_teacher_ratio.csv", dtype=str)
+        assert list(result["school_id"]) == ["001010"]
+        assert float(result["value"].iloc[0]) == 15.0
+        assert result["suppressed"].iloc[0] == "N"
+        assert result["year"].iloc[0] == "2026"
+        assert result["student_group"].iloc[0] == "All Students"
+
+    def test_string_dtype_ratio_cells(self):
+        """pandas 3 StringDtype still parses a ratio, including a comma.
+
+        ``read_csv(..., dtype=str)`` returns StringDtype on pandas 3 and
+        object on pandas 2.3.3. ``bool(pd.NA)`` is not used to detect that
+        dtype or to test a missing cell. No registered file contains a comma.
+        """
+        frame = pd.DataFrame({
+            "ratio": pd.Series(
+                ["15:01", "48:01:00", "1,015:01", "", pd.NA],
+                dtype="string",
+            ),
+        })
+        assert not self.etl.should_skip_row(frame.iloc[0])
+        assert not self.etl.should_skip_row(frame.iloc[1])
+        assert not self.etl.should_skip_row(frame.iloc[2])
+        assert self.etl.should_skip_row(frame.iloc[3])
+        assert self.etl.should_skip_row(frame.iloc[4])
+        assert self.etl.extract_metrics(frame.iloc[0])["student_teacher_ratio"] == 15.0
+        assert self.etl.extract_metrics(frame.iloc[1])["student_teacher_ratio"] == 48.0
+        assert self.etl.extract_metrics(frame.iloc[2])["student_teacher_ratio"] == 1015.0
+        assert self.etl.extract_metrics(frame.iloc[3]) == {}
+        assert self.etl.extract_metrics(frame.iloc[4]) == {}
+
+
+def test_registered_sources_are_the_permanent_files():
+    """KYRC24, KYRC25, and KYRC26 are registered. KYRC23 is not."""
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["student_teacher_ratio"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert names == [
+        "KYRC24_OVW_Student_to_Teacher_Ratio.csv",
+        "KYRC25_OVW_Student_to_Teacher_Ratio.csv",
+        "KYRC26_OVW_Student_to_Teacher_Ratio.csv",
+        "student_teacher_ratio_2023.csv",
+        "student_teacher_ratio_2022.csv",
+        "student_teacher_ratio_2021.csv",
+        "student_teacher_ratio_2020.csv",
+        "STUDENT_TEACHER_RATIO_18-19.xlsx",
+    ]
+    assert not any("KYRC23" in name for name in names)
+    assert not any("Student_to_Teacher_Ratio_20" in name for name in names)
+    assert not any("Student_Teacher_Ratio_20" in name for name in names)

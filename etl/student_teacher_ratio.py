@@ -1,17 +1,37 @@
 """
 Student-Teacher Ratio ETL Module
 
-Processes Kentucky student-teacher ratio data showing class size indicators
-by school/district. This is an institutional-level metric without demographic
-breakdowns.
+Processes Kentucky student-teacher ratio data. This is an institutional
+metric. The file has no demographic column and no Suppressed column.
 
-Data includes:
-- Student-teacher ratios in format "15:01" (parsed to numeric 15.0)
-- School-level and district-level aggregations
+KDE's report-card glossary defines Student to Teacher Ratio as the school's
+6/30 SAAR membership divided by full-time-equivalent teachers, excluding
+administrators, guidance counselors, media specialists, and resource
+teachers. 703 KAR 5:140 calls the same measure the average student/teacher
+ratio: end-of-year membership divided by FTE teachers, excluding
+administrators, guidance counselors, and media specialists. The 2018-19
+cover sheet describes ``STDNT_TCH_RATIO`` as the number of students enrolled
+compared with the number of teachers on staff.
+
+The published figure is students per one teacher, the number before the
+colon in ``15:01``, ``15:1``, and ``28:01:00``. The parser stores that
+number. It does not recompute membership divided by FTE. These files do
+not contain those two components.
+
+KYRC26 uses the same headers as KYRC25. It has school rows only. The state
+row and the district ``All Schools`` rows are not in the file. This module
+does not rebuild them. The glossary excludes the Kentucky School for the
+Blind, the Kentucky School for the Deaf, and the Model Laboratory schools
+from the state total, so a sum of school rows is not that total.
+
+No temporary OAA extract is registered, and the guessed temporary names
+return 404, so there is no leftover temporary filename to skip.
+``KYRC23_OVW_Student_to_Teacher_Ratio.csv`` returns 200 and republishes
+2022-23. It is not registered, and ``accepts_data_file`` skips that name.
 """
 from pathlib import Path
 import pandas as pd
-from typing import Dict, Any
+from typing import Any, Dict, Optional
 import logging
 import sys
 import re
@@ -20,48 +40,119 @@ import re
 etl_dir = Path(__file__).parent
 sys.path.insert(0, str(etl_dir))
 
-from constants import KPI_COLUMNS
 from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
 
+# KYRC23 is the 2022-23 extract again. The registered historical file already
+# covers that year. School codes match after 3-digit district codes are
+# written as NNN000, and the ratio numerators match.
+_KYRC23_REPUBLISH = "KYRC23_OVW_STUDENT_TO_TEACHER_RATIO.CSV"
 
-def parse_ratio(ratio_str: str) -> float:
+# Students per one teacher. ``28:01:00`` is the same ratio with a trailing
+# seconds field. ``0:00`` is a published zero. A denominator other than 1
+# (or 00 on a zero) is not this measure.
+_RATIO_PART = re.compile(r"^[\d.]+$")
+_ZERO_SECONDS = re.compile(r"^0+$")
+
+
+def _ratio_text(value: Any) -> Optional[str]:
+    """Return cleaned ratio text, or None when the cell is missing.
+
+    ``pd.NA`` is not used as a boolean. ``read_csv(..., dtype=str)`` is
+    StringDtype on pandas 3 and object on pandas 2.3.3. A comma in a
+    numerator is removed before the match. pandas is unpinned. The
+    registered files have no comma-formatted ratios.
     """
-    Parse ratio string like "15:01" into numeric value 15.0.
-    
+    if value is None:
+        return None
+    try:
+        if bool(pd.isna(value)):
+            return None
+    except (TypeError, ValueError):
+        return None
+    text = str(value).strip().replace(",", "")
+    if text == "" or text.lower() in {"nan", "<na>", "none"}:
+        return None
+    return text
+
+
+def parse_ratio(ratio_str: Any) -> Any:
+    """
+    Parse a published student-teacher ratio into students per one teacher.
+
+    ``15:01``, ``15:1``, and ``15.5:01`` all mean 15 or 15.5 students per
+    teacher. ``28:01:00`` is that same shape with a trailing ``:00``.
+    ``0:01``, ``0:1``, and ``0:00`` are a published zero. A plain number is
+    accepted for a file that drops the colon. A missing cell returns
+    ``pd.NA``.
+
     Args:
-        ratio_str: Ratio string in format "XX:YY"
-        
+        ratio_str: Ratio text, or a missing value.
+
     Returns:
-        Numeric ratio value (first number before colon)
+        The numeric ratio, or ``pd.NA`` when the cell is missing or invalid.
     """
-    if pd.isna(ratio_str):
+    text = _ratio_text(ratio_str)
+    if text is None:
         return pd.NA
-    
-    # Convert to string and clean
-    ratio_str = str(ratio_str).strip()
-    
-    # Match pattern like "15:01" or "15.5:01"
-    match = re.match(r'^([\d.]+):(\d+)$', ratio_str)
-    if match:
+
+    if _RATIO_PART.match(text):
         try:
-            return float(match.group(1))
+            return float(text)
         except ValueError:
             logger.warning(f"Could not convert ratio {ratio_str} to float")
             return pd.NA
-    
-    # Try to parse as plain number (in case format changes)
-    try:
-        return float(ratio_str)
-    except (ValueError, TypeError):
-        logger.warning(f"Invalid ratio format: {ratio_str}")
-        return pd.NA
+
+    parts = text.split(":")
+    if len(parts) in (2, 3) and all(_RATIO_PART.match(part) for part in parts):
+        numerator, denominator = parts[0], parts[1]
+        seconds = parts[2] if len(parts) == 3 else None
+        denominator_is_one = denominator in {"1", "01"}
+        denominator_is_zero = denominator == "00" and seconds is None
+        seconds_ok = seconds is None or _ZERO_SECONDS.match(seconds) is not None
+        if (denominator_is_one or denominator_is_zero) and seconds_ok:
+            try:
+                return float(numerator)
+            except ValueError:
+                logger.warning(f"Could not convert ratio {ratio_str} to float")
+                return pd.NA
+
+    logger.warning(f"Invalid ratio format: {ratio_str}")
+    return pd.NA
 
 
 class StudentTeacherRatioETL(BaseETL):
-    """ETL module for processing student-teacher ratio data."""
-    
+    """ETL module for processing student-teacher ratio data.
+
+    KYRC26 uses the same ``Student Teacher Ratio`` header as KYRC24 and
+    KYRC25. The 2020-2023 files use the doubled historical header, which is
+    already mapped. No temporary OAA extract is registered for this directory.
+    """
+
+    # Opt in here, in the same change that accepts the file. BaseETL skips
+    # every KYRC26_* CSV until this is True.
+    include_kyrc26 = True
+
+    def accepts_data_file(self, file_path: Path) -> bool:
+        """Skip the KYRC23 republish of the 2022-23 extract.
+
+        ``KYRC23_OVW_Student_to_Teacher_Ratio.csv`` returns 200 on the
+        datasets host. After 3-digit district codes are written as
+        ``NNN000``, the school codes match ``student_teacher_ratio_2023.csv``
+        and the ratio numerators match. Loading both files would write each
+        school twice for 2023. The guessed OAA names are 404 and were never
+        registered, so they are not skipped here.
+        """
+        if file_path.name.upper() == _KYRC23_REPUBLISH:
+            logger.info(
+                "Skipping %s; it republishes 2022-23 already loaded from "
+                "student_teacher_ratio_2023.csv",
+                file_path.name,
+            )
+            return False
+        return super().accepts_data_file(file_path)
+
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {
@@ -69,7 +160,7 @@ class StudentTeacherRatioETL(BaseETL):
             'STUDENT TEACHER RATIO': 'ratio',
             'Student-Teacher Ratio': 'ratio',
             'Ratio': 'ratio',
-            'STUDENT TO TEACHER RATIOSTUDENT TO TEACHER RATIO': 'ratio', # Historical file anomaly
+            'STUDENT TO TEACHER RATIOSTUDENT TO TEACHER RATIO': 'ratio',  # Historical file anomaly
 
             # Historical xlsx format (2018-19)
             'SCH_YEAR': 'school_year',
@@ -86,36 +177,44 @@ class StudentTeacherRatioETL(BaseETL):
             'COOP_CODE': 'co_op_code',
             'STDNT_TCH_RATIO': 'ratio',
         }
-    
+
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         metrics = {}
-        
-        # Parse ratio string to numeric value
-        ratio_str = row.get('ratio', pd.NA)
-        ratio_numeric = parse_ratio(ratio_str)
-        
+
+        # Students per one teacher. A published zero (``0:01``, ``0:1``, or
+        # ``0:00``) is omitted by this comparison. Those rows are career
+        # centers, preschools, alternative programs, and similar schools.
+        # KYRC26 has no A1 school with a zero ratio. The omission predates
+        # KYRC26. It is not a rule to preserve.
+        ratio_numeric = parse_ratio(row.get('ratio', pd.NA))
         if pd.notna(ratio_numeric) and ratio_numeric > 0:
             metrics['student_teacher_ratio'] = ratio_numeric
-        
+
         return metrics
-    
+
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         """Get default metrics for suppressed student-teacher ratio records."""
         defaults = {}
-        
+
         # Only create defaults for metrics that exist in the source data
         if 'ratio' in row.index:
             defaults['student_teacher_ratio'] = pd.NA
-            
+
         return defaults
-    
+
     def should_skip_row(self, row: pd.Series) -> bool:
-        """Skip rows that don't have student-teacher ratio data."""
-        # Check if we have ratio value
+        """Skip a row whose ratio cell is empty.
+
+        notes/8: a row that is not suppressed and has every measure empty
+        is not offered and emits nothing. These files have no Suppressed
+        column. A published zero is not empty; ``extract_metrics`` decides
+        whether that zero becomes a KPI row. ``pd.NA`` from a missing cell
+        is not evaluated as a boolean.
+        """
         ratio = row.get('ratio', pd.NA)
-        if pd.isna(ratio):
+        if _ratio_text(ratio) is None:
             return True
-            
+
         return False  # Don't call super() - institutional data has no demographics
 
 
@@ -129,15 +228,15 @@ def main():
     """Run student-teacher ratio ETL process."""
     import logging
     logging.basicConfig(level=logging.INFO)
-    
+
     from pathlib import Path
     raw_dir = Path(__file__).parent.parent / "data" / "raw"
     proc_dir = Path(__file__).parent.parent / "data" / "processed"
     proc_dir.mkdir(exist_ok=True)
-    
+
     test_config = Config(
         derive={"processing_date": "2025-11-24", "data_quality_flag": "reviewed"}
-    ).dict()
+    ).model_dump()
 
     transform(raw_dir, proc_dir, test_config)
 
