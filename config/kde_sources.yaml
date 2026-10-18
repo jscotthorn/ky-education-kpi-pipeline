@@ -113,12 +113,14 @@ raw_directories:
 
   out_of_school_suspension:
     - "KYRC24_OVW_Student_Suspensions.csv"
+    # KYRC25_OVW_Student_Suspensions.csv returns 200. It is the datasets
+    # copy of KYRC24 apart from School Year, so it republishes CRDC
+    # 2020-21 (collected year stays 20202021). It is not registered.
+    # accepts_data_file skips that filename.
+    # safe_schools_discipline_YYYY.csv is not read here. That module owns
+    # OUT OF SCHOOL SUSPENSION SSP3 since e7d815a.
     - url: "kyrc26"
       file: "KYRC26_OVW_Student_Suspensions.csv"
-    - "safe_schools_discipline_2023.csv"
-    - "safe_schools_discipline_2022.csv"
-    - "safe_schools_discipline_2021.csv"
-    - "safe_schools_discipline_2020.csv"
 
   postsecondary_enrollment:
     - "KYRC24_ADLF_Transition_to_In_State_Postsecondary_Education.csv"
