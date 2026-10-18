@@ -40,6 +40,32 @@ def _rows(df: pd.DataFrame, year: str, school_id: str) -> pd.DataFrame:
     return df[(df["year"] == year) & (df["school_id"] == school_id)]
 
 
+_OFFERED_METRICS = {
+    "courses_offered_count",
+    "courses_offered_suppressed_count",
+    "courses_offered_count_cte",
+    "courses_offered_count_hpe",
+    "courses_offered_count_vpa",
+    "courses_offered_count_wl",
+    "courses_offered_count_other",
+}
+
+
+def _one(df: pd.DataFrame, year: str, school_id: str, metric: str) -> pd.Series:
+    """The single aggregate row for this school, year, and metric."""
+    rows = _rows(df, year, school_id)
+    matched = rows[rows["metric"] == metric]
+    assert len(matched) == 1, (year, school_id, metric, len(matched))
+    return matched.iloc[0]
+
+
+def _assert_unique_keys(df: pd.DataFrame) -> None:
+    """(year, school_id, student_group, metric) is unique."""
+    keys = ["year", "school_id", "student_group", "metric"]
+    assert not df.duplicated(keys).any()
+    assert len(df) == len(df.drop_duplicates(keys))
+
+
 class TestSchoolCoursesETL:
     def setup_method(self):
         self.etl = SchoolCoursesETL("school_courses")
@@ -80,10 +106,14 @@ class TestSchoolCoursesETL:
         assert pd.isna(result.iloc[3])
         assert result.iloc[4] == 0.0
 
-    def test_star_is_suppressed_and_blank_is_skipped(self, tmp_path):
-        """A star is NA with suppressed Y. A blank total is not a row.
+    def test_star_is_counted_and_blank_is_not(self, tmp_path):
+        """A star counts. A blank total does not. A published 0 counts.
 
-        A published 0 is kept. This file has no Suppressed column.
+        The school has four course rows: a star, a blank, a published 0,
+        and a published 12. The blank is left out, so the count is 3 and
+        the suppressed count is 1. Treating the blank as a star would
+        make the suppressed count 2. Every count is stored with
+        suppressed N. There is no per-course 1/NA row.
         """
         frame = pd.DataFrame({
             "School Year": ["20252026", "20252026", "20252026", "20252026"],
@@ -94,8 +124,6 @@ class TestSchoolCoursesETL:
             "All Students": ["*", "", "0", "12"],
             "Grade 8": ["", "", "", ""],
         })
-        frame.to_csv(tmp_path / "rows.csv", index=False)
-        # transform reads data/raw/school_courses, so stage the file there
         raw = tmp_path / "raw" / "school_courses"
         raw.mkdir(parents=True)
         frame.to_csv(raw / "sample.csv", index=False)
@@ -103,17 +131,50 @@ class TestSchoolCoursesETL:
         proc.mkdir()
         transform(tmp_path / "raw", proc, _config())
         df = pd.read_csv(proc / "school_courses.csv", dtype=str, keep_default_na=False)
-        assert set(df["metric"]) == {"courses_offered_count"}
-        assert len(df) == 3
-        starred = df[df["suppressed"] == "Y"]
-        assert len(starred) == 1
-        assert starred.iloc[0]["value"] == ""
-        zeros = df[df["value"] == "0.0"]
-        assert len(zeros) == 1
-        assert zeros.iloc[0]["suppressed"] == "N"
-        published = df[df["value"] == "1.0"]
-        assert len(published) == 1
-        assert published.iloc[0]["suppressed"] == "N"
+        assert set(df["metric"]) == _OFFERED_METRICS
+        assert len(df) == 7
+        assert set(df["suppressed"]) == {"N"}
+        assert _one(df, "2026", "001010", "courses_offered_count")["value"] == "3.0"
+        assert _one(df, "2026", "001010", "courses_offered_suppressed_count")["value"] == "1.0"
+        assert _one(df, "2026", "001010", "courses_offered_count_other")["value"] == "3.0"
+        for metric in (
+            "courses_offered_count_cte",
+            "courses_offered_count_hpe",
+            "courses_offered_count_vpa",
+            "courses_offered_count_wl",
+        ):
+            assert _one(df, "2026", "001010", metric)["value"] == "0.0"
+
+    def test_blank_total_is_not_counted_as_a_star(self, tmp_path):
+        """One star and one blank total. The blank is not a second star.
+
+        courses_offered_count is 1 and courses_offered_suppressed_count
+        is 1. Counting the blank as a star makes both 2 and fails this
+        test. The blank is not stored as its own row.
+        """
+        frame = pd.DataFrame({
+            "School Year": ["20252026", "20252026"],
+            "District Name": ["Adair County", "Adair County"],
+            "School Name": ["Adair County High School", "Adair County High School"],
+            "School Code": ["001010", "001010"],
+            "Course Category": ["CTE", "CTE"],
+            "State Course Name": ["Welding", "Empty"],
+            "All Students": ["*", ""],
+        })
+        raw = tmp_path / "raw" / "school_courses"
+        raw.mkdir(parents=True)
+        frame.to_csv(raw / "blank.csv", index=False)
+        proc = tmp_path / "processed"
+        proc.mkdir()
+        transform(tmp_path / "raw", proc, _config())
+        df = pd.read_csv(proc / "school_courses.csv", dtype=str, keep_default_na=False)
+        assert len(df) == 7
+        assert set(df["suppressed"]) == {"N"}
+        assert _one(df, "2026", "001010", "courses_offered_count")["value"] == "1.0"
+        assert _one(df, "2026", "001010", "courses_offered_suppressed_count")["value"] == "1.0"
+        assert _one(df, "2026", "001010", "courses_offered_count_cte")["value"] == "1.0"
+        assert _one(df, "2026", "001010", "courses_offered_count_other")["value"] == "0.0"
+        _assert_unique_keys(df)
 
     def test_algebra_grade_8_follows_the_cell(self, tmp_path):
         """Algebra metrics follow grade 8. A blank grade is not a star."""
@@ -134,8 +195,11 @@ class TestSchoolCoursesETL:
         transform(tmp_path / "raw", proc, _config())
         df = pd.read_csv(proc / "school_courses.csv", dtype=str, keep_default_na=False)
         offered = df[df["metric"] == "courses_offered_count"]
-        assert len(offered) == 4
-        assert set(offered["value"]) == {"1.0"}
+        assert len(offered) == 1
+        assert offered.iloc[0]["value"] == "4.0"
+        assert offered.iloc[0]["suppressed"] == "N"
+        assert _one(df, "2026", "001020", "courses_offered_suppressed_count")["value"] == "0.0"
+        assert _one(df, "2026", "001020", "courses_offered_count_other")["value"] == "4.0"
 
         def metric(name):
             rows = df[df["metric"] == name]
@@ -163,9 +227,12 @@ class TestSchoolCoursesETL:
             ("school_courses_summary_2023.csv", historical),
             ("KYRC23_EDOP_School_Courses_Summary.csv", kyrc23),
         ])
-        assert len(df) == 2
+        assert len(df) == 7
         assert set(df["year"]) == {"2023"}
         assert set(df["source_file"]) == {"school_courses_summary_2023.csv"}
+        assert _one(df, "2023", "001010", "courses_offered_count")["value"] == "2.0"
+        assert _one(df, "2023", "001010", "courses_offered_suppressed_count")["value"] == "1.0"
+        _assert_unique_keys(df)
 
     def test_2019_workbook_has_no_demographic_abbreviation(self, tmp_path):
         """The 2018-19 sheet has no DEMO or DGROUP column.
@@ -178,29 +245,29 @@ class TestSchoolCoursesETL:
             "SCHOOL_COURSES_SUMMARY_18-19.csv",
             _fixture("historical_2019_adair_elementary.csv"),
         )])
-        assert len(df) == 1
-        row = df.iloc[0]
-        assert row["year"] == "2019"
-        assert row["school_id"] == "001016"
+        assert len(df) == 7
+        row = _one(df, "2019", "001016", "courses_offered_count")
         assert row["district"] == "Adair County"
         assert row["student_group"] == "All Students"
-        assert row["metric"] == "courses_offered_count"
         assert row["value"] == "1.0"
         assert row["suppressed"] == "N"
+        assert _one(df, "2019", "001016", "courses_offered_suppressed_count")["value"] == "0.0"
+        assert _one(df, "2019", "001016", "courses_offered_count_hpe")["value"] == "1.0"
+        assert _one(df, "2019", "001016", "courses_offered_count_cte")["value"] == "0.0"
+        assert set(df["suppressed"]) == {"N"}
         assert "demographic" not in pd.read_csv(
             FIXTURE_DIR / "historical_2019_adair_elementary.csv", nrows=0
         ).columns
 
     def test_real_rows(self, tmp_path):
-        """Real excerpts: a school, a star, a comma, a blank grade, prior years.
+        """Real excerpts collapse to one row per school, year, and metric.
 
         There is no School Code 999000 in any registered file. Bryan Station
         165170 is the school row. Adair County is the district on that
         school's rows; the file has no district total. A grade cell of *
-        does not suppress a published total. Two courses at one school are
-        two rows of courses_offered_count 1. That repeated key is the open
-        design question in journal 104: summing them would change every
-        published 1.
+        does not remove a published total from the school count. Two
+        courses at one school are one courses_offered_count, not two rows
+        of 1. The 2019, 2021, and 2023 values are those counts.
         """
         df = _run(tmp_path, [
             ("KYRC26_EDOP_School_Courses_Summary.csv", _fixture("kyrc26_real_rows.csv")),
@@ -211,70 +278,89 @@ class TestSchoolCoursesETL:
         for column in KPI_COLUMNS:
             assert column in df.columns
 
-        bryan = _rows(df, "2026", "165170")
-        assert len(bryan) == 1
-        assert bryan.iloc[0]["metric"] == "courses_offered_count"
-        assert bryan.iloc[0]["value"] == "1.0"
-        assert bryan.iloc[0]["suppressed"] == "N"
-        assert bryan.iloc[0]["district"] == "Fayette County"
-        assert bryan.iloc[0]["school_name"] == "Bryan Station High School"
-        assert bryan.iloc[0]["student_group"] == "All Students"
-        assert bryan.iloc[0]["co_op"] == "CKEC"
-        assert bryan.iloc[0]["co_op_code"] == "901"
-        assert bryan.iloc[0]["nces_id"] == "210186000388"
-        assert bryan.iloc[0]["state_school_id"] == "034165170"
+        bryan = _one(df, "2026", "165170", "courses_offered_count")
+        assert bryan["value"] == "1.0"
+        assert bryan["suppressed"] == "N"
+        assert bryan["district"] == "Fayette County"
+        assert bryan["school_name"] == "Bryan Station High School"
+        assert bryan["student_group"] == "All Students"
+        assert bryan["co_op"] == "CKEC"
+        assert bryan["co_op_code"] == "901"
+        assert bryan["nces_id"] == "210186000388"
+        assert bryan["state_school_id"] == "034165170"
+        assert _one(df, "2026", "165170", "courses_offered_count_hpe")["value"] == "1.0"
+        assert _one(df, "2026", "165170", "courses_offered_suppressed_count")["value"] == "0.0"
         assert "999000" not in set(df["school_id"])
 
-        adair_2026 = _rows(df, "2026", "001010")
-        assert len(adair_2026) == 2
-        assert len(adair_2026[adair_2026["suppressed"] == "N"]) == 1
-        assert adair_2026[adair_2026["suppressed"] == "N"].iloc[0]["value"] == "1.0"
-        starred = adair_2026[adair_2026["suppressed"] == "Y"]
-        assert len(starred) == 1
-        assert starred.iloc[0]["value"] == ""
-        assert starred.iloc[0]["district"] == "Adair County"
+        # Two Adair courses, one starred. Both are CTE. The count is 2.
+        assert _one(df, "2026", "001010", "courses_offered_count")["value"] == "2.0"
+        assert _one(df, "2026", "001010", "courses_offered_suppressed_count")["value"] == "1.0"
+        assert _one(df, "2026", "001010", "courses_offered_count_cte")["value"] == "2.0"
+        assert _one(df, "2026", "001010", "courses_offered_count")["district"] == "Adair County"
+        assert _one(df, "2026", "001010", "courses_offered_count")["suppressed"] == "N"
 
-        # South Warren total is 1,284. A grade-12 star does not suppress it.
-        warren = _rows(df, "2026", "571003")
-        assert len(warren) == 1
-        assert warren.iloc[0]["value"] == "1.0"
-        assert warren.iloc[0]["suppressed"] == "N"
+        # South Warren total is 1,284. The star is Grade 14, not Grade 12.
+        # Grade 12 is the published 4. The grade star does not remove the
+        # course from the school count and does not raise the suppressed count.
+        source = pd.read_csv(
+            FIXTURE_DIR / "kyrc26_real_rows.csv", dtype=str, keep_default_na=False
+        )
+        warren_source = source[source["School Code"] == "571003"].iloc[0]
+        assert warren_source["All Students"] == "1,284"
+        assert warren_source["Grade 12"] == "4"
+        assert warren_source["Grade 14"] == "*"
+        assert _one(df, "2026", "571003", "courses_offered_count")["value"] == "1.0"
+        assert _one(df, "2026", "571003", "courses_offered_suppressed_count")["value"] == "0.0"
+        assert _one(df, "2026", "571003", "courses_offered_count_vpa")["value"] == "1.0"
+        assert _one(df, "2026", "571003", "courses_offered_count")["suppressed"] == "N"
 
         # Echo Trail is the KYRC26 co-op spelling GLEC, and the total has a comma.
-        echo = _rows(df, "2026", "275255")
-        assert len(echo) == 1
-        assert echo.iloc[0]["value"] == "1.0"
-        assert echo.iloc[0]["suppressed"] == "N"
-        assert echo.iloc[0]["co_op"] == "GLEC"
-        assert echo.iloc[0]["co_op_code"] == "909"
+        echo = _one(df, "2026", "275255", "courses_offered_count")
+        assert echo["value"] == "1.0"
+        assert echo["suppressed"] == "N"
+        assert echo["co_op"] == "GLEC"
+        assert echo["co_op_code"] == "909"
+        assert _one(df, "2026", "275255", "courses_offered_count_cte")["value"] == "1.0"
 
         # Poage's total is * while kindergarten is 44 and grade 1 is 54.
-        # The starred total is stored as NA / Y. Whether a published grade
-        # should count the course as offered is the open design question
-        # in journal 104. This assertion records that choice.
-        poage = _rows(df, "2026", "012110")
-        assert len(poage) == 1
-        assert poage.iloc[0]["value"] == ""
-        assert poage.iloc[0]["suppressed"] == "Y"
+        # The course is counted, and the star is the suppressed count.
+        # The grade cells are not summed into a replacement total.
+        poage = _one(df, "2026", "012110", "courses_offered_count")
+        assert poage["value"] == "1.0"
+        assert poage["suppressed"] == "N"
+        assert _one(df, "2026", "012110", "courses_offered_suppressed_count")["value"] == "1.0"
+        assert _one(df, "2026", "012110", "courses_offered_count_vpa")["value"] == "1.0"
 
-        # Prior-year anchors. The published total becomes 1, not the headcount.
-        adair_2025 = _rows(df, "2025", "001010")
-        assert len(adair_2025[adair_2025["suppressed"] == "N"]) == 1
-        assert adair_2025[adair_2025["suppressed"] == "N"].iloc[0]["value"] == "1.0"
-        assert adair_2025[adair_2025["suppressed"] == "N"].iloc[0]["nces_id"] == "210003000000"
-        assert len(adair_2025[adair_2025["suppressed"] == "Y"]) == 1
+        # Prior-year anchors. The value is the course count, not 1.
+        # KYRC25 NCES id 210003000000 is the published rounded id.
+        assert _one(df, "2025", "001010", "courses_offered_count")["value"] == "2.0"
+        assert _one(df, "2025", "001010", "courses_offered_suppressed_count")["value"] == "1.0"
+        assert _one(df, "2025", "001010", "courses_offered_count")["nces_id"] == "210003000000"
+        assert _one(df, "2025", "001010", "courses_offered_count_cte")["value"] == "2.0"
 
-        adair_2023 = _rows(df, "2023", "001010")
-        assert len(adair_2023) == 2
-        assert adair_2023[adair_2023["suppressed"] == "N"].iloc[0]["value"] == "1.0"
-        assert len(adair_2023[adair_2023["suppressed"] == "Y"]) == 1
+        assert _one(df, "2023", "001010", "courses_offered_count")["value"] == "2.0"
+        assert _one(df, "2023", "001010", "courses_offered_suppressed_count")["value"] == "1.0"
+        assert _one(df, "2021", "001010", "courses_offered_count")["value"] == "2.0"
+        assert _one(df, "2021", "001010", "courses_offered_suppressed_count")["value"] == "1.0"
 
-        adair_2021 = _rows(df, "2021", "001010")
-        assert adair_2021[adair_2021["suppressed"] == "N"].iloc[0]["value"] == "1.0"
-        assert len(adair_2021[adair_2021["suppressed"] == "Y"]) == 1
-
+        assert set(df["suppressed"]) == {"N"}
         assert "algebra_1_grade_8_count" not in set(df["metric"])
         assert "has_algebra_1_access" not in set(df["metric"])
+        _assert_unique_keys(df)
+
+    def test_output_has_no_duplicate_keys(self, tmp_path):
+        """The collapsed output has one row per school, year, group, and metric."""
+        df = _run(tmp_path, [
+            ("KYRC26_EDOP_School_Courses_Summary.csv", _fixture("kyrc26_real_rows.csv")),
+            ("KYRC25_EDOP_School_Courses_Summary.csv", _fixture("kyrc25_adair.csv")),
+            ("school_courses_summary_2023.csv", _fixture("historical_2023_adair.csv")),
+            ("school_courses_summary_2021.csv", _fixture("historical_2021_adair.csv")),
+            ("SCHOOL_COURSES_SUMMARY_18-19.csv", _fixture("historical_2019_adair_elementary.csv")),
+        ])
+        _assert_unique_keys(df)
+        assert set(df["metric"]) == _OFFERED_METRICS
+        # Five KYRC26 schools, plus one Adair school in each earlier year.
+        assert len(df) == 7 * (5 + 4)
 
 
 def test_registered_sources_are_the_permanent_files():

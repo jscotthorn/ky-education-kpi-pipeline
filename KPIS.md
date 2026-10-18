@@ -687,18 +687,26 @@ Career and Technical Education (CTE) pathway availability and completion metrics
 ## School Courses
 **Source**: `etl/school_courses.py`
 
-KDE's school-courses summary is specialized course enrollment, not the full catalog and not middle-school Algebra 1. The 2018-19 coversheet defines the categories as career and technical education (CTE), health and physical education (HPE), visual and performing arts (VPA), and world languages (WL). `Total_Students` / `All Students` is the number of students enrolled in that course. There is no demographic column and no state or district total. Every row is one course at one school.
+KDE's school-courses summary is specialized course enrollment, not the full catalog and not middle-school Algebra 1. The 2018-19 coversheet defines the categories as career and technical education (CTE), health and physical education (HPE), visual and performing arts (VPA), and world languages (WL). `Total_Students` / `All Students` is the number of students enrolled in that course. There is no demographic column and no state or district total. The output is one row per school, year, and student group.
 
 ### Course Metrics
-- `courses_offered_count` - One row per course. A published enrollment above 0 is stored as 1. A published 0 is stored as 0. A `*` on the enrollment total is stored as value NA with `suppressed` Y. A blank total is not stored. Grade cells are not summed into this flag. A school total is the count of these rows, which repeats the school/year/metric key.
-- `algebra_1_grade_8_count` - Grade 8 enrollment when the course name contains `Algebra I` or `Algebra 1`. No registered file has such a course.
+- `courses_offered_count` - Number of course rows at the school. A starred enrollment total counts. A published 0 counts. A blank total is not stored and is not counted. Stored with `suppressed` N. Grade cells are not summed into this count.
+- `courses_offered_suppressed_count` - How many of those course rows have an enrollment total of `*`. Stored with `suppressed` N, and 0 when there are none.
+- `courses_offered_count_cte` - Course rows whose KDE category is `CTE`.
+- `courses_offered_count_hpe` - Course rows whose KDE category is `HPE` (2019) or `HEPE` (2020-2026). Both are health and physical education.
+- `courses_offered_count_vpa` - Course rows whose KDE category is `VPA`.
+- `courses_offered_count_wl` - Course rows whose KDE category is `WL`.
+- `courses_offered_count_other` - Course rows whose category is blank or not one of those labels. It is 0 in every registered year. The state course code is not used, because visual arts and health/PE both use prefix 70.
+- `algebra_1_grade_8_count` - Grade 8 enrollment when the course name contains `Algebra I` or `Algebra 1`. Still one row per such course. No registered file has such a course.
 - `has_algebra_1_access` - 1 when that grade-8 count is above 0, 0 when the published grade-8 count is 0, and NA with `suppressed` Y when the grade-8 cell is `*`. A blank grade-8 cell is not stored.
 
-**Note**: `student_group` is `All Students` on every row because the file has no demographic column. KYRC state rows in other modules use district `All Districts`. This file has no `999000` row, so there is no state district name to store. In 2020-2026 the smallest published enrollment is 3, so a suppressed Y in those years can also mean 0-2 or not applicable. 2019 publishes counts of 1 and has no stars. A `*` on a grade cell does not suppress a published total.
+The category counts use the same rows as `courses_offered_count`, and the four named categories plus `courses_offered_count_other` sum to it. The category is taken from KDE's `Course Category` column. The 2018-19 coversheet is the definition of those four labels.
+
+**Note**: `student_group` is `All Students` on every row because the file has no demographic column. KYRC state rows in other modules use district `All Districts`. This file has no `999000` row, so there is no state district name to store. In 2020-2026 the smallest published enrollment is 3, so a starred total in those years can also mean 0-2 or not applicable. 2019 publishes counts of 1 and has no stars, so `courses_offered_suppressed_count` is 0 at every 2019 school. A `*` on a grade cell does not remove a published total from the school count. The 2019, 2021, and 2023 values of `courses_offered_count` used to be 1 per course. They are now the school counts.
 
 **Data Sources**: `KYRC24_EDOP_School_Courses_Summary.csv` (datasets host), `KYRC25_EDOP_School_Courses_Summary.csv`, `KYRC26_EDOP_School_Courses_Summary.csv`, `school_courses_summary_{2020,2021,2022,2023}.csv`, `SCHOOL_COURSES_SUMMARY_18-19.xlsx`
 **Years Available**: 2019-2026
-**Unit**: Count (0 or 1 for `courses_offered_count`; the Algebra count is a headcount when a matching course exists)
+**Unit**: Count (course rows for the offered-course metrics; the Algebra count is a headcount when a matching course exists)
 **Demographics**: School-level only (All Students)
 
 ---

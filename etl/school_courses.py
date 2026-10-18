@@ -7,20 +7,34 @@ technical education, health and physical education, visual and performing
 arts, and world languages. ``Total_Students`` is the number of students
 enrolled in that course. There is no demographic column and no state row.
 
-This module stores one ``courses_offered_count`` row per course. A published
-enrollment above 0 is stored as 1. A published 0 is stored as 0. A ``*`` on
-the enrollment total is stored as value NA with ``suppressed`` Y. A blank
-enrollment is not stored. The grade cells are not summed into that total.
-In 2020-2026 the smallest published enrollment is 3, so a Y in those years
-can also mean 0-2 or not applicable. 2019 publishes 1s and has no stars.
+One row is stored per school, year, and student group. ``courses_offered_count``
+is the number of course rows at that school. A starred enrollment total
+counts. A blank total is not stored and is not counted. A published 0 is a
+course row, so it counts. No registered file has a 0 or a blank total.
+Every count metric is stored with ``suppressed`` N, including a suppressed
+count of 0. Grade cells are not summed into a replacement total.
 
-``algebra_1_grade_8_count`` and ``has_algebra_1_access`` are emitted only
-when the course name contains ``Algebra I`` or ``Algebra 1``. No registered
-file has such a course.
+The category comes from KDE's own column (``Course Category`` /
+``COURSECATEGORY``). The 2019 coversheet and that column use ``CTE``,
+``HPE``, ``VPA``, and ``WL``. Files from 2020 through 2026 spell health
+and physical education ``HEPE``. Both labels map to ``_hpe``. A label that
+is not one of those, including a blank, is ``courses_offered_count_other``.
+The state course code is not used: visual arts and health/PE both use
+prefix 70. The four named categories plus ``_other`` sum to
+``courses_offered_count``.
+
+In 2020-2026 the smallest published enrollment is 3, so a starred total in
+those years can also mean 0-2 or not applicable. 2019 publishes 1s and has
+no stars. The 2019, 2021, and 2023 values used to be 1 per course. They are
+now the school counts.
+
+``algebra_1_grade_8_count`` and ``has_algebra_1_access`` are still emitted
+per course, and only when the course name contains ``Algebra I`` or
+``Algebra 1``. No registered file has such a course.
 """
 from pathlib import Path
 import pandas as pd
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional, Tuple
 import logging
 
 import sys
@@ -61,6 +75,40 @@ _NOT_A_NUMBER = {"", "*", "**", "---", "--", "<10", '""', "nan", "None", "<NA>"}
 _REPUBLISH_FILENAMES = {
     "KYRC23_EDOP_SCHOOL_COURSES_SUMMARY.CSV",
 }
+
+# KDE publishes the category. 2019 uses HPE. 2020-2026 use HEPE for the
+# same health and physical education group. Anything else is other.
+_CATEGORY_TO_BUCKET = {
+    "CTE": "cte",
+    "HPE": "hpe",
+    "HEPE": "hpe",
+    "VPA": "vpa",
+    "WL": "wl",
+}
+
+_OFFERED_METRICS = (
+    "courses_offered_count",
+    "courses_offered_suppressed_count",
+    "courses_offered_count_cte",
+    "courses_offered_count_hpe",
+    "courses_offered_count_vpa",
+    "courses_offered_count_wl",
+    "courses_offered_count_other",
+)
+
+_IDENTITY_FIELDS = (
+    "district",
+    "school_name",
+    "county_number",
+    "county_name",
+    "district_number",
+    "school_code",
+    "state_school_id",
+    "nces_id",
+    "co_op",
+    "co_op_code",
+    "school_type",
+)
 
 
 def _star_column_name(column: str) -> str:
@@ -209,6 +257,66 @@ def _is_algebra_1(course_name: Any) -> bool:
     return "ALGEBRA I" in text or "ALGEBRA 1" in text
 
 
+def _category_bucket(value: Any) -> Tuple[str, Optional[str]]:
+    """Map KDE's category label to a metric suffix.
+
+    Returns ``(bucket, unknown_label)``. A blank is ``other`` with no
+    label to report. A label outside CTE / HPE / HEPE / VPA / WL is
+    ``other`` and the label is returned so the caller can report it.
+    The course code is not consulted.
+    """
+    if _is_missing(value):
+        return "other", None
+    label = str(value).strip().upper()
+    if label == "":
+        return "other", None
+    bucket = _CATEGORY_TO_BUCKET.get(label)
+    if bucket is None:
+        return "other", label
+    return bucket, None
+
+
+def _identity_text(value: Any) -> str:
+    """Comparable text for a school identifier. Missing is empty."""
+    if _is_missing(value):
+        return ""
+    return str(value).strip()
+
+
+def _merge_identity(
+    kept: Dict[str, Any],
+    incoming: Dict[str, Any],
+    key: Tuple[str, str, str],
+    seen_conflicts: set,
+) -> None:
+    """Fill a blank identifier and keep the first value when they differ."""
+    for field in _IDENTITY_FIELDS:
+        current = _identity_text(kept.get(field))
+        nxt = _identity_text(incoming.get(field))
+        if not current and nxt:
+            kept[field] = incoming.get(field)
+            continue
+        if current and nxt and current != nxt:
+            token = (key, field)
+            if token in seen_conflicts:
+                continue
+            seen_conflicts.add(token)
+            logger.warning(
+                "School %s year %s group %s has disagreeing %s values %r and %r; keeping the first",
+                key[0],
+                key[1],
+                key[2],
+                field,
+                current,
+                nxt,
+            )
+
+
+def _empty_tally() -> Dict[str, int]:
+    """Zero counts for the seven offered-course metrics."""
+    return {metric: 0 for metric in _OFFERED_METRICS}
+
+
 class SchoolCoursesETL(BaseETL):
     """ETL module for specialized school course offerings.
 
@@ -326,9 +434,10 @@ class SchoolCoursesETL(BaseETL):
         """Skip the KYRC23 republish of 2022-23.
 
         ``school_courses_summary_2023.csv`` is the registered 2022-23 file.
-        KYRC23 is the same school year. 11 course keys differ on each side,
-        and 46 shared totals change, mostly a published count becoming ``*``.
-        Loading both would write 2023 twice.
+        KYRC23 is the same school year. 11 course keys differ on each side.
+        52 shared totals differ: 46 are a published count becoming ``*``,
+        and 6 differ only by a thousands comma. Loading both would write
+        2023 twice.
         """
         if file_path.name.upper() in _REPUBLISH_FILENAMES:
             logger.info(
@@ -395,27 +504,18 @@ class SchoolCoursesETL(BaseETL):
         return True
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
-        """Store one offered-course flag, plus Algebra 1 grade 8 when named.
+        """Algebra 1 grade 8, when the course is named.
 
-        A published enrollment above 0 is ``courses_offered_count`` 1.
-        A published 0 is 0. A ``*`` is NA, and ``convert_to_kpi_format``
-        writes that row with ``suppressed`` Y. A blank total omits the
-        flag. Grade cells are not added up. A starred total stays
-        suppressed even when a grade cell has a number: that partial
-        grade is not a substitute for the total KDE withheld.
+        Course counts are not emitted here. ``convert_to_kpi_format``
+        collapses them to one row per school, year, and student group.
+        A starred total with a numeric grade is still a starred total:
+        the grade cells are not a substitute count. That row is included
+        in ``courses_offered_count`` and ``courses_offered_suppressed_count``.
 
         Algebra metrics follow the grade-8 cell with the same star and
         blank rules. No registered course name contains Algebra.
         """
         metrics: Dict[str, Any] = {}
-        kind = self._enrollment_kind(row)
-        if kind == "star":
-            metrics["courses_offered_count"] = pd.NA
-        elif kind == "number":
-            number = _parse_number(row.get("student_count", pd.NA))
-            if not _is_missing(number) and number >= 0:
-                metrics["courses_offered_count"] = 1 if number > 0 else 0
-
         if _is_algebra_1(row.get("course_name")):
             if _metric_was_starred(row, "grade8_count"):
                 metrics["algebra_1_grade_8_count"] = pd.NA
@@ -428,20 +528,60 @@ class SchoolCoursesETL(BaseETL):
         return metrics
 
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
-        """Write a published count as ``N`` and a ``*`` as ``Y``.
+        """One count row per school, year, and student group.
 
-        A blank enrollment is not a row. These files have no Suppressed
-        column, so the flag comes from the cell text recorded before the
-        star was coerced to NA. There is no state row and no demographic,
-        so ``student_group`` stays ``All Students``.
+        ``courses_offered_count`` is the number of course rows whose
+        enrollment total is a number or a ``*``. A blank total is not
+        counted. ``courses_offered_suppressed_count`` is how many of those
+        totals are ``*``, and is 0 when none are. Category counts use the
+        same rows. All seven metrics are stored with ``suppressed`` N.
+
+        Algebra metrics stay one row per course. These files have no
+        demographic, so ``student_group`` stays ``All Students``.
         """
-        kpi_rows = []
+        if "course_category" not in df.columns:
+            logger.warning(
+                "%s has no course category column; every counted course is courses_offered_count_other",
+                source_file,
+            )
+
+        groups: Dict[Tuple[str, str, str], Dict[str, Any]] = {}
+        order: List[Tuple[str, str, str]] = []
+        seen_conflicts: set = set()
+        unknown_labels: Dict[str, int] = {}
+        blank_categories = 0
+        algebra_rows: List[Dict[str, Any]] = []
+
         for _, row in df.iterrows():
             if self.should_skip_row(row):
                 continue
             kpi_template = self.create_kpi_template(row, source_file)
             if kpi_template is None:
                 continue
+
+            kind = self._enrollment_kind(row)
+            if kind in {"star", "number"}:
+                key = (
+                    str(kpi_template["school_id"]),
+                    str(kpi_template["year"]),
+                    str(kpi_template["student_group"]),
+                )
+                if key not in groups:
+                    groups[key] = {"template": kpi_template, "tally": _empty_tally()}
+                    order.append(key)
+                else:
+                    _merge_identity(groups[key]["template"], kpi_template, key, seen_conflicts)
+                bucket, unknown = _category_bucket(row.get("course_category"))
+                if unknown is not None:
+                    unknown_labels[unknown] = unknown_labels.get(unknown, 0) + 1
+                elif bucket == "other":
+                    blank_categories += 1
+                tally = groups[key]["tally"]
+                tally["courses_offered_count"] += 1
+                tally[f"courses_offered_count_{bucket}"] += 1
+                if kind == "star":
+                    tally["courses_offered_suppressed_count"] += 1
+
             metrics = self.extract_metrics(row)
             if not metrics and kpi_template.get("suppressed") == "Y":
                 metrics = self.get_suppressed_metric_defaults(row)
@@ -454,7 +594,41 @@ class SchoolCoursesETL(BaseETL):
                 else:
                     kpi_record["value"] = float(value)
                     kpi_record["suppressed"] = "N"
+                algebra_rows.append(kpi_record)
+
+        if blank_categories or unknown_labels:
+            logger.warning(
+                "%s unclassified courses: %s blank category, unrecognized labels %s",
+                source_file,
+                blank_categories,
+                sorted(unknown_labels.items()),
+            )
+
+        kpi_rows: List[Dict[str, Any]] = []
+        for key in order:
+            group = groups[key]
+            template = group["template"]
+            tally = group["tally"]
+            category_sum = (
+                tally["courses_offered_count_cte"]
+                + tally["courses_offered_count_hpe"]
+                + tally["courses_offered_count_vpa"]
+                + tally["courses_offered_count_wl"]
+                + tally["courses_offered_count_other"]
+            )
+            if category_sum != tally["courses_offered_count"]:
+                raise ValueError(
+                    f"{source_file} school {key[0]} year {key[1]} category sum "
+                    f"{category_sum} does not equal courses_offered_count "
+                    f"{tally['courses_offered_count']}"
+                )
+            for metric_name in _OFFERED_METRICS:
+                kpi_record = template.copy()
+                kpi_record["metric"] = metric_name
+                kpi_record["value"] = float(tally[metric_name])
+                kpi_record["suppressed"] = "N"
                 kpi_rows.append(kpi_record)
+        kpi_rows.extend(algebra_rows)
 
         if not kpi_rows:
             logger.warning("No valid KPI rows created")
@@ -464,8 +638,11 @@ class SchoolCoursesETL(BaseETL):
         return kpi_df[available_columns]
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
-        """Placeholder metrics when a row is marked suppressed and empty."""
-        defaults: Dict[str, Any] = {"courses_offered_count": pd.NA}
+        """Algebra placeholders when a suppressed row has no grade-8 metric.
+
+        Course counts are school aggregates and are not filled in here.
+        """
+        defaults: Dict[str, Any] = {}
         if _is_algebra_1(row.get("course_name")):
             defaults["algebra_1_grade_8_count"] = pd.NA
             defaults["has_algebra_1_access"] = pd.NA
