@@ -228,6 +228,7 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
 - **Safe Schools Discipline** - Detailed discipline resolution tracking
 - **Student Enrollment** - Student enrollment counts by grade level (PreK-12) with primary, middle, and secondary aggregations
 - **Secondary Enrollment** - Students with a secondary (concurrent) enrollment at this school, by grade, with middle and high school aggregations
+- **Teacher Experience** - Average years of teaching experience for classroom teachers at the school. KDE defines this as total teaching experience divided by the number of teachers, not years employed at that building
 - **Spending Per Student** - Per-pupil spending by funding source (federal, state/local, combined)
 - **Benchmark Assessment** - Interim assessment performance data
 - **ACT Scores** - College admission test performance

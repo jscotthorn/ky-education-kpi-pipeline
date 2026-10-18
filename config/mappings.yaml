@@ -103,7 +103,7 @@ sources:
       school_number: "str"
       school_year: "str"
       educator_count: "Int64"
-      average_years_of_experience: "float64"
+      average_years_experience: "float64"
     derive:
       processing_date: "2025-11-24"
       data_quality_flag: "reviewed"
