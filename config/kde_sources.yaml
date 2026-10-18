@@ -431,6 +431,11 @@ raw_directories:
     - "educator_qualifications_2021.csv"
 
   students_taught_by_ineffective_teachers:
+    # KYRC23_OVW_Students_Taught_by_Ineffective_Teachers.csv returns 200
+    # and is not registered. It republishes 2022-23. The parser skips that
+    # filename. The datasets KYRC24 object is 39 rows with percents above
+    # 100. The historical file registered below is the 1,562-row extract.
+    # It is not swapped.
     - "KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv"
@@ -439,6 +444,9 @@ raw_directories:
     - "students_taught_by_ineffective_teachers_2023.csv"
     - "students_taught_by_ineffective_teachers_2022.csv"
     - "students_taught_by_ineffective_teachers_2021.csv"
+    # 2019-20 report card. School year 20192020. Nonzero percents do not
+    # match the 2020-21 file.
+    - "students_taught_by_ineffective_teachers_2020.csv"
 
   students_taught_by_out_of_field_teachers:
     - "KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"

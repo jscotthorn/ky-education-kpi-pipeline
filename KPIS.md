@@ -400,11 +400,11 @@ Teacher certification status metrics showing emergency/provisional certification
 ## Students Taught by Ineffective Teachers
 **Source**: `etl/students_taught_by_ineffective_teachers.py`
 
-Equity metrics showing the percentage of students taught by ineffective teachers, broken down by Title I status and demographics.
+KDE defines an ineffective teacher as one whose local evaluation system, meeting KRS 156.557, gives a summative rating of Ineffective. Districts self-report the counts in the Kentucky Equity Survey. The report card publishes the percent: students taught by an ineffective teacher divided by the student count for that group. These files publish that percent and not the counts, so the ETL stores the published number. A published cell can exceed 100. State rows are district `All Districts` for 2024-2026 and `State` for 2020-2023.
 
 - `students_taught_by_ineffective_teachers_rate_title_1` - Percentage of students taught by ineffective teachers in Title I schools
 - `students_taught_by_ineffective_teachers_rate_not_title_1` - Percentage of students taught by ineffective teachers in non-Title I schools
-- `students_taught_by_ineffective_teachers_rate_equity_gap` - Difference in rate between Title I and non-Title I schools
+- `students_taught_by_ineffective_teachers_rate_equity_gap` - Published difference between Title I and non-Title I schools (2020-2023 files only)
 
 **Demographics (via `student_group` column):**
 - All Students
@@ -413,9 +413,9 @@ Equity metrics showing the percentage of students taught by ineffective teachers
 - Students with Disabilities (IEP) / Student without Disabilities (IEP)
 - English Learner / Non-English Learner
 
-**Data Sources**: KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv, KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv, students_taught_by_ineffective_teachers_{year}.csv
-**Years Available**: 2021-2025
-**Unit**: Percentage (0-100%)
+**Data Sources**: KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv, KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv, KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv, students_taught_by_ineffective_teachers_{year}.csv
+**Years Available**: 2020-2026
+**Unit**: Percentage (published percent; some source cells exceed 100)
 
 ---
 
