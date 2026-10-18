@@ -439,7 +439,10 @@ class TestKyrc26OptIn:
         2020-2023 store an insufficient result as the text N/A or #N/A.
         There is no student-count column, so that text is not a zero.
         notes/8: a row that is not suppressed and has an empty value emits
-        nothing. A sibling cell of 0 does not fill the N/A cells.
+        nothing. A sibling cell of 0 does not fill the N/A cells. This
+        Sunshine line puts 0.00 on Non-White, so it is a measured zero on
+        that group. The 2020 placeholder, where every group except students
+        with disabilities is N/A, is the fixture row in the end-to-end test.
         """
         text = (
             "School Year,District Name,School Name,School Code,Title I Status,All Students,Non-White\n"
@@ -532,14 +535,18 @@ class TestKyrc26OptIn:
     def test_negative_equity_gap_cell_is_not_stored(self):
         """A negative cell is omitted. A positive cell on the same row is kept.
 
-        KDE's percent is a count divided by a population. The equity-gap row
-        stores Title I minus Not Title I, so the cell can be negative. The
-        parser still requires ``value >= 0``. That predates KYRC26 and drops
-        real gap cells. This test records that deviation so a later change
-        does not silently turn the cell into ``suppressed`` ``Y`` or drop
-        the rest of the row. A follow-up should decide whether the signed
-        gap is stored. The 2020 state equity-gap row is the source of these
-        numbers: All Students is -1.19 and Non-White is 0.09.
+        In 2021-2023 the equity gap is Not Title I minus Title I, so dropping
+        a negative removes the cells where Title I is worse. In 2020 the gap
+        is Title I minus Not Title I on 4 of the 5 rows where the two sides
+        differ, so the same check keeps those worse-Title-I cells and drops
+        the cells where Title I is lower. The 2020 state All Students gap is
+        -1.19 and matches neither difference. Non-White on that row is 0.09,
+        which is Title I minus Not Title I, and it is kept. The parser still
+        requires ``value >= 0``. Issue #59
+        (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/59)
+        tracks whether the signed gap is stored. This test records the
+        current cells so a later change does not mark them ``suppressed``
+        ``Y``.
         """
         text = (
             "SCHOOL YEAR,DISTRICT NAME,SCHOOL NAME,SCHOOL CODE,TITLE I STATUS,"

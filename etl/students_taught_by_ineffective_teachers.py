@@ -7,10 +7,14 @@ ineffective teachers, with equity breakdowns by Title I status and demographics.
 KDE's report-card glossary defines an ineffective teacher as one whose local
 evaluation system, meeting KRS 156.557, gives a summative rating of
 Ineffective. Districts self-report the counts in the Kentucky Equity Survey.
-The School Report Card publishes the percent: students taught by an
-ineffective teacher divided by the student count for that group. Non-white
-is the total minus white. These files publish the percent and not the
-counts, so this module stores the published number and does not rebuild it.
+The School Report Card publishes a percent. In 2020-2023 and in KYRC25 and
+KYRC26 the group columns are shares of all students: Non-White plus White
+equals All Students on every nonzero 2020-2023 row and on about 95 percent
+of nonzero KYRC25 and KYRC26 rows. The registered historical KYRC24 file is
+the exception. Its group columns behave like within-group rates, and
+African American plus White does not equal All Students. These files
+publish the percent and not the counts, so this module stores the published
+number and does not rebuild it.
 
 KYRC26 uses the same headers as KYRC25. No temporary OAA extract is
 registered, and the guessed temporary names return 404, so there is no
@@ -21,7 +25,14 @@ that name. ``students_taught_by_ineffective_teachers_2020.csv`` is the
 2019-20 report card. Its nonzero percents do not match 2021. It is registered.
 
 There is no count column. A blank percent is missing, not a zero. A
-published 0 is kept. A negative cell is still dropped. That predates KYRC26.
+published 0 is kept. In the 2020 file, a row whose every percent other than
+students with disabilities is missing is skipped. The remaining cell is
+``0.00`` or ``0.000%`` and All Students is ``N/A``, so that 0 is a
+placeholder. A negative cell is still dropped. In 2021-2023 the equity gap
+is Not Title I minus Title I, so the dropped negatives are the cells where
+Title I is higher. In 2020 the gap is Title I minus Not Title I on 4 of the
+5 rows where the two sides differ. The state All Students gap, ``-1.19``,
+matches neither difference. Issue #59 tracks the signed gap.
 """
 from pathlib import Path
 import pandas as pd
@@ -254,9 +265,14 @@ class StudentsTaughtByIneffectiveTeachersETL(BaseETL):
         demographic on ``student_group``.
 
         A percent of 0 is kept. A blank is omitted. A negative cell is omitted.
-        KDE's percent is a count divided by a population, so a rate below zero
-        is not a rate. Equity-gap rows can be negative because the gap is
-        Title I minus Not Title I. Dropping those cells predates KYRC26.
+        Equity-gap rows can be negative. In 2021-2023 the published gap is
+        Not Title I minus Title I, so a negative cell is one where Title I
+        is higher. In 2020 the published gap is Title I minus Not Title I on
+        4 of the 5 rows where the two sides differ, so a negative cell is one
+        where Title I is lower. The state All Students cell, ``-1.19``,
+        matches neither difference. Dropping negatives therefore removes the
+        cells where Title I is worse in 2021-2023 and keeps those cells in
+        2020. Issue #59 tracks whether the signed gap is stored.
         """
         metrics: Dict[str, Any] = {}
 
@@ -270,9 +286,11 @@ class StudentsTaughtByIneffectiveTeachersETL(BaseETL):
             value = _parse_percent(row.get(demo_key, pd.NA))
             if _is_missing(value):
                 continue
-            # A negative equity gap is a real difference and is still dropped.
-            # A follow-up should decide whether to store the signed gap.
-            # Do not treat the drop as suppression.
+            # A negative cell is still dropped. That removes the 2021-2023
+            # equity-gap cells where Title I is worse (Not Title I minus
+            # Title I) and keeps the 2020 cells where Title I is worse
+            # (Title I minus Not Title I). Issue #59 tracks the signed gap.
+            # The drop is not suppression.
             if value < 0:
                 continue
             metric_name = (
@@ -377,7 +395,49 @@ class StudentsTaughtByIneffectiveTeachersETL(BaseETL):
         if self._all_measures_blank(row):
             return True
 
+        # 2020 publishes 0.00 or 0.000% for students with disabilities on
+        # rows whose other percents are N/A. All Students is N/A on each of
+        # those rows, so the 0 is a placeholder, not a measured rate.
+        # notes/8: do not store that placeholder. Other years are unchanged.
+        if self._is_2020_disability_placeholder(row):
+            return True
+
         return False
+
+    def _kpi_year(self, row: pd.Series) -> str:
+        """Ending year from ``school_year``, or blank when the cell is absent.
+
+        An 8-digit school year uses the last four digits, matching
+        ``BaseETL.extract_year``. A missing year is blank so a unit row
+        without ``school_year`` is not treated as 2020.
+        """
+        year = _text_or_blank(row.get("school_year", ""))
+        if len(year) == 8 and year.isdigit():
+            return year[-4:]
+        if len(year) == 4 and year.isdigit():
+            return year
+        return ""
+
+    def _is_2020_disability_placeholder(self, row: pd.Series) -> bool:
+        """True when a 2020 row has no percent except students with disabilities.
+
+        The 2020 file has 188 such rows: 46 Title I, 140 Not Title I, and 2
+        Equity Gap. Students with disabilities is ``0.00`` on 186 of them and
+        ``0.000%`` on 2. Every other mapped percent is ``N/A``. Sunshine
+        School ``236021`` is one. A number on any other group keeps the row.
+        """
+        if self._kpi_year(row) != "2020":
+            return False
+        saw_other = False
+        for key in _DEMOGRAPHIC_KEYS:
+            if key == "students_with_disabilities":
+                continue
+            if key not in row.index:
+                continue
+            saw_other = True
+            if not _is_missing(_parse_percent(row.get(key, pd.NA))):
+                return False
+        return saw_other
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

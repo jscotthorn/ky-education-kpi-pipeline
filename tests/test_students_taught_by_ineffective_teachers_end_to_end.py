@@ -523,9 +523,11 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
         & (combined["student_group"] == "All Students")
     ]
     assert gap_all.empty
+    # Sunshine School 236021 is a 2020 placeholder: every percent is N/A
+    # except students with disabilities, which is 0.00. All Students is N/A,
+    # so that 0 is not a measured rate. The row writes nothing.
     sunshine = combined[combined["school_id"] == "236021"]
-    assert set(sunshine["student_group"]) == {"Students with Disabilities (IEP)"}
-    assert float(sunshine["value"].iloc[0]) == 0.0
+    assert sunshine.empty
 
 
 if __name__ == "__main__":

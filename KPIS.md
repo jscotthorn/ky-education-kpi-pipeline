@@ -400,7 +400,7 @@ Teacher certification status metrics showing emergency/provisional certification
 ## Students Taught by Ineffective Teachers
 **Source**: `etl/students_taught_by_ineffective_teachers.py`
 
-KDE defines an ineffective teacher as one whose local evaluation system, meeting KRS 156.557, gives a summative rating of Ineffective. Districts self-report the counts in the Kentucky Equity Survey. The report card publishes the percent: students taught by an ineffective teacher divided by the student count for that group. These files publish that percent and not the counts, so the ETL stores the published number. A published cell can exceed 100. State rows are district `All Districts` for 2024-2026 and `State` for 2020-2023.
+KDE defines an ineffective teacher as one whose local evaluation system, meeting KRS 156.557, gives a summative rating of Ineffective. Districts self-report the counts in the Kentucky Equity Survey. The report card publishes a percent, and the ETL stores that published number. In 2020-2023 and in KYRC25 and KYRC26 the group columns are shares of all students: Non-White plus White equals All Students on every nonzero 2020-2023 row and on about 95 percent of nonzero KYRC25 and KYRC26 rows. The registered historical KYRC24 file is the exception. Its group columns behave like within-group rates, and African American plus White does not equal All Students. A published cell can exceed 100. State rows are district `All Districts` for 2024-2026 and `State` for 2020-2023.
 
 - `students_taught_by_ineffective_teachers_rate_title_1` - Percentage of students taught by ineffective teachers in Title I schools
 - `students_taught_by_ineffective_teachers_rate_not_title_1` - Percentage of students taught by ineffective teachers in non-Title I schools
