@@ -13,13 +13,20 @@ of all students. ``student_group`` is ``All Students``. This module does
 not compute a gap.
 
 The stored rate is the published Turnover Percent. It is not rebuilt from
-the counts. In 2021, 14 schools publish 100 where the turnover count is
-larger than the teacher count. Other registered years publish percents
-above 100, including 1,700 at Brooklawn in 2022. A published 0 is kept.
-A blank or ``N/A`` percent is missing. No registered year has a blank
-measure cell. The 2023 file has 57 Kentucky Tech System rows where the
-count, the turnover count, and the percent are all ``N/A``. The count is
-not zero, so those rows stay missing.
+the counts. In 2021, 15 rows publish 100 where the turnover count is
+larger than the teacher count, including Virtual Academy ``042020`` at
+0 / 1 / 100. Other registered years publish percents above 100, including
+1,700 at Brooklawn in 2022. A row with 0 teachers and a turnover count
+above 0 publishes 100 to 400. A 0% with a positive teacher count is a
+real zero. A 0% with a teacher count of 0 is a placeholder and is still
+stored. A blank or ``N/A`` percent is missing. No registered year has a
+blank measure cell. The 2023 file has 57 Kentucky Tech System rows where
+the count, the turnover count, and the percent are all ``N/A``. The count
+is not zero, so those rows stay missing.
+
+KYRC26 district and state turnover is a different measure from 2019-2025.
+The state cell is 10.5. That is not the next point after the 2025 state
+percent. School rows for 2026 are stored and are shifted.
 
 KYRC26 adds Instructional Staff Count, Instructional Staff Turnover Count,
 and Instructional Staff Turnover Percent. Those columns are a different
@@ -89,9 +96,10 @@ def _is_missing(value: Any) -> bool:
 def _parse_number(value: Any) -> Any:
     """Parse a count or a percent that may be text.
 
-    ``N/A`` and a blank are missing. These files publish a real 0, and a
-    blank percent is not turned into 0. No registered year has a blank
-    measure cell. A comma is removed so pandas 3 StringDtype does not drop
+    ``N/A`` and a blank are missing. A published 0 is parsed as 0, including
+    a placeholder 0% on a row with no teachers. A blank percent is not
+    turned into 0. No registered year has a blank measure cell. A comma is
+    removed so pandas 3 StringDtype does not drop
     ``40,557``. ``bool(pd.NA)`` is not used.
     """
     if isinstance(value, str):

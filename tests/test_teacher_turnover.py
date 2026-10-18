@@ -306,9 +306,11 @@ class TestTeacherTurnoverETL:
 class TestTeacherTurnoverKyrc26:
     """KYRC26 opt-in. KYRC23 republishes 2022-23 and is skipped.
 
-    Fixtures are verbatim rows from the downloaded files. ``N/A`` is kept
-    as the text ``N/A``. The KYRC24 co-op cell ``-84.21926253`` is the
-    historical value, not the datasets repair.
+    Fixtures are verbatim rows from the downloaded files, except
+    ``teacher_turnover_2019.csv``, which is a CSV transcription of the
+    2018-19 workbook DATA sheet. Those values match the workbook. ``N/A``
+    is kept as the text ``N/A``. The KYRC24 co-op cell ``-84.21926253`` is
+    the historical value, not the datasets repair.
     """
 
     def setup_method(self):
@@ -382,11 +384,13 @@ class TestTeacherTurnoverKyrc26:
         assert "777005" not in set(result["school_id"])
 
     def test_real_rows_match_the_downloaded_files(self):
-        """State, district, school, a published zero, and a missing N/A row.
+        """State, district, school, a real zero, a placeholder zero, and N/A.
 
         There is no Suppressed column and no starred cell. Every stored row
         is ``suppressed`` ``N``. The rate is the published percent. 2021
         Brooklawn publishes 100, not 16/2. Paris High publishes 146.7.
+        A 0% with a positive teacher count is a real zero. A 0% with a
+        teacher count of 0 is a placeholder and is still stored.
         Instructional-staff columns are not metrics.
         """
         self._copy_fixtures()
@@ -437,12 +441,15 @@ class TestTeacherTurnoverKyrc26:
         assert float(adair["value"]) == 21.6
         assert adair["nces_id"] == "210003000001"
 
-        # Published 0 with a positive teacher count, and a new school that is 0/0/0.
+        # A 0% with teachers is a real zero. A 0% with no teachers is a
+        # placeholder. Both are stored. The source name keeps "The".
         zero = cell("2026", "015070", "teacher_turnover_rate")
         assert float(zero["value"]) == 0.0
         assert float(cell("2026", "015070", "teacher_count")["value"]) == 5.0
         assert float(cell("2026", "015070", "teacher_turnover_count")["value"]) == 0.0
-        assert float(cell("2026", "011030", "teacher_turnover_rate")["value"]) == 0.0
+        academy = cell("2026", "011030", "teacher_turnover_rate")
+        assert academy["school_name"] == "The Anderson County Learning Academy"
+        assert float(academy["value"]) == 0.0
         assert float(cell("2026", "011030", "teacher_count")["value"]) == 0.0
 
         # The published percent is not rebuilt, including a rate above 100.
