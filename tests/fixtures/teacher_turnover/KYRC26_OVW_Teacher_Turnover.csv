@@ -1,0 +1,9 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Teacher Count,Teacher Turnover Count,Turnover Percent,Instructional Staff Count,Instructional Staff Turnover Count,Instructional Staff Turnover Percent
+20252026,,,999,All Districts,,All Schools,999000,,,,,,"40,557","4,271",10.5,"44,335","5,166",11.7
+20252026,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,169,25,14.8,192,32,16.7
+20252026,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,51,11,21.6,62,14,22.6
+20252026,003,ANDERSON,011,Anderson County,030,The Anderson County Learning Academy,011030,003011030,210012002371,CKEC,901,A5,0,0,0.0,0,0,0.0
+20252026,004,BALLARD,015,Ballard County,070,Ballard Co. Preschool/Headstart Center,015070,004015070,210021000040,WKEC,908,A4,5,0,0.0,5,0,0.0
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,"2,645",407,15.4,"2,811",463,16.5
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,119,18,15.1,130,21,16.2
+20252026,009,BOURBON,478,Paris Independent,020,Paris High School,478020,009478020,210471001158,CKEC,901,A1,15,22,146.7,17,25,147.1

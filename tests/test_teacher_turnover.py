@@ -5,9 +5,13 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
 from etl.teacher_turnover import transform, TeacherTurnoverETL
+
+ROOT = Path(__file__).resolve().parents[1]
+FIXTURE_DIR = ROOT / "tests" / "fixtures" / "teacher_turnover"
 
 
 class TestTeacherTurnoverETL:
@@ -297,3 +301,282 @@ class TestTeacherTurnoverETL:
         assert metrics['teacher_turnover_rate'] == 6.3
         assert metrics['teacher_turnover_count'] == 3.0
         assert metrics['teacher_count'] == 48.0
+
+
+class TestTeacherTurnoverKyrc26:
+    """KYRC26 opt-in. KYRC23 republishes 2022-23 and is skipped.
+
+    Fixtures are verbatim rows from the downloaded files. ``N/A`` is kept
+    as the text ``N/A``. The KYRC24 co-op cell ``-84.21926253`` is the
+    historical value, not the datasets repair.
+    """
+
+    def setup_method(self):
+        self.test_dir = Path(tempfile.mkdtemp())
+        self.raw_dir = self.test_dir / "raw"
+        self.proc_dir = self.test_dir / "processed"
+        self.proc_dir.mkdir(parents=True)
+        self.sample_dir = self.raw_dir / "teacher_turnover"
+        self.sample_dir.mkdir(parents=True)
+        self.etl = TeacherTurnoverETL("teacher_turnover")
+
+    def teardown_method(self):
+        shutil.rmtree(self.test_dir)
+
+    def _production_config(self) -> dict:
+        config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+        return config["sources"]["teacher_turnover"]
+
+    def _copy_fixtures(self) -> None:
+        for path in FIXTURE_DIR.glob("*.csv"):
+            (self.sample_dir / path.name).write_bytes(path.read_bytes())
+
+    def test_kyrc26_file_is_accepted(self):
+        """The permanent KYRC files and the historical names stay in scope."""
+        assert self.etl.include_kyrc26 is True
+        assert self.etl.module_column_mappings["Teacher Count"] == "teacher_count"
+        assert self.etl.module_column_mappings["Turnover Percent"] == "turnover_percent"
+        assert self.etl.module_column_mappings["TEACHER COUNT"] == "teacher_count"
+        assert "Instructional Staff Count" not in self.etl.module_column_mappings
+
+        accepted = [
+            "KYRC26_OVW_Teacher_Turnover.csv",
+            "KYRC25_OVW_Teacher_Turnover.csv",
+            "KYRC24_OVW_Teacher_Turnover.csv",
+            "teacher_turnover_2023.csv",
+            "teacher_turnover_2022.csv",
+            "teacher_turnover_2021.csv",
+            "teacher_turnover_2020.csv",
+        ]
+        for name in accepted:
+            (self.sample_dir / name).write_text("School Year,School Code\n20252026,999000\n")
+        (self.sample_dir / "KYRC23_OVW_Teacher_Turnover.csv").write_text(
+            "School Year,School Code,Turnover Percent\n20222023,001010,0\n"
+        )
+
+        found = sorted(path.name for path, _sheet in self.etl._find_data_files(self.sample_dir))
+        assert found == sorted(accepted)
+
+    def test_kyrc23_republish_is_skipped(self):
+        """A leftover KYRC23 file must not write a second copy of 2023.
+
+        The datasets file is school year 20222023. It stores the historical
+        Kentucky Tech ``N/A`` rows as 0. Accepting it would add those zeros
+        beside the 2023 file, which emits nothing for ``N/A``.
+        """
+        republish = (
+            "School Year,District Name,School Name,School Code,Teacher Count,"
+            "Teacher Turnover Count,Turnover Percent\n"
+            "20222023,Kentucky Tech System,Estill County Area Technology Center,"
+            "777005,0,0,0.0\n"
+            "20222023,All Districts,All Schools,999000,51598,12846,24.9\n"
+        )
+        (self.sample_dir / "KYRC23_OVW_Teacher_Turnover.csv").write_text(republish)
+        (self.sample_dir / "KYRC26_OVW_Teacher_Turnover.csv").write_bytes(
+            (FIXTURE_DIR / "KYRC26_OVW_Teacher_Turnover.csv").read_bytes()
+        )
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "teacher_turnover.csv", dtype=str)
+        assert set(result["source_file"]) == {"KYRC26_OVW_Teacher_Turnover.csv"}
+        assert "2023" not in set(result["year"])
+        assert "777005" not in set(result["school_id"])
+
+    def test_real_rows_match_the_downloaded_files(self):
+        """State, district, school, a published zero, and a missing N/A row.
+
+        There is no Suppressed column and no starred cell. Every stored row
+        is ``suppressed`` ``N``. The rate is the published percent. 2021
+        Brooklawn publishes 100, not 16/2. Paris High publishes 146.7.
+        Instructional-staff columns are not metrics.
+        """
+        self._copy_fixtures()
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "teacher_turnover.csv", dtype=str)
+        assert (result["suppressed"] == "N").all()
+        assert (result["student_group"] == "All Students").all()
+        assert set(result["metric"]) == {
+            "teacher_turnover_rate",
+            "teacher_turnover_count",
+            "teacher_count",
+        }
+        assert "777005" not in set(result["school_id"])
+
+        def cell(year, school_id, metric):
+            rows = result[
+                (result["year"] == year)
+                & (result["school_id"] == school_id)
+                & (result["metric"] == metric)
+            ]
+            assert len(rows) == 1, f"{year} {school_id} {metric} -> {len(rows)}"
+            return rows.iloc[0]
+
+        state = cell("2026", "999000", "teacher_turnover_rate")
+        assert float(state["value"]) == 10.5
+        assert state["district"] == "All Districts"
+        assert state["school_name"] == "---District Total---"
+        assert state["source_file"] == "KYRC26_OVW_Teacher_Turnover.csv"
+        assert float(cell("2026", "999000", "teacher_count")["value"]) == 40557.0
+        assert float(cell("2026", "999000", "teacher_turnover_count")["value"]) == 4271.0
+
+        fayette = cell("2026", "165000", "teacher_turnover_rate")
+        assert float(fayette["value"]) == 15.4
+        assert fayette["district"] == "Fayette County"
+        assert fayette["nces_id"] == "2101860"
+        assert fayette["co_op"] == "CKEC"
+        assert float(cell("2026", "165000", "teacher_count")["value"]) == 2645.0
+
+        bryan = cell("2026", "165170", "teacher_turnover_rate")
+        assert float(bryan["value"]) == 15.1
+        assert bryan["school_name"] == "Bryan Station High School"
+        assert bryan["nces_id"] == "210186000388"
+        assert bryan["state_school_id"] == "034165170"
+        assert float(cell("2026", "165170", "teacher_count")["value"]) == 119.0
+        assert float(cell("2026", "165170", "teacher_turnover_count")["value"]) == 18.0
+
+        adair = cell("2026", "001010", "teacher_turnover_rate")
+        assert float(adair["value"]) == 21.6
+        assert adair["nces_id"] == "210003000001"
+
+        # Published 0 with a positive teacher count, and a new school that is 0/0/0.
+        zero = cell("2026", "015070", "teacher_turnover_rate")
+        assert float(zero["value"]) == 0.0
+        assert float(cell("2026", "015070", "teacher_count")["value"]) == 5.0
+        assert float(cell("2026", "015070", "teacher_turnover_count")["value"]) == 0.0
+        assert float(cell("2026", "011030", "teacher_turnover_rate")["value"]) == 0.0
+        assert float(cell("2026", "011030", "teacher_count")["value"]) == 0.0
+
+        # The published percent is not rebuilt, including a rate above 100.
+        paris = cell("2026", "478020", "teacher_turnover_rate")
+        assert float(paris["value"]) == 146.7
+        assert float(cell("2026", "478020", "teacher_count")["value"]) == 15.0
+        assert float(cell("2026", "478020", "teacher_turnover_count")["value"]) == 22.0
+
+        # Prior-year anchors.
+        assert float(cell("2025", "999000", "teacher_turnover_rate")["value"]) == 21.8
+        assert float(cell("2025", "999000", "teacher_count")["value"]) == 48755.0
+        assert float(cell("2025", "165000", "teacher_turnover_rate")["value"]) == 21.0
+        assert float(cell("2025", "165170", "teacher_turnover_rate")["value"]) == 13.7
+        assert cell("2025", "165170", "teacher_turnover_rate")["nces_id"] == "210186000000"
+        assert float(cell("2024", "999000", "teacher_turnover_rate")["value"]) == 22.5
+        assert float(cell("2024", "999000", "teacher_count")["value"]) == 49691.0
+        baker = cell("2024", "121026", "teacher_turnover_rate")
+        assert float(baker["value"]) == 21.4
+        assert baker["co_op"] == "-84.21926253"
+        assert baker["co_op_code"] == "CKEC"
+
+        breathitt = cell("2023", "061", "teacher_turnover_rate")
+        assert float(breathitt["value"]) == 22.8
+        assert breathitt["district"] == "Breathitt County"
+        assert breathitt["school_name"] == "---District Total---"
+        assert float(cell("2023", "061", "teacher_count")["value"]) == 145.0
+        assert float(cell("2023", "999", "teacher_turnover_rate")["value"]) == 24.9
+        assert cell("2023", "999", "teacher_turnover_rate")["district"] == "State"
+        assert cell("2023", "999", "teacher_turnover_rate")["school_name"] == "---State Total---"
+
+        # 16 teachers left a school of 2. The file publishes 100, not 800.
+        brooklawn = cell("2021", "275221", "teacher_turnover_rate")
+        assert float(brooklawn["value"]) == 100.0
+        assert float(cell("2021", "275221", "teacher_count")["value"]) == 2.0
+        assert float(cell("2021", "275221", "teacher_turnover_count")["value"]) == 16.0
+        assert float(cell("2021", "999", "teacher_turnover_rate")["value"]) == 16.2
+
+        assert float(cell("2020", "999", "teacher_turnover_rate")["value"]) == 18.2
+        assert float(cell("2020", "999", "teacher_count")["value"]) == 44784.0
+        assert cell("2020", "999", "teacher_turnover_rate")["district"] == "State"
+        # Zero teachers and a published percent are kept. The percent is not dropped.
+        crossing = cell("2020", "525025", "teacher_turnover_rate")
+        assert float(crossing["value"]) == 100.0
+        assert float(cell("2020", "525025", "teacher_count")["value"]) == 0.0
+        assert float(cell("2020", "525025", "teacher_turnover_count")["value"]) == 1.0
+        assert float(cell("2020", "165", "teacher_turnover_rate")["value"]) == 23.2
+
+        assert float(cell("2019", "999", "teacher_turnover_rate")["value"]) == 18.4
+        assert float(cell("2019", "999", "teacher_count")["value"]) == 45261.0
+        assert float(cell("2019", "001010", "teacher_turnover_rate")["value"]) == 12.1
+
+    def test_comma_count_survives_an_int64_cast(self):
+        """A comma-formatted count survives StringDtype and an Int64 cast.
+
+        Production ``mappings.yaml`` has no dtype for this source. The cast
+        here is the failure mode from issue #49: ``to_numeric`` on ``40,557``
+        becomes missing before ``extract_metrics`` unless the comma is gone.
+        """
+        (self.sample_dir / "KYRC26_OVW_Teacher_Turnover.csv").write_bytes(
+            (FIXTURE_DIR / "KYRC26_OVW_Teacher_Turnover.csv").read_bytes()
+        )
+        config = self._production_config()
+        config["dtype"] = {
+            "teacher_count": "Int64",
+            "teacher_turnover_count": "Int64",
+            "turnover_percent": "float64",
+        }
+        transform(self.raw_dir, self.proc_dir, config)
+        result = pd.read_csv(self.proc_dir / "teacher_turnover.csv", dtype=str)
+        state_count = result[
+            (result["year"] == "2026")
+            & (result["school_id"] == "999000")
+            & (result["metric"] == "teacher_count")
+        ]
+        assert float(state_count.iloc[0]["value"]) == 40557.0
+        fayette = result[
+            (result["school_id"] == "165000")
+            & (result["metric"] == "teacher_count")
+        ]
+        assert float(fayette.iloc[0]["value"]) == 2645.0
+
+    def test_number_parsing_is_dtype_agnostic(self):
+        """pandas 3 StringDtype and pandas 2 object follow the same rules.
+
+        ``N/A`` stays missing. ``0`` stays 0. A comma is stripped.
+        ``bool(pd.NA)`` is not used to detect the dtype. A blank percent
+        is not turned into 0, even when the teacher count is positive.
+        No registered year has a blank measure cell.
+        """
+        frame = pd.DataFrame({
+            "school_code": pd.Series(["999000", "015070", "777005", "165000"], dtype="string"),
+            "teacher_count": pd.Series(["40,557", "5", "N/A", "2,645"], dtype="string"),
+            "teacher_turnover_count": pd.Series(["4,271", "0", "N/A", "407"], dtype="string"),
+            "turnover_percent": pd.Series(["10.5", "0", "N/A", ""], dtype="string"),
+        })
+        assert not self.etl.should_skip_row(frame.iloc[0])
+        assert self.etl.extract_metrics(frame.iloc[0]) == {
+            "teacher_turnover_rate": 10.5,
+            "teacher_turnover_count": 4271.0,
+            "teacher_count": 40557.0,
+        }
+        assert self.etl.extract_metrics(frame.iloc[1])["teacher_turnover_rate"] == 0.0
+        assert self.etl.extract_metrics(frame.iloc[1])["teacher_count"] == 5.0
+        assert self.etl.extract_metrics(frame.iloc[2]) == {}
+        blank = self.etl.extract_metrics(frame.iloc[3])
+        assert "teacher_turnover_rate" not in blank
+        assert blank["teacher_count"] == 2645.0
+
+        as_object = frame.astype(object)
+        assert self.etl.extract_metrics(as_object.iloc[2]) == {}
+        assert self.etl.extract_metrics(as_object.iloc[0])["teacher_count"] == 40557.0
+        assert self.etl.extract_metrics(as_object.iloc[1])["teacher_turnover_rate"] == 0.0
+
+
+def test_registered_sources_are_the_permanent_files():
+    """KYRC24, KYRC25, KYRC26, 2020-2023, and 2018-19 are registered.
+
+    KYRC23 is not. The 2017-18 workbook is not. No temporary OAA name is.
+    """
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["teacher_turnover"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert names == [
+        "KYRC24_OVW_Teacher_Turnover.csv",
+        "KYRC25_OVW_Teacher_Turnover.csv",
+        "KYRC26_OVW_Teacher_Turnover.csv",
+        "teacher_turnover_2023.csv",
+        "teacher_turnover_2022.csv",
+        "teacher_turnover_2021.csv",
+        "teacher_turnover_2020.csv",
+        "TEACHER_TURNOVER_18-19.xlsx",
+    ]
+    assert not any("KYRC23" in name for name in names)
+    assert not any("17-18" in name for name in names)
+    assert not any(name.startswith("Teacher_Turnover_") for name in names)

@@ -367,16 +367,16 @@ The registered files have no Suppressed column and no starred cell. A published 
 ## Teacher Turnover
 **Source**: `etl/teacher_turnover.py`
 
-School-level teacher turnover metrics showing the percentage and count of teachers who left each year.
+School-level teacher turnover. KDE's 2018-19 workbook cover sheet defines the percent as the percentage of teacher turnover experienced by the school or district, the turnover count as the number of teaching positions which experienced turnover, and the teacher count as the total number of teachers. There is no demographic column. The ETL stores the published percent and does not rebuild it from the counts. In 2021, 14 schools publish 100 where the turnover count is larger than the teacher count. Other years publish percents above 100. A published 0 is kept. A blank or `N/A` is missing. The 2023 Kentucky Tech System rows are `N/A` on all three columns and are not stored. KYRC26 instructional-staff turnover is a separate measure and is not stored.
 
-- `teacher_turnover_rate` - Percentage of teachers who left (Turnover Percent)
-- `teacher_turnover_count` - Number of teachers who left
-- `teacher_count` - Total teacher count (denominator for rate calculation)
+- `teacher_turnover_rate` - Published turnover percent
+- `teacher_turnover_count` - Number of teaching positions which experienced turnover
+- `teacher_count` - Total teacher count
 
-**Data Sources**: KYRC25_OVW_Teacher_Turnover.csv, KYRC24_OVW_Teacher_Turnover.csv, teacher_turnover_{year}.csv
-**Years Available**: 2021-2025
-**Unit**: Rate (0-100%), Count (non-negative integers)
-**Demographics**: School-level only (All Students)
+**Data Sources**: KYRC26_OVW_Teacher_Turnover.csv, KYRC25_OVW_Teacher_Turnover.csv, KYRC24_OVW_Teacher_Turnover.csv, teacher_turnover_{year}.csv, TEACHER_TURNOVER_18-19.xlsx
+**Years Available**: 2019-2026
+**Unit**: Published percent (can exceed 100), Count (non-negative)
+**Demographics**: School-level only (All Students). State rows are district `All Districts` for 2024-2026 and `State` for 2019-2023
 
 ---
 
