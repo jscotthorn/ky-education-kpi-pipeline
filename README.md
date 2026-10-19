@@ -216,7 +216,7 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
 ### Data Sources
 - **Graduation Rates** - 4-year and 5-year graduation rates, counts, and totals
 - **Safe Schools Events** ⭐ **NEW** - Behavioral incident counts by type, grade, location, and context
-- **Kindergarten Readiness** ⭐ **ENHANCED** - Overall readiness rates and component breakdowns
+- **Kindergarten Readiness** ⭐ **ENHANCED** - BRIGANCE kindergarten-screen percents. On the KYRC composites the columns are named like counts and the cells are percents. Each rate is the published percent, and those years do not emit `_count` or `_total` metrics. In 2018-2021 the total is the published number tested and the count is the percent times that count, rounded. That count is an estimate: exact below about 1,000 tested, and about +/-24 students at state level. A 2020-21 suppressed row with a published tested count and a blank percent stores the rate and the count as NA/Y, and stores the tested count as NA. 2017-18 co-op totals 901-909 are labelled the way 2019 publishes them. State rows are district `All Districts` for 2024-2026 and `State` for 2018-2023. The 2026 state figures are 55 / 38 / 7 / 45, and the readiness rate is 45. A `*` is value NA with suppressed Y. A blank row is not stored. A published 0 is kept
 - **Chronic Absenteeism** - Chronic absenteeism rates, counts, and enrollment
 - **English Learner Progress** - Proficiency rates across elementary, middle, and high school
 - **Postsecondary Readiness** - College and career readiness rates

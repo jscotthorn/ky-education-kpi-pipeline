@@ -100,16 +100,21 @@ raw_directories:
 
   kindergarten_readiness:
     - "KYRC24_ASMT_Kindergarten_Screen_Composite.csv"
+    # Kindergarten_Screen_2025.CSV on the OAA temporary URL is 404.
+    # This permanent composite is the 2024-25 source. Do not register both.
+    # The columns are named like counts and the cells are percents.
+    - url: "kyrc25"
+      file: "KYRC25_ASMT_Kindergarten_Screen_Composite.csv"
     - url: "kyrc26"
       file: "KYRC26_ASMT_Kindergarten_Screen_Composite.csv"
-    - url: "2025"
-      file: "Kindergarten_Screen_2025.CSV"
     - "kindergarten_screen_2023.csv"
     - "kindergarten_screen_2022.csv"
     - "kindergarten_screen_2021.csv"
     - "kindergarten_screen_2020.csv"
-    # Historical xlsx files (pre-2020)
+    # Historical xlsx files (pre-2020). 2017-18 is a real earlier year,
+    # not a republish of 2018-19.
     - "KSCREEN_18-19.xlsx"
+    - "KSCREEN_17-18.xlsx"
 
   out_of_school_suspension:
     - "KYRC24_OVW_Student_Suspensions.csv"
