@@ -669,20 +669,22 @@ A published 0 is kept where the file publishes one. The 2018-19 workbook publish
 ## CTE Pathways
 **Source**: `etl/cte_pathways.py`
 
-Career and Technical Education (CTE) pathway availability and completion metrics by program area.
+KDE publishes one row per career pathway. `Pathways Available` is the pathway name in every year, including 2018-19. The report-card glossary defines active enrollment as students enrolled during the school year in at least one valid course in that pathway. Concentrators are 12th-grade students with at least two and fewer than four credits in that pathway. Completers are 12th-grade students with four or more credits in that pathway. Those statuses are different groups. A student in two pathways is on two rows, so a sum across pathways counts that student twice. State and district rows are KDE's own pathway rows, not a sum built from the schools.
+
+The output is one row per school, year, and student group. There is no demographic column.
 
 ### Pathway Metrics
-- `num_cte_pathways` - Number of CTE pathways available at the school
-- `cte_pathway_enrollment` - Total active enrollment in CTE pathways
-- `cte_concentrator_count` - Number of CTE concentrator students
-- `cte_pathway_completer_count` - Number of students completing CTE pathways
-- `cte_pathway_completion_rate` - Percentage of concentrators completing pathways (Completers / Concentrators * 100)
+- `num_cte_pathways` - Count of published pathway rows at the school. This is not a figure KDE publishes. A starred count still counts. A published 0 counts. A row with enrollment, concentrators, and completers all blank is not counted. Stored with `suppressed` N. 2020-2023 list some pathways under two program areas with the same counts; that pathway counts once
+- `cte_pathway_enrollment` - Sum of active enrollment across pathways. A student in two pathways counts twice. Value NA with `suppressed` Y when any pathway's enrollment is `*`. A partial sum is not stored
+- `cte_concentrator_count` - Sum of concentrators across pathways, with the same star rule. A student in two pathways counts twice. Not emitted for 2019, because that file has no concentrator column. The 2018-19 preparatory-student column is a different measure and is not stored. Concentrators appear to be counted across grades
+- `cte_pathway_completer_count` - Sum of completers across pathways, with the same star rule. A student in two pathways counts twice. This is not CTE Participation's `cte_completer_count_grade_12`, which counts each 12th-grade completer once. In 2026 the published state pathway-completer cells sum to at least 36,436. The participation state count is 19,990
+- `cte_pathway_completion_rate` - Pipeline-calculated: completers divided by concentrators, times 100, rounded to 1 decimal place. KDE does not publish this rate. Scott approved it on 2026-10-19 as an existing-practice exception. KDE's concentrator group (at least two and fewer than four credits) and completer group (four or more credits) do not overlap, so the rate is not a share of concentrators. Any starred pathway suppresses it. 2019 has none because that file has no concentrator column. Concentrators appear to be counted across grades
 
-**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+**Note**: `student_group` is `All Students` on every row. KYRC state rows are district `All Districts` and school id `999000` (the school name `All Schools` is stored as `---District Total---`). 2019-2023 state rows are district `State` and school id `999`. In 2020-2026 the smallest published count is 3, so a star can also mean 0-2 or not applicable. 2019 publishes 0 and has no stars. Those zeros stay. 386 all-zero school pathway rows raise the 2019 school pathway-count mean to 12.04; without those rows it is 10.75. Later years sit between 10.4 and 11.4. The 2026 state pathway count is 113. The 2026 state enrollment, concentrator, and completer totals are suppressed because 9, 6, and 15 pathway cells are `*`. On KYRC25 and KYRC26, some state pathway cells do not equal the sum of the district cells, and the district sum is higher. Each level keeps the value KDE published. That difference is flagged kde-recheck in [issue #86](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/86). District `606` (Model Laboratory Schools at EKU) is new in 2026. Caldwell County High School `081010` is enrollment 556, concentrators 413, completers 143, and a calculated completion rate of 34.6.
 
-**Data Sources**: KYRC25_CTE_Career_Pathways.csv, KYRC24_CTE_Career_Pathways.csv, career_pathways_{year}.csv
-**Years Available**: 2021-2025
-**Unit**: Count (non-negative integers), Rate (0-100%)
+**Data Sources**: `CAREER_PATHWAYS_18-19.xlsx`, `career_pathways_2020.csv` through `career_pathways_2023.csv`, `KYRC24_CTE_Career_Pathways.csv`, `KYRC25_CTE_Career_Pathways.csv`, `KYRC26_CTE_Career_Pathways.csv`
+**Years Available**: 2019-2026
+**Unit**: Count (non-negative integers). `num_cte_pathways` is a count of published pathway rows. Enrollment, concentrators, and completers are sums across pathways. The completion rate is completers / concentrators * 100, calculated by the pipeline and rounded to 1 decimal place
 **Demographics**: School-level only (All Students)
 
 ---
