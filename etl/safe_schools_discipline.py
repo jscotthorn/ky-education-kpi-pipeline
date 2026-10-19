@@ -49,6 +49,15 @@ KYRC26 uses the title-case resolution headers. KYRC25 spells the expulsion
 column ``(Ssp2)``. KYRC24 spells it ``(SSP2)`` and uses ``Out-Of-School``,
 ``Removal By``, and ``Or``. All three are mapped. ``include_kyrc26`` is set
 in this module.
+
+Scott decided on 2026-10-19 to load ``KYRC23_SAFE_Legal_Sanctions.csv``
+as the 2022-23 legal-sanctions source. The annual 2020-2023 files have
+no legal columns, and the historical host returns 404 for a legal file
+in 2019-20 through 2021-22. The KYRC23 file's twenty columns, including
+``Total`` and the five sanction headers, match KYRC24, KYRC25, and
+KYRC26. No extra alias is required. School year ``20222023`` is stored
+as 2023. ``KYRC23_SAFE_Discipline_Resolutions.csv`` republishes the
+historical 2022-23 resolutions file and stays skipped.
 """
 
 from __future__ import annotations
@@ -102,11 +111,12 @@ _UNDUPLICATED_SOURCE_COLUMNS: tuple[str, ...] = (
     "total_discipline_resolutions",
 )
 
-# KYRC23 republishes 2022-23. The historical annual file is the registered
-# copy. A leftover KYRC23 file would write a second 2023.
-_KYRC23_REPUBLISH = {
+# The KYRC23 discipline file republishes 2022-23. The historical annual
+# file is the registered resolutions copy. A leftover KYRC23 discipline
+# file would write a second 2023. The legal file is the only 2022-23
+# legal-sanctions source, so it is loaded.
+_KYRC23_DISCIPLINE_REPUBLISH = {
     "KYRC23_SAFE_DISCIPLINE_RESOLUTIONS.CSV",
-    "KYRC23_SAFE_LEGAL_SANCTIONS.CSV",
 }
 
 _NOT_A_NUMBER = {"", "*", "**", "---", "--", "<10", '""'}
@@ -317,12 +327,16 @@ class SafeSchoolsDisciplineETL(BaseETL):
         super().__init__("safe_schools_discipline")
 
     def accepts_data_file(self, file_path: Path) -> bool:
-        """Skip a republish and the wide 2018-19 workbook.
+        """Skip the discipline republish and the wide 2018-19 workbook.
 
-        ``KYRC23_SAFE_Discipline_Resolutions.csv`` and the legal twin are
-        school year ``20222023``. They are not registered. The headers
-        match the KYRC25 aliases, so a leftover copy would write a second
-        2023 next to ``safe_schools_discipline_2023.csv``.
+        ``KYRC23_SAFE_Discipline_Resolutions.csv`` is school year
+        ``20222023``. It republishes ``safe_schools_discipline_2023.csv``.
+        The headers match the later resolution aliases, so a leftover copy
+        would write a second 2023. It is not registered.
+
+        ``KYRC23_SAFE_Legal_Sanctions.csv`` is the 2022-23 legal-sanctions
+        source. Its columns match KYRC24 through KYRC26, and the annual
+        files have no legal columns. It is accepted.
 
         ``SAFE_SCHOOLS_18-19.xlsx`` has Discipline-Resolutions and Legal
         Sanctions tables at state, district, and school level. The DATA
@@ -330,9 +344,9 @@ class SafeSchoolsDisciplineETL(BaseETL):
         Loading it is issue #89. This parser skips the name.
         """
         upper = file_path.name.upper()
-        if upper in _KYRC23_REPUBLISH:
+        if upper in _KYRC23_DISCIPLINE_REPUBLISH:
             logger.info(
-                "Skipping %s; it republishes 2022-23 and is not registered",
+                "Skipping %s; it republishes 2022-23 discipline resolutions",
                 file_path.name,
             )
             return False
@@ -365,7 +379,8 @@ class SafeSchoolsDisciplineETL(BaseETL):
             "Removal by Hearing Officer (IAES2)": "removal_by_hearing_officer_count",
             "Unilateral Removal By School Personnel (IAES1)": "unilateral_removal_count",
             "Unilateral Removal by School Personnel (IAES1)": "unilateral_removal_count",
-            # Legal sanctions. The headers match in KYRC24, KYRC25, and KYRC26.
+            # Legal sanctions. KYRC23, KYRC24, KYRC25, and KYRC26 use these
+            # headers. KYRC23 adds no extra sanction column.
             "Arrests": "arrest_count",
             "Charges": "charges_count",
             "Civil Proceedings": "civil_proceedings_count",

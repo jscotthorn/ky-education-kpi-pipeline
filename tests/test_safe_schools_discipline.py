@@ -427,10 +427,11 @@ class TestSafeSchoolsDisciplineKyrc26:
         assert mappings["Expelled, Not Receiving Services (SSP2)"] == "expelled_not_receiving_services_count"
         assert mappings["Expelled, Not Receiving Services (Ssp2)"] == "expelled_not_receiving_services_count"
 
-    def test_kyrc23_and_2018_workbook_are_skipped(self):
+    def test_kyrc23_discipline_twin_and_2018_workbook_are_skipped(self):
+        """The discipline republish stays skipped. The legal file is loaded."""
         etl = SafeSchoolsDisciplineETL()
         assert etl.accepts_data_file(Path("KYRC23_SAFE_Discipline_Resolutions.csv")) is False
-        assert etl.accepts_data_file(Path("KYRC23_SAFE_Legal_Sanctions.csv")) is False
+        assert etl.accepts_data_file(Path("KYRC23_SAFE_Legal_Sanctions.csv")) is True
         assert etl.accepts_data_file(Path("SAFE_SCHOOLS_18-19.xlsx")) is False
         # The annual file and the permanent KYRC25 name are still accepted.
         assert etl.accepts_data_file(Path("safe_schools_discipline_2023.csv")) is True
@@ -710,8 +711,113 @@ def test_all_students_total_is_stored_unduplicated(tmp_path):
     assert "total_discipline_resolutions" not in set(df["metric"])
 
 
+def test_kyrc23_legal_sanctions_are_the_2023_source(tmp_path):
+    """KYRC23 legal rows are year 2023 and do not collide with discipline keys.
+
+    The four rows are verbatim from ``KYRC23_SAFE_Legal_Sanctions.csv``.
+    State All Students Total is 4,609 and arrests are 190. Adair County
+    ``001000`` is the district spot check. The English Learner row does
+    not emit the unduplicated metric. The historical 2023 state row stays
+    on school ``999``.
+    """
+    raw = tmp_path / "raw" / "safe_schools_discipline"
+    raw.mkdir(parents=True)
+    proc = tmp_path / "processed"
+    proc.mkdir()
+    _copy_fixture(raw, "kyrc23_legal_sanctions.csv", "KYRC23_SAFE_Legal_Sanctions.csv")
+    _copy_fixture(raw, "historical_2023_state.csv", "safe_schools_discipline_2023.csv")
+    # A leftover discipline twin must not be read.
+    twin = raw / "KYRC23_SAFE_Discipline_Resolutions.csv"
+    twin.write_text(
+        "School Year,Demographic,School Code,District Name,School Name,"
+        "Out-of-School Suspensions (SSP3)\n"
+        "20222023,All Students,999000,All Districts,All Schools,1\n",
+        encoding="utf-8",
+    )
+
+    df = _run(raw, proc)
+    keys = ["year", "school_id", "student_group", "metric"]
+    assert not df.duplicated(keys).any()
+    assert "KYRC23_SAFE_Discipline_Resolutions.csv" not in set(df["source_file"])
+
+    legal = df[df["source_file"] == "KYRC23_SAFE_Legal_Sanctions.csv"]
+    assert set(legal["year"]) == {"2023"}
+    assert (legal["district"] != "State").all()
+    resolution = {
+        "corporal_punishment_count",
+        "restraint_count",
+        "seclusion_count",
+        "expelled_not_receiving_services_count",
+        "expelled_receiving_services_count",
+        "in_school_removal_count",
+        "out_of_school_suspension_count",
+        "removal_by_hearing_officer_count",
+        "unilateral_removal_count",
+        DISCIPLINE_STUDENTS_UNDUPLICATED,
+    }
+    assert resolution.isdisjoint(set(legal["metric"]))
+
+    state = _cell(df, "2023", "999000", "All Students", LEGAL_STUDENTS_UNDUPLICATED)
+    assert _num(state["value"]) == 4609
+    assert state["suppressed"] == "N"
+    assert state["district"] == "All Districts"
+    assert state["school_name"] == "---District Total---"
+    assert _num(_cell(df, "2023", "999000", "All Students", "arrest_count")["value"]) == 190
+    assert _num(_cell(df, "2023", "999000", "All Students", "charges_count")["value"]) == 1529
+    assert _num(_cell(df, "2023", "999000", "All Students", "civil_proceedings_count")["value"]) == 12
+    assert _num(_cell(df, "2023", "999000", "All Students", "court_designated_worker_count")["value"]) == 318
+    assert _num(_cell(df, "2023", "999000", "All Students", "school_resource_officer_count")["value"]) == 4089
+
+    district = _cell(df, "2023", "001000", "All Students", LEGAL_STUDENTS_UNDUPLICATED)
+    assert _num(district["value"]) == 33
+    assert district["suppressed"] == "N"
+    assert district["district"] == "Adair County"
+    assert district["school_name"] == "---District Total---"
+    assert district["co_op"] == "GRREC"
+    assert district["co_op_code"] == "902"
+    assert _num(_cell(df, "2023", "001000", "All Students", "arrest_count")["value"]) == 0
+    assert _cell(df, "2023", "001000", "All Students", "arrest_count")["suppressed"] == "N"
+    assert _num(_cell(df, "2023", "001000", "All Students", "charges_count")["value"]) == 7
+    assert _num(_cell(df, "2023", "001000", "All Students", "civil_proceedings_count")["value"]) == 0
+    cdw = _cell(df, "2023", "001000", "All Students", "court_designated_worker_count")
+    assert cdw["value"] == ""
+    assert cdw["suppressed"] == "Y"
+    assert _num(_cell(df, "2023", "001000", "All Students", "school_resource_officer_count")["value"]) == 32
+
+    school = _cell(df, "2023", "001010", "All Students", LEGAL_STUDENTS_UNDUPLICATED)
+    assert _num(school["value"]) == 31
+    assert school["school_name"] == "Adair County High School"
+    assert _num(_cell(df, "2023", "001010", "All Students", "arrest_count")["value"]) == 0
+    assert _num(_cell(df, "2023", "001010", "All Students", "charges_count")["value"]) == 6
+    school_cdw = _cell(df, "2023", "001010", "All Students", "court_designated_worker_count")
+    assert school_cdw["value"] == ""
+    assert school_cdw["suppressed"] == "Y"
+    assert _num(_cell(df, "2023", "001010", "All Students", "school_resource_officer_count")["value"]) == 31
+
+    learner = df[
+        (df["year"] == "2023")
+        & (df["school_id"] == "001010")
+        & (df["student_group"] == "English Learner")
+    ]
+    assert LEGAL_STUDENTS_UNDUPLICATED not in set(learner["metric"])
+    assert _num(_cell(df, "2023", "001010", "English Learner", "arrest_count")["value"]) == 0
+    assert _num(_cell(df, "2023", "001010", "English Learner", "charges_count")["value"]) == 0
+    learner_sro = _cell(df, "2023", "001010", "English Learner", "school_resource_officer_count")
+    assert learner_sro["value"] == ""
+    assert learner_sro["suppressed"] == "Y"
+
+    # The annual 2023 file still owns the discipline state row.
+    discipline = _cell(df, "2023", "999", "All Students", "out_of_school_suspension_count")
+    assert _num(discipline["value"]) == 40768
+    assert discipline["district"] == "State"
+    assert _num(_cell(df, "2023", "999", "All Students", DISCIPLINE_STUDENTS_UNDUPLICATED)["value"]) == 88141
+    state_999 = df[(df["year"] == "2023") & (df["school_id"] == "999")]
+    assert "arrest_count" not in set(state_999["metric"])
+    assert LEGAL_STUDENTS_UNDUPLICATED not in set(state_999["metric"])
+
+
 def test_registered_sources_are_the_permanent_files():
-    """KYRC25 fills 2024-25. KYRC23 and the OAA names are not registered."""
+    """KYRC25 fills 2024-25. The KYRC23 legal file is the 2022-23 source."""
     import yaml
 
     config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
@@ -730,7 +836,8 @@ def test_registered_sources_are_the_permanent_files():
     assert hosts["KYRC26_SAFE_Discipline_Resolutions.csv"] == "kyrc26"
     assert hosts["KYRC26_SAFE_Legal_Sanctions.csv"] == "kyrc26"
     assert "KYRC23_SAFE_Discipline_Resolutions.csv" not in names
-    assert "KYRC23_SAFE_Legal_Sanctions.csv" not in names
+    assert "KYRC23_SAFE_Legal_Sanctions.csv" in names
+    assert hosts["KYRC23_SAFE_Legal_Sanctions.csv"] == "kyrc25"
     assert "SAFE_SCHOOLS_18-19.xlsx" in names
     for name in (
         "safe_schools_discipline_2020.csv",
