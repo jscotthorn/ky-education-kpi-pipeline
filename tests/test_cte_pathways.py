@@ -1,4 +1,5 @@
 """Tests for the CTE pathways ETL."""
+import io
 from pathlib import Path
 
 import pandas as pd
@@ -123,7 +124,7 @@ class TestCTEPathwaysETL:
         assert _one(df, "2026", "999000", "cte_concentrator_count")["value"] == "2017.0"
         assert _one(df, "2026", "999000", "cte_concentrator_count")["suppressed"] == "N"
         assert _one(df, "2026", "999000", "cte_pathway_completer_count")["suppressed"] == "Y"
-        assert "cte_pathway_completion_rate" not in set(df["metric"])
+        assert _one(df, "2026", "999000", "cte_pathway_completion_rate")["suppressed"] == "Y"
 
         caldwell = _one(df, "2026", "081010", "num_cte_pathways")
         assert caldwell["value"] == "7.0"
@@ -132,6 +133,9 @@ class TestCTEPathwaysETL:
         assert _one(df, "2026", "081010", "cte_pathway_enrollment")["value"] == "556.0"
         assert _one(df, "2026", "081010", "cte_concentrator_count")["value"] == "413.0"
         assert _one(df, "2026", "081010", "cte_pathway_completer_count")["value"] == "143.0"
+        rate = _one(df, "2026", "081010", "cte_pathway_completion_rate")
+        assert rate["value"] == "34.6"
+        assert rate["suppressed"] == "N"
         assert set(_rows(df, "2026", "081010")["suppressed"]) == {"N"}
 
         bellevue_enrollment = _one(df, "2026", "032010", "cte_pathway_enrollment")
@@ -140,6 +144,7 @@ class TestCTEPathwaysETL:
         assert _one(df, "2026", "032010", "num_cte_pathways")["value"] == "2.0"
         assert _one(df, "2026", "032010", "cte_concentrator_count")["value"] == "41.0"
         assert _one(df, "2026", "032010", "cte_pathway_completer_count")["suppressed"] == "Y"
+        assert _one(df, "2026", "032010", "cte_pathway_completion_rate")["suppressed"] == "Y"
 
         for school_id in ("606000", "606460"):
             count = _one(df, "2026", school_id, "num_cte_pathways")
@@ -166,7 +171,7 @@ class TestCTEPathwaysETL:
         assert _one(df, "2021", "555070", "cte_concentrator_count")["suppressed"] == "N"
         assert _one(df, "2021", "555070", "cte_pathway_enrollment")["suppressed"] == "Y"
         assert _one(df, "2021", "555070", "cte_pathway_completer_count")["suppressed"] == "Y"
-        assert "cte_pathway_completion_rate" not in set(df["metric"])
+        assert _one(df, "2021", "555070", "cte_pathway_completion_rate")["suppressed"] == "Y"
         assert _one(df, "2021", "555070", "num_cte_pathways")["district"] == "Trigg County"
 
     def test_blank_row_is_not_offered(self, tmp_path):
@@ -316,29 +321,35 @@ class TestCTEPathwaysETL:
             "cte_pathway_enrollment",
             "cte_concentrator_count",
             "cte_pathway_completer_count",
+            "cte_pathway_completion_rate",
         }
-        assert "cte_pathway_completion_rate" not in set(result["metric"])
 
     def test_file_without_measure_columns_writes_nothing(self, tmp_path):
-        """A stray 2017-18 file has no mapped measure columns.
+        """The 2017-18 workbook has no mapped measure columns.
 
-        ``_row_is_blank`` is true when no measure column is present, so
-        the file does not add a 2018 row under a blank pathway name.
+        The fixture is the DATA header and the first three rows of
+        ``CAREER_PATHWAYS_17-18.xlsx``. Those columns are not active
+        enrollment, concentrators, or completers, so the file writes no
+        2018 row.
         """
-        stray = (
-            b"SCH_YEAR,DIST_NAME,SCH_NAME,SCH_CD,SOME_PATHWAY_LABEL\n"
-            b"20172018,Adair County,Adair County High School,001010,Accounting\n"
+        real = pd.read_csv(
+            io.BytesIO(_fixture("career_pathways_17-18_rows.csv")),
+            dtype=str,
         )
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+            real.to_excel(writer, sheet_name="DATA", index=False)
         df = _run(
             tmp_path,
             [
-                ("CAREER_PATHWAYS_17-18.csv", stray),
+                ("CAREER_PATHWAYS_17-18.xlsx", buffer.getvalue()),
                 ("CAREER_PATHWAYS_18-19.csv", _fixture("career_pathways_2019_ballard.csv")),
             ],
         )
         assert "2018" not in set(df["year"])
         assert _one(df, "2019", "015010", "num_cte_pathways")["value"] == "3.0"
-        assert self.etl._row_is_blank(pd.Series({"school_year": "20172018", "school_code": "001010"}))
+        prepared = self.etl.normalize_column_names(real)
+        assert self.etl._row_is_blank(prepared.iloc[0])
         blank_measures = pd.Series(
             {
                 "active_enrollment": "",
