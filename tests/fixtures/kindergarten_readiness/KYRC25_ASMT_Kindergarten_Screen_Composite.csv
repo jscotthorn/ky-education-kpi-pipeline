@@ -1,0 +1,7 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Prior Setting,Suppressed,Demographic,Ready With Interventions,Ready,Ready With Enrichments,Total Ready
+20242025,,,999,All Districts,,All Schools,999000,,,,,,All Students,N,All Students,54,39,7,46
+20242025,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,All Students,N,All Students,76,23,1,24
+20242025,001,ADAIR,001,Adair County,020,Adair County Primary Center,001020,001001020,210003000000,GRREC,902,A1,All Students,N,All Students,76,23,1,24
+20242025,001,ADAIR,001,Adair County,020,Adair County Primary Center,001020,001001020,210003000000,GRREC,902,A1,All Students,Y,African American,*,*,*,*
+20242025,001,ADAIR,001,Adair County,020,Adair County Primary Center,001020,001001020,210003000000,GRREC,902,A1,All Students,,American Indian or Alaska Native,,,,
+20242025,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,All Students,N,All Students,52,38,10,48
