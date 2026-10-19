@@ -594,8 +594,9 @@ raw_directories:
     # Pathways Available is the pathway name in every year, including the
     # 2018-19 workbook. KYRC23_CTE_Career_Pathways.csv returns 200 on
     # datasets and UAT and 404 on the historical host. School year is
-    # 20222023. The pathway keys match career_pathways_2023.csv. 29
-    # completer cells are a number in KYRC23 and * in the historical file.
+    # 20222023. The pathway keys match career_pathways_2023.csv. 40
+    # completer cells are a number in KYRC23 and * in the historical file
+    # (29 at schools and 11 on district or state rows).
     # accepts_data_file skips that name so 2023 is not written twice.
     # It is not registered. CAREER_PATHWAYS_17-18.xlsx returns 200 and is
     # earlier than this series. It is not registered. Guessed OAA names

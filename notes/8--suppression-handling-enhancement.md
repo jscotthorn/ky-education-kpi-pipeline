@@ -273,3 +273,15 @@ district,school_id,school_name,year,student_group,metric,value,suppressed,source
 - ✅ **Documentation complete**: Full implementation guide and rationale documented
 
 This enhancement transforms the ETL pipeline from a data-reduction approach to a data-transparency approach, maintaining privacy while providing complete visibility into the scope and patterns of available demographic data.
+
+## Named exception: gifted preschool, grade 14, and Consolidated Student Group stars on four files
+
+The rule above still holds. A starred cell is stored as value NA with suppressed Y, and a blank is not stored. Gifted and talented participation is the one named exception, and the exception is a star on three slices in four files.
+
+`gifted_and_talented_2020.csv` through `gifted_and_talented_2023.csv` publish no 0 and no blank. The smallest value in those files is 3. Preschool, grade 14, and Consolidated Student Group are starred on every row in those files, including the state row. KDE did not report these slices in these files. A missing group row does not mean the group is empty. Consolidated Student Group is a real group: the 2019 state count is 14,874. A published number on these slices is kept. The stars are not written.
+
+The skip is those four filenames and those slices, and only when the cell is a star. It does not look at whether a column is all stars. Kindergarten, grade 12, Students with Disabilities, and the talent categories in the same files are still stored. 2019 is not one of the four files: that workbook publishes real Consolidated Student Group counts and real grade 14 counts, including zeros. 2024 onward is not in the exception: a preschool or grade 14 star in those years is still stored.
+
+KDE's KYRC23 republication of 2022-23 has no preschool column and no Consolidated Student Group rows, and grade 14 is blank on all 13,567 rows. Not applicable or not reported is the likeliest meaning of these stars.
+
+Scott chose this exception on [issue #77](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/77). Every other star, in these files and in every other module, stays NA/Y.
