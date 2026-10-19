@@ -591,14 +591,32 @@ raw_directories:
       file: "KYRC26_EDOP_Dual_Credit_Participation_and_Performance.csv"
 
   cte_pathways:
+    # Pathways Available is the pathway name in every year, including the
+    # 2018-19 workbook. KYRC23_CTE_Career_Pathways.csv returns 200 on
+    # datasets and UAT and 404 on the historical host. School year is
+    # 20222023. The pathway keys match career_pathways_2023.csv. 40
+    # completer cells are a number in KYRC23 and * in the historical file
+    # (29 at schools and 11 on district or state rows).
+    # accepts_data_file skips that name so 2023 is not written twice.
+    # It is not registered. CAREER_PATHWAYS_17-18.xlsx returns 200 and is
+    # earlier than this series. It is not registered. Guessed OAA names
+    # Career_Pathways_2024.CSV, _2025, and _2026 are 404 and were never
+    # registered. KYRC24 on the datasets host matches the historical
+    # measures. 290 co-op cells differ. The historical file stays
+    # registered. The historical KYRC25 file is byte-identical to datasets.
     - "KYRC24_CTE_Career_Pathways.csv"
     - url: "kyrc25"
       file: "KYRC25_CTE_Career_Pathways.csv"
     - url: "kyrc26"
       file: "KYRC26_CTE_Career_Pathways.csv"
     - "career_pathways_2023.csv"
+    - "career_pathways_2022.csv"
     - "career_pathways_2021.csv"
-    # Note: CAREER_PATHWAYS_18-19.xlsx has pathway names not counts, incompatible schema
+    - "career_pathways_2020.csv"
+    # 2018-19 uses pathway names, the same as every later file, plus
+    # preparatory students instead of concentrators. Preparatory is not
+    # mapped. There is no DEMO or DGROUP column.
+    - "CAREER_PATHWAYS_18-19.xlsx"
 
   career_readiness_indicators:
     - "KYRC24_CTE_Career_Readiness_Indicators.csv"
