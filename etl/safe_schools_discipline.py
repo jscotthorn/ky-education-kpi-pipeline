@@ -3,11 +3,13 @@ Safe Schools Discipline ETL Module
 
 Processes Kentucky safe schools discipline resolutions and legal sanctions.
 
-Scott's rule (2026-10-19): store the count KDE published. Do not recompute
-a rate or a share, do not add schools or districts into a new total, and
-do not replace a starred cell with a lower bound. No figure in these
-files was published and then dropped, so nothing here is derived. A count
-of KPI rows is a count of stored published cells, not a figure KDE publishes.
+Scott's rule (2026-10-19), clarified the same day: it guides new metrics
+and new design choices. This module already stores the published count.
+It does not compute a rate, a share, a cross-level sum, or a lower-bound
+total, and none of those is added. A count of KPI rows is a count of
+stored published cells, not a figure KDE publishes. Issue #52 still
+applies: a published 0 is kept, a partial star is suppressed, and a blank
+is skipped.
 
 The published cells are counts. There are no decimals, and the smallest
 positive number in every registered file is 3. A published 0 is a real zero.
