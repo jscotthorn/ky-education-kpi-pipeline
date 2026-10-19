@@ -716,21 +716,25 @@ The category counts use the same rows as `courses_offered_count`, and the four n
 ## Career Readiness Indicators
 **Source**: `etl/career_readiness_indicators.py`
 
-Career readiness metrics for CTE programs tracking various readiness indicators.
+Published counts of graduates by career-readiness indicator. KDE's accountability page defines postsecondary readiness as a diploma, or a grade-12 non-graduate, plus one academic or career indicator. This file is the career slice. There is one source row per school, district, or state total. The headers are counts, not pathway names. A student in two indicators can be counted in more than one column in 2023 and later. The columns are stored as published and are not added together. There is no rate.
 
 ### Readiness Indicators
-- `career_readiness_industry_certification_count` - Students earning industry certifications
-- `career_readiness_apprenticeship_count` - Students participating in apprenticeships
-- `career_readiness_cooperative_education_count` - Students in cooperative education
-- `career_readiness_internship_count` - Students participating in internships
-- `career_readiness_advanced_placement_count` - Students in advanced placement (CTE context)
-- `career_readiness_dual_credit_cte_count` - Students earning dual credit through CTE
-- `career_readiness_transition_readiness_count` - Students meeting transition readiness criteria
+- `career_readiness_total_graduates_count` - Graduates in the readiness count. Published in 2019, 2022, 2023, 2025, and 2026. KYRC24 does not have the column.
+- `career_readiness_industry_certification_count` - Graduates with an approved industry certificate, license, or credential.
+- `career_readiness_cte_end_of_program_assessment_count` - Graduates passing the state CTE end-of-program assessment used for articulated credit. The 2018-19 workbook does not have this column.
+- `career_readiness_apprenticeship_count` - Graduates in a TRACK youth apprenticeship.
+- `career_readiness_dual_credit_cte_count` - Graduates with a C or better in a KDE-approved CTE dual-credit course. This is not `dual_credit_enrollment`.
+- `career_readiness_work_based_learning_count` - Graduates who completed a KBE-approved co-op or internship of at least 300 hours. One count. KYRC24 through KYRC26 publish it. The file does not split co-op from internship.
+- `career_readiness_exceptional_work_experience_count` - The older work-experience column. Published on the 2018-19 workbook. The 2022 and 2023 columns exist and are blank on every row, so those years have no rows for this metric. It is not filled in as work-based learning.
+- `career_readiness_more_than_one_indicator_count` - Graduates KDE counted under more than one indicator. In 2022 this column is part of a partition of total graduates. In 2023 and later the indicator columns overlap. The 2019 state cell is 1.
+- `career_readiness_no_indicator_count` - Graduates with none of the career-readiness indicators.
 
-**Note**: This dataset contains school/program-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+**Note**: `student_group` is `All Students` on every row. The file has no demographic column. The 2018-19 workbook has no DEMO or DGROUP column. KYRC state rows are district `All Districts` and school id `999000`. The 2019-2023 state rows are district `State` and school id `999`. Those ids are not padded. A `*` is value NA with `suppressed` Y. A blank cell is not stored. A published 0 is kept. KYRC24 publishes 0. The 2019-2023 files publish no 0 and no star. The smallest published count is 1, so a blank there is an empty cell, not a star. KYRC25 and KYRC26 publish no 0 and no blank. On the indicator columns the smallest published count is 3, so a star there can also mean 0-2 or not applicable. Total graduates is published down to 13 in KYRC25 (one starred district) and 10 in KYRC26 (no star). Where every district cell is a number, the state cell still does not equal the sum of the districts. Each level keeps the value KDE published.
 
-**Data Sources**: KYRC24_CTE_Career_Readiness_Indicators.csv, career_readiness_indicators_{year}.csv
-**Years Available**: 2023-2024
+The older names `career_readiness_cooperative_education_count`, `career_readiness_internship_count`, `career_readiness_advanced_placement_count`, and `career_readiness_transition_readiness_count` had no source column on any registered file and are not emitted. Co-op and internship are the work-based learning count. Advanced Placement is academic readiness and is not in this file.
+
+**Data Sources**: `KYRC24_CTE_Career_Readiness_Indicators.csv`, `KYRC25_CTE_Career_Readiness_Indicators.csv`, `KYRC26_CTE_Career_Readiness_Indicators.csv`, `career_readiness_indicators_2023.csv`, `career_readiness_indicators_2022.csv`, `CTE_TRANSITION_READINESS_18-19.xlsx`
+**Years Available**: 2019, 2022-2026
 **Unit**: Count (non-negative integers)
 **Demographics**: School-level only (All Students)
 
