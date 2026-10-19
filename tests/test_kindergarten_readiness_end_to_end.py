@@ -436,3 +436,123 @@ def test_2019_workbook_reads_coversheet_labels(tmp_path):
         output, "2020", "999", "kindergarten_readiness_rate", "Students with Disabilities (IEP)"
     )["value"] == "35.0"
 
+    # Workbook state and co-op rows have no county. The stored county is
+    # blank. pandas 2 would otherwise write the text "nan".
+    assert pd.isna(state_2019["county_number"])
+
+
+def test_2020_suppressed_rate_and_zero_tested_are_real_rows(tmp_path):
+    """All Students prior, suppressed Y, NUMBER TESTED published, percent blank.
+
+    Adair County district ``001``, African American, prior setting All
+    Students, tested 3, percent blank, suppressed Y. The rate and the count
+    are stored as NA / Y. The tested count is also NA on a Y row. That
+    stored-as-NA total predates this change.
+
+    The same district, American Indian, is suppressed N with NUMBER TESTED
+    0 and a blank percent. The total 0 is kept and no rate is invented.
+    """
+    output = _run_fixtures(tmp_path, ["kindergarten_screen_2020.csv"])
+    starred = _metric_value(
+        output, "2020", "001", "kindergarten_readiness_rate", "African American"
+    )
+    assert starred["suppressed"] == "Y"
+    assert pd.isna(starred["value"])
+    assert starred["district"] == "Adair County"
+    assert starred["school_name"] == "---District Total---"
+    count = _metric_value(
+        output, "2020", "001", "kindergarten_readiness_count", "African American"
+    )
+    assert count["suppressed"] == "Y"
+    assert pd.isna(count["value"])
+    total = _metric_value(
+        output, "2020", "001", "kindergarten_readiness_total", "African American"
+    )
+    assert total["suppressed"] == "Y"
+    assert pd.isna(total["value"])
+
+    zero = _metric_value(
+        output,
+        "2020",
+        "001",
+        "kindergarten_readiness_total",
+        "American Indian or Alaska Native",
+    )
+    assert zero["value"] == "0.0"
+    assert zero["suppressed"] == "N"
+    assert _metric_rows(
+        output,
+        "2020",
+        "001",
+        "kindergarten_readiness_rate",
+        "American Indian or Alaska Native",
+    ).empty
+    assert _metric_rows(
+        output,
+        "2020",
+        "001",
+        "kindergarten_readiness_count",
+        "American Indian or Alaska Native",
+    ).empty
+
+
+def test_starred_prior_setting_does_not_duplicate_the_published_rate(tmp_path):
+    """A starred prior setting beside a published All Students row is one rate.
+
+    Allen County ``005``, All Students, prior setting All Students, is
+    63.5 of 211. Prior setting Unknown on that same row is suppressed Y,
+    tested 3, percent blank. The old defaults wrote a second
+    ``kindergarten_readiness_rate`` for that prior setting. The Unknown
+    row is only the prior-setting placeholder. State Funded is the
+    published prior-setting metric on the same district.
+    """
+    output = _run_fixtures(tmp_path, ["kindergarten_screen_2020.csv"])
+    keys = ["year", "school_id", "student_group", "metric"]
+    assert not output.duplicated(keys).any()
+
+    published = _metric_value(output, "2020", "005", "kindergarten_readiness_rate")
+    assert published["value"] == "63.5"
+    assert published["suppressed"] == "N"
+    assert published["district"] == "Allen County"
+    assert _metric_value(output, "2020", "005", "kindergarten_readiness_total")["value"] == "211.0"
+    assert _metric_value(output, "2020", "005", "kindergarten_readiness_count")["value"] == "134.0"
+    assert len(_metric_rows(output, "2020", "005", "kindergarten_readiness_rate", "All Students")) == 1
+
+    placeholder = _metric_value(output, "2020", "005", "kindergarten_unknown_rate")
+    assert placeholder["suppressed"] == "Y"
+    assert pd.isna(placeholder["value"])
+    unknown_count = _metric_value(output, "2020", "005", "kindergarten_unknown_count")
+    assert unknown_count["suppressed"] == "Y"
+    assert pd.isna(unknown_count["value"])
+
+    state_funded = _metric_value(output, "2020", "005", "kindergarten_state_funded_rate")
+    assert state_funded["value"] == "72.8"
+    assert state_funded["suppressed"] == "N"
+    assert _metric_value(output, "2020", "005", "kindergarten_state_funded_count")["value"] == "59.0"
+
+
+def test_2017_coop_total_uses_the_2019_label(tmp_path):
+    """2017-18 districts 901-909 are co-op totals, not unnamed districts.
+
+    The workbook labels them ``---District Total---`` with a blank name.
+    The stored row uses the 2019 co-op name, ``---COOP Total---``, and
+    the abbreviation. County number is blank, not the text ``nan``.
+    """
+    output = _run_fixtures(tmp_path, ["KSCREEN_17-18.xlsx"])
+    coop = _metric_value(output, "2018", "901", "kindergarten_readiness_rate")
+    assert coop["value"] == "51.3"
+    assert coop["suppressed"] == "N"
+    assert coop["district"] == "Central Kentucky Educational Cooperative"
+    assert coop["school_name"] == "---COOP Total---"
+    assert coop["co_op"] == "CKEC"
+    assert coop["co_op_code"] == "901"
+    assert coop["source_file"] == "KSCREEN_17-18.xlsx"
+    assert pd.isna(coop["county_number"])
+    assert _metric_value(output, "2018", "901", "kindergarten_readiness_total")["value"] == "6685.0"
+    assert _metric_value(output, "2018", "901", "kindergarten_readiness_count")["value"] == "3429.0"
+
+    state = _metric_value(output, "2018", "999", "kindergarten_readiness_rate")
+    assert state["district"] == "State"
+    assert state["school_name"] == "---State Total---"
+    assert pd.isna(state["county_number"])
+

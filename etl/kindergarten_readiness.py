@@ -15,7 +15,9 @@ tested count on the file. Do not divide the percents by a tested count.
 The older percent files and the workbooks publish a percent and, in some
 years, ``NUMBER TESTED``. The rate is that percent. The total is the
 published tested count. The existing count is ``round(percent / 100 *
-tested)``. That headcount is not a new metric.
+tested)``. That headcount is an estimate of a figure KDE did not publish:
+exact when the tested count is below about 1,000, and about +/-24 students
+at state level, because the percent is rounded to one decimal.
 
 ``Kindergarten_Screen_2025.CSV`` is 404. The permanent KYRC25 composite is
 the 2024-25 source. A leftover temporary extract for 2024, 2025, or 2026
@@ -108,6 +110,23 @@ _WORKBOOK_DEMO_LABELS = {
     "ACO": "Students without IEP",
 }
 
+# 2018-19 publishes these names on ``---COOP Total---`` rows. 2017-18
+# publishes the same nine totals as ``---District Total---`` with a blank
+# district name and school code 901-909. 909 has no abbreviation in 2019.
+_COOP_TOTALS = {
+    "901": ("Central Kentucky Educational Cooperative", "CKEC"),
+    "902": ("Green River Regional Educational Cooperative", "GRREC"),
+    "903": ("Kentucky Educational Development Corporation", "KEDC"),
+    "904": ("Kentucky Valley Educational Corporation", "KVEC"),
+    "905": ("Northern Kentucky Cooperative for Educational Services", "NKCES"),
+    "906": ("Ohio Valley Educational Cooperative", "OVEC"),
+    "907": ("Southeast/Southcentral Education Cooperative", "SESC"),
+    "908": ("West Kentucky Educational Cooperative", "WKEC"),
+    "909": ("Greater Louisville Educational Cooperative", None),
+}
+
+_MISSING_TEXT = {"", "nan", "none", "<na>", "nat"}
+
 _COUNT_COLUMNS = (
     "ready_with_interventions_count",
     "ready_count",
@@ -146,6 +165,20 @@ def _prior_is_all(row: pd.Series) -> bool:
 
 def _demographic_is_all(row: pd.Series) -> bool:
     return str(row.get("demographic", "")).strip().lower() == "all students"
+
+
+def _text_or_blank(value: Any) -> str:
+    """Return stripped text, or ``""`` when the cell is missing.
+
+    pandas 2 ``astype(str)`` turns a missing county into the literal
+    ``"nan"``. pandas 3 leaves it blank. Both are empty.
+    """
+    if value is None or pd.isna(value):
+        return ""
+    text = str(value).strip()
+    if text.lower() in _MISSING_TEXT:
+        return ""
+    return text
 
 
 def _has_count_shape(row: pd.Series) -> bool:
@@ -206,8 +239,10 @@ class KindergartenReadinessETL(BaseETL):
         ``KSCREEN_18-19.xlsx`` publishes a ``---COOP Total---`` row for each
         co-op with school code ``000``. The shared extractor would store all
         nine under that one code. The published co-op code (901-909) is the
-        identifier on the row. 2017-18 has no co-op total. A school row still
-        uses its school code.
+        identifier on the row. 2017-18 publishes the same nine totals with
+        school code 901-909 already, and ``_label_2017_coop_total`` renames
+        those rows to ``---COOP Total---`` before this runs. A school row
+        still uses its school code.
         """
         school_name = row.get("school_name")
         if pd.notna(school_name) and str(school_name).strip() == "---COOP Total---":
@@ -377,11 +412,21 @@ class KindergartenReadinessETL(BaseETL):
         if is_prior_all and pd.notna(total):
             metrics["kindergarten_readiness_total"] = total
             if pd.notna(rate):
-                # Existing headcount. The published figures are the percent
-                # and the tested count.
+                # Existing headcount. KDE publishes the percent and the
+                # tested count. ``round(percent / 100 * tested)`` is exact
+                # below about 1,000 tested and about +/-24 at state level.
                 metrics["kindergarten_readiness_count"] = round(
                     (float(rate) / 100) * total
                 )
+            elif str(row.get("suppressed", "N")).strip() == "Y":
+                # All Students prior, suppressed Y, a published NUMBER TESTED,
+                # and a blank percent. The total makes this dict non-empty,
+                # so get_suppressed_metric_defaults does not run and the rate
+                # and count would be dropped. Name them here. The converter
+                # stores every metric on a Y row as NA, including the tested
+                # count. Storing NUMBER TESTED as NA predates this change.
+                metrics["kindergarten_readiness_rate"] = pd.NA
+                metrics["kindergarten_readiness_count"] = pd.NA
 
         if (
             prior_slug
@@ -516,6 +561,34 @@ class KindergartenReadinessETL(BaseETL):
         updated["demographic"] = label
         return updated
 
+    def _label_2017_coop_total(self, row: pd.Series, source_file: str) -> pd.Series:
+        """Label 2017-18 co-op totals the way 2019 publishes them.
+
+        Districts 901-909 in ``KSCREEN_17-18.xlsx`` are ``---District Total---``
+        with a blank district name. Stored that way they look like nine
+        unnamed districts. 2019 already publishes the long co-op name,
+        ``---COOP Total---``, and the abbreviation (blank for 909). A 2019
+        row has a district name, so this does not rewrite it.
+        """
+        if Path(source_file).name.lower() not in _WORKBOOK_FILES:
+            return row
+        code = _text_or_blank(row.get("district_number"))
+        if code.endswith(".0"):
+            code = code[:-2]
+        if code not in _COOP_TOTALS:
+            return row
+        if _text_or_blank(row.get("district_name")):
+            return row
+        if _text_or_blank(row.get("school_name")) != "---District Total---":
+            return row
+        long_name, abbreviation = _COOP_TOTALS[code]
+        updated = row.copy()
+        updated["district_name"] = long_name
+        updated["school_name"] = "---COOP Total---"
+        updated["co_op_code"] = code
+        updated["co_op"] = abbreviation if abbreviation else pd.NA
+        return updated
+
     def create_kpi_template(self, row: pd.Series, source_file: str) -> Optional[Dict[str, Any]]:
         """
         Override to handle kindergarten-specific suppression logic.
@@ -525,11 +598,17 @@ class KindergartenReadinessETL(BaseETL):
         suppressed ``N``. A star with no composite percent stays ``Y``.
         """
         row = self._apply_workbook_labels(row, source_file)
+        row = self._label_2017_coop_total(row, source_file)
         template = super().create_kpi_template(row, source_file)
 
         # If template is None (e.g., filtered demographic), return None
         if template is None:
             return None
+
+        # pandas 2 casts a missing county_number to the text "nan". pandas 3
+        # leaves it blank. Workbook state and co-op rows have no county.
+        if not _text_or_blank(template.get("county_number")):
+            template["county_number"] = pd.NA
 
         # Override suppression if we have actual readiness data
         # Check if total_percent_ready or component readiness values exist

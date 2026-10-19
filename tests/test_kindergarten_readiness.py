@@ -194,6 +194,119 @@ class TestKindergartenReadinessETL:
         })
         assert self.etl.extract_school_id(school) == "001020"
 
+    def test_suppressed_blank_percent_keeps_rate_and_count(self):
+        """A Y row with NUMBER TESTED and a blank percent still names the rate.
+
+        The tested count makes extract_metrics non-empty, so the defaults
+        path does not run. The rate and the count have to be in the dict
+        or the row keeps only kindergarten_readiness_total.
+        """
+        row = pd.Series({
+            "prior_setting": "All Students",
+            "demographic": "African American",
+            "suppressed": "Y",
+            "number_tested": 3,
+            "total_percent_ready": pd.NA,
+        })
+        metrics = self.etl.extract_metrics(row)
+        assert pd.isna(metrics["kindergarten_readiness_rate"])
+        assert pd.isna(metrics["kindergarten_readiness_count"])
+        assert metrics["kindergarten_readiness_total"] == 3
+
+        published = row.copy()
+        published["suppressed"] = "N"
+        published["total_percent_ready"] = 51.0
+        published["number_tested"] = 100
+        kept = self.etl.extract_metrics(published)
+        assert kept["kindergarten_readiness_rate"] == 51.0
+        assert kept["kindergarten_readiness_count"] == 51
+        assert kept["kindergarten_readiness_total"] == 100
+
+    def test_zero_tested_without_a_percent_keeps_the_total(self):
+        """NUMBER TESTED 0 with a blank percent is a published total, not a rate."""
+        row = pd.Series({
+            "prior_setting": "All Students",
+            "demographic": "American Indian or Alaska Native",
+            "suppressed": "N",
+            "number_tested": 0,
+            "total_percent_ready": pd.NA,
+        })
+        metrics = self.etl.extract_metrics(row)
+        assert metrics == {"kindergarten_readiness_total": 0}
+
+    def test_suppressed_prior_setting_does_not_emit_the_overall_rate(self):
+        """A starred prior setting does not write kindergarten_readiness_rate.
+
+        The overall rate belongs to prior setting All Students. Restoring
+        the old defaults, which emitted that rate for every prior setting,
+        fails this check.
+        """
+        row = pd.Series({
+            "prior_setting": "Unknown",
+            "demographic": "All Students",
+            "suppressed": "Y",
+            "number_tested": pd.NA,
+            "total_percent_ready": pd.NA,
+        })
+        metrics = self.etl.get_suppressed_metric_defaults(row)
+        assert "kindergarten_readiness_rate" not in metrics
+        assert "kindergarten_readiness_count" not in metrics
+        assert "kindergarten_readiness_total" not in metrics
+        assert pd.isna(metrics["kindergarten_unknown_rate"])
+        assert pd.isna(metrics["kindergarten_unknown_count"])
+
+    def test_2017_blank_district_is_a_coop_total(self):
+        """Districts 901-909 with a blank name are co-op totals, as in 2019.
+
+        A missing county is blank. pandas 2 would otherwise store the text
+        ``nan``. A 2019 row that already has the long name is left as published.
+        """
+        row = pd.Series({
+            "school_year": "20172018",
+            "district_number": "901",
+            "district_name": pd.NA,
+            "school_code": "901",
+            "school_name": "---District Total---",
+            "demographic": "TST",
+            "prior_setting": "All Students",
+            "suppressed": "N",
+            "county_number": "nan",
+            "total_percent_ready": 51.3,
+            "number_tested": 6685,
+        })
+        template = self.etl.create_kpi_template(row, "KSCREEN_17-18.xlsx")
+        assert template is not None
+        assert template["district"] == "Central Kentucky Educational Cooperative"
+        assert template["school_name"] == "---COOP Total---"
+        assert template["school_id"] == "901"
+        assert template["co_op"] == "CKEC"
+        assert template["co_op_code"] == "901"
+        assert pd.isna(template["county_number"])
+
+        labelled = row.copy()
+        labelled["district_name"] = "Central Kentucky Educational Cooperative"
+        labelled["school_name"] = "---COOP Total---"
+        labelled["co_op"] = "CKEC"
+        labelled["co_op_code"] = "901"
+        labelled["school_code"] = "000"
+        kept = self.etl.create_kpi_template(labelled, "KSCREEN_18-19.xlsx")
+        assert kept is not None
+        assert kept["district"] == "Central Kentucky Educational Cooperative"
+        assert kept["school_name"] == "---COOP Total---"
+        assert kept["school_id"] == "901"
+
+        school = row.copy()
+        school["district_number"] = "001"
+        school["district_name"] = "Adair County"
+        school["school_name"] = "Adair County Primary Center"
+        school["school_code"] = "001020"
+        school["county_number"] = "001"
+        adair = self.etl.create_kpi_template(school, "KSCREEN_17-18.xlsx")
+        assert adair is not None
+        assert adair["district"] == "Adair County"
+        assert adair["county_number"] == "001"
+        assert adair["school_id"] == "001020"
+
     def test_workbook_coversheet_labels_are_not_the_shared_map(self):
         """ACD and CSG follow the kindergarten coversheet. The shared yaml is unchanged.
 

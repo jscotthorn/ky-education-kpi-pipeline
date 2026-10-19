@@ -79,17 +79,21 @@ KDE's BRIGANCE kindergarten screen publishes the share of screened students in e
 
 On the KYRC24, KYRC25, and KYRC26 composites the columns are named like counts and the cells are those percents. The count-named metrics store the published percents. The existing rate divides each published percent by the sum of the three components. `kindergarten_readiness_total` on those files is that sum, not a screened count. Where the components sum to 100, the rate equals the published percent. The 2026 state row sums to 100, so the readiness rate is 45.
 
-On the 2018-2021 files, `kindergarten_readiness_rate` is the published total-ready percent and `kindergarten_readiness_total` is the published number tested. `kindergarten_readiness_count` is the existing `round(percent / 100 * tested)`. 2022 and 2023 publish the percent and do not publish a tested count, so they have a rate and no total. Their prior-setting percents are not stored.
+On the 2018-2021 files, `kindergarten_readiness_rate` is the published total-ready percent and `kindergarten_readiness_total` is the published number tested. `kindergarten_readiness_count` is `round(percent / 100 * tested)`. KDE publishes the percent and the tested count, not that headcount, so the count is an estimate. It is exact when the tested count is below about 1,000, and about +/-24 students at state level, because the percent is rounded to one decimal. 2022 and 2023 publish the percent and do not publish a tested count, so they have a rate and no total. Their prior-setting percents are not stored. The 2020-23 component columns and that 2022-23 tested-count gap are issue #90.
 
 State rows are district `All Districts` for 2024-2026 and district `State` for 2018-2023. The 2026 state All Students / prior setting All Students figures are 55 / 38 / 7 / 45. An unweighted mean of the district totals is not the state figure and is not stored.
 
-A `*` is value NA with suppressed Y. A blank row (not Y, every measure empty) is not stored. A published 0 is kept. In 2020-2023 KDE publishes no 0 and no blank, so a Y in those years can mean 0-2 or not available. The 2018-19 workbook `Y` flag means some domain cell is suppressed; a published composite percent on that row is kept.
+A `*` is value NA with suppressed Y. A blank row (not Y, every measure empty) is not stored. A published 0 is kept. A 2020 row with NUMBER TESTED 0 and a blank percent stores that total and does not invent a rate. In 2020-2023 KDE publishes no 0 and no blank in the percent cells, so a Y in those years can mean 0-2 or not available. A 2020-21 All Students prior row that is suppressed Y, with a published NUMBER TESTED and a blank percent, stores the rate and the count as value NA with suppressed Y. The tested count on that Y row is also stored as NA. That stored-as-NA total predates the rate and count rows. The 2018-19 workbook `Y` flag means some domain cell is suppressed; a published composite percent on that row is kept.
+
+2018-19 co-op totals are `---COOP Total---` under the published co-op code 901-909. 2017-18 publishes the same nine totals as `---District Total---` with a blank district name and school code 901-909. Those rows are stored with the 2019 labels: the long co-op name, `---COOP Total---`, and the abbreviation. Greater Louisville (909) has no abbreviation.
+
+`KYRC23_ASMT_Kindergarten_Screen_Composite.csv` republishes 2022-23 and is not loaded. Skipping it drops three 2023 groups only that file publishes: Non Economically Disadvantaged, Non English Learner, and Student without Disabilities (IEP). That is 15,126 source rows. `kindergarten_screen_2023.csv` has 91 Breathitt County rows whose school year is `20022023`. The year taken from that field is 2023. Issue #91. No code change.
 
 The 2018-19 coversheet says demographic `ACD` is Disabilities (IEP). Those rows are Students with Disabilities (IEP). The 2019 state disability row is 6,104 tested and 34.2 percent ready.
 
 ### Basic Readiness Metrics
 - `kindergarten_readiness_rate` - On the KYRC composites, the published total-ready percent divided by the sum of the three component percents. On 2018-2023, the published percent
-- `kindergarten_readiness_count` - On the KYRC composites, the published `Total Ready` percent, not a headcount. On 2018-2021, `round(percent / 100 * number tested)`
+- `kindergarten_readiness_count` - On the KYRC composites, the published `Total Ready` percent, not a headcount. On 2018-2021, `round(percent / 100 * number tested)`, an estimate of a headcount KDE did not publish
 - `kindergarten_readiness_total` - On the KYRC composites, the sum of the three component percents. On 2018-2021, the published number tested. Absent in 2022 and 2023
 
 ### Readiness Component Breakdown
@@ -678,20 +682,22 @@ A published 0 is kept where the file publishes one. The 2018-19 workbook publish
 ## CTE Pathways
 **Source**: `etl/cte_pathways.py`
 
-Career and Technical Education (CTE) pathway availability and completion metrics by program area.
+KDE publishes one row per career pathway. `Pathways Available` is the pathway name in every year, including 2018-19. The report-card glossary defines active enrollment as students enrolled during the school year in at least one valid course in that pathway. Concentrators are 12th-grade students with at least two and fewer than four credits in that pathway. Completers are 12th-grade students with four or more credits in that pathway. Those statuses are different groups. A student in two pathways is on two rows, so a sum across pathways counts that student twice. State and district rows are KDE's own pathway rows, not a sum built from the schools.
+
+The output is one row per school, year, and student group. There is no demographic column.
 
 ### Pathway Metrics
-- `num_cte_pathways` - Number of CTE pathways available at the school
-- `cte_pathway_enrollment` - Total active enrollment in CTE pathways
-- `cte_concentrator_count` - Number of CTE concentrator students
-- `cte_pathway_completer_count` - Number of students completing CTE pathways
-- `cte_pathway_completion_rate` - Percentage of concentrators completing pathways (Completers / Concentrators * 100)
+- `num_cte_pathways` - Count of published pathway rows at the school. This is not a figure KDE publishes. A starred count still counts. A published 0 counts. A row with enrollment, concentrators, and completers all blank is not counted. Stored with `suppressed` N. 2020-2023 list some pathways under two program areas with the same counts; that pathway counts once
+- `cte_pathway_enrollment` - Sum of active enrollment across pathways. A student in two pathways counts twice. Value NA with `suppressed` Y when any pathway's enrollment is `*`. A partial sum is not stored
+- `cte_concentrator_count` - Sum of concentrators across pathways, with the same star rule. A student in two pathways counts twice. Not emitted for 2019, because that file has no concentrator column. The 2018-19 preparatory-student column is a different measure and is not stored. Concentrators appear to be counted across grades
+- `cte_pathway_completer_count` - Sum of completers across pathways, with the same star rule. A student in two pathways counts twice. This is not CTE Participation's `cte_completer_count_grade_12`, which counts each 12th-grade completer once. In 2026 the published state pathway-completer cells sum to at least 36,436. The participation state count is 19,990
+- `cte_pathway_completion_rate` - Pipeline-calculated: completers divided by concentrators, times 100, rounded to 1 decimal place. KDE does not publish this rate. Scott approved it on 2026-10-19 as an existing-practice exception. KDE's concentrator group (at least two and fewer than four credits) and completer group (four or more credits) do not overlap, so the rate is not a share of concentrators. Any starred pathway suppresses it. 2019 has none because that file has no concentrator column. Concentrators appear to be counted across grades
 
-**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+**Note**: `student_group` is `All Students` on every row. KYRC state rows are district `All Districts` and school id `999000` (the school name `All Schools` is stored as `---District Total---`). 2019-2023 state rows are district `State` and school id `999`. In 2020-2026 the smallest published count is 3, so a star can also mean 0-2 or not applicable. 2019 publishes 0 and has no stars. Those zeros stay. 386 all-zero school pathway rows raise the 2019 school pathway-count mean to 12.04; without those rows it is 10.75. Later years sit between 10.4 and 11.4. The 2026 state pathway count is 113. The 2026 state enrollment, concentrator, and completer totals are suppressed because 9, 6, and 15 pathway cells are `*`. On KYRC25 and KYRC26, some state pathway cells do not equal the sum of the district cells, and the district sum is higher. Each level keeps the value KDE published. That difference is flagged kde-recheck in [issue #86](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/86). District `606` (Model Laboratory Schools at EKU) is new in 2026. Caldwell County High School `081010` is enrollment 556, concentrators 413, completers 143, and a calculated completion rate of 34.6.
 
-**Data Sources**: KYRC25_CTE_Career_Pathways.csv, KYRC24_CTE_Career_Pathways.csv, career_pathways_{year}.csv
-**Years Available**: 2021-2025
-**Unit**: Count (non-negative integers), Rate (0-100%)
+**Data Sources**: `CAREER_PATHWAYS_18-19.xlsx`, `career_pathways_2020.csv` through `career_pathways_2023.csv`, `KYRC24_CTE_Career_Pathways.csv`, `KYRC25_CTE_Career_Pathways.csv`, `KYRC26_CTE_Career_Pathways.csv`
+**Years Available**: 2019-2026
+**Unit**: Count (non-negative integers). `num_cte_pathways` is a count of published pathway rows. Enrollment, concentrators, and completers are sums across pathways. The completion rate is completers / concentrators * 100, calculated by the pipeline and rounded to 1 decimal place
 **Demographics**: School-level only (All Students)
 
 ---
