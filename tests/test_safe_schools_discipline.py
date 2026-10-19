@@ -534,13 +534,68 @@ class TestSafeSchoolsDisciplineKyrc26:
         assert _num(_cell(df, "2020", "999", "All Students", "out_of_school_suspension_count")["value"]) == 28027
         assert _cell(df, "2020", "999", "All Students", "removal_by_hearing_officer_count")["suppressed"] == "Y"
 
-        # The 2020 Adair American Indian row is all stars. It is not stored.
+        # The 2020 Adair American Indian row is all stars. Each cell is NA/Y.
+        adair_metrics = {
+            "expelled_receiving_services_count",
+            "expelled_not_receiving_services_count",
+            "out_of_school_suspension_count",
+            "corporal_punishment_count",
+            "in_school_removal_count",
+            "restraint_count",
+            "seclusion_count",
+            "unilateral_removal_count",
+            "removal_by_hearing_officer_count",
+        }
         adair_star = df[
             (df["year"] == "2020")
             & (df["school_id"] == "001010")
             & (df["student_group"] == "American Indian or Alaska Native")
         ]
-        assert adair_star.empty
+        assert set(adair_star["metric"]) == adair_metrics
+        assert (adair_star["value"] == "").all()
+        assert (adair_star["suppressed"] == "Y").all()
+
+
+def test_all_star_rows_are_stored_suppressed(tmp_path):
+    """Murray 2025 and Adair 2020 are all stars. Each count cell is NA/Y."""
+    raw = tmp_path / "raw" / "safe_schools_discipline"
+    raw.mkdir(parents=True)
+    proc = tmp_path / "processed"
+    proc.mkdir()
+    _copy_fixture(raw, "kyrc25_legal_murray_all_star.csv", "KYRC25_SAFE_Legal_Sanctions.csv")
+    _copy_fixture(raw, "historical_2020_all_star.csv", "safe_schools_discipline_2020.csv")
+    df = _run(raw, proc)
+
+    legal = [
+        "arrest_count",
+        "charges_count",
+        "civil_proceedings_count",
+        "court_designated_worker_count",
+        "school_resource_officer_count",
+    ]
+    for school_id, school_name in (
+        ("446000", "---District Total---"),
+        ("446050", "Murray High School"),
+    ):
+        rows = df[(df["year"] == "2025") & (df["school_id"] == school_id)]
+        assert set(rows["metric"]) == set(legal)
+        assert (rows["student_group"] == "African American").all()
+        assert (rows["value"] == "").all()
+        assert (rows["suppressed"] == "Y").all()
+        assert (rows["school_name"] == school_name).all()
+        assert "total" not in set(rows["metric"])
+
+    adair = df[
+        (df["year"] == "2020")
+        & (df["school_id"] == "001010")
+        & (df["student_group"] == "American Indian or Alaska Native")
+    ]
+    assert len(adair) == 9
+    assert (adair["value"] == "").all()
+    assert (adair["suppressed"] == "Y").all()
+    oss = adair[adair["metric"] == "out_of_school_suspension_count"].iloc[0]
+    assert oss["value"] == ""
+    assert oss["suppressed"] == "Y"
 
 
 def test_registered_sources_are_the_permanent_files():

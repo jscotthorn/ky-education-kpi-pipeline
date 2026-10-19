@@ -17,11 +17,14 @@ publish 0, so a star is not a stand-in for zero. The 2018-19 workbook
 publishes 1s and 2s. It is not loaded here. A published 0 is a real zero.
 A ``*`` on a row that also has a number is a real suppression (1 or 2, or a
 cell that does not apply) and is stored as value NA with ``suppressed`` ``Y``.
-A row whose every count cell is ``*`` is whole-group suppression. It is
-usually zero: of the 10,321 all-star 2023 rows matched to the KYRC23
-republish, 9,057 are all zeros (about 88 percent), 434 have a real positive
-count (227 of those have out-of-school suspensions above 0, up to 25), and
-971 are still starred. That row is not stored. A blank cell is not stored.
+A row whose every count cell is ``*`` is whole-group suppression, and it
+is stored the same way as any other star: each cell is value NA with
+``suppressed`` ``Y``. The KYRC23 republish of 2022-23 is why. Of the
+10,321 all-star 2023 rows matched to that file, 9,057 are all zeros
+(about 88 percent), 434 have a real positive count (227 of those have
+out-of-school suspensions above 0, up to 25), and 971 are still starred.
+Dropping the row would drop those cells. A blank cell is not stored, and
+a row whose count cells are all blank is not stored.
 
 ``All Students`` is the unduplicated student count. The other demographic
 rows are resolution or sanction events. The same metric holds both, so a
@@ -341,25 +344,23 @@ class SafeSchoolsDisciplineETL(BaseETL):
         return present, saw_number, saw_star, saw_blank
 
     def should_skip_row(self, row: pd.Series) -> bool:
-        """Skip ``Total Events``, an all-star row, and an all-blank row.
+        """Skip ``Total Events`` and a row whose count cells are all blank.
 
         ``Total Events`` is the event total. Female plus Male already
         equals it, and it is not a student group. An all-star row is
-        whole-group suppression: every count cell is ``*`` and there is
-        no number and no blank. A blank is not a star. A row that has a
-        number, including a published 0, is kept. A row of blanks is not
-        offered and is skipped. These loaded files have no blank count cell.
+        kept. Each starred cell is value NA with ``suppressed`` ``Y``,
+        in every year. A blank is not a star. A row that has a number,
+        including a published 0, is kept. A row of blanks is not offered
+        and is skipped.
         """
         if super().should_skip_row(row):
             return True
         present, saw_number, saw_star, saw_blank = self._row_measure_state(row)
-        if not present or saw_number:
-            return not present
-        if saw_star and not saw_blank:
+        if not present:
             return True
-        if not saw_star and saw_blank:
-            return True
-        return False
+        if saw_number or saw_star:
+            return False
+        return saw_blank
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
         """Extract count metrics from a data row.
@@ -401,8 +402,8 @@ class SafeSchoolsDisciplineETL(BaseETL):
         """Write one KPI row per count cell.
 
         A published number, including 0, is ``suppressed`` ``N``. A ``*``
-        is value NA and ``suppressed`` ``Y``. A blank cell is not a row.
-        An all-star row is skipped before this loop.
+        is value NA and ``suppressed`` ``Y``, including when every count
+        cell on the row is ``*``. A blank cell is not a row.
         """
         kpi_rows: List[Dict[str, Any]] = []
         for _, row in df.iterrows():
