@@ -1,0 +1,5 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Prior Setting,Suppressed,Demographic,Ready With Interventions,Ready,Ready With Enrichments,Total Ready
+20232024,,,999,All Districts,,All Schools,999000,,,,,,All Students,N,All Students,52,40,8,48
+20232024,001,ADAIR,001,Adair County,020,Adair County Primary Center,001020,001001020,210003002345,GRREC,902,A1,All Students,N,All Students,69,28,4,31
+20232024,001,ADAIR,001,Adair County,020,Adair County Primary Center,001020,001001020,210003002345,GRREC,902,A1,All Students,Y,American Indian or Alaska Native, *, *, *, *
+20232024,034,FAYETTE,165,Fayette County,,All Schools,165000,,,CKEC,901,,All Students,N,All Students,50,41,10,50

@@ -4,6 +4,9 @@ import tempfile
 from pathlib import Path
 
 import pandas as pd
+import pytest
+import yaml
+
 from etl.kindergarten_readiness import transform
 
 
@@ -92,4 +95,344 @@ class TestKindergartenReadinessEndToEnd:
             "kindergarten_child_care_rate",
         }
         assert metrics == expected
+
+
+ROOT = Path(__file__).resolve().parents[1]
+FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures" / "kindergarten_readiness"
+
+def _run_fixtures(tmp_path: Path, filenames: list[str]) -> pd.DataFrame:
+    """Copy committed real-row excerpts into a raw directory and transform them."""
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "kindergarten_readiness"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    for name in filenames:
+        target = source_dir / name
+        target.write_bytes((FIXTURE_DIR / name).read_bytes())
+    transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-10-19"}})
+    output = proc_dir / "kindergarten_readiness.csv"
+    assert output.exists(), filenames
+    return pd.read_csv(output, dtype=str)
+
+
+def _metric_rows(
+    df: pd.DataFrame, year: str, school_id: str, metric: str, student_group: str
+) -> pd.DataFrame:
+    return df[
+        (df["year"] == year)
+        & (df["school_id"] == school_id)
+        & (df["metric"] == metric)
+        & (df["student_group"] == student_group)
+    ]
+
+
+def _metric_value(
+    df: pd.DataFrame, year: str, school_id: str, metric: str, student_group: str = "All Students"
+) -> pd.Series:
+    matches = _metric_rows(df, year, school_id, metric, student_group)
+    assert len(matches) == 1, (year, school_id, metric, student_group, len(matches))
+    return matches.iloc[0]
+
+
+def _assert_composite(df: pd.DataFrame, year: str, school_id: str, published: tuple[str, str, str, str]) -> None:
+    """Count metrics hold the published percents. The rate matches when they sum to 100.
+
+    The existing rate divides by the sum of the three component percents.
+    ``kindergarten_readiness_total`` is that sum. These rows sum to 100, so
+    the rate equals the published percent.
+    """
+    interventions, ready, enrichments, total = published
+    expected = {
+        "kindergarten_ready_with_interventions_count": interventions,
+        "kindergarten_ready_with_interventions_rate": interventions,
+        "kindergarten_ready_count": ready,
+        "kindergarten_ready_rate": ready,
+        "kindergarten_ready_with_enrichments_count": enrichments,
+        "kindergarten_ready_with_enrichments_rate": enrichments,
+        "kindergarten_readiness_count": total,
+        "kindergarten_readiness_rate": total,
+        "kindergarten_readiness_total": "100.0",
+    }
+    for metric, value in expected.items():
+        row = _metric_value(df, year, school_id, metric)
+        assert float(row["value"]) == pytest.approx(float(value), abs=1e-9), (metric, row["value"])
+        assert row["suppressed"] == "N"
+
+
+def test_kyrc26_sources_and_leftover_names():
+    """2024-25 comes from the KYRC25 composite. The dead temporary file is not registered."""
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    for entry in config["raw_directories"]["kindergarten_readiness"]:
+        names.append(entry["file"] if isinstance(entry, dict) else entry)
+
+    assert "KYRC26_ASMT_Kindergarten_Screen_Composite.csv" in names
+    assert "KYRC25_ASMT_Kindergarten_Screen_Composite.csv" in names
+    assert "KYRC24_ASMT_Kindergarten_Screen_Composite.csv" in names
+    assert "KSCREEN_18-19.xlsx" in names
+    assert "KSCREEN_17-18.xlsx" in names
+    assert "kindergarten_screen_2023.csv" in names
+    assert "Kindergarten_Screen_2025.CSV" not in names
+    assert "Kindergarten_Screen_2026.CSV" not in names
+    assert "KYRC23_ASMT_Kindergarten_Screen_Composite.csv" not in names
+    assert names.count("KYRC25_ASMT_Kindergarten_Screen_Composite.csv") == 1
+    assert names.count("KYRC26_ASMT_Kindergarten_Screen_Composite.csv") == 1
+
+
+def test_leftover_temporary_file_does_not_duplicate_a_year(tmp_path):
+    """A leftover Kindergarten_Screen_YYYY.CSV must not add a second year.
+
+    The temporary row uses district ``State``, a 3-digit code, and a
+    different rate so a duplicate would be visible. The KYRC26 state rate
+    stays 45.
+    """
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "kindergarten_readiness"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    name = "KYRC26_ASMT_Kindergarten_Screen_Composite.csv"
+    (source_dir / name).write_bytes((FIXTURE_DIR / name).read_bytes())
+    header = (
+        "School Year,School Code,District Name,School Name,Demographic,PRIOR_SETTING,Suppressed,"
+        "Percent Ready with Interventions,Percent Ready,Percent Ready With Enrichments,Total Percent Ready\n"
+    )
+    for filename, year in (
+        ("Kindergarten_Screen_2024.CSV", "20232024"),
+        ("Kindergarten_Screen_2025.CSV", "20242025"),
+        ("Kindergarten_Screen_2026.CSV", "20252026"),
+    ):
+        (source_dir / filename).write_text(
+            header + f"{year},999,State,,All Students,All Students,N,10,20,70,90\n"
+        )
+    (source_dir / "KYRC23_ASMT_Kindergarten_Screen_Composite.csv").write_text(
+        "School Year,School Code,District Name,School Name,Demographic,Prior Setting,Suppressed,"
+        "Ready With Interventions,Ready,Ready With Enrichments,Total Ready\n"
+        "20222023,999000,All Districts,All Schools,All Students,All Students,N,1,2,3,4\n"
+    )
+
+    transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-10-19"}})
+    output = pd.read_csv(proc_dir / "kindergarten_readiness.csv", dtype=str)
+
+    assert set(output["source_file"]) == {name}
+    assert "90.0" not in set(output["value"].dropna())
+    assert "4.0" not in set(output["value"].dropna())
+    assert "State" not in set(output["district"])
+    state = _metric_value(output, "2026", "999000", "kindergarten_readiness_rate")
+    assert state["value"] == "45.0"
+    assert state["district"] == "All Districts"
+
+
+def test_blank_row_is_skipped_and_star_is_kept(tmp_path):
+    """A blank suppression cell emits nothing. A star is value NA with suppressed Y.
+
+    Adair County Primary Center ``001020``, American Indian, is blank in
+    KYRC25 and KYRC26 and emits no row. The KYRC24 twin is ``Y`` and is
+    kept. African American is ``Y`` in KYRC26. Two or More Races publishes
+    enrichments 0, which is kept.
+    """
+    output = _run_fixtures(
+        tmp_path,
+        [
+            "KYRC24_ASMT_Kindergarten_Screen_Composite.csv",
+            "KYRC25_ASMT_Kindergarten_Screen_Composite.csv",
+            "KYRC26_ASMT_Kindergarten_Screen_Composite.csv",
+        ],
+    )
+    for year in ("2025", "2026"):
+        assert _metric_rows(
+            output, year, "001020", "kindergarten_readiness_rate", "American Indian or Alaska Native"
+        ).empty
+
+    kept = _metric_value(
+        output, "2024", "001020", "kindergarten_readiness_rate", "American Indian or Alaska Native"
+    )
+    assert kept["suppressed"] == "Y"
+    assert pd.isna(kept["value"])
+
+    starred = _metric_value(
+        output, "2026", "001020", "kindergarten_readiness_rate", "African American"
+    )
+    assert starred["suppressed"] == "Y"
+    assert pd.isna(starred["value"])
+
+    zero = _metric_value(
+        output,
+        "2026",
+        "001020",
+        "kindergarten_ready_with_enrichments_count",
+        "Two or More Races",
+    )
+    assert zero["value"] == "0.0"
+    assert zero["suppressed"] == "N"
+    zero_rate = _metric_value(
+        output,
+        "2026",
+        "001020",
+        "kindergarten_ready_with_enrichments_rate",
+        "Two or More Races",
+    )
+    assert zero_rate["value"] == "0.0"
+
+    # Poage Elementary also publishes enrichments 0 on All Students.
+    poage = _metric_value(
+        output, "2026", "012110", "kindergarten_ready_with_enrichments_count"
+    )
+    assert poage["value"] == "0.0"
+    assert poage["suppressed"] == "N"
+
+
+def test_output_has_no_duplicate_keys(tmp_path):
+    """One key is year, school, student group, and metric, across every file."""
+    output = _run_fixtures(tmp_path, sorted(path.name for path in FIXTURE_DIR.iterdir()))
+    keys = ["year", "school_id", "student_group", "metric"]
+    assert not output.duplicated(keys).any()
+    assert len(output) == len(output.drop_duplicates(keys))
+
+
+def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
+    """2025-26 KPIs from real composite rows, with fixed earlier-year anchors.
+
+    The composite columns are percents. The count metrics store those
+    percents. They are not divided by a tested count. State All Students,
+    prior setting All Students, is 55 / 38 / 7 / 45 and the readiness rate
+    is 45.
+    """
+    output = _run_fixtures(
+        tmp_path,
+        [
+            "KYRC24_ASMT_Kindergarten_Screen_Composite.csv",
+            "KYRC25_ASMT_Kindergarten_Screen_Composite.csv",
+            "KYRC26_ASMT_Kindergarten_Screen_Composite.csv",
+            "kindergarten_screen_2020.csv",
+            "KSCREEN_18-19.xlsx",
+            "KSCREEN_17-18.xlsx",
+        ],
+    )
+
+    _assert_composite(output, "2026", "999000", ("55", "38", "7", "45"))
+    state = _metric_value(output, "2026", "999000", "kindergarten_readiness_rate")
+    assert state["district"] == "All Districts"
+    assert state["school_name"] == "---District Total---"
+    assert state["source_file"] == "KYRC26_ASMT_Kindergarten_Screen_Composite.csv"
+
+    fayette = _metric_value(output, "2026", "165000", "kindergarten_readiness_rate")
+    assert fayette["value"] == "47.0"
+    assert fayette["district"] == "Fayette County"
+    assert fayette["nces_id"] == "2101860"
+    assert fayette["co_op"] == "CKEC"
+    assert fayette["co_op_code"] == "901"
+    _assert_composite(output, "2026", "165000", ("53", "38", "9", "47"))
+
+    adair = _metric_value(output, "2026", "001020", "kindergarten_readiness_rate")
+    assert adair["value"] == "36.0"
+    assert adair["school_name"] == "Adair County Primary Center"
+    assert adair["state_school_id"] == "001001020"
+    assert adair["nces_id"] == "210003002345"
+    assert adair["school_type"] == "A1"
+    _assert_composite(output, "2026", "001020", ("64", "34", "2", "36"))
+
+    child_care = _metric_value(output, "2026", "999000", "kindergarten_child_care_rate")
+    assert child_care["value"] == "66.0"
+    assert child_care["suppressed"] == "N"
+    assert _metric_value(output, "2026", "999000", "kindergarten_child_care_count")["value"] == "66.0"
+    # Prior setting Kindergarten publishes 52 / 41 / 6 / 48. The components
+    # sum to 99. The existing rate is 48/99*100. The count stays 48.
+    assert _metric_value(output, "2026", "999000", "kindergarten_kindergarten_count")["value"] == "48.0"
+    kindergarten_prior = _metric_value(output, "2026", "999000", "kindergarten_kindergarten_rate")
+    assert float(kindergarten_prior["value"]) == pytest.approx(48 / 99 * 100)
+
+    # KYRC25 permanent file. Adair district matches the November 2025 temporary sample 76/23/1/24.
+    _assert_composite(output, "2025", "999000", ("54", "39", "7", "46"))
+    _assert_composite(output, "2025", "165000", ("52", "38", "10", "48"))
+    _assert_composite(output, "2025", "001000", ("76", "23", "1", "24"))
+    assert _metric_value(output, "2025", "001000", "kindergarten_readiness_rate")["district"] == "Adair County"
+
+    # KYRC24 anchors. Fayette's components are 50 + 41 + 10 = 101, so the
+    # existing rate is 50/101*100. The count metrics stay the published percents.
+    _assert_composite(output, "2024", "999000", ("52", "40", "8", "48"))
+    assert _metric_value(output, "2024", "165000", "kindergarten_ready_with_interventions_count")["value"] == "50.0"
+    assert _metric_value(output, "2024", "165000", "kindergarten_ready_count")["value"] == "41.0"
+    assert _metric_value(output, "2024", "165000", "kindergarten_ready_with_enrichments_count")["value"] == "10.0"
+    assert _metric_value(output, "2024", "165000", "kindergarten_readiness_count")["value"] == "50.0"
+    assert _metric_value(output, "2024", "165000", "kindergarten_readiness_total")["value"] == "101.0"
+    fayette_2024 = _metric_value(output, "2024", "165000", "kindergarten_readiness_rate")
+    assert float(fayette_2024["value"]) == pytest.approx(50 / 101 * 100)
+
+    # 2019-20 percent file. Rate is the published percent. Total is the
+    # published tested count. Count is the existing round(rate/100*tested).
+    prior = _metric_value(output, "2020", "999", "kindergarten_readiness_rate")
+    assert prior["value"] == "51.0"
+    assert prior["district"] == "State"
+    assert prior["school_name"] == "---State Total---"
+    assert _metric_value(output, "2020", "999", "kindergarten_readiness_total")["value"] == "47787.0"
+    assert _metric_value(output, "2020", "999", "kindergarten_readiness_count")["value"] == "24371.0"
+    disability_2020 = _metric_value(
+        output, "2020", "999", "kindergarten_readiness_rate", "Students with Disabilities (IEP)"
+    )
+    assert disability_2020["value"] == "35.0"
+    assert _metric_value(
+        output, "2020", "999", "kindergarten_readiness_total", "Students with Disabilities (IEP)"
+    )["value"] == "7173.0"
+
+
+def test_2019_workbook_reads_coversheet_labels(tmp_path):
+    """ACD is Students with Disabilities. The shared map drops that code.
+
+    The 2018-19 coversheet says ACD is Disabilities (IEP) and CSG is
+    Consolidated Student Group. The data file has ACD and no CSG row.
+    State tested count is 6,104 and total ready is 34.2. The 2020
+    disability tested count is 7,173 and total ready is 35.0. Issue #76.
+    The comma in ``6,104`` is kept. A blank American Indian row is skipped.
+    """
+    output = _run_fixtures(
+        tmp_path,
+        ["KSCREEN_18-19.xlsx", "KSCREEN_17-18.xlsx", "kindergarten_screen_2020.csv"],
+    )
+    disability = _metric_value(
+        output, "2019", "999", "kindergarten_readiness_rate", "Students with Disabilities (IEP)"
+    )
+    assert disability["value"] == "34.2"
+    assert disability["suppressed"] == "N"
+    assert disability["source_file"] == "KSCREEN_18-19.xlsx"
+    assert disability["district"] == "State"
+    assert _metric_value(
+        output, "2019", "999", "kindergarten_readiness_total", "Students with Disabilities (IEP)"
+    )["value"] == "6104.0"
+    assert _metric_value(
+        output, "2019", "999", "kindergarten_readiness_count", "Students with Disabilities (IEP)"
+    )["value"] == "2088.0"
+
+    # Adair ACD publishes enrichments 0 and a tested count with no comma.
+    adair = _metric_value(
+        output, "2019", "001020", "kindergarten_ready_with_enrichments_rate", "Students with Disabilities (IEP)"
+    )
+    assert adair["value"] == "0.0"
+    assert adair["suppressed"] == "N"
+
+    # American Indian at Adair is suppressed N with every measure empty.
+    assert _metric_rows(
+        output, "2019", "001020", "kindergarten_readiness_rate", "American Indian or Alaska Native"
+    ).empty
+
+    state_2019 = _metric_value(output, "2019", "999", "kindergarten_readiness_rate")
+    assert state_2019["value"] == "51.1"
+    assert _metric_value(output, "2019", "999", "kindergarten_readiness_total")["value"] == "47906.0"
+
+    # 2017-18 is a real earlier year. State disability total ready is 32.1.
+    disability_2018 = _metric_value(
+        output, "2018", "999", "kindergarten_readiness_rate", "Students with Disabilities (IEP)"
+    )
+    assert disability_2018["value"] == "32.1"
+    assert disability_2018["source_file"] == "KSCREEN_17-18.xlsx"
+    assert _metric_value(
+        output, "2018", "999", "kindergarten_readiness_total", "Students with Disabilities (IEP)"
+    )["value"] == "5359.0"
+    assert _metric_value(output, "2018", "999", "kindergarten_readiness_rate")["value"] == "51.4"
+
+    # 2020 still comes from the percent file, not from a swapped code.
+    assert _metric_value(
+        output, "2020", "999", "kindergarten_readiness_rate", "Students with Disabilities (IEP)"
+    )["value"] == "35.0"
 
