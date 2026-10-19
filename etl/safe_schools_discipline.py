@@ -31,11 +31,19 @@ rows are resolution or sanction events. The same metric holds both, so a
 subgroup share is not computed against ``All Students``. Female plus Male
 equals the published ``Total Events`` row, not ``All Students``. That row
 is skipped by the existing aggregate filter. This module does not add
-Female and Male into a replacement. The published ``Total`` column, and the historical
-``TOTAL DISCIPLINE RESOLUTIONS`` column, are not stored. The old parser
-did not emit them and did not sum the resolution columns. ``Total`` is
-not that sum. This module does not start summing those columns, and it
-does not invent a total when a component is ``*``.
+Female and Male into a replacement.
+
+Scott decided on 2026-10-19 to store the published ``Total`` column on
+``All Students`` rows only. ``safe_schools_discipline_resolutions_students_unduplicated``
+is that column on the resolutions file, and the historical
+``TOTAL DISCIPLINE RESOLUTIONS`` column. ``safe_schools_legal_sanctions_students_unduplicated``
+is that column on the legal-sanctions file. Each is the unduplicated
+student count KDE published. A ``*`` is value NA with ``suppressed`` ``Y``.
+A blank is not stored. A published 0 is kept. Nothing is calculated from
+the column. On a subgroup row ``Total`` only repeats the sum of the event
+columns, so it is not stored. The old parser did not emit ``Total`` and
+did not sum the resolution columns. This module does not start summing
+those columns, and it does not invent a total when a component is ``*``.
 
 KYRC26 uses the title-case resolution headers. KYRC25 spells the expulsion
 column ``(Ssp2)``. KYRC24 spells it ``(SSP2)`` and uses ``Out-Of-School``,
@@ -48,7 +56,7 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -60,8 +68,8 @@ from constants import KPI_COLUMNS
 
 logger = logging.getLogger(__name__)
 
-# Canonical count columns. ``Total`` and ``TOTAL DISCIPLINE RESOLUTIONS``
-# are not in this list. They are not the sum of these columns.
+# Canonical event-count columns. The published Total is a separate
+# unduplicated-student metric and is not in this list.
 COUNT_COLUMNS: List[str] = [
     "corporal_punishment_count",
     "restraint_count",
@@ -78,6 +86,21 @@ COUNT_COLUMNS: List[str] = [
     "court_designated_worker_count",
     "school_resource_officer_count",
 ]
+
+# The first nine counts are discipline resolutions. The last five are
+# legal sanctions. A file has one of those sets.
+RESOLUTION_COLUMNS: List[str] = COUNT_COLUMNS[:9]
+LEGAL_COLUMNS: List[str] = COUNT_COLUMNS[9:]
+
+# Published Total on All Students only. Scott, 2026-10-19.
+DISCIPLINE_STUDENTS_UNDUPLICATED = (
+    "safe_schools_discipline_resolutions_students_unduplicated"
+)
+LEGAL_STUDENTS_UNDUPLICATED = "safe_schools_legal_sanctions_students_unduplicated"
+_UNDUPLICATED_SOURCE_COLUMNS: tuple[str, ...] = (
+    "total",
+    "total_discipline_resolutions",
+)
 
 # KYRC23 republishes 2022-23. The historical annual file is the registered
 # copy. A leftover KYRC23 file would write a second 2023.
@@ -198,7 +221,7 @@ def _clean_count_columns(df: pd.DataFrame) -> pd.DataFrame:
     missing. Object and StringDtype are both cleaned. A published 0 is
     left as 0. ``*`` becomes missing after the star flag is recorded.
     """
-    for column in COUNT_COLUMNS:
+    for column in list(COUNT_COLUMNS) + list(_UNDUPLICATED_SOURCE_COLUMNS):
         if column not in df.columns:
             continue
         series = df[column]
@@ -215,6 +238,67 @@ def _clean_count_columns(df: pd.DataFrame) -> pd.DataFrame:
         missing = missing | upper.isin(["N/A", "#N/A", "NA", "NAN"])
         df[column] = cleaned.mask(missing, pd.NA)
     return df
+
+
+def _is_all_students(row: pd.Series) -> bool:
+    """True for the published All Students demographic.
+
+    A subgroup row is events. Its Total column repeats the sum of those
+    event columns and is not the unduplicated-student metric.
+    """
+    value = row.get("demographic")
+    if _is_missing(value):
+        return False
+    return str(value).strip() == "All Students"
+
+
+def _unduplicated_source_column(row: pd.Series) -> Optional[str]:
+    """Return the published Total column on this row, or None.
+
+    The 2020-2023 files name it ``TOTAL DISCIPLINE RESOLUTIONS``. KYRC24
+    through KYRC26 name it ``Total`` on both tables.
+    """
+    if (
+        "total_discipline_resolutions" in row.index
+        or _metric_was_starred(row, "total_discipline_resolutions")
+    ):
+        return "total_discipline_resolutions"
+    if "total" in row.index or _metric_was_starred(row, "total"):
+        return "total"
+    return None
+
+
+def _unduplicated_metric_name(row: pd.Series) -> Optional[str]:
+    """Return the unduplicated metric for this file, or None.
+
+    Legal sanctions and discipline resolutions both use the header
+    ``Total``. The count columns on the row say which table it is.
+    """
+    source = _unduplicated_source_column(row)
+    if source is None:
+        return None
+    if source == "total_discipline_resolutions":
+        return DISCIPLINE_STUDENTS_UNDUPLICATED
+    has_resolution = any(column in row.index for column in RESOLUTION_COLUMNS)
+    has_legal = any(column in row.index for column in LEGAL_COLUMNS)
+    if has_legal and not has_resolution:
+        return LEGAL_STUDENTS_UNDUPLICATED
+    if has_resolution:
+        return DISCIPLINE_STUDENTS_UNDUPLICATED
+    return None
+
+
+def _kpi_value_was_starred(row: pd.Series, metric_name: str) -> bool:
+    """True when this KPI metric's source cell was a ``*``."""
+    if _metric_was_starred(row, metric_name):
+        return True
+    if metric_name == DISCIPLINE_STUDENTS_UNDUPLICATED:
+        return _metric_was_starred(row, "total") or _metric_was_starred(
+            row, "total_discipline_resolutions"
+        )
+    if metric_name == LEGAL_STUDENTS_UNDUPLICATED:
+        return _metric_was_starred(row, "total")
+    return False
 
 
 class SafeSchoolsDisciplineETL(BaseETL):
@@ -297,7 +381,7 @@ class SafeSchoolsDisciplineETL(BaseETL):
             "SECLUSION SSP8": "seclusion_count",
             "UNILATERAL REMOVAL BY SCHOOL PERSONNEL IAES1": "unilateral_removal_count",
             "REMOVAL BY HEARING OFFICER IAES2": "removal_by_hearing_officer_count",
-            # Kept so the column name is stable. Not emitted.
+            # Published unduplicated student count. Stored on All Students only.
             "TOTAL DISCIPLINE RESOLUTIONS": "total_discipline_resolutions",
             "Total": "total",
         }
@@ -313,7 +397,7 @@ class SafeSchoolsDisciplineETL(BaseETL):
         """
         star_columns = {
             column: _star_mask(df[column])
-            for column in COUNT_COLUMNS
+            for column in list(COUNT_COLUMNS) + list(_UNDUPLICATED_SOURCE_COLUMNS)
             if column in df.columns
         }
         df = super().standardize_missing_values(df)
@@ -351,11 +435,23 @@ class SafeSchoolsDisciplineETL(BaseETL):
         kept. Each starred cell is value NA with ``suppressed`` ``Y``,
         in every year. A blank is not a star. A row that has a number,
         including a published 0, is kept. A row of blanks is not offered
-        and is skipped.
+        and is skipped. An All Students row with a published Total, or a
+        starred Total, is kept. A subgroup Total does not keep a row.
         """
         if super().should_skip_row(row):
             return True
         present, saw_number, saw_star, saw_blank = self._row_measure_state(row)
+        # All Students with a published Total is kept even when every
+        # event cell is blank. A subgroup Total is not stored, so a
+        # subgroup row of blank event cells is still skipped.
+        if _is_all_students(row):
+            source = _unduplicated_source_column(row)
+            if source is not None:
+                if _metric_was_starred(row, source):
+                    return False
+                parsed = _parse_number(row.get(source, pd.NA))
+                if not _is_missing(parsed):
+                    return False
         if not present:
             return True
         if saw_number or saw_star:
@@ -383,7 +479,32 @@ class SafeSchoolsDisciplineETL(BaseETL):
                 logger.warning("Negative count in %s: %s", column, parsed)
                 continue
             metrics[column] = int(parsed) if parsed == int(parsed) else parsed
+        self._add_unduplicated_students(row, metrics)
         return metrics
+
+    def _add_unduplicated_students(self, row: pd.Series, metrics: Dict[str, Any]) -> None:
+        """Store the published Total on an All Students row.
+
+        The value is the cell KDE published. It is not the sum of the
+        event columns. A subgroup row is left unchanged. A blank Total
+        adds no metric. A ``*`` is missing so the KPI row is suppressed.
+        """
+        if not _is_all_students(row):
+            return
+        metric_name = _unduplicated_metric_name(row)
+        source = _unduplicated_source_column(row)
+        if metric_name is None or source is None:
+            return
+        if _metric_was_starred(row, source):
+            metrics[metric_name] = pd.NA
+            return
+        parsed = _parse_number(row.get(source, pd.NA))
+        if _is_missing(parsed):
+            return
+        if parsed < 0:
+            logger.warning("Negative count in %s: %s", source, parsed)
+            return
+        metrics[metric_name] = int(parsed) if parsed == int(parsed) else parsed
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         """NA for each count column present on a row-level suppressed record.
@@ -396,6 +517,15 @@ class SafeSchoolsDisciplineETL(BaseETL):
         for column in COUNT_COLUMNS:
             if column in row.index or _metric_was_starred(row, column):
                 defaults[column] = pd.NA
+        if _is_all_students(row):
+            metric_name = _unduplicated_metric_name(row)
+            source = _unduplicated_source_column(row)
+            if (
+                metric_name is not None
+                and source is not None
+                and (source in row.index or _metric_was_starred(row, source))
+            ):
+                defaults[metric_name] = pd.NA
         return defaults
 
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
@@ -403,7 +533,9 @@ class SafeSchoolsDisciplineETL(BaseETL):
 
         A published number, including 0, is ``suppressed`` ``N``. A ``*``
         is value NA and ``suppressed`` ``Y``, including when every count
-        cell on the row is ``*``. A blank cell is not a row.
+        cell on the row is ``*``. A blank cell is not a row. On an All
+        Students row the published Total is its own unduplicated-student
+        metric. A subgroup Total is not a row.
         """
         kpi_rows: List[Dict[str, Any]] = []
         for _, row in df.iterrows():
@@ -418,7 +550,7 @@ class SafeSchoolsDisciplineETL(BaseETL):
             for metric_name, value in metrics.items():
                 kpi_record = kpi_template.copy()
                 kpi_record["metric"] = metric_name
-                starred = _metric_was_starred(row, metric_name)
+                starred = _kpi_value_was_starred(row, metric_name)
                 if starred or kpi_template["suppressed"] == "Y":
                     kpi_record["value"] = pd.NA
                     kpi_record["suppressed"] = "Y"

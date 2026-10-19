@@ -7,7 +7,12 @@ import pandas as pd
 from etl.constants import KPI_COLUMNS
 import tempfile
 import shutil
-from etl.safe_schools_discipline import transform, SafeSchoolsDisciplineETL
+from etl.safe_schools_discipline import (
+    DISCIPLINE_STUDENTS_UNDUPLICATED,
+    LEGAL_STUDENTS_UNDUPLICATED,
+    transform,
+    SafeSchoolsDisciplineETL,
+)
 
 
 class TestSafeSchoolsDisciplineETL:
@@ -204,7 +209,7 @@ class TestSafeSchoolsDisciplineETL:
         assert 'total_discipline_resolutions' not in metrics
     
     def test_extract_metrics_zero_total(self):
-        """A zero in the unused Total column does not drop published counts."""
+        """A zero Total on a non-All-Students row does not drop published counts."""
         etl = SafeSchoolsDisciplineETL()
         
         row = pd.Series({
@@ -247,6 +252,39 @@ class TestSafeSchoolsDisciplineETL:
         metrics = etl.extract_metrics(row)
         assert 'out_of_school_suspension_count' not in metrics
         assert metrics['restraint_count'] == 4
+
+    def test_extract_metrics_blank_total_on_all_students(self):
+        """A blank Total is not stored. A published 0 on All Students is kept."""
+        etl = SafeSchoolsDisciplineETL()
+        blank = pd.Series({
+            "demographic": "All Students",
+            "total": "",
+            "out_of_school_suspension_count": 4,
+            "restraint_count": 1,
+        })
+        blank_metrics = etl.extract_metrics(blank)
+        assert DISCIPLINE_STUDENTS_UNDUPLICATED not in blank_metrics
+        assert blank_metrics["out_of_school_suspension_count"] == 4
+
+        zero = pd.Series({
+            "demographic": "All Students",
+            "total": 0,
+            "out_of_school_suspension_count": 0,
+            "restraint_count": 0,
+        })
+        zero_metrics = etl.extract_metrics(zero)
+        assert zero_metrics[DISCIPLINE_STUDENTS_UNDUPLICATED] == 0
+
+        subgroup = pd.Series({
+            "demographic": "Female",
+            "total": 9,
+            "out_of_school_suspension_count": 4,
+            "restraint_count": 5,
+        })
+        subgroup_metrics = etl.extract_metrics(subgroup)
+        assert DISCIPLINE_STUDENTS_UNDUPLICATED not in subgroup_metrics
+        assert LEGAL_STUDENTS_UNDUPLICATED not in subgroup_metrics
+        assert subgroup_metrics["out_of_school_suspension_count"] == 4
     
     def test_get_suppressed_metric_defaults(self):
         """Defaults cover the count columns present on the row, not rate names."""
@@ -487,6 +525,12 @@ class TestSafeSchoolsDisciplineKyrc26:
         assert _num(_cell(df, "2026", "999000", "All Students", "corporal_punishment_count")["value"]) == 0
         assert _num(_cell(df, "2026", "999000", "All Students", "removal_by_hearing_officer_count")["value"]) == 0
         assert _num(_cell(df, "2026", "999000", "All Students", "expelled_not_receiving_services_count")["value"]) == 13
+        students = _cell(df, "2026", "999000", "All Students", DISCIPLINE_STUDENTS_UNDUPLICATED)
+        assert _num(students["value"]) == 67284
+        assert students["suppressed"] == "N"
+        legal_students = _cell(df, "2026", "999000", "All Students", LEGAL_STUDENTS_UNDUPLICATED)
+        assert _num(legal_students["value"]) == 3973
+        assert legal_students["suppressed"] == "N"
 
         # Fayette district and Bryan Station. Restraint at Bryan Station is *.
         fayette = _cell(df, "2026", "165000", "All Students", "out_of_school_suspension_count")
@@ -508,6 +552,13 @@ class TestSafeSchoolsDisciplineKyrc26:
         assert el["suppressed"] == "Y"
         assert _cell(df, "2026", "001010", "English Learner", "in_school_removal_count")["suppressed"] == "Y"
         assert _num(_cell(df, "2026", "001010", "English Learner", "restraint_count")["value"]) == 0
+        el_metrics = set(df[
+            (df["year"] == "2026")
+            & (df["school_id"] == "001010")
+            & (df["student_group"] == "English Learner")
+        ]["metric"])
+        assert DISCIPLINE_STUDENTS_UNDUPLICATED not in el_metrics
+        assert LEGAL_STUDENTS_UNDUPLICATED not in el_metrics
 
         # Legal sanctions, including a published 0 and a starred cell.
         arrests = _cell(df, "2026", "999000", "All Students", "arrest_count")
@@ -520,18 +571,22 @@ class TestSafeSchoolsDisciplineKyrc26:
 
         # Prior years. Published numbers stay. A star is suppressed Y.
         assert _num(_cell(df, "2025", "999000", "All Students", "out_of_school_suspension_count")["value"]) == 35886
+        assert _num(_cell(df, "2025", "999000", "All Students", DISCIPLINE_STUDENTS_UNDUPLICATED)["value"]) == 66013
         assert _num(_cell(df, "2025", "999000", "All Students", "expelled_not_receiving_services_count")["value"]) == 10
         assert _num(_cell(df, "2025", "999000", "All Students", "corporal_punishment_count")["value"]) == 0
         assert _num(_cell(df, "2024", "999000", "All Students", "out_of_school_suspension_count")["value"]) == 38983
+        assert _num(_cell(df, "2024", "999000", "All Students", DISCIPLINE_STUDENTS_UNDUPLICATED)["value"]) == 85687
         iaes = _cell(df, "2024", "999000", "All Students", "removal_by_hearing_officer_count")
         assert iaes["value"] == ""
         assert iaes["suppressed"] == "Y"
         assert _num(_cell(df, "2024", "999000", "All Students", "corporal_punishment_count")["value"]) == 0
         state_2023 = _cell(df, "2023", "999", "All Students", "out_of_school_suspension_count")
         assert _num(state_2023["value"]) == 40768
+        assert _num(_cell(df, "2023", "999", "All Students", DISCIPLINE_STUDENTS_UNDUPLICATED)["value"]) == 88141
         assert state_2023["district"] == "State"
         assert _cell(df, "2023", "999", "All Students", "removal_by_hearing_officer_count")["suppressed"] == "Y"
         assert _num(_cell(df, "2020", "999", "All Students", "out_of_school_suspension_count")["value"]) == 28027
+        assert _num(_cell(df, "2020", "999", "All Students", DISCIPLINE_STUDENTS_UNDUPLICATED)["value"]) == 91644
         assert _cell(df, "2020", "999", "All Students", "removal_by_hearing_officer_count")["suppressed"] == "Y"
 
         # The 2020 Adair American Indian row is all stars. Each cell is NA/Y.
@@ -596,6 +651,63 @@ def test_all_star_rows_are_stored_suppressed(tmp_path):
     oss = adair[adair["metric"] == "out_of_school_suspension_count"].iloc[0]
     assert oss["value"] == ""
     assert oss["suppressed"] == "Y"
+
+
+def test_all_students_total_is_stored_unduplicated(tmp_path):
+    """Published Total is an unduplicated student count on All Students only.
+
+    Allen County ``005000`` is one of the 639 All Students rows in the
+    2026 resolutions file whose Total is below the sum of the resolution
+    columns. The stored value is the published 386. Ignite Institute's
+    Total is a star. Adair Learning Academy's Total is a published 0.
+    The English Learner row publishes Total 3 and does not emit the metric.
+    """
+    raw = tmp_path / "raw" / "safe_schools_discipline"
+    raw.mkdir(parents=True)
+    proc = tmp_path / "processed"
+    proc.mkdir()
+    _copy_fixture(
+        raw,
+        "kyrc26_students_unduplicated.csv",
+        "KYRC26_SAFE_Discipline_Resolutions.csv",
+    )
+    df = _run(raw, proc)
+    metric = DISCIPLINE_STUDENTS_UNDUPLICATED
+
+    allen = df[(df["school_id"] == "005000") & (df["student_group"] == "All Students")]
+    stored = _cell(df, "2026", "005000", "All Students", metric)
+    assert _num(stored["value"]) == 386
+    assert stored["suppressed"] == "N"
+    assert stored["district"] == "Allen County"
+    assert stored["school_name"] == "---District Total---"
+    event_metrics = [name for name in set(allen["metric"]) if name != metric]
+    event_sum = sum(_num(row["value"]) for _, row in allen[allen["metric"].isin(event_metrics)].iterrows())
+    assert event_sum == 485
+    assert _num(stored["value"]) < event_sum
+
+    ignite = _cell(df, "2026", "035160", "All Students", metric)
+    assert ignite["value"] == ""
+    assert ignite["suppressed"] == "Y"
+    assert ignite["school_name"] == "Ignite Institute"
+    assert _num(_cell(df, "2026", "035160", "All Students", "restraint_count")["value"]) == 0
+    in_school = _cell(df, "2026", "035160", "All Students", "in_school_removal_count")
+    assert in_school["value"] == ""
+    assert in_school["suppressed"] == "Y"
+
+    zero = _cell(df, "2026", "001012", "All Students", metric)
+    assert _num(zero["value"]) == 0
+    assert zero["suppressed"] == "N"
+    assert zero["school_name"] == "Adair Learning Academy"
+
+    learner = df[
+        (df["school_id"] == "001010")
+        & (df["student_group"] == "English Learner")
+    ]
+    assert metric not in set(learner["metric"])
+    assert LEGAL_STUDENTS_UNDUPLICATED not in set(learner["metric"])
+    assert _num(_cell(df, "2026", "001010", "English Learner", "restraint_count")["value"]) == 0
+    assert "total" not in set(df["metric"])
+    assert "total_discipline_resolutions" not in set(df["metric"])
 
 
 def test_registered_sources_are_the_permanent_files():
