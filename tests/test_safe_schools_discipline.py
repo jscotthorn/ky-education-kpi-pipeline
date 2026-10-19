@@ -204,7 +204,6 @@ class TestSafeSchoolsDisciplineETL:
         assert 'total_discipline_resolutions' not in metrics
     
     def test_extract_metrics_zero_total(self):
-        """The published Total column is not emitted and is not a component sum."""
         """A zero in the unused Total column does not drop published counts."""
         etl = SafeSchoolsDisciplineETL()
         
@@ -237,6 +236,17 @@ class TestSafeSchoolsDisciplineETL:
         assert metrics['in_school_removal_count'] == 0
         assert metrics['out_of_school_suspension_count'] == 10
         assert 'restraint_rate' not in metrics
+
+    def test_extract_metrics_negative_count(self):
+        """A negative count is dropped. A published count on the same row is kept."""
+        etl = SafeSchoolsDisciplineETL()
+        row = pd.Series({
+            'out_of_school_suspension_count': -1,
+            'restraint_count': 4,
+        })
+        metrics = etl.extract_metrics(row)
+        assert 'out_of_school_suspension_count' not in metrics
+        assert metrics['restraint_count'] == 4
     
     def test_get_suppressed_metric_defaults(self):
         """Defaults cover the count columns present on the row, not rate names."""

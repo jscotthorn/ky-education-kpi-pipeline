@@ -11,18 +11,24 @@ stored published cells, not a figure KDE publishes. Issue #52 still
 applies: a published 0 is kept, a partial star is suppressed, and a blank
 is skipped.
 
-The published cells are counts. There are no decimals, and the smallest
-positive number in every registered file is 3. A published 0 is a real zero.
+The published cells in the 2020-2026 CSVs are counts. There are no
+decimals. The smallest positive number in those files is 3, and they also
+publish 0, so a star is not a stand-in for zero. The 2018-19 workbook
+publishes 1s and 2s. It is not loaded here. A published 0 is a real zero.
 A ``*`` on a row that also has a number is a real suppression (1 or 2, or a
 cell that does not apply) and is stored as value NA with ``suppressed`` ``Y``.
-A row whose every count cell is ``*`` is the all-star padding KDE later
-publishes as 0. That row is not stored. A blank cell is not stored.
+A row whose every count cell is ``*`` is whole-group suppression. It is
+usually zero: of the 10,321 all-star 2023 rows matched to the KYRC23
+republish, 9,057 are all zeros (about 88 percent), 434 have a real positive
+count (227 of those have out-of-school suspensions above 0, up to 25), and
+971 are still starred. That row is not stored. A blank cell is not stored.
 
 ``All Students`` is the unduplicated student count. The other demographic
-rows are resolution or sanction events. Female plus Male equals the
-published ``Total Events`` row, not ``All Students``. That row is skipped
-by the existing aggregate filter. This module does not add Female and Male
-into a replacement. The published ``Total`` column, and the historical
+rows are resolution or sanction events. The same metric holds both, so a
+subgroup share is not computed against ``All Students``. Female plus Male
+equals the published ``Total Events`` row, not ``All Students``. That row
+is skipped by the existing aggregate filter. This module does not add
+Female and Male into a replacement. The published ``Total`` column, and the historical
 ``TOTAL DISCIPLINE RESOLUTIONS`` column, are not stored. The old parser
 did not emit them and did not sum the resolution columns. ``Total`` is
 not that sum. This module does not start summing those columns, and it
@@ -231,10 +237,10 @@ class SafeSchoolsDisciplineETL(BaseETL):
         match the KYRC25 aliases, so a leftover copy would write a second
         2023 next to ``safe_schools_discipline_2023.csv``.
 
-        ``SAFE_SCHOOLS_18-19.xlsx`` is the wide multi-table workbook. It
-        has no ``DEMO`` column and no demographic row. The current parser
-        produces no rows from it. Skipping the name keeps that result
-        without reading the workbook.
+        ``SAFE_SCHOOLS_18-19.xlsx`` has Discipline-Resolutions and Legal
+        Sanctions tables at state, district, and school level. The DATA
+        sheet uses wide race and gender columns and has no ``DEMO`` column.
+        Loading it is issue #89. This parser skips the name.
         """
         upper = file_path.name.upper()
         if upper in _KYRC23_REPUBLISH:
@@ -245,7 +251,7 @@ class SafeSchoolsDisciplineETL(BaseETL):
             return False
         if upper.startswith("SAFE_SCHOOLS_18-19"):
             logger.info(
-                "Skipping %s; the 2018-19 workbook is wide race and gender columns",
+                "Skipping %s; 2018-19 discipline tables are issue #89",
                 file_path.name,
             )
             return False
@@ -339,10 +345,10 @@ class SafeSchoolsDisciplineETL(BaseETL):
 
         ``Total Events`` is the event total. Female plus Male already
         equals it, and it is not a student group. An all-star row is
-        padding: every count cell is ``*`` and there is no number and no
-        blank. A blank is not a star. A row that has a number, including
-        a published 0, is kept. A row of blanks is not offered and is
-        skipped. These registered files have no blank count cell.
+        whole-group suppression: every count cell is ``*`` and there is
+        no number and no blank. A blank is not a star. A row that has a
+        number, including a published 0, is kept. A row of blanks is not
+        offered and is skipped. These loaded files have no blank count cell.
         """
         if super().should_skip_row(row):
             return True
