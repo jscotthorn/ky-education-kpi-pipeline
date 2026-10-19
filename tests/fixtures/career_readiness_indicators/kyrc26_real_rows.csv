@@ -1,0 +1,8 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Total Graduates,Industry Certification,CTE End-of-Program Assessment,Apprenticeship,Dual Credit,More Than One Indicator,No Indicator,Work-Based Learning
+20252026,,,999,All Districts,,All Schools,999000,,,,,,49751,18286,12757,452,18267,16262,15898,5115
+20252026,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,199,107,48,4,129,98,36,*
+20252026,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,198,107,48,4,128,98,36,*
+20252026,019,CAMPBELL,032,Bellevue Independent,010,Bellevue High School,032010,019032010,210042000075,NKCES,905,A1,51,7,12,*,6,3,29,*
+20252026,017,CALDWELL,081,Caldwell County,010,Caldwell County High School,081010,017081010,210084000166,WKEC,908,A1,140,65,58,6,35,60,34,34
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,523,236,136,*,200,228,137,118
+20252026,073,MADISON,606,Model Laboratory Schools at EKU,460,Model High School,606460,073606460,210029102510,,,B1,55,*,*,*,5,*,50,*
