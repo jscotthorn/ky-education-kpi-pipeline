@@ -566,3 +566,28 @@ def test_composite_rate_is_the_published_percent(tmp_path):
     assert "kindergarten_readiness_total" not in set(composite["metric"])
     # 2018-21 still has the estimated count. This fixture set has no such year.
 
+
+def test_starred_composite_prior_setting_has_no_count(tmp_path):
+    """A starred non-All prior setting on a composite emits the rate only.
+
+    Adair County Primary Center ``001020``, demographic All Students, prior
+    setting Kindergarten, is the verbatim KYRC26 row: suppressed Y and
+    starred measure cells. The stored metric is ``kindergarten_kindergarten_rate``
+    with value NA and suppressed Y. Re-emitting the prior-setting ``_count``
+    placeholder on the 2024-26 composites would add
+    ``kindergarten_kindergarten_count`` for this row.
+    """
+    output = _run_fixtures(
+        tmp_path, ["KYRC26_ASMT_Kindergarten_Screen_Composite.csv"]
+    )
+    keys = ["year", "school_id", "student_group", "metric"]
+    assert not output.duplicated(keys).any()
+
+    rate = _metric_value(output, "2026", "001020", "kindergarten_kindergarten_rate")
+    assert rate["suppressed"] == "Y"
+    assert pd.isna(rate["value"])
+    assert rate["student_group"] == "All Students"
+    assert _metric_rows(
+        output, "2026", "001020", "kindergarten_kindergarten_count", "All Students"
+    ).empty
+

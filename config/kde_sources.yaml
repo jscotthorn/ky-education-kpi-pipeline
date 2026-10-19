@@ -624,12 +624,41 @@ raw_directories:
     - "CAREER_PATHWAYS_18-19.xlsx"
 
   career_readiness_indicators:
+    # One row per school. Indicator headers are counts, not pathway names.
+    # KYRC23_CTE_Career_Readiness_Indicators.csv returns 200 on datasets
+    # and UAT and 404 on the historical host. School year is 20222023.
+    # Padding a 3-digit district code with 000 matches
+    # career_readiness_indicators_2023.csv. Every shared measure cell
+    # matches. KYRC23 drops total graduates and renames the all-blank
+    # exceptional-work column to work-based learning.
+    # accepts_data_file skips that name so 2023 is not written twice.
+    # It is not registered.
+    # The historical KYRC24 file publishes 0. The datasets copy of the
+    # same name turns those 0s into blanks and adds district 880000.
+    # Where both publish a number the cells match. The historical file
+    # stays registered. Same filename, so the datasets copy is not a
+    # second registration. The historical KYRC25 file is byte-identical
+    # to datasets.
+    # career_readiness_indicators_2022.csv returns 200 and is school year
+    # 20212022. career_readiness_indicators_2021.csv and _2020.csv are
+    # 404. career_studies_2020.csv is instructional minutes, not this
+    # file. CTE_TRANSITION_READINESS_17-18.xlsx returns 200 and is school
+    # year 20172018. It is earlier than this series and is not registered.
+    # Guessed OAA names Career_Readiness_Indicators_2024.CSV, _2025, and
+    # _2026, and CTE_Career_Readiness_Indicators_2024.CSV, _2025, and
+    # _2026, are 404. They were never registered. accepts_data_file skips
+    # them so a leftover copy cannot write the year twice.
     - "KYRC24_CTE_Career_Readiness_Indicators.csv"
     - url: "kyrc25"
       file: "KYRC25_CTE_Career_Readiness_Indicators.csv"
     - url: "kyrc26"
       file: "KYRC26_CTE_Career_Readiness_Indicators.csv"
     - "career_readiness_indicators_2023.csv"
+    - "career_readiness_indicators_2022.csv"
+    # 2018-19 workbook. No DEMO or DGROUP column. No end-of-program
+    # assessment column. Exceptional work experience is not work-based
+    # learning. School id 999 is not padded.
+    - "CTE_TRANSITION_READINESS_18-19.xlsx"
 
   school_courses:
     # Specialized courses (CTE, health/PE, visual and performing arts,
