@@ -83,20 +83,16 @@ class TestKindergartenReadinessETL:
         metrics = self.etl.extract_metrics(row)
         expected = {
             "kindergarten_readiness_rate",
-            "kindergarten_readiness_count",
-            "kindergarten_readiness_total",
-            "kindergarten_ready_with_interventions_count",
             "kindergarten_ready_with_interventions_rate",
-            "kindergarten_ready_count",
             "kindergarten_ready_rate",
-            "kindergarten_ready_with_enrichments_count",
             "kindergarten_ready_with_enrichments_rate",
         }
         assert set(metrics.keys()) == expected
-        # Existing formula: the rate divides by the sum of the three cells.
-        assert metrics["kindergarten_readiness_count"] == 35
-        assert metrics["kindergarten_readiness_total"] == 35
-        assert metrics["kindergarten_readiness_rate"] == 100
+        # The cells are published percents. The rate is that percent.
+        assert metrics["kindergarten_ready_with_interventions_rate"] == 10
+        assert metrics["kindergarten_ready_rate"] == 20
+        assert metrics["kindergarten_ready_with_enrichments_rate"] == 5
+        assert metrics["kindergarten_readiness_rate"] == 35
 
     def test_extract_metrics_percentage(self):
         df = self.create_sample_percent_data()
@@ -119,19 +115,15 @@ class TestKindergartenReadinessETL:
         assert output_file.exists()
         df = pd.read_csv(output_file)
         assert len(df.columns) == 19
-        assert len(df) == 23
+        assert len(df) == 12
         metrics = set(df["metric"].unique())
         expected = {
-            "kindergarten_ready_with_interventions_count",
-            "kindergarten_ready_count",
-            "kindergarten_ready_with_enrichments_count",
             "kindergarten_ready_with_interventions_rate",
             "kindergarten_ready_rate",
             "kindergarten_ready_with_enrichments_rate",
             "kindergarten_readiness_count",
             "kindergarten_readiness_total",
             "kindergarten_readiness_rate",
-            "kindergarten_child_care_count",
             "kindergarten_child_care_rate",
         }
         assert metrics == expected

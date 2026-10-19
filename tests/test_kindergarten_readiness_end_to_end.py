@@ -4,7 +4,6 @@ import tempfile
 from pathlib import Path
 
 import pandas as pd
-import pytest
 import yaml
 
 from etl.kindergarten_readiness import transform
@@ -57,18 +56,12 @@ class TestKindergartenReadinessEndToEnd:
         out_file = self.proc_dir / "kindergarten_readiness.csv"
         assert out_file.exists()
         result = pd.read_csv(out_file)
-        assert len(result) == 11
+        assert len(result) == 5
         assert set(result["metric"].unique()) == {
-            "kindergarten_ready_with_interventions_count",
-            "kindergarten_ready_count",
-            "kindergarten_ready_with_enrichments_count",
             "kindergarten_ready_with_interventions_rate",
             "kindergarten_ready_rate",
             "kindergarten_ready_with_enrichments_rate",
-            "kindergarten_readiness_count",
-            "kindergarten_readiness_total",
             "kindergarten_readiness_rate",
-            "kindergarten_child_care_count",
             "kindergarten_child_care_rate",
         }
 
@@ -79,19 +72,15 @@ class TestKindergartenReadinessEndToEnd:
         out_file = self.proc_dir / "kindergarten_readiness.csv"
         assert out_file.exists()
         result = pd.read_csv(out_file)
-        assert len(result) == 14
+        assert len(result) == 8
         metrics = set(result["metric"].unique())
         expected = {
-            "kindergarten_ready_with_interventions_count",
-            "kindergarten_ready_count",
-            "kindergarten_ready_with_enrichments_count",
             "kindergarten_ready_with_interventions_rate",
             "kindergarten_ready_rate",
             "kindergarten_ready_with_enrichments_rate",
             "kindergarten_readiness_count",
             "kindergarten_readiness_total",
             "kindergarten_readiness_rate",
-            "kindergarten_child_care_count",
             "kindergarten_child_care_rate",
         }
         assert metrics == expected
@@ -136,28 +125,26 @@ def _metric_value(
 
 
 def _assert_composite(df: pd.DataFrame, year: str, school_id: str, published: tuple[str, str, str, str]) -> None:
-    """Count metrics hold the published percents. The rate matches when they sum to 100.
-
-    The existing rate divides by the sum of the three component percents.
-    ``kindergarten_readiness_total`` is that sum. These rows sum to 100, so
-    the rate equals the published percent.
-    """
+    """Each rate is the published percent. Composites do not emit _count or _total."""
     interventions, ready, enrichments, total = published
     expected = {
-        "kindergarten_ready_with_interventions_count": interventions,
         "kindergarten_ready_with_interventions_rate": interventions,
-        "kindergarten_ready_count": ready,
         "kindergarten_ready_rate": ready,
-        "kindergarten_ready_with_enrichments_count": enrichments,
         "kindergarten_ready_with_enrichments_rate": enrichments,
-        "kindergarten_readiness_count": total,
         "kindergarten_readiness_rate": total,
-        "kindergarten_readiness_total": "100.0",
     }
     for metric, value in expected.items():
         row = _metric_value(df, year, school_id, metric)
-        assert float(row["value"]) == pytest.approx(float(value), abs=1e-9), (metric, row["value"])
+        assert row["value"] == f"{float(value):.1f}", (metric, row["value"])
         assert row["suppressed"] == "N"
+    for metric in (
+        "kindergarten_readiness_count",
+        "kindergarten_readiness_total",
+        "kindergarten_ready_with_interventions_count",
+        "kindergarten_ready_count",
+        "kindergarten_ready_with_enrichments_count",
+    ):
+        assert _metric_rows(df, year, school_id, metric, "All Students").empty
 
 
 def test_kyrc26_sources_and_leftover_names():
@@ -257,15 +244,6 @@ def test_blank_row_is_skipped_and_star_is_kept(tmp_path):
     assert starred["suppressed"] == "Y"
     assert pd.isna(starred["value"])
 
-    zero = _metric_value(
-        output,
-        "2026",
-        "001020",
-        "kindergarten_ready_with_enrichments_count",
-        "Two or More Races",
-    )
-    assert zero["value"] == "0.0"
-    assert zero["suppressed"] == "N"
     zero_rate = _metric_value(
         output,
         "2026",
@@ -274,10 +252,11 @@ def test_blank_row_is_skipped_and_star_is_kept(tmp_path):
         "Two or More Races",
     )
     assert zero_rate["value"] == "0.0"
+    assert zero_rate["suppressed"] == "N"
 
     # Poage Elementary also publishes enrichments 0 on All Students.
     poage = _metric_value(
-        output, "2026", "012110", "kindergarten_ready_with_enrichments_count"
+        output, "2026", "012110", "kindergarten_ready_with_enrichments_rate"
     )
     assert poage["value"] == "0.0"
     assert poage["suppressed"] == "N"
@@ -336,12 +315,16 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     child_care = _metric_value(output, "2026", "999000", "kindergarten_child_care_rate")
     assert child_care["value"] == "66.0"
     assert child_care["suppressed"] == "N"
-    assert _metric_value(output, "2026", "999000", "kindergarten_child_care_count")["value"] == "66.0"
+    assert _metric_rows(
+        output, "2026", "999000", "kindergarten_child_care_count", "All Students"
+    ).empty
     # Prior setting Kindergarten publishes 52 / 41 / 6 / 48. The components
-    # sum to 99. The existing rate is 48/99*100. The count stays 48.
-    assert _metric_value(output, "2026", "999000", "kindergarten_kindergarten_count")["value"] == "48.0"
+    # sum to 99. The stored rate is the published 48.
     kindergarten_prior = _metric_value(output, "2026", "999000", "kindergarten_kindergarten_rate")
-    assert float(kindergarten_prior["value"]) == pytest.approx(48 / 99 * 100)
+    assert kindergarten_prior["value"] == "48.0"
+    assert _metric_rows(
+        output, "2026", "999000", "kindergarten_kindergarten_count", "All Students"
+    ).empty
 
     # KYRC25 permanent file. Adair district matches the November 2025 temporary sample 76/23/1/24.
     _assert_composite(output, "2025", "999000", ("54", "39", "7", "46"))
@@ -349,16 +332,11 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     _assert_composite(output, "2025", "001000", ("76", "23", "1", "24"))
     assert _metric_value(output, "2025", "001000", "kindergarten_readiness_rate")["district"] == "Adair County"
 
-    # KYRC24 anchors. Fayette's components are 50 + 41 + 10 = 101, so the
-    # existing rate is 50/101*100. The count metrics stay the published percents.
+    # KYRC24 anchors. Fayette's components are 50 + 41 + 10 = 101. The stored
+    # rate is the published 50, not 50/101*100.
     _assert_composite(output, "2024", "999000", ("52", "40", "8", "48"))
-    assert _metric_value(output, "2024", "165000", "kindergarten_ready_with_interventions_count")["value"] == "50.0"
-    assert _metric_value(output, "2024", "165000", "kindergarten_ready_count")["value"] == "41.0"
-    assert _metric_value(output, "2024", "165000", "kindergarten_ready_with_enrichments_count")["value"] == "10.0"
-    assert _metric_value(output, "2024", "165000", "kindergarten_readiness_count")["value"] == "50.0"
-    assert _metric_value(output, "2024", "165000", "kindergarten_readiness_total")["value"] == "101.0"
-    fayette_2024 = _metric_value(output, "2024", "165000", "kindergarten_readiness_rate")
-    assert float(fayette_2024["value"]) == pytest.approx(50 / 101 * 100)
+    _assert_composite(output, "2024", "165000", ("50", "41", "10", "50"))
+    assert _metric_value(output, "2024", "165000", "kindergarten_readiness_rate")["value"] == "50.0"
 
     # 2019-20 percent file. Rate is the published percent. Total is the
     # published tested count. Count is the existing round(rate/100*tested).
@@ -555,4 +533,36 @@ def test_2017_coop_total_uses_the_2019_label(tmp_path):
     assert state["district"] == "State"
     assert state["school_name"] == "---State Total---"
     assert pd.isna(state["county_number"])
+
+
+def test_composite_rate_is_the_published_percent(tmp_path):
+    """KYRC24-26 rates are the published percents. No _count or _total.
+
+    State 2026 All Students is 55 / 38 / 7 / 45, so the readiness rate is
+    45. Prior setting Kindergarten publishes 52 / 41 / 6 / 48. Those
+    components sum to 99. The stored rate is the published 48, not
+    48/99*100. The stored text is the published value, not a long float.
+    """
+    output = _run_fixtures(
+        tmp_path,
+        [
+            "KYRC24_ASMT_Kindergarten_Screen_Composite.csv",
+            "KYRC25_ASMT_Kindergarten_Screen_Composite.csv",
+            "KYRC26_ASMT_Kindergarten_Screen_Composite.csv",
+        ],
+    )
+    state = _metric_value(output, "2026", "999000", "kindergarten_readiness_rate")
+    assert state["value"] == "45.0"
+    assert state["suppressed"] == "N"
+
+    kindergarten_prior = _metric_value(
+        output, "2026", "999000", "kindergarten_kindergarten_rate"
+    )
+    assert kindergarten_prior["value"] == "48.0"
+    assert "000000" not in kindergarten_prior["value"]
+
+    composite = output[output["year"].isin(["2024", "2025", "2026"])]
+    assert not composite["metric"].str.endswith("_count").any()
+    assert "kindergarten_readiness_total" not in set(composite["metric"])
+    # 2018-21 still has the estimated count. This fixture set has no such year.
 

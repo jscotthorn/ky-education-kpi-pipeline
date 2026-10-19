@@ -7,10 +7,12 @@ across multiple years.
 
 KYRC24, KYRC25, and KYRC26 composites name the measure columns like counts
 (``Ready With Interventions``, ``Ready``, ``Ready With Enrichments``,
-``Total Ready``). The cells are percents. The count-named metrics store
-those percents. The existing rate divides each one by the sum of the three
-components. ``kindergarten_readiness_total`` is that sum. There is no
-tested count on the file. Do not divide the percents by a tested count.
+``Total Ready``). The cells are percents. Each rate is that published
+percent. ``kindergarten_readiness_rate`` is ``Total Ready``. The component
+rates and the prior-setting rates are the published cells too. Those files
+do not emit ``_count`` or ``_total`` metrics. There is no tested count on
+the file. Do not divide a percent by the sum of the components, and do not
+divide it by a tested count.
 
 The older percent files and the workbooks publish a percent and, in some
 years, ``NUMBER TESTED``. The rate is that percent. The total is the
@@ -133,15 +135,12 @@ _COUNT_COLUMNS = (
     "ready_with_enrichments_count",
 )
 
-_OVERALL_METRICS = (
+# KYRC24-26 composites. The rate is the published percent. The old _count
+# and _total metrics held those same percents, so they are not emitted.
+_COMPOSITE_RATE_METRICS = (
     "kindergarten_readiness_rate",
-    "kindergarten_readiness_count",
-    "kindergarten_readiness_total",
-    "kindergarten_ready_with_interventions_count",
     "kindergarten_ready_with_interventions_rate",
-    "kindergarten_ready_count",
     "kindergarten_ready_rate",
-    "kindergarten_ready_with_enrichments_count",
     "kindergarten_ready_with_enrichments_rate",
 )
 
@@ -153,6 +152,16 @@ _MEASURE_COLUMNS = _COUNT_COLUMNS + (
     "ready_with_enrichments_percent",
     "number_tested",
 )
+
+
+def _published_percent(value: Any) -> float:
+    """Return the percent KDE published, with no further arithmetic.
+
+    Dividing by the sum of the rounded components turned a published 28
+    into ``28.000000000000004`` and a published 50 into ``49.50495...``.
+    ``float`` of a whole-number percent is the published value.
+    """
+    return float(value)
 
 
 def _prior_is_all(row: pd.Series) -> bool:
@@ -343,54 +352,39 @@ class KindergartenReadinessETL(BaseETL):
         prior_slug = _slugify(prior_setting) if pd.notna(prior_setting) else None
         is_prior_all = _prior_is_all(row)
 
-        if (
-            pd.notna(row.get("ready_with_interventions_count"))
-            and pd.notna(row.get("ready_count"))
-            and pd.notna(row.get("ready_with_enrichments_count"))
+        # KYRC24-26 composites. The three component columns are present and
+        # at least one published percent is on the row. Store those percents
+        # as rates. A fully blank row falls through so a Y row still gets
+        # the rate placeholders.
+        if _has_count_shape(row) and any(
+            pd.notna(row.get(column))
+            for column in (*_COUNT_COLUMNS, "total_ready_count")
         ):
-            # Existing formula. The cells are percents. The count metrics
-            # keep those percents. The rate divides by the sum of the three
-            # components, and the total is that sum. Kept as it is.
-            rwi = float(row["ready_with_interventions_count"])
-            r = float(row["ready_count"])
-            rwe = float(row["ready_with_enrichments_count"])
-            total_tested = rwi + r + rwe
-
             if is_prior_all:
-                metrics["kindergarten_ready_with_interventions_count"] = rwi
-                metrics["kindergarten_ready_count"] = r
-                metrics["kindergarten_ready_with_enrichments_count"] = rwe
-
-                if total_tested > 0:
+                if pd.notna(row.get("ready_with_interventions_count")):
                     metrics["kindergarten_ready_with_interventions_rate"] = (
-                        rwi / total_tested
-                    ) * 100
-                    metrics["kindergarten_ready_rate"] = (r / total_tested) * 100
+                        _published_percent(row["ready_with_interventions_count"])
+                    )
+                if pd.notna(row.get("ready_count")):
+                    metrics["kindergarten_ready_rate"] = _published_percent(
+                        row["ready_count"]
+                    )
+                if pd.notna(row.get("ready_with_enrichments_count")):
                     metrics["kindergarten_ready_with_enrichments_rate"] = (
-                        rwe / total_tested
-                    ) * 100
-
+                        _published_percent(row["ready_with_enrichments_count"])
+                    )
                 if pd.notna(row.get("total_ready_count")):
-                    ready = float(row["total_ready_count"])
-                    metrics["kindergarten_readiness_count"] = ready
-                    metrics["kindergarten_readiness_total"] = total_tested
-                    if total_tested > 0:
-                        metrics["kindergarten_readiness_rate"] = (
-                            ready / total_tested
-                        ) * 100
-
-            if (
+                    metrics["kindergarten_readiness_rate"] = _published_percent(
+                        row["total_ready_count"]
+                    )
+            elif (
                 prior_slug
-                and not is_prior_all
                 and _demographic_is_all(row)
                 and pd.notna(row.get("total_ready_count"))
             ):
-                ready = float(row["total_ready_count"])
-                metrics[f"kindergarten_{prior_slug}_count"] = ready
-                if total_tested > 0:
-                    metrics[f"kindergarten_{prior_slug}_rate"] = (
-                        ready / total_tested
-                    ) * 100
+                metrics[f"kindergarten_{prior_slug}_rate"] = _published_percent(
+                    row["total_ready_count"]
+                )
             return metrics
 
         # Percentage formats (check 2025 format first, then fallback to older formats)
@@ -465,7 +459,7 @@ class KindergartenReadinessETL(BaseETL):
         metrics: Dict[str, Any] = {}
         if _prior_is_all(row):
             if _has_count_shape(row):
-                for name in _OVERALL_METRICS:
+                for name in _COMPOSITE_RATE_METRICS:
                     metrics[name] = pd.NA
                 return metrics
             if "total_percent_ready" in row.index or "total_ready_count" in row.index:
@@ -484,17 +478,19 @@ class KindergartenReadinessETL(BaseETL):
         if not _demographic_is_all(row):
             return metrics
 
-        # Composite files store the prior-setting percent without a tested
-        # count. Percent files need ``number_tested`` before extract_metrics
-        # will emit the prior-setting rate, so a suppressed row follows that.
+        # Composite files store the prior-setting percent as a rate and do
+        # not emit a count. Percent files need ``number_tested`` before
+        # extract_metrics will emit the prior-setting rate, so a suppressed
+        # row follows that and still emits the rounded-count placeholder.
         count_shape = _has_count_shape(row)
         percent_with_tested = "number_tested" in row.index and (
             "total_percent_ready" in row.index or "total_ready_count" in row.index
         )
         if count_shape or percent_with_tested:
             slug = _slugify(row.get("prior_setting"))
-            metrics[f"kindergarten_{slug}_count"] = pd.NA
             metrics[f"kindergarten_{slug}_rate"] = pd.NA
+            if percent_with_tested and not count_shape:
+                metrics[f"kindergarten_{slug}_count"] = pd.NA
         return metrics
 
     def _measures_are_blank(self, row: pd.Series) -> bool:
