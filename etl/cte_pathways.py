@@ -89,8 +89,8 @@ _BLANK_TEXT = {"", "N/A", "n/a", "#N/A", "---", "--", "<10", '""', "nan", "None"
 
 # KYRC23 is school year 20222023. The registered copy is
 # career_pathways_2023.csv. A leftover KYRC23 file would write that year
-# twice. 29 completer cells are a published count in KYRC23 and ``*`` in
-# the historical file.
+# twice. 40 completer cells are a published count in KYRC23 and ``*`` in
+# the historical file: 29 at schools and 11 on district or state rows.
 _REPUBLISH_FILENAMES = {
     "KYRC23_CTE_CAREER_PATHWAYS.CSV",
 }
