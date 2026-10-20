@@ -586,24 +586,26 @@ raw_directories:
     - "students_taught_by_out_of_field_teachers_2021.csv"
 
   teacher_working_conditions:
+    # Impact Kentucky is biennial. Each administration is stored once, under
+    # the ending year of the school year in which the survey was given.
+    # The later report-card copy is not registered, and accepts_data_file
+    # skips that exact name:
+    #   teacher_working_conditions_2021.csv republishes the 2019-20 survey
+    #   teacher_working_conditions_2023.csv republishes the 2021-22 survey
+    #   KYRC25_OVW_Teacher_Working_Conditions.csv republishes the 2023-24 survey
     # KYRC23_OVW_Teacher_Working_Conditions.csv returns 200 and is not
-    # registered. It republishes 2022-23, relabels Teaching Environment as
-    # School Climate, and turns 945 N/A cells into 0. The parser skips that
-    # filename.
+    # registered. It is the 2021-22 survey again, relabels Teaching
+    # Environment as School Climate, and turns 945 N/A cells into 0.
+    # The parser skips that filename.
     # The historical KYRC24 URL still returns 200. The datasets copy adds
     # 31 districts and changes 9 district-total percents. It is not swapped.
     # TELL_EQUITY_17-18.xlsx and TELL_EQUITY_18-19.xlsx return 200. Both are
     # school year 20172018 and use EQUITY_MEASURE, not Impact Measure.
     - "KYRC24_OVW_Teacher_Working_Conditions.csv"
-    - url: "kyrc25"
-      file: "KYRC25_OVW_Teacher_Working_Conditions.csv"
     - url: "kyrc26"
       file: "KYRC26_OVW_Teacher_Working_Conditions.csv"
-    - "teacher_working_conditions_2023.csv"
     - "teacher_working_conditions_2022.csv"
-    - "teacher_working_conditions_2021.csv"
-    # 2019-20 report card. Same biennial survey as 2021, with a different
-    # school-year column and 18 school codes the 2021 file does not have.
+    # 2019-20 report card. January-February 2020 survey. School year 20192020.
     - "teacher_working_conditions_2020.csv"
 
   # School Programs and Offerings

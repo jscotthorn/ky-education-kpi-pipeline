@@ -33,8 +33,13 @@ class TestTeacherWorkingConditionsEndToEnd:
         # Load processed KPI data
         kpi_df = pd.read_csv(processed_file)
 
-        # Test each source file
+        # Test each source file the parser accepts. A republished survey
+        # file may still sit in the raw directory and must not be required
+        # in the KPI output.
         for source_file in raw_data_dir.glob("*.csv"):
+            if not self.etl.accepts_data_file(source_file):
+                print(f"\nSkipping republished survey file {source_file.name}")
+                continue
             print(f"\nTesting {source_file.name}...")
             self._test_source_file_transformation(source_file, kpi_df)
 
@@ -232,8 +237,9 @@ class TestTeacherWorkingConditionsEndToEnd:
 
         kpi_df = pd.read_csv(processed_file)
 
-        # 2020 is the registered 2019-20 file. 2026 is KYRC26.
-        expected_years = {'2020', '2021', '2022', '2023', '2024', '2025', '2026'}
+        # Biennial Impact Kentucky administrations: 2020, 2022, 2024, 2026.
+        # 2021, 2023, and 2025 are the same surveys published again.
+        expected_years = {'2020', '2022', '2024', '2026'}
         actual_years = set(kpi_df['year'].astype(str).unique())
 
         for year in expected_years:
@@ -269,16 +275,16 @@ class TestTeacherWorkingConditionsEndToEnd:
 
         kpi_df = pd.read_csv(processed_file)
 
-        # Teaching Environment Composite is the 2020-2023 label. KYRC24-26
-        # publish School Climate instead, so those years do not have this metric.
+        # Teaching Environment Composite is the 2020 and 2022 label.
+        # KYRC24 and KYRC26 publish School Climate instead.
         teaching_env = kpi_df[kpi_df['metric'] == 'teacher_working_conditions_teaching_environment']
 
         if len(teaching_env) > 0:
             teaching_env_years = set(teaching_env['year'].astype(str).unique())
             print(f"✓ Teaching Environment metric found in years: {sorted(teaching_env_years)}")
 
-            assert teaching_env_years <= {'2020', '2021', '2022', '2023'}, (
-                f"Teaching Environment should only be in 2020-2023, found in: {teaching_env_years}"
+            assert teaching_env_years <= {'2020', '2022'}, (
+                f"Teaching Environment should only be in 2020 and 2022, found in: {teaching_env_years}"
             )
         else:
             print("ℹ Teaching Environment metric not found (may not be in source data)")
@@ -308,27 +314,16 @@ class TestTeacherWorkingConditionsEndToEnd:
 
         kpi_df = pd.read_csv(processed_file)
 
-        # Check for duplicates on key columns
-        duplicates = kpi_df.duplicated(subset=['school_id', 'year', 'metric', 'source_file'], keep=False)
-        duplicate_count = duplicates.sum()
-
-        # Note: Source data from KDE contains some duplicate rows (e.g., school 197 in 2021-2023)
-        # We allow a small number of duplicates from source data quality issues
-        max_allowed_duplicates = 30  # Small percentage of total rows
-
-        if duplicate_count > 0:
-            print(f"ℹ Found {duplicate_count} duplicate records (likely from source data)")
-            dup_df = kpi_df[duplicates]
-            print(f"  Affected schools: {dup_df['school_id'].unique()}")
-
-        assert duplicate_count <= max_allowed_duplicates, (
-            f"Found {duplicate_count} duplicate records, exceeds threshold of {max_allowed_duplicates}"
+        # One row per school, year, student group, and metric.
+        duplicates = kpi_df.duplicated(
+            subset=['school_id', 'year', 'student_group', 'metric'], keep=False
         )
-
-        if duplicate_count == 0:
-            print(f"✓ No duplicate records found")
-        else:
-            print(f"✓ Duplicate count ({duplicate_count}) within acceptable threshold")
+        duplicate_count = int(duplicates.sum())
+        assert duplicate_count == 0, (
+            f"Found {duplicate_count} duplicate keys: "
+            f"{kpi_df.loc[duplicates, 'school_id'].unique().tolist()}"
+        )
+        print("✓ No duplicate records found")
 
 
 def _run_fixtures(tmp_path: Path, filenames: list) -> pd.DataFrame:
@@ -365,20 +360,32 @@ def _scores(df: pd.DataFrame, year: str, school_id: str) -> dict:
 
 
 def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
-    """2025-26 percents from real rows, with earlier-year anchors.
+    """2025-26 percents from real rows, with the administration-year anchors.
 
     State percent favorable is 69 behavior, 67 climate, and 70 leadership.
     KPI year is 2026, from school year 20252026. District is All Districts.
-    There is no Suppressed column and no starred cell. The 2023 Ashland
-    Head Start rows are the text N/A, kept verbatim in the fixture, and
-    emit nothing. Boys & Girls Haven leadership is the published 0 in 2024
-    and 2025, the same survey twice. The school is not in the 2026 file.
+    The 2021, 2023, and KYRC25 fixtures are the same surveys again. They are
+    copied into the raw directory and must not produce rows. The 2023 Ashland
+    Head Start rows are the text N/A and stay in that skipped fixture.
+    Boys & Girls Haven leadership is the published 0 on the 2023-24 file.
+    The school is not in the 2026 file.
     """
     fixture_dir = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "teacher_working_conditions"
     na_text = (fixture_dir / "teacher_working_conditions_2023.csv").read_text(encoding="utf-8")
     assert "N/A" in na_text
     assert "Ashland Head Start" in na_text
 
+    kept_names = [
+        "teacher_working_conditions_2020.csv",
+        "teacher_working_conditions_2022.csv",
+        "KYRC24_OVW_Teacher_Working_Conditions.csv",
+        "KYRC26_OVW_Teacher_Working_Conditions.csv",
+    ]
+    skipped_names = [
+        "teacher_working_conditions_2021.csv",
+        "teacher_working_conditions_2023.csv",
+        "KYRC25_OVW_Teacher_Working_Conditions.csv",
+    ]
     prior_names = [
         "teacher_working_conditions_2020.csv",
         "teacher_working_conditions_2021.csv",
@@ -392,12 +399,13 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     combined = _run_fixtures(tmp_path / "combined", current_names)
 
     # Same-branch check only: adding the 2026 excerpt does not rewrite earlier rows.
-    # The fixed anchors below are the prior-year regression.
-    prior_years = ["2020", "2021", "2022", "2023", "2024", "2025"]
+    prior_years = ["2020", "2022", "2024"]
     prior_slice = combined[combined["year"].isin(prior_years)]
     assert _comparable(prior_slice).equals(_comparable(prior_only))
 
-    assert set(combined["source_file"]) == set(current_names)
+    assert set(combined["source_file"]) == set(kept_names)
+    assert set(skipped_names).isdisjoint(set(combined["source_file"]))
+    assert set(combined["year"]) == {"2020", "2022", "2024", "2026"}
     assert "20252026" not in set(combined["year"])
     assert set(combined.loc[combined["source_file"].str.startswith("KYRC26_"), "year"]) == {"2026"}
     assert "012012" not in set(combined["school_id"])
@@ -432,49 +440,41 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert set(school["co_op"]) == {"CKEC"}
     assert set(school["co_op_code"]) == {"901"}
 
-    # Prior-year anchors. Values are the file cells, including the published 0.
-    assert _scores(combined, "2025", "999000") == {behavior: 67.0, climate: 65.0, leadership: 69.0}
-    row = combined[(combined["year"] == "2025") & (combined["school_id"] == "999000")].iloc[0]
+    # 2023-24 survey, stored as 2024 from the historical KYRC24 file.
+    # The KYRC25 copy of this survey is not loaded.
+    assert _scores(combined, "2024", "999000") == {behavior: 67.0, climate: 65.0, leadership: 69.0}
+    row = combined[(combined["year"] == "2024") & (combined["school_id"] == "999000")].iloc[0]
     assert row["district"] == "All Districts"
     assert row["school_name"] == "---District Total---"
-    assert row["source_file"] == "KYRC25_OVW_Teacher_Working_Conditions.csv"
-    assert _scores(combined, "2025", "165170") == {behavior: 58.0, climate: 61.0, leadership: 60.0}
-    bryan_2025 = combined[(combined["year"] == "2025") & (combined["school_id"] == "165170")].iloc[0]
-    assert bryan_2025["nces_id"] == "210186000000"
-    assert _scores(combined, "2025", "001010") == {behavior: 67.0, climate: 45.0, leadership: 55.0}
-    adair = combined[(combined["year"] == "2025") & (combined["school_id"] == "001010")].iloc[0]
-    assert adair["nces_id"] == "210003000000"
-    assert adair["school_name"] == "Adair County High School"
-    assert _scores(combined, "2025", "275028") == {behavior: 42.0, climate: 28.0, leadership: 0.0}
-    haven = combined[(combined["year"] == "2025") & (combined["school_id"] == "275028")].iloc[0]
-    assert haven["school_name"] == "Boys & Girls Haven"
-    assert haven["co_op"] == "GREC"
-    assert haven["co_op_code"] == "909"
-
-    assert _scores(combined, "2024", "999000") == {behavior: 67.0, climate: 65.0, leadership: 69.0}
-    assert _scores(combined, "2024", "165170") == {behavior: 58.0, climate: 61.0, leadership: 60.0}
-    row = combined[(combined["year"] == "2024") & (combined["school_id"] == "165170")].iloc[0]
-    assert row["nces_id"] == "210186000388"
     assert row["source_file"] == "KYRC24_OVW_Teacher_Working_Conditions.csv"
-
-    assert _scores(combined, "2023", "999") == {behavior: 65.0, leadership: 64.0, teaching: 60.0}
-    state_2023 = combined[(combined["year"] == "2023") & (combined["school_id"] == "999")].iloc[0]
-    assert state_2023["district"] == "State"
-    assert state_2023["school_name"] == "---State Total---"
-    assert state_2023["source_file"] == "teacher_working_conditions_2023.csv"
-    # The historical file types this district total as 20022023. The ending year is still 2023.
-    assert _scores(combined, "2023", "061") == {behavior: 77.0, leadership: 76.0, teaching: 74.0}
-    breathitt = combined[(combined["year"] == "2023") & (combined["school_id"] == "061")].iloc[0]
-    assert breathitt["district"] == "Breathitt County"
-    assert breathitt["school_name"] == "---District Total---"
-    assert _scores(combined, "2023", "001010") == {behavior: 76.0, leadership: 74.0, teaching: 59.0}
-    assert combined[(combined["year"] == "2023") & (combined["school_id"] == "001010")].iloc[0]["nces_id"] == "210003000001"
+    assert _scores(combined, "2024", "165170") == {behavior: 58.0, climate: 61.0, leadership: 60.0}
+    bryan_2024 = combined[(combined["year"] == "2024") & (combined["school_id"] == "165170")].iloc[0]
+    assert bryan_2024["nces_id"] == "210186000388"
+    assert bryan_2024["source_file"] == "KYRC24_OVW_Teacher_Working_Conditions.csv"
+    assert _scores(combined, "2024", "165000") == {behavior: 63.0, climate: 63.0, leadership: 64.0}
+    fayette_2024 = combined[(combined["year"] == "2024") & (combined["school_id"] == "165000")].iloc[0]
+    assert fayette_2024["district"] == "Fayette County"
+    assert fayette_2024["school_name"] == "---District Total---"
+    assert fayette_2024["co_op"] == "CKEC"
+    assert fayette_2024["co_op_code"] == "901"
+    assert _scores(combined, "2024", "275028") == {behavior: 42.0, climate: 28.0, leadership: 0.0}
+    haven = combined[(combined["year"] == "2024") & (combined["school_id"] == "275028")].iloc[0]
+    assert haven["school_name"] == "Boys & Girls Haven"
+    assert haven["co_op_code"] == "909"
+    assert haven["nces_id"] == "210299001475"
+    leadership_zero = combined[
+        (combined["year"] == "2024")
+        & (combined["school_id"] == "275028")
+        & (combined["metric"] == leadership)
+    ].iloc[0]
+    assert float(leadership_zero["value"]) == 0.0
+    assert leadership_zero["suppressed"] == "N"
 
     assert _scores(combined, "2022", "999") == {behavior: 65.0, leadership: 64.0, teaching: 60.0}
     assert _scores(combined, "2022", "165170") == {behavior: 41.0, leadership: 38.0, teaching: 40.0}
-    assert _scores(combined, "2021", "999") == {behavior: 65.0, leadership: 66.0, teaching: 62.0}
-    assert _scores(combined, "2021", "165170") == {behavior: 45.0, leadership: 44.0, teaching: 39.0}
-    assert "586010" not in set(combined.loc[combined["year"] == "2021", "school_id"])
+    assert "2021" not in set(combined["year"])
+    assert "2023" not in set(combined["year"])
+    assert "2025" not in set(combined["year"])
 
     assert _scores(combined, "2020", "999") == {behavior: 65.0, leadership: 66.0, teaching: 62.0}
     state_2020 = combined[(combined["year"] == "2020") & (combined["school_id"] == "999")].iloc[0]

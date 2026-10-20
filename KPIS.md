@@ -477,14 +477,14 @@ KRS 161.1221 requires the Education Professional Standards Board to identify tea
 Percent favorable from the Impact Kentucky working conditions survey. KDE's report-card glossary defines the Impact Value as the percentage of respondents who selected a favorable answer, most often the top two of five choices. The constructs are connected to teacher retention and student achievement. Each school has one row per construct.
 
 - `teacher_working_conditions_managing_student_behavior` - Percent favorable for managing student behavior (0-100)
-- `teacher_working_conditions_school_climate` - Percent favorable for school climate (0-100, KYRC24 through KYRC26)
+- `teacher_working_conditions_school_climate` - Percent favorable for school climate (0-100, 2024 and 2026)
 - `teacher_working_conditions_school_leadership` - Percent favorable for school leadership (0-100)
-- `teacher_working_conditions_teaching_environment` - Percent favorable for teaching environment (0-100, 2020-2023 files only)
+- `teacher_working_conditions_teaching_environment` - Percent favorable for teaching environment (0-100, 2020 and 2022 only)
 
-**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns. State rows use district `All Districts` for 2024-2026 and `State` for 2020-2023. A published 0 is kept. The text `N/A` has no response count beside it, so those rows are omitted rather than stored as zero.
+**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns. State rows use district `All Districts` for 2024 and 2026 and `State` for 2020 and 2022. A published 0 is kept. The text `N/A` has no response count beside it, so those rows are omitted rather than stored as zero. A `*` is stored as value NA with `suppressed` Y. The series is biennial. Impact Kentucky is administered every other school year, and each administration is stored once. Years without a survey (2021, 2023, 2025, and any later off-year) are absent. The KPI year is the ending year of the school year in which the survey was administered.
 
-**Data Sources**: KYRC26_OVW_Teacher_Working_Conditions.csv, KYRC25_OVW_Teacher_Working_Conditions.csv, KYRC24_OVW_Teacher_Working_Conditions.csv, teacher_working_conditions_{year}.csv
-**Years Available**: 2020-2026
+**Data Sources**: KYRC26_OVW_Teacher_Working_Conditions.csv, KYRC24_OVW_Teacher_Working_Conditions.csv, teacher_working_conditions_2022.csv, teacher_working_conditions_2020.csv
+**Years Available**: 2020, 2022, 2024, 2026 (biennial; years without a survey are absent)
 **Unit**: Percent favorable (0-100)
 **Demographics**: School-level only (All Students)
 
