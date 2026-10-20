@@ -150,16 +150,31 @@ Students who miss 10% of yearly school time (about two days a month) for any rea
 
 Students are counted as making progress if they received a nonzero score on the ACCESS value table — specifically those scoring at the 60-80, 100, or 140 point levels. A score of 0 indicates no measurable progress. This combined rate captures all students demonstrating any level of English language growth, reported separately for elementary, middle, and high school.'''
     },
-    'school_climate': {
-        'metric': 'climate_index_score_calculated',
-        'display_name': 'School Climate Index',
+    'school_climate_elementary': {
+        'metric': 'climate_index_score_elementary',
+        'display_name': 'School Climate Index (Elementary)',
         'is_reverse': False,
-        'school_level': 'All',
+        'school_level': 'Elementary',
         'unit': ' points',
-        'school_level_breakdown': True,
-        'description': '''School Climate Index measures students' sense of belonging, safety, and engagement at school. A positive school climate is essential for student well-being and academic success.
+        'description': '''School Climate Index is the climate index KDE publishes for elementary school. It measures students' sense of belonging, safety, and engagement.
 
-This indicator captures student perceptions of whether their school is caring and welcoming, whether rules are fair, whether adults care about and support students, and whether students feel encouraged and part of their school. It is measured through 14 survey questions on a scale from Strongly Disagree to Strongly Agree.'''
+The series is KYRC23 through KYRC26 (`climate_index_score_elementary`). Middle and high school are separate indicators. A school that publishes two levels has a row in each. There is no unsuffixed alias and no average computed from survey items. 2021-22 is not in this series.'''
+    },
+    'school_climate_middle': {
+        'metric': 'climate_index_score_middle',
+        'display_name': 'School Climate Index (Middle)',
+        'is_reverse': False,
+        'school_level': 'Middle',
+        'unit': ' points',
+        'description': '''School Climate Index is the climate index KDE publishes for middle school. The metric is `climate_index_score_middle` for KYRC23 through KYRC26. There is no unsuffixed alias and no average computed from survey items. 2021-22 is not in this series.'''
+    },
+    'school_climate_high': {
+        'metric': 'climate_index_score_high',
+        'display_name': 'School Climate Index (High)',
+        'is_reverse': False,
+        'school_level': 'High',
+        'unit': ' points',
+        'description': '''School Climate Index is the climate index KDE publishes for high school. The metric is `climate_index_score_high` for KYRC23 through KYRC26. There is no unsuffixed alias and no average computed from survey items. 2021-22 is not in this series.'''
     },
     '9th_grade_on_track': {
         'metric': '9th_grade_on_track',
