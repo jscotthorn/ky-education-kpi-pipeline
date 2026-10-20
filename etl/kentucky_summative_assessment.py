@@ -8,7 +8,8 @@ both spellings.
 
 Rates and the content index are stored as KDE publishes them. The
 published proficient/distinguished percent is not the sum of the
-proficient and distinguished percents. A grade row is a grade metric.
+proficient and distinguished percents, and a file with no combined
+column does not invent one. A grade row is a grade metric.
 It is not also stored as the elementary, middle, or high rate. Those
 level rates come from the accountability file.
 
@@ -92,11 +93,13 @@ _LEVELS = {
     "High": "high",
 }
 
-# Coversheet labels on the 2017-18 and 2018-19 proficiency workbooks.
+# Demographic labels on the 2017-18 and 2018-19 proficiency workbooks.
 # The shared map drops ACD, sends CSG to Students with Disabilities, and
-# sends LEN to English Learner. Those codes are the reverse of this
-# coversheet. The labels below are applied before the shared mapper.
-# The shared yaml is not edited.
+# sends LEN to English Learner. Those codes are the reverse of the
+# 2017-18 coversheet. CSG is named on that coversheet only. The 2018-19
+# coversheet does not list it, and the 2019 data still contains the code.
+# It is still Consolidated Student Group. The labels below are applied
+# before the shared mapper. The shared yaml is not edited.
 _WORKBOOK_LABELS = {
     "ACD": "Students with Disabilities (IEP)",
     "ACO": "Students without IEP",
@@ -105,13 +108,28 @@ _WORKBOOK_LABELS = {
     "ACY": "Students with Disabilities/IEP with Accommodations",
     "ACN": "Students with Disabilities/IEP without Accommodations",
     "CSG": "Consolidated Student Group",
-    # Not named on the coversheet. CSG + CSN equals all students, so this
-    # is the complement of Consolidated Student Group, not students
+    # CSN is not named on either coversheet. CSG + CSN equals all students,
+    # so this is the complement of Consolidated Student Group, not students
     # without an IEP. The shared map sends CSN to Students without IEP.
     "CSN": "Not Consolidated Student Group",
     "LEN": "Non-English Learner",
     "ELN": "Non-English Learner or monitored",
     "MIN": "Non-Migrant",
+}
+
+# 2018-19 publishes these names on ``---COOP Total---`` rows. 2017-18
+# publishes the same nine totals as ``---District Total---`` with a blank
+# district name and school code 901-909. 909 has no abbreviation in 2019.
+_COOP_TOTALS = {
+    "901": ("Central Kentucky Educational Cooperative", "CKEC"),
+    "902": ("Green River Regional Educational Cooperative", "GRREC"),
+    "903": ("Kentucky Educational Development Corporation", "KEDC"),
+    "904": ("Kentucky Valley Educational Corporation", "KVEC"),
+    "905": ("Northern Kentucky Cooperative for Educational Services", "NKCES"),
+    "906": ("Ohio Valley Educational Cooperative", "OVEC"),
+    "907": ("Southeast/Southcentral Education Cooperative", "SESC"),
+    "908": ("West Kentucky Educational Cooperative", "WKEC"),
+    "909": ("Greater Louisville Educational Cooperative", None),
 }
 
 _BLANK_TOKENS = {"", "n/a", "na", "#n/a", "---", "--", "<10", "nan", "<na>", "none", "null"}
@@ -146,6 +164,18 @@ def _missing_scalar(value: Any) -> bool:
     if isinstance(missing, bool):
         return missing
     return False
+
+
+def _code_text(value: Any) -> str:
+    """Identifier text. Blank, NA, and a trailing ``.0`` become a bare code."""
+    if _missing_scalar(value):
+        return ""
+    text = str(value).strip()
+    if text.lower() in {"", "nan", "<na>", "none", "null"}:
+        return ""
+    if text.endswith(".0"):
+        text = text[:-2]
+    return text
 
 
 def _classify_cell(value: Any, percent: bool) -> Tuple[str, Optional[float]]:
@@ -386,12 +416,57 @@ class KentuckySummativeAssessmentETL(BaseETL):
         out.loc[present, "demographic"] = labels.loc[present]
         return out
 
+    def _label_workbook_coop_totals(self, frame: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """Label 2017-18 co-op totals the way 2019 publishes them.
+
+        Districts 901-909 in the 2017-18 proficiency workbooks are
+        ``---District Total---`` with a blank district name. Stored that
+        way they look like nine unnamed districts. 2019 already publishes
+        the long co-op name, ``---COOP Total---``, and the abbreviation
+        (blank for 909). A 2019 row has a district name, so this does not
+        rewrite it. Only ``ASSESSMENT_PROFICIENCY_*`` files are labelled.
+        """
+        if not Path(source_file).name.upper().startswith("ASSESSMENT_PROFICIENCY_"):
+            return frame
+        if "district_number" not in frame.columns or "school_name" not in frame.columns:
+            return frame
+        codes = frame["district_number"].map(_code_text)
+        if "district_name" in frame.columns:
+            blank_district = frame["district_name"].map(_code_text).eq("")
+        else:
+            blank_district = pd.Series(True, index=frame.index)
+        school = frame["school_name"].map(
+            lambda value: "" if _missing_scalar(value) else str(value).strip()
+        )
+        mask = codes.isin(_COOP_TOTALS) & blank_district & school.eq("---District Total---")
+        if not bool(mask.any()):
+            return frame
+        out = frame.copy()
+        for column in ("district_name", "co_op", "co_op_code"):
+            if column not in out.columns:
+                out[column] = pd.Series(pd.NA, index=out.index, dtype="object")
+
+        def long_name(code: str) -> Any:
+            if code not in _COOP_TOTALS:
+                return pd.NA
+            return _COOP_TOTALS[code][0]
+
+        def abbreviation(code: str) -> Any:
+            if code not in _COOP_TOTALS:
+                return pd.NA
+            published = _COOP_TOTALS[code][1]
+            return published if published else pd.NA
+
+        selected = codes.loc[mask]
+        out.loc[mask, "district_name"] = selected.map(long_name)
+        out.loc[mask, "school_name"] = "---COOP Total---"
+        out.loc[mask, "co_op_code"] = selected
+        out.loc[mask, "co_op"] = selected.map(abbreviation)
+        return out
+
     def should_skip_row(self, row: pd.Series) -> bool:
         """Skip a blank, not-suppressed row. A star is not blank."""
         if super().should_skip_row(row):
-            return True
-        school_name = row.get("school_name")
-        if not _missing_scalar(school_name) and str(school_name).strip().lower() == "---coop total---":
             return True
         suppressed = row.get("suppressed", "N")
         if _missing_scalar(suppressed):
@@ -406,8 +481,8 @@ class KentuckySummativeAssessmentETL(BaseETL):
         """Published percents for one row.
 
         A star is stored as NA so the caller can mark that metric
-        suppressed. A blank cell is omitted. The published combined
-        percent is not replaced with proficient plus distinguished.
+        suppressed. A blank cell is omitted. There is no proficient plus
+        distinguished fallback when the combined column is absent.
         """
         subject = self._normalize_subject(row.get("subject"))
         periods = self._periods_for_row(row)
@@ -421,36 +496,7 @@ class KentuckySummativeAssessmentETL(BaseETL):
             value: Any = pd.NA if kind == "star" else number
             for period in periods:
                 metrics[f"kentucky_summative_assessment_{subject}_{suffix}_{period}"] = value
-        if "proficient_distinguished" not in {column for column, _suffix, _percent in self._row_measures(row)}:
-            self._add_summed_combined(metrics, row, subject, periods)
         return metrics
-
-    def _add_summed_combined(
-        self,
-        metrics: Dict[str, Any],
-        row: pd.Series,
-        subject: str,
-        periods: List[str],
-    ) -> None:
-        """Sum proficient and distinguished only when the file has no combined column.
-
-        Registered files publish the combined percent. This path does not
-        run for them. A blank combined cell is not filled in.
-        """
-        proficient_kind, proficient = _classify_cell(self._measure_text(row, "proficient"), True)
-        distinguished_kind, distinguished = _classify_cell(
-            self._measure_text(row, "distinguished"), True
-        )
-        if proficient_kind != "number" or distinguished_kind != "number":
-            return
-        if proficient is None or distinguished is None:
-            return
-        total = proficient + distinguished
-        if total < 0 or total > 100:
-            return
-        for period in periods:
-            name = f"kentucky_summative_assessment_{subject}_proficient_distinguished_rate_{period}"
-            metrics[name] = total
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
         """NA for each metric a fully suppressed row would have stored."""
@@ -482,12 +528,7 @@ class KentuckySummativeAssessmentETL(BaseETL):
         if df.empty:
             return pd.DataFrame()
         frame = self._apply_workbook_labels(df, source_file)
-        # Every co-op total in the 2018-19 workbooks uses school code 000.
-        # Keeping them would write several co-ops onto one key. They are
-        # not a school and not a district. Later files do not use this row.
-        if "school_name" in frame.columns:
-            names = frame["school_name"].astype("string").str.strip().str.lower()
-            frame = frame.loc[~names.eq("---coop total---").fillna(False)]
+        frame = self._label_workbook_coop_totals(frame, source_file)
         if "demographic" not in frame.columns:
             return pd.DataFrame()
 
@@ -610,30 +651,6 @@ class KentuckySummativeAssessmentETL(BaseETL):
                 piece["suppressed"] = "Y"
                 pieces.append(piece)
 
-        # Registered files publish the combined percent. Sum only when that
-        # column is absent, and do not fill a blank combined cell.
-        if (
-            "proficient_distinguished" not in kinds
-            and "proficient" in kinds
-            and "distinguished" in kinds
-        ):
-            both = kinds["proficient"].eq("number") & kinds["distinguished"].eq("number")
-            total = numbers["proficient"] + numbers["distinguished"]
-            valid = both & total.notna() & total.ge(0) & total.le(100)
-            if bool(valid.any()):
-                self._summed_combined = getattr(self, "_summed_combined", 0) + int(valid.sum())
-                piece = pd.DataFrame(base_columns).loc[valid].copy()
-                metric = (
-                    "kentucky_summative_assessment_"
-                    + subjects.astype("string")
-                    + "_proficient_distinguished_rate_"
-                    + period.astype("string")
-                )
-                piece["metric"] = metric.loc[valid].to_numpy()
-                piece["value"] = total.loc[valid].to_numpy()
-                piece["suppressed"] = "N"
-                pieces.append(piece)
-
         if not pieces:
             return pd.DataFrame()
         for piece in pieces:
@@ -679,15 +696,40 @@ class KentuckySummativeAssessmentETL(BaseETL):
         return flag
 
     def _school_ids(self, frame: pd.DataFrame) -> pd.Series:
+        """School code, except a co-op total is keyed by 901-909.
+
+        ``ASSESSMENT_PROFICIENCY_*_18-19`` publishes ``---COOP Total---``
+        with school code ``000`` for each co-op. The published co-op code,
+        or the district number when that cell is blank, is the key.
+        ``_label_workbook_coop_totals`` renames the 2017-18 rows, which
+        already use school code 901-909, before this runs. A school whose
+        name is not exactly ``---COOP Total---`` keeps its school code.
+        """
         if "school_code" not in frame.columns:
             raise ValueError("No valid school ID found in row")
-        text = frame["school_code"].astype("string").str.strip()
-        text = text.str.replace(r"\.0$", "", regex=True)
-        missing = text.isna() | text.eq("") | text.str.lower().isin(["<na>", "nan", "none"])
-        if bool(missing.any()):
+        text = frame["school_code"].map(_code_text)
+        if bool(text.eq("").any()):
             logger.error("CRITICAL: No valid school ID found in row")
             raise ValueError("No valid school ID found in row")
-        return text
+        if "school_name" not in frame.columns:
+            return text
+        school = frame["school_name"].map(
+            lambda value: "" if _missing_scalar(value) else str(value).strip()
+        )
+        coop = school.eq("---COOP Total---")
+        if not bool(coop.any()):
+            return text
+        if "co_op_code" in frame.columns:
+            coop_code = frame["co_op_code"].map(_code_text)
+        else:
+            coop_code = pd.Series("", index=frame.index)
+        if "district_number" in frame.columns:
+            district_code = frame["district_number"].map(_code_text)
+        else:
+            district_code = pd.Series("", index=frame.index)
+        chosen = coop_code.where(coop_code.isin(_COOP_TOTALS), district_code)
+        chosen = chosen.where(chosen.isin(_COOP_TOTALS), text)
+        return text.where(~coop, chosen)
 
     def _school_names(self, series: pd.Series) -> pd.Series:
         text = series.astype("string").str.strip()
@@ -775,7 +817,6 @@ class KentuckySummativeAssessmentETL(BaseETL):
         demographic_tracker: Dict[str, set] = {}
         self._year_rows: Dict[str, int] = {}
         self._year_suppressed: Dict[str, int] = {}
-        self._summed_combined = 0
         started = time.perf_counter()
         with output_path.open("w", newline="", encoding="utf-8") as handle:
             writer_state: Dict[str, Any] = {"handle": handle, "writer": None, "started": False, "columns": []}
@@ -802,13 +843,11 @@ class KentuckySummativeAssessmentETL(BaseETL):
         peak_kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         logger.info(
             "Completed %s: %s KPI rows in %.1fs, peak rss %.1f MB. "
-            "Summed proficient/distinguished cells: %s. Rows by year: %s. "
-            "Suppressed Y by year: %s",
+            "Rows by year: %s. Suppressed Y by year: %s",
             self.source_name,
             f"{total:,}",
             elapsed,
             peak_kb / 1024,
-            f"{self._summed_combined:,}",
             dict(sorted(self._year_rows.items())),
             dict(sorted(self._year_suppressed.items())),
         )

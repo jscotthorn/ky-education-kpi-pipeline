@@ -412,8 +412,9 @@ class TestKentuckySummativeAssessmentKyrc26:
     def test_string_dtype_comma_and_published_combined(self, tmp_path):
         """A thousands comma survives. A percent over 100 does not.
 
-        The combined percent is the published cell. The sum is used only
-        when the file has no combined column. Content index may exceed 100.
+        The combined percent is the published cell. A file with no combined
+        column does not store proficient plus distinguished. Content index
+        may exceed 100.
         """
         kind, number = _classify_cell("1,023.4", False)
         assert kind == "number"
@@ -449,19 +450,140 @@ class TestKentuckySummativeAssessmentKyrc26:
             "20252026,All Districts,All Schools,999000,Elementary School,Reading,All Students,"
             "N,20,30,30,18\n"
         )
-        summed = _run(tmp_path / "sum", [("synthetic_no_combined.csv", no_combined.encode())])
-        _assert_num(summed, "2026", "999000", "All Students", _metric("reading", "proficient_distinguished_rate", "elementary"), 48)
-        _assert_num(summed, "2026", "999000", "All Students", _metric("reading", "proficient_rate", "elementary"), 30)
+        no_sum = _run(tmp_path / "sum", [("synthetic_no_combined.csv", no_combined.encode())])
+        combined = _metric("reading", "proficient_distinguished_rate", "elementary")
+        assert no_sum[no_sum["metric"] == combined].empty
+        _assert_num(no_sum, "2026", "999000", "All Students", _metric("reading", "proficient_rate", "elementary"), 30)
+        _assert_num(no_sum, "2026", "999000", "All Students", _metric("reading", "distinguished_rate", "elementary"), 18)
 
-    def test_coop_totals_are_not_stored_on_school_000(self, tmp_path):
-        """2018-19 co-op totals share school code 000. They are not a school.
+    def test_coop_totals_keep_codes_901_to_909(self, tmp_path):
+        """Co-op totals stay on 901-909. Dropping or collapsing them fails.
 
-        Central Kentucky reading novice is 20.4 and Green River is 19.4.
-        Writing both onto school 000 would be two values for one key.
+        2019 publishes ``---COOP Total---`` with school code 000. Central
+        Kentucky reading novice is 20.4 and Green River is 19.4. Both on
+        school 000 would be one key. 2018 publishes the same totals as
+        ``---District Total---`` with a blank district and school code
+        901-909. They are stored with the 2019 name and abbreviation.
+        Greater Louisville (909) has no abbreviation. A district total and
+        Randall K. Cooper High School are not co-op rows.
         """
-        df = _run(
-            tmp_path,
+        published = _run(
+            tmp_path / "2019",
             [("ASSESSMENT_PROFICIENCY_LEVEL_18-19.csv", _fixture("proficiency_2019_coop_total.csv"))],
         )
-        assert df.empty
-        assert "---COOP Total---" in _fixture("proficiency_2019_coop_total.csv").decode()
+        _assert_unique(published)
+        assert not published.empty
+        assert set(published["school_id"]) == {"901", "902"}
+        assert "000" not in set(published["school_id"])
+        ckec = _one(
+            published,
+            "2019",
+            "901",
+            "All Students",
+            _metric("reading", "novice_rate", "elementary"),
+        )
+        assert ckec["district"] == "Central Kentucky Educational Cooperative"
+        assert ckec["school_name"] == "---COOP Total---"
+        assert ckec["co_op"] == "CKEC"
+        assert ckec["co_op_code"] == "901"
+        assert float(ckec["value"]) == pytest.approx(20.4)
+        grrec = _one(
+            published,
+            "2019",
+            "902",
+            "All Students",
+            _metric("reading", "proficient_distinguished_rate", "elementary"),
+        )
+        assert grrec["district"] == "Green River Regional Educational Cooperative"
+        assert grrec["school_name"] == "---COOP Total---"
+        assert grrec["co_op"] == "GRREC"
+        assert float(grrec["value"]) == pytest.approx(55.3)
+
+        labelled = _run(
+            tmp_path / "2018",
+            [("ASSESSMENT_PROFICIENCY_LEVEL_17-18.csv", _fixture("proficiency_2018_coop_total.csv"))],
+        )
+        _assert_unique(labelled)
+        assert set(labelled["school_id"]) == {"901", "909"}
+        assert "000" not in set(labelled["school_id"])
+        early = _one(
+            labelled,
+            "2018",
+            "901",
+            "All Students",
+            _metric("reading", "novice_rate", "elementary"),
+        )
+        assert early["district"] == "Central Kentucky Educational Cooperative"
+        assert early["school_name"] == "---COOP Total---"
+        assert early["co_op"] == "CKEC"
+        assert early["co_op_code"] == "901"
+        assert float(early["value"]) == pytest.approx(21.2)
+        louisville = _one(
+            labelled,
+            "2018",
+            "909",
+            "All Students",
+            _metric("reading", "proficient_distinguished_rate", "elementary"),
+        )
+        assert louisville["district"] == "Greater Louisville Educational Cooperative"
+        assert louisville["school_name"] == "---COOP Total---"
+        assert louisville["co_op"] == ""
+        assert louisville["co_op_code"] == "909"
+        assert float(louisville["value"]) == pytest.approx(46.3)
+        assert (labelled["school_name"] == "---District Total---").sum() == 0
+        assert (labelled["district"] == "").sum() == 0
+
+        header = (
+            "SCH_YEAR,DIST_NUMBER,DIST_NAME,SCH_NAME,SCH_CD,LEVEL,SUBJECT,DEMOGRAPHIC,"
+            "SUPPRESSED,NOVICE,APPRENTICE,PROFICIENT,DISTINGUISHED,PROFICIENT_DISTINGUISHED\n"
+        )
+        others = (
+            "20172018,001,Adair County,---District Total---,001000,ES,RD,TST,"
+            "N,10,20,30,40,70\n"
+            "20172018,035,Boone County,Randall K. Cooper High School,035015,HS,RD,TST,"
+            "N,11,21,31,41,72\n"
+        )
+        kept = _run(
+            tmp_path / "schools",
+            [("ASSESSMENT_PROFICIENCY_LEVEL_17-18.csv", (header + others).encode())],
+        )
+        district = _one(
+            kept,
+            "2018",
+            "001000",
+            "All Students",
+            _metric("reading", "novice_rate", "elementary"),
+        )
+        assert district["district"] == "Adair County"
+        assert district["school_name"] == "---District Total---"
+        school = _one(
+            kept,
+            "2018",
+            "035015",
+            "All Students",
+            _metric("reading", "novice_rate", "high"),
+        )
+        assert school["school_name"] == "Randall K. Cooper High School"
+        assert school["district"] == "Boone County"
+
+    def test_openpyxl_reader_keeps_cell_text(self, tmp_path):
+        """A star and a percent stay text. The reader does not yield floats."""
+        openpyxl = pytest.importorskip("openpyxl")
+        path = tmp_path / "tiny.xlsx"
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+        sheet.title = "DATA"
+        sheet.append(["SCH_CD", "NOVICE", "PROFICIENT_DISTINGUISHED"])
+        sheet.append(["001016", "*", 54])
+        sheet.append(["001016", None, None])
+        workbook.save(path)
+        etl = KentuckySummativeAssessmentETL("kentucky_summative_assessment")
+        chunks = list(etl._iter_xlsx_chunks(path, None))
+        assert len(chunks) == 1
+        assert list(chunks[0].columns) == ["SCH_CD", "NOVICE", "PROFICIENT_DISTINGUISHED"]
+        assert chunks[0].loc[0, "NOVICE"] == "*"
+        assert isinstance(chunks[0].loc[0, "NOVICE"], str)
+        assert isinstance(chunks[0].loc[0, "PROFICIENT_DISTINGUISHED"], str)
+        assert chunks[0].loc[0, "PROFICIENT_DISTINGUISHED"] == "54"
+        assert chunks[0].loc[1, "NOVICE"] == ""
+        assert chunks[0].loc[1, "PROFICIENT_DISTINGUISHED"] == ""

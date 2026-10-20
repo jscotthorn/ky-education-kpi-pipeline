@@ -17,7 +17,7 @@ RAW_DIR = ROOT / "data" / "raw" / "kentucky_summative_assessment"
 # KPI rows from the registered files. Grade rows are not copied onto a level.
 EXPECTED_ROWS = {
     "2018": 3901200,
-    "2019": 4015120,
+    "2019": 4065340,
     "2021": 3268445,
     "2022": 4236689,
     "2023": 4238184,
@@ -27,7 +27,7 @@ EXPECTED_ROWS = {
 }
 EXPECTED_SUPPRESSED = {
     "2018": 2421415,
-    "2019": 3181875,
+    "2019": 3197935,
     "2021": 2672355,
     "2022": 2560975,
     "2023": 2531235,
@@ -196,11 +196,23 @@ def test_registered_files_keep_published_cells(tmp_path):
         ("2021", "999", "All Students", _metric("reading", "proficient_distinguished_rate", "elementary")): ("39.5", "N", "State", "---State Total---"),
         ("2019", "999", "Students with Disabilities (IEP)", _metric("reading", "proficient_distinguished_rate", "grade_3")): ("34.7", "N", "State", "---State Total---"),
         ("2019", "999", "Consolidated Student Group", _metric("reading", "proficient_distinguished_rate", "grade_3")): ("37.9", "N", "State", "---State Total---"),
+        ("2019", "901", "All Students", _metric("reading", "novice_rate", "elementary")): ("20.4", "N", "Central Kentucky Educational Cooperative", "---COOP Total---"),
+        ("2019", "902", "All Students", _metric("reading", "novice_rate", "elementary")): ("19.4", "N", "Green River Regional Educational Cooperative", "---COOP Total---"),
         ("2018", "999", "All Students", _metric("math", "proficient_distinguished_rate", "elementary")): ("48.8", "N", "State", "---State Total---"),
+        ("2018", "901", "All Students", _metric("reading", "novice_rate", "elementary")): ("21.2", "N", "Central Kentucky Educational Cooperative", "---COOP Total---"),
+        ("2018", "909", "All Students", _metric("reading", "novice_rate", "elementary")): ("28.9", "N", "Greater Louisville Educational Cooperative", "---COOP Total---"),
+    }
+    coop_codes = {
+        ("2019", "901", "All Students", _metric("reading", "novice_rate", "elementary")): ("CKEC", "901"),
+        ("2019", "902", "All Students", _metric("reading", "novice_rate", "elementary")): ("GRREC", "902"),
+        ("2018", "901", "All Students", _metric("reading", "novice_rate", "elementary")): ("CKEC", "901"),
+        ("2018", "909", "All Students", _metric("reading", "novice_rate", "elementary")): ("", "909"),
     }
     batch = []
     dupes = 0
     bad_names = set()
+    coop_on_000 = 0
+    found_coop = {}
     with output.open(newline="") as handle:
         for row in csv.DictReader(handle):
             year = row["year"]
@@ -216,9 +228,13 @@ def test_registered_files_keep_published_cells(tmp_path):
             source = row["source_file"]
             if "KYRC23" in source or "Assessment_Performance_by_Grade" in source or "Accountable_Assessment_Performance_202" in source:
                 bad_names.add(source)
+            if row["school_name"] == "---COOP Total---" and row["school_id"] == "000":
+                coop_on_000 += 1
             key = (year, row["school_id"], row["student_group"], metric)
             if key in wanted and key not in found:
                 found[key] = (row["value"], row["suppressed"], row["district"], row["school_name"])
+            if key in coop_codes and key not in found_coop:
+                found_coop[key] = (row["co_op"], row["co_op_code"])
             batch.append(key)
             if len(batch) >= 50000:
                 before = conn.execute("SELECT COUNT(*) FROM k").fetchone()[0]
@@ -235,6 +251,8 @@ def test_registered_files_keep_published_cells(tmp_path):
     assert counts == EXPECTED_ROWS
     assert suppressed == EXPECTED_SUPPRESSED
     assert dupes == 0
+    assert coop_on_000 == 0
+    assert found_coop == coop_codes
     assert not bad_names
     assert set(found) == set(wanted)
     for key, expected in wanted.items():
