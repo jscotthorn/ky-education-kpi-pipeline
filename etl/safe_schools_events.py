@@ -23,15 +23,17 @@ events-by-grade files.
 
 Each stored count is the cell KDE published. A ``*`` is value NA with
 ``suppressed`` Y. A blank cell is not stored. A published 0 is kept.
-``safe_incident_rate_*`` is calculated by this pipeline. It is not a figure
-KDE publishes.
+``safe_incident_rate_*`` is an incident rate: events per involved student.
+The pipeline calculates it. KDE does not publish it.
 
 The module reads an allow-list of filenames under ``data/raw/safe_schools``.
 ``include_kyrc26`` does not apply. ``KYRC23_SAFE_Behavior_Events_by_*.csv``
 republishes 2022-23 and is not on the list.
 """
 from pathlib import Path
+import gc
 import pandas as pd
+from pandas.api.types import union_categoricals
 from typing import Dict, Any, Optional, Union
 import logging
 try:
@@ -499,7 +501,7 @@ def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[Demogra
     if all_kpi_data:
         combined_df = pd.concat(all_kpi_data, ignore_index=True)
         
-        # Add Tier 4: Derived rate calculations (events per affected student)
+        # Add Tier 4: incident rate, events per involved student
         logger.info(f"Calculating derived rates for {len(combined_df)} KPI records")
         derived_rates = _calculate_derived_rates(combined_df)
         if not derived_rates.empty:
@@ -909,6 +911,59 @@ def _read_events_csv(file_path: Path) -> pd.DataFrame:
     return pd.read_csv(file_path, encoding="utf-8-sig", dtype=dtype or None)
 
 
+def _string_columns(df: pd.DataFrame) -> list[str]:
+    """Columns whose values are text. ``year`` and ``value`` stay numeric."""
+    columns = []
+    for col in df.columns:
+        if col in ("year", "value"):
+            continue
+        series = df[col]
+        if _is_string_like(series) or series.dtype == object:
+            columns.append(col)
+    return columns
+
+
+def _cast_string_columns_to_category(df: pd.DataFrame) -> pd.DataFrame:
+    """Store repeated labels once per file so the concat does not hold every string.
+
+    A float school id such as ``1001010.0`` and a code such as ``001000`` become
+    the same text ``to_csv`` already writes. Every file then has string
+    categories, which ``union_categoricals`` can combine.
+    """
+    for col in _string_columns(df):
+        df[col] = df[col].astype("string").astype("category")
+    return df
+
+
+def _align_categories(frames: list[pd.DataFrame]) -> None:
+    """Give each file the same category codes so ``concat`` does not expand them.
+
+    ``union_categoricals`` keeps the values. It only widens the code set.
+    """
+    if len(frames) < 2:
+        return
+    columns = [
+        col for col in frames[0].columns
+        if isinstance(frames[0][col].dtype, pd.CategoricalDtype)
+    ]
+    for col in columns:
+        unified = union_categoricals(
+            [frame[col] for frame in frames],
+            sort_categories=False,
+        )
+        categories = unified.categories
+        codes = unified.codes
+        start = 0
+        for frame in frames:
+            count = len(frame)
+            frame[col] = pd.Categorical.from_codes(
+                codes[start:start + count],
+                categories=categories,
+            )
+            start += count
+        del unified
+
+
 def _assert_unique_keys(combined_df: pd.DataFrame) -> None:
     """Raise when year, school, student group, and metric repeat."""
     key = ["year", "school_id", "student_group", "metric"]
@@ -952,6 +1007,7 @@ def transform(raw_dir: str, proc_dir: str, config: Dict[str, Any]) -> str:
             kpi_df = convert_to_kpi_format(df, demographic_mapper)
             del df
             if not kpi_df.empty:
+                _cast_string_columns_to_category(kpi_df)
                 all_data.append(kpi_df)
                 logger.info(f"Processed {len(kpi_df)} KPI records from {filename}")
             else:
@@ -962,10 +1018,12 @@ def transform(raw_dir: str, proc_dir: str, config: Dict[str, Any]) -> str:
     
     # Combine all data
     if all_data:
+        # Each file is already in KPI_COLUMNS order. A second reindex copies
+        # the whole frame. Align the category codes, then drop the per-file frames.
+        _align_categories(all_data)
         combined_df = pd.concat(all_data, ignore_index=True)
-
-        # Ensure standard column order
-        combined_df = combined_df.reindex(columns=KPI_COLUMNS)
+        del all_data
+        gc.collect()
 
         # FIX: Ensure value column is numeric for etl_runner validation
         # Convert value column to numeric, this will properly handle suppressed records as NaN

@@ -15,6 +15,7 @@ from etl.safe_schools_events import (
     add_derived_fields,
     files_to_process,
     rejected_event_filenames,
+    _assert_unique_keys,
 )
 
 
@@ -587,11 +588,22 @@ class TestSafeSchoolsEventsETL:
         assert len(matched) == 1, filters
         return matched.iloc[0]
 
+    def test_assert_unique_keys_raises_on_a_duplicate(self):
+        """A repeated year, school, student group, and metric is a hard error."""
+        frame = pd.DataFrame({
+            "year": [2026, 2026],
+            "school_id": ["001000", "001000"],
+            "student_group": ["All Students", "All Students"],
+            "metric": ["safe_students_affected_total", "safe_students_affected_total"],
+        })
+        with pytest.raises(ValueError, match="duplicate-key"):
+            _assert_unique_keys(frame)
+
     def test_real_rows_for_2026_and_prior_year_anchors(self):
         """Real KDE rows: state, district, school, a star, a blank, and prior years."""
         self._copy_fixtures()
         result = transform(str(self.raw_dir), str(self.proc_dir), {})
-        output = pd.read_csv(result)
+        output = pd.read_csv(result, dtype={"school_id": "string"})
 
         key = ["year", "school_id", "student_group", "metric"]
         assert not output.duplicated(key).any()
@@ -636,7 +648,7 @@ class TestSafeSchoolsEventsETL:
             metric="safe_students_affected_total",
         )
         assert adair["value"] == 400
-        assert str(adair["school_id"]) in {"001000", "1000", "1000.0"}
+        assert adair["school_id"] == "001000"
 
         school = self._lookup(
             output,
