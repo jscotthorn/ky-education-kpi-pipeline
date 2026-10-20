@@ -612,31 +612,57 @@ class TestKyrc26TeacherWorkingConditions:
     def test_conflicting_glasgow_duplicate_is_not_stored_twice(self):
         """Glasgow 197 publishes two district totals. Agreeing percents stay once.
 
-        Leadership and teaching environment disagree, so neither published
-        number is chosen. Behavior is 69 on both rows and is stored once.
+        A conflicting pair is stored once as value NA with suppressed Y.
+        2020 behavior is 69 on both lines and stays a published 69.
         """
-        text = (
-            "SCHOOL YEAR,DISTRICT NAME,SCHOOL NAME,SCHOOL CODE,IMPACT MEASURE,IMPACT VALUE\n"
-            "20192020,Glasgow Independent,---District Total---,197,Managing Student Behavior Composite,69.0\n"
-            "20192020,Glasgow Independent,---District Total---,197,Managing Student Behavior Composite,69.0\n"
-            "20192020,Glasgow Independent,---District Total---,197,School Leadership Composite,66.0\n"
-            "20192020,Glasgow Independent,---District Total---,197,School Leadership Composite,55.0\n"
-            "20192020,Glasgow Independent,---District Total---,197,Teaching Environment Composite,79.0\n"
-            "20192020,Glasgow Independent,---District Total---,197,Teaching Environment Composite,68.0\n"
+        header = "SCHOOL YEAR,DISTRICT NAME,SCHOOL NAME,SCHOOL CODE,IMPACT MEASURE,IMPACT VALUE\n"
+        (self.sample_dir / "teacher_working_conditions_2020.csv").write_text(
+            header
+            + "20192020,Glasgow Independent,---District Total---,197,Managing Student Behavior Composite,69.0\n"
+            + "20192020,Glasgow Independent,---District Total---,197,Managing Student Behavior Composite,69.0\n"
+            + "20192020,Glasgow Independent,---District Total---,197,School Leadership Composite,66.0\n"
+            + "20192020,Glasgow Independent,---District Total---,197,School Leadership Composite,55.0\n"
+            + "20192020,Glasgow Independent,---District Total---,197,Teaching Environment Composite,79.0\n"
+            + "20192020,Glasgow Independent,---District Total---,197,Teaching Environment Composite,68.0\n"
         )
-        (self.sample_dir / "teacher_working_conditions_2020.csv").write_text(text)
+        (self.sample_dir / "teacher_working_conditions_2022.csv").write_text(
+            header
+            + "20212022,Glasgow Independent,---District Total---,197,School Leadership Composite,90\n"
+            + "20212022,Glasgow Independent,---District Total---,197,Teaching Environment Composite,61\n"
+            + "20212022,Glasgow Independent,---District Total---,197,School Leadership Composite,60\n"
+            + "20212022,Glasgow Independent,---District Total---,197,Teaching Environment Composite,91\n"
+            + "20212022,Glasgow Independent,---District Total---,197,Managing Student Behavior Composite,68\n"
+            + "20212022,Glasgow Independent,---District Total---,197,Managing Student Behavior Composite,83\n"
+        )
         transform(self.raw_dir, self.proc_dir, self._production_config())
         result = pd.read_csv(self.proc_dir / "teacher_working_conditions.csv", dtype=str)
+        behavior = "teacher_working_conditions_managing_student_behavior"
+        leadership = "teacher_working_conditions_school_leadership"
+        teaching = "teacher_working_conditions_teaching_environment"
         assert set(result["school_id"]) == {"197"}
-        assert set(result["metric"]) == {
-            "teacher_working_conditions_managing_student_behavior"
-        }
-        assert len(result) == 1
-        assert float(result.iloc[0]["value"]) == 69.0
-        assert result.iloc[0]["suppressed"] == "N"
-        assert result.iloc[0]["year"] == "2020"
+        assert len(result) == 6
         keys = ["school_id", "year", "student_group", "metric"]
         assert not result.duplicated(keys).any()
+
+        def cell(year: str, metric: str) -> pd.Series:
+            matches = result[(result["year"] == year) & (result["metric"] == metric)]
+            assert len(matches) == 1
+            return matches.iloc[0]
+
+        agreed = cell("2020", behavior)
+        assert float(agreed["value"]) == 69.0
+        assert agreed["suppressed"] == "N"
+        assert agreed["source_file"] == "teacher_working_conditions_2020.csv"
+        for year, metric in (
+            ("2020", leadership),
+            ("2020", teaching),
+            ("2022", behavior),
+            ("2022", leadership),
+            ("2022", teaching),
+        ):
+            suppressed = cell(year, metric)
+            assert suppressed["value"] == "" or pd.isna(suppressed["value"])
+            assert suppressed["suppressed"] == "Y"
 
     def test_datasets_file_wins_and_missing_codes_are_filled(self):
         """Datasets KYRC24 supplies the 2024 percents. Gaps are filled from the other copies.

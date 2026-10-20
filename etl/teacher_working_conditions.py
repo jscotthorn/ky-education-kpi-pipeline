@@ -432,8 +432,8 @@ class TeacherWorkingConditionsETL(BaseETL):
 
         Glasgow Independent ``197`` publishes two district-total rows for the
         same construct. When those percents agree, one row is kept. When
-        they disagree, neither is kept: both numbers are published, and this
-        parser does not choose between them.
+        they disagree, one row is stored with value NA and ``suppressed``
+        ``Y``. Both published numbers stay in notes/104. Issue #108.
 
         The historical KYRC24 file and KYRC25 add only keys the datasets
         KYRC24 file does not already supply. A KYRC25 row that is kept is
@@ -472,10 +472,12 @@ class TeacherWorkingConditionsETL(BaseETL):
         return self._collapse_duplicate_keys(kpi_df, source_file)
 
     def _collapse_duplicate_keys(self, kpi_df: pd.DataFrame, source_file: str) -> pd.DataFrame:
-        """Keep one row when a key is repeated with the same percent.
+        """Keep one row when a key is repeated.
 
-        A conflicting pair is dropped and logged. The key is school, year,
-        student group, and metric.
+        Agreeing percents stay as published. A conflicting pair is stored
+        once, with value NA and ``suppressed`` ``Y``, because both numbers
+        are published and this parser does not choose. The key is school,
+        year, student group, and metric. Issue #108.
         """
         if kpi_df.empty:
             return kpi_df
@@ -484,8 +486,8 @@ class TeacherWorkingConditionsETL(BaseETL):
         if not bool(repeated.any()):
             return kpi_df
 
-        unique = kpi_df.loc[~repeated]
-        kept_same: list[pd.DataFrame] = []
+        keep_index: list[Any] = list(kpi_df.index[~repeated])
+        conflict_index: list[Any] = []
         for _, group in kpi_df.loc[repeated].groupby(key, dropna=False, sort=False):
             distinct: set[float | None] = set()
             for raw_value in group["value"].tolist():
@@ -496,21 +498,26 @@ class TeacherWorkingConditionsETL(BaseETL):
                     distinct.add(round(float(raw_value), 6))
                 except (TypeError, ValueError):
                     distinct.add(None)
-            first = group.iloc[0]
+            first_index = group.index[0]
+            keep_index.append(first_index)
             if len(distinct) == 1:
-                kept_same.append(group.iloc[[0]])
                 continue
+            conflict_index.append(first_index)
             logger.warning(
-                "Dropping conflicting duplicate key in %s: school %s year %s metric %s values %s",
+                "Storing conflicting duplicate key in %s as suppressed: school %s year %s metric %s values %s",
                 source_file,
-                first["school_id"],
-                first["year"],
-                first["metric"],
+                group.iloc[0]["school_id"],
+                group.iloc[0]["year"],
+                group.iloc[0]["metric"],
                 sorted(distinct, key=lambda item: (item is None, item if item is not None else 0)),
             )
-        if not kept_same:
-            return unique.reset_index(drop=True)
-        return pd.concat([unique, *kept_same], ignore_index=True)
+        collapsed = kpi_df.loc[keep_index].copy()
+        if conflict_index:
+            # A float column cannot hold pd.NA. Object does, on pandas 2 and 3.
+            collapsed["value"] = collapsed["value"].astype(object)
+            collapsed.loc[conflict_index, "value"] = pd.NA
+            collapsed.loc[conflict_index, "suppressed"] = "Y"
+        return collapsed.reset_index(drop=True)
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
