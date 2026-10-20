@@ -110,16 +110,21 @@ raw_directories:
 
   kindergarten_readiness:
     - "KYRC24_ASMT_Kindergarten_Screen_Composite.csv"
+    # Kindergarten_Screen_2025.CSV on the OAA temporary URL is 404.
+    # This permanent composite is the 2024-25 source. Do not register both.
+    # The columns are named like counts and the cells are percents.
+    - url: "kyrc25"
+      file: "KYRC25_ASMT_Kindergarten_Screen_Composite.csv"
     - url: "kyrc26"
       file: "KYRC26_ASMT_Kindergarten_Screen_Composite.csv"
-    - url: "2025"
-      file: "Kindergarten_Screen_2025.CSV"
     - "kindergarten_screen_2023.csv"
     - "kindergarten_screen_2022.csv"
     - "kindergarten_screen_2021.csv"
     - "kindergarten_screen_2020.csv"
-    # Historical xlsx files (pre-2020)
+    # Historical xlsx files (pre-2020). 2017-18 is a real earlier year,
+    # not a republish of 2018-19.
     - "KSCREEN_18-19.xlsx"
+    - "KSCREEN_17-18.xlsx"
 
   out_of_school_suspension:
     - "KYRC24_OVW_Student_Suspensions.csv"
@@ -210,17 +215,41 @@ raw_directories:
     # Note: SAFE_SCHOOLS_18-19.xlsx is behavior events in wide format, incompatible
 
   safe_schools_discipline:
+    # Historical KYRC24. The datasets copy of this name matches these
+    # resolution counts. It renames the all-zero corporal column to
+    # Harassment (Includes Bullying), also all zeros. Same filename, so
+    # it is not registered twice. The historical URL is the one configured.
     - "KYRC24_SAFE_Discipline_Resolutions.csv"
+    # 2024-25. School year 20242025. Not a republish of another year.
+    # datasets and the historical host are the same bytes.
+    - url: "kyrc25"
+      file: "KYRC25_SAFE_Discipline_Resolutions.csv"
     - url: "kyrc26"
       file: "KYRC26_SAFE_Discipline_Resolutions.csv"
     - "KYRC24_SAFE_Legal_Sanctions.csv"
+    # 2022-23 legal sanctions. School year 20222023, stored as 2023.
+    # The annual 2020-2023 files have no legal columns. The historical
+    # host returns 404. datasets is the only copy. The twenty columns,
+    # including Total and the five sanction headers, match KYRC24-26.
+    # The discipline twin republishes safe_schools_discipline_2023.csv
+    # and is not registered. The parser skips that filename.
+    - url: "kyrc25"
+      file: "KYRC23_SAFE_Legal_Sanctions.csv"
+    # 2024-25 legal sanctions. Same bytes on datasets and the historical host.
+    - url: "kyrc25"
+      file: "KYRC25_SAFE_Legal_Sanctions.csv"
     - url: "kyrc26"
       file: "KYRC26_SAFE_Legal_Sanctions.csv"
     - "safe_schools_discipline_2023.csv"
     - "safe_schools_discipline_2022.csv"
     - "safe_schools_discipline_2021.csv"
     - "safe_schools_discipline_2020.csv"
-    # Historical xlsx files (pre-2020)
+    # DATA has Discipline-Resolutions and Legal Sanctions at state,
+    # district, and school level, in wide race and gender columns.
+    # Loading it is issue #89. The parser skips the file.
+    # KYRC23_SAFE_Discipline_Resolutions.csv republishes 2022-23 and is
+    # not registered. The parser skips that filename. The legal file is
+    # registered above.
     - "SAFE_SCHOOLS_18-19.xlsx"
 
   benchmark_assessment:

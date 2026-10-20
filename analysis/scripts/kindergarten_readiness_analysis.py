@@ -40,7 +40,7 @@ class KindergartenReadinessAnalysisDataset(BaseAnalysisDataset):
     Filters:
     - metric == 'kindergarten_readiness_rate'
     - All Students only
-    - School-level (not district totals)
+    - School-level (not district totals, co-op totals, or state rows)
     - Unsuppressed values
     """
 
@@ -79,8 +79,16 @@ class KindergartenReadinessAnalysisDataset(BaseAnalysisDataset):
         kinder_df = kinder_df[kinder_df['student_group'] == self.student_group_name].copy()
         self.log(f"  {self.student_group_name}: {len(kinder_df):,}")
 
-        # Filter to school-level (not district totals)
-        kinder_df = kinder_df[kinder_df['school_name'] != '---District Total---'].copy()
+        # School rows only. District totals, co-op totals, and state rows are
+        # aggregate labels. KYRC state is ---District Total--- with district
+        # All Districts. Historical state is ---State Total--- with district State.
+        aggregate_names = {
+            '---District Total---',
+            '---COOP Total---',
+            '---State Total---',
+        }
+        kinder_df = kinder_df[~kinder_df['school_name'].isin(aggregate_names)].copy()
+        kinder_df = kinder_df[~kinder_df['district'].isin({'State', 'All Districts'})].copy()
         self.log(f"  School-level only: {len(kinder_df):,}")
 
         # Remove suppressed values
