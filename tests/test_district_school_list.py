@@ -5,9 +5,13 @@ import pytest
 from pathlib import Path
 import pandas as pd
 import tempfile
+import yaml
 from etl.constants import KPI_COLUMNS
 import shutil
 from etl.district_school_list import transform, DistrictSchoolListETL
+
+ROOT = Path(__file__).resolve().parents[1]
+FIXTURE_DIR = ROOT / "tests" / "fixtures" / "district_school_list"
 
 
 class TestDistrictSchoolListETL:
@@ -187,9 +191,11 @@ class TestDistrictSchoolListETL:
         # Check that DataFrame has correct columns
         assert set(kpi_df.columns).issubset(set(KPI_COLUMNS))
 
-        # Check that we have the right number of KPI rows
-        # 2 valid schools * 2 metrics (lat, long) = 4 rows
-        assert len(kpi_df) == 4
+        # Two schools, and each one also emits the school-type and Title I
+        # indicators. The journal 105 failure expected 4 (latitude and
+        # longitude only). 2 coordinates + 10 type indicators + 3 Title I
+        # indicators = 15, and 15 * 2 = 30. This sample has no grade columns.
+        assert len(kpi_df) == 30
 
         # Check specific metrics exist
         metrics = kpi_df['metric'].unique()
@@ -302,3 +308,295 @@ class TestDistrictSchoolListETL:
 
         assert metrics['school_latitude'] == 37.107858
         assert metrics['school_longitude'] == -85.328527
+
+
+def _config():
+    """Production mappings.yaml entry. This source has no dtype cast."""
+    loaded = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+    return loaded["sources"]["district_school_list"]
+
+
+def _fixture(name: str) -> bytes:
+    return (FIXTURE_DIR / name).read_bytes()
+
+
+def _run(tmp_path: Path, names_and_bytes: list) -> pd.DataFrame:
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "district_school_list"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    for name, payload in names_and_bytes:
+        (source_dir / name).write_bytes(payload)
+    transform(raw_dir, proc_dir, _config())
+    output = proc_dir / "district_school_list.csv"
+    assert output.exists()
+    return pd.read_csv(output, dtype=str, keep_default_na=False)
+
+
+def _rows(df: pd.DataFrame, year: str, school_id: str) -> pd.DataFrame:
+    return df[(df["year"] == year) & (df["school_id"] == school_id)]
+
+
+def _one(df: pd.DataFrame, year: str, school_id: str, metric: str) -> pd.Series:
+    matched = _rows(df, year, school_id)
+    matched = matched[matched["metric"] == metric]
+    assert len(matched) == 1, (year, school_id, metric, len(matched))
+    return matched.iloc[0]
+
+
+class TestDistrictSchoolListKYRC26:
+    def setup_method(self):
+        self.etl = DistrictSchoolListETL("district_school_list")
+
+    def test_kyrc26_file_is_accepted(self):
+        """include_kyrc26 is set, so the 2025-26 file is not skipped."""
+        assert self.etl.include_kyrc26 is True
+        assert self.etl.accepts_data_file(Path("KYRC26_OVW_District_School_List.csv"))
+        assert not self.etl.accepts_data_file(Path("KYRC23_OVW_District_School_List.csv"))
+        assert not self.etl.accepts_data_file(Path("DISTRICT_SCHOOL_LIST_17-18.xlsx"))
+        assert not self.etl.accepts_data_file(Path("District_School_List_2026.CSV"))
+        assert not self.etl.accepts_data_file(Path("District_School_List_2025.CSV"))
+        assert not self.etl.accepts_data_file(Path("District_School_List_2024.CSV"))
+
+    def test_registered_sources_are_the_permanent_files(self):
+        """KYRC26 is registered. KYRC23 and the 2017-18 workbook are not.
+
+        Every registered prior-year URL returned 200. No temporary OAA
+        name was ever registered.
+        """
+        config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+        names = []
+        hosts = {}
+        for entry in config["raw_directories"]["district_school_list"]:
+            if isinstance(entry, dict):
+                names.append(entry["file"])
+                hosts[entry["file"]] = entry.get("url")
+            else:
+                names.append(entry)
+        assert names == [
+            "KYRC24_OVW_District_School_List.csv",
+            "KYRC25_OVW_District_School_List.csv",
+            "KYRC26_OVW_District_School_List.csv",
+            "district_school_list_2023.csv",
+            "district_school_list_2022.csv",
+            "district_school_list_2021.csv",
+            "district_school_list_2020.csv",
+            "DISTRICT_SCHOOL_LIST_18-19.xlsx",
+        ]
+        assert hosts["KYRC25_OVW_District_School_List.csv"] == "kyrc25"
+        assert hosts["KYRC26_OVW_District_School_List.csv"] == "kyrc26"
+        assert "KYRC23_OVW_District_School_List.csv" not in names
+        assert "DISTRICT_SCHOOL_LIST_17-18.xlsx" not in names
+
+    def test_school_and_district_rows_resolve_coop(self):
+        """Jefferson is GLEC. Adair stays GRREC. The district row is not a school.
+
+        KYRC25 left the Jefferson co-op cell blank. It did not say GREC.
+        KYRC26 fills that cell with GLEC and keeps co-op code 909.
+        """
+        frame = pd.read_csv(FIXTURE_DIR / "kyrc26_real_rows.csv", dtype=str, keep_default_na=False)
+        normalized = self.etl.normalize_column_names(frame)
+        school = normalized[normalized["school_code"] == "275004"].iloc[0]
+        district = normalized[normalized["school_code"] == "275000"].iloc[0]
+        adair = normalized[normalized["school_code"] == "001010"].iloc[0]
+        assert school["co_op"] == "GLEC"
+        assert school["co_op_code"] == "909"
+        assert district["co_op"] == "GLEC"
+        assert district["co_op_code"] == "909"
+        assert adair["co_op"] == "GRREC"
+        assert adair["co_op_code"] == "902"
+        assert "GREC" not in set(normalized["co_op"])
+        assert self.etl.should_skip_row(district)
+        assert not self.etl.should_skip_row(school)
+        ninth = normalized[normalized["school_code"] == "134150"].iloc[0]
+        assert ninth["school_name"] == "Ninth District Elementary"
+        assert not self.etl.should_skip_row(ninth)
+        state = normalized[normalized["school_code"] == "999000"].iloc[0]
+        assert state["district_name"] == "---State---"
+        assert state["school_name"] == "---State---"
+        assert not self.etl.should_skip_row(state)
+
+    def test_both_coop_spellings_collapse_to_one_column(self):
+        """A frame with Co-Op and CO-OP still resolves co_op.
+
+        BaseETL maps both headers to the same field. A blank in the first
+        spelling is filled from the second.
+        """
+        frame = pd.read_csv(FIXTURE_DIR / "kyrc26_real_rows.csv", dtype=str, keep_default_na=False)
+        frame.insert(10, "Co-Op", "")
+        frame.insert(11, "Co-Op Code", "")
+        school_mask = frame["School Code"] == "275004"
+        frame.loc[school_mask, "CO-OP"] = ""
+        frame.loc[school_mask, "Co-Op"] = "GLEC"
+        frame.loc[school_mask, "CO-OP Code"] = ""
+        frame.loc[school_mask, "Co-Op Code"] = "909"
+        district_mask = frame["School Code"] == "275000"
+        frame.loc[district_mask, "Co-Op"] = "GLEC"
+        frame.loc[district_mask, "Co-Op Code"] = "909"
+        normalized = self.etl.normalize_column_names(frame)
+        assert list(normalized.columns).count("co_op") == 1
+        assert list(normalized.columns).count("co_op_code") == 1
+        school = normalized[normalized["school_code"] == "275004"].iloc[0]
+        district = normalized[normalized["school_code"] == "275000"].iloc[0]
+        assert school["co_op"] == "GLEC"
+        assert school["co_op_code"] == "909"
+        assert district["co_op"] == "GLEC"
+        assert not self.etl.should_skip_row(school)
+        assert self.etl.should_skip_row(district)
+
+    def test_kyrc26_real_rows(self, tmp_path):
+        """State, Adair, Jefferson, a technical center, and a comma address.
+
+        District aggregates are not KPI rows. A blank coordinate is not a
+        school. There is no star and no suppressed group. Year is 2026.
+        The state district is ---State---, not All Districts.
+        """
+        df = _run(tmp_path, [("KYRC26_OVW_District_School_List.csv", _fixture("kyrc26_real_rows.csv"))])
+        assert list(df.columns) == KPI_COLUMNS
+        keys = ["year", "school_id", "student_group", "metric"]
+        assert not df.duplicated(keys).any()
+        assert set(df["year"]) == {"2026"}
+        assert set(df["student_group"]) == {"All Students"}
+        assert set(df["suppressed"]) == {"N"}
+        assert "001000" not in set(df["school_id"])
+        assert "275000" not in set(df["school_id"])
+        assert "132035" not in set(df["school_id"])
+
+        state = _one(df, "2026", "999000", "school_latitude")
+        assert state["district"] == "---State---"
+        assert state["school_name"] == "---State---"
+        assert state["value"] == "38.184805"
+        assert state["co_op"] == ""
+        assert _one(df, "2026", "999000", "school_longitude")["value"] == "-84.848799"
+        assert _one(df, "2026", "999000", "school_low_grade")["value"] == "-1.0"
+        assert _one(df, "2026", "999000", "school_high_grade")["value"] == "12.0"
+        assert _one(df, "2026", "999000", "title_i_schoolwide")["value"] == "0.0"
+
+        adair = _one(df, "2026", "001010", "school_latitude")
+        assert adair["district"] == "Adair County"
+        assert adair["school_name"] == "Adair County High School"
+        assert adair["value"] == "37.107858"
+        assert adair["co_op"] == "GRREC"
+        assert adair["co_op_code"] == "902"
+        assert adair["school_type"] == "A1"
+        assert _one(df, "2026", "001010", "school_longitude")["value"] == "-85.328527"
+        assert _one(df, "2026", "001010", "school_low_grade")["value"] == "9.0"
+        assert _one(df, "2026", "001010", "school_high_grade")["value"] == "12.0"
+        assert _one(df, "2026", "001010", "title_i_schoolwide")["value"] == "1.0"
+        assert _one(df, "2026", "001010", "school_type_a2")["value"] == "0.0"
+
+        taylor = _one(df, "2026", "275004", "school_latitude")
+        assert taylor["co_op"] == "GLEC"
+        assert taylor["co_op_code"] == "909"
+        assert taylor["school_name"] == "Camp Taylor Elementary"
+        assert taylor["value"] == "38.196553"
+        assert _one(df, "2026", "275004", "school_longitude")["value"] == "-85.719415"
+        assert _one(df, "2026", "275004", "school_low_grade")["value"] == "-1.0"
+        assert _one(df, "2026", "275004", "school_high_grade")["value"] == "5.0"
+        assert _one(df, "2026", "275004", "title_i_schoolwide")["value"] == "1.0"
+
+        eastern = _one(df, "2026", "275007", "school_latitude")
+        assert eastern["co_op"] == "GLEC"
+        assert eastern["value"] == "38.243661"
+        assert eastern["school_name"] == "Eastern High"
+        assert _one(df, "2026", "275007", "title_i_eligible_no_program")["value"] == "1.0"
+        assert _one(df, "2026", "275007", "title_i_schoolwide")["value"] == "0.0"
+
+        tech = _one(df, "2026", "381904", "school_type_a2")
+        assert tech["value"] == "1.0"
+        assert tech["co_op"] == "WKEC"
+        assert _one(df, "2026", "381904", "school_latitude")["value"] == "36.912372"
+        assert _one(df, "2026", "381904", "title_i_schoolwide")["value"] == "0.0"
+
+        baker = _one(df, "2026", "121026", "school_latitude")
+        assert baker["value"] == "38.002886373"
+        assert _one(df, "2026", "121026", "school_longitude")["value"] == "-84.219262528"
+        assert _one(df, "2026", "121026", "school_low_grade")["value"] == "5.0"
+        assert _one(df, "2026", "121026", "school_high_grade")["value"] == "6.0"
+
+        ninth = _one(df, "2026", "134150", "school_latitude")
+        assert ninth["school_name"] == "Ninth District Elementary"
+        assert ninth["co_op"] == "NKCES"
+        assert ninth["value"] == "39.052306"
+
+    def test_prior_year_anchors_and_duplicate_school(self, tmp_path):
+        """2020, 2023, 2024, and 2025 anchors. The repeated 2024 code is stored once.
+
+        The two Knott County rows differ in the contact name, which is not
+        a metric. Coordinates and classification match. 2023 state school
+        id stays 999. Jefferson's 2025 co-op cell stays blank.
+        """
+        df = _run(
+            tmp_path,
+            [
+                ("district_school_list_2020.csv", _fixture("district_school_list_2020_rows.csv")),
+                ("district_school_list_2023.csv", _fixture("district_school_list_2023_rows.csv")),
+                ("KYRC24_OVW_District_School_List.csv", _fixture("kyrc24_real_rows.csv")),
+                ("KYRC25_OVW_District_School_List.csv", _fixture("kyrc25_real_rows.csv")),
+            ],
+        )
+        keys = ["year", "school_id", "student_group", "metric"]
+        assert not df.duplicated(keys).any()
+        assert "061" not in set(df["school_id"])
+        assert "001000" not in set(df["school_id"])
+
+        adair_2020 = _one(df, "2020", "001010", "school_latitude")
+        assert adair_2020["value"] == "37.107858"
+        assert adair_2020["co_op"] == "GRREC"
+        assert adair_2020["district"] == "Adair County"
+        assert _one(df, "2020", "999", "school_latitude")["district"] == "State"
+        assert _one(df, "2020", "999", "school_latitude")["school_name"] == "---State Total---"
+        assert _one(df, "2020", "999", "school_latitude")["value"] == "38.184805"
+
+        state_2023 = _one(df, "2023", "999", "school_latitude")
+        assert state_2023["district"] == "State"
+        assert state_2023["school_name"] == "---State Total---"
+        assert state_2023["value"] == "38.184805"
+        assert _one(df, "2023", "001010", "school_longitude")["value"] == "-85.328527"
+
+        knot = _rows(df, "2024", "777125")
+        assert len(knot) == 17
+        assert _one(df, "2024", "777125", "school_latitude")["value"] == "37.319839"
+        assert _one(df, "2024", "777125", "school_longitude")["value"] == "-82.958672"
+        assert _one(df, "2024", "777125", "school_type_c2")["value"] == "1.0"
+        assert _one(df, "2024", "777125", "school_low_grade")["value"] == "8.0"
+        assert _one(df, "2024", "777125", "school_high_grade")["value"] == "12.0"
+        assert _one(df, "2024", "999000", "school_latitude")["district"] == "State"
+        assert _one(df, "2024", "999000", "school_latitude")["value"] == "38.184805"
+
+        taylor = _one(df, "2025", "275004", "school_latitude")
+        assert taylor["value"] == "38.196553"
+        assert taylor["co_op"] == ""
+        assert taylor["co_op_code"] == "909"
+        assert _one(df, "2025", "999000", "school_latitude")["district"] == "State"
+        assert _one(df, "2025", "999000", "school_latitude")["school_name"] == "---State Total---"
+        assert _one(df, "2025", "001010", "school_latitude")["co_op"] == "GRREC"
+
+    def test_leftover_files_do_not_add_rows(self, tmp_path):
+        """A KYRC23 republish, a 2017-18 workbook, and a temp name add nothing."""
+        from openpyxl import Workbook
+
+        raw_dir = tmp_path / "raw" / "district_school_list"
+        raw_dir.mkdir(parents=True)
+        proc_dir = tmp_path / "processed"
+        proc_dir.mkdir()
+        (raw_dir / "KYRC26_OVW_District_School_List.csv").write_bytes(_fixture("kyrc26_real_rows.csv"))
+        (raw_dir / "KYRC23_OVW_District_School_List.csv").write_bytes(_fixture("kyrc25_real_rows.csv"))
+        (raw_dir / "District_School_List_2026.CSV").write_bytes(_fixture("kyrc26_real_rows.csv"))
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "DATA"
+        sheet.append(["SCH_YEAR", "DIST_NAME", "SCH_NAME", "SCH_CD", "LATITUDE", "LONGITUDE", "SCH_TYPE"])
+        sheet.append(["20172018", "State", "---State Total---", "999", "38.184805", "-84.848799", "A1"])
+        workbook.save(raw_dir / "DISTRICT_SCHOOL_LIST_17-18.xlsx")
+        transform(tmp_path / "raw", proc_dir, _config())
+        df = pd.read_csv(proc_dir / "district_school_list.csv", dtype=str, keep_default_na=False)
+        assert set(df["year"]) == {"2026"}
+        assert set(df["source_file"]) == {"KYRC26_OVW_District_School_List.csv"}
+        assert "2018" not in set(df["year"])
+
+    def test_production_config_has_no_int_cast(self):
+        """mappings.yaml does not cast this source. pandas stays unpinned."""
+        config = _config()
+        assert "dtype" not in config or not config.get("dtype")

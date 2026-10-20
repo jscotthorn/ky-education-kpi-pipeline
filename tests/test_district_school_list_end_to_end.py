@@ -258,11 +258,13 @@ class TestDistrictSchoolListEndToEnd:
         mismatched = []
         for (school_id, year, source_file), group in grouped:
             metrics = set(group['metric'].unique())
-            if metrics != {'school_latitude', 'school_longitude'}:
+            # School-type and Title I indicators are stored on the same row.
+            # Both coordinates still have to be present.
+            if 'school_latitude' not in metrics or 'school_longitude' not in metrics:
                 mismatched.append((school_id, year, source_file, metrics))
 
         assert len(mismatched) == 0, (
-            f"Found {len(mismatched)} school/year combinations with mismatched metrics:\n"
+            f"Found {len(mismatched)} school/year combinations missing a coordinate:\n"
             f"Examples: {mismatched[:5]}"
         )
 
