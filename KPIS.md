@@ -230,20 +230,20 @@ All above metrics are also available with `_by_demo` suffix for demographic grou
 - `kentucky_summative_assessment_{subject}_apprentice_rate_grade_{n}` - Percentage of students at Apprentice level by subject and specific grade
 - `kentucky_summative_assessment_{subject}_proficient_rate_grade_{n}` - Percentage of students at Proficient level by subject and specific grade
 - `kentucky_summative_assessment_{subject}_distinguished_rate_grade_{n}` - Percentage of students at Distinguished level by subject and specific grade
-- `kentucky_summative_assessment_{subject}_proficient_distinguished_rate_grade_{n}` - Combined Proficient/Distinguished percentage by subject and specific grade
-- `kentucky_summative_assessment_{subject}_content_index_score_grade_{n}` - Content mastery index scores by subject and specific grade
+- `kentucky_summative_assessment_{subject}_proficient_distinguished_rate_grade_{n}` - Published proficient/distinguished percentage by subject and specific grade
 
 ### Performance Level Metrics by School Level
 - `kentucky_summative_assessment_{subject}_novice_rate_{level}` - Percentage of students at Novice level by subject and school level (elementary, middle, high)
 - `kentucky_summative_assessment_{subject}_apprentice_rate_{level}` - Percentage of students at Apprentice level by subject and school level
 - `kentucky_summative_assessment_{subject}_proficient_rate_{level}` - Percentage of students at Proficient level by subject and school level
 - `kentucky_summative_assessment_{subject}_distinguished_rate_{level}` - Percentage of students at Distinguished level by subject and school level
-- `kentucky_summative_assessment_{subject}_proficient_distinguished_rate_{level}` - Combined Proficient/Distinguished percentage by subject and school level
-- `kentucky_summative_assessment_{subject}_content_index_score_{level}` - Content mastery index scores by subject and school level
+- `kentucky_summative_assessment_{subject}_proficient_distinguished_rate_{level}` - Published proficient/distinguished percentage by subject and school level
+- `kentucky_summative_assessment_{subject}_content_index_score_{level}` - Content index by subject and school level, stored as KDE publishes it, including values above 100
 
-**Subjects**: `math`, `reading`, `science`, `social_studies`, `writing`  
-**Grades**: `grade_3` through `grade_12` (specific grades vary by subject)  
-**School Levels**: `elementary`, `middle`, `high`
+**Subjects**: `math`, `reading`, `science`, `social_studies`, `writing`, `combined_writing`, `editing_and_mechanics`, `on_demand_writing`
+**Grades**: `grade_3` through `grade_8`, `grade_10`, and `grade_11`. A grade row is only the grade metric. It is not also stored as elementary, middle, or high.
+**School Levels**: `elementary`, `middle`, `high`. The level files publish these rates. The grade files do not publish a content index.
+**Values**: Each percent and the content index are the published cell. Proficient/distinguished is not the sum of proficient and distinguished. A `*` is value NA with `suppressed` Y. A blank cell is not stored. A published 0 is kept. In the 2021-2023 files KDE publishes no 0 and no blank measure cell (the published minimum is 3), so a suppression flag of Y in those years can also mean 0-2 students or not applicable. A row whose suppression flag is not Y and whose measure cells are all blank was not offered and is skipped. One row can publish a content index next to starred rates. The star suppresses only the starred rates. State rows are district `All Districts` for 2024-2026 and `State` for 2018-2019 and 2021-2023. There is no 2020 file.
 
 ## Student Enrollment
 **Source**: `etl/student_enrollment.py`
