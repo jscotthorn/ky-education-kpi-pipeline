@@ -716,8 +716,12 @@ class SafeSchoolsClimateETL(BaseETL):
             'accountability_profile_2022.csv',  # Climate indicator starts in 2022
             'accountability_profile_2023.csv',
             'precautionary_measures_*.csv',
-            # Survey item files are not selected. They only fed the removed
-            # calculated indexes. The temporary index-score names stay rejected.
+            # Survey item files are not selected. They fed the removed
+            # calculated indexes. The same glob also matched
+            # quality_of_school_climate_and_safety_survey_index_scores_2022.csv,
+            # KDE's published 2021-22 per-level index. That file exists and
+            # is not registered. This list does not load it. The temporary
+            # index-score names stay rejected.
         ]
 
         # Find all matching files

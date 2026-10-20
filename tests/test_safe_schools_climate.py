@@ -255,8 +255,6 @@ class TestSafeSchoolsClimateETL:
         })
         assert etl.extract_metrics(climate_question) == {}
         assert etl.extract_metrics(safety_question) == {}
-        assert "climate_index_score_calculated" not in etl.extract_metrics(climate_question)
-        assert "safety_index_score_calculated" not in etl.extract_metrics(safety_question)
 
     def test_get_suppressed_metric_defaults(self, etl):
         """Test suppressed metric defaults based on data type."""
@@ -338,10 +336,12 @@ class TestSafeSchoolsClimateETL:
         assert "555555" not in set(doors["school_id"].astype("string"))
 
     def test_get_files_to_process(self, etl, tmp_path):
-        """Survey item files are not selected.
+        """Survey item files and the unregistered 2021-22 index are not selected.
 
         Scott decided on 2026-10-20 to remove the calculated indexes, so the
-        survey files that only fed those averages stay out.
+        survey item files that fed those averages stay out.
+        ``quality_of_school_climate_and_safety_survey_index_scores_2022.csv``
+        is KDE's published 2021-22 index. It exists and is not registered.
         """
         # Create test directory structure
         module_dir = tmp_path / 'safe_schools_climate'
@@ -357,6 +357,7 @@ class TestSafeSchoolsClimateETL:
         (module_dir / 'quality_of_school_climate_and_safety_survey_elementary_school_2023.csv').touch()
         (module_dir / 'Quality_of_School_Climate_and_Safety_Survey_Elementary_School_2025.CSV').touch()
         (module_dir / 'Quality_of_School_Climate_and_Safety_Survey_Questions_2025.CSV').touch()
+        (module_dir / 'quality_of_school_climate_and_safety_survey_index_scores_2022.csv').touch()
         
         files = etl.get_files_to_process(tmp_path)
         file_names = [f.name for f in files]
@@ -372,9 +373,19 @@ class TestSafeSchoolsClimateETL:
         assert 'quality_of_school_climate_and_safety_survey_elementary_school_2023.csv' not in file_names
         assert 'Quality_of_School_Climate_and_Safety_Survey_Elementary_School_2025.CSV' not in file_names
         assert 'Quality_of_School_Climate_and_Safety_Survey_Questions_2025.CSV' not in file_names
+        # Published 2021-22 index. It exists and is not registered, and this
+        # selector does not load it.
+        assert 'quality_of_school_climate_and_safety_survey_index_scores_2022.csv' not in file_names
 
     def test_survey_files_do_not_emit_calculated_indexes(self, etl, tmp_path):
-        """Question averages are not stored, even when both levels share a school."""
+        """A published index row stays, and survey files add no calculated metric.
+
+        Survey-only input returns empty on the old code too. The old
+        ``process_files`` returned before it averaged questions whenever no
+        file had produced a KPI row. One real KYRC24 index row makes the
+        result non-empty, so a restored average would leave a ``_calculated``
+        metric.
+        """
         module_dir = tmp_path / "safe_schools_climate"
         module_dir.mkdir()
         header = (
@@ -393,11 +404,21 @@ class TestSafeSchoolsClimateETL:
             "20212022,Test District,Multi School,001010,All Students,HS,SAFETY,30\n",
             encoding="utf-8",
         )
+        published = (FIXTURE_DIR / "kyrc24_index_scores.csv").read_text(encoding="utf-8").splitlines()
+        index_file = module_dir / "KYRC24_ACCT_Index_Scores.csv"
+        index_file.write_text(published[0] + "\n" + published[1] + "\n", encoding="utf-8")
+
         selected = {path.name for path in etl.get_files_to_process(tmp_path)}
         assert elementary.name not in selected
         assert high.name not in selected
-        result = etl.process_files([elementary, high])
-        assert result.empty
+        assert index_file.name in selected
+        result = etl.process_files([elementary, high, index_file])
+        assert not result.empty
+        assert not result["metric"].astype("string").str.contains("_calculated").any()
+        assert set(result["metric"].astype("string")) == {
+            "climate_index_score_elementary",
+            "safety_index_score_elementary",
+        }
 
 
 def _run(raw_root: Path, proc: Path) -> pd.DataFrame:
@@ -540,6 +561,7 @@ class TestKyrc26ClimateFiles:
         for name in (
             "KYRC23_SAFE_Precautionary_Measures.csv",
             "Quality_of_School_Climate_and_Safety_Survey_Index_Scores_2026.CSV",
+            "quality_of_school_climate_and_safety_survey_index_scores_2022.csv",
         ):
             assert name not in names
 
