@@ -7,7 +7,12 @@ import pandas as pd
 from etl.constants import KPI_COLUMNS
 import tempfile
 import shutil
-from etl.safe_schools_discipline import transform, SafeSchoolsDisciplineETL
+from etl.safe_schools_discipline import (
+    DISCIPLINE_STUDENTS_UNDUPLICATED,
+    LEGAL_STUDENTS_UNDUPLICATED,
+    transform,
+    SafeSchoolsDisciplineETL,
+)
 
 
 class TestSafeSchoolsDisciplineETL:
@@ -139,16 +144,19 @@ class TestSafeSchoolsDisciplineETL:
         
         metrics = etl.extract_metrics(row)
         
-        assert 'restraint_rate' in metrics
-        assert metrics['restraint_rate'] == 2.0
+        # These columns are counts. A rate is not derived.
+        assert 'restraint_count' in metrics
+        assert metrics['restraint_count'] == 2
         assert 'out_of_school_suspension_count' in metrics
-        assert metrics['out_of_school_suspension_count'] == 30.0
-        assert 'in_school_removal_rate' in metrics
-        assert metrics['in_school_removal_rate'] == 45.0
-        assert 'expelled_receiving_services_rate' in metrics
-        assert metrics['expelled_receiving_services_rate'] == 1.0
-        assert 'unilateral_removal_rate' in metrics
-        assert metrics['unilateral_removal_rate'] == 1.0
+        assert metrics['out_of_school_suspension_count'] == 30
+        assert 'in_school_removal_count' in metrics
+        assert metrics['in_school_removal_count'] == 45
+        assert 'expelled_receiving_services_count' in metrics
+        assert metrics['expelled_receiving_services_count'] == 1
+        assert 'unilateral_removal_count' in metrics
+        assert metrics['unilateral_removal_count'] == 1
+        assert 'restraint_rate' not in metrics
+        assert 'total' not in metrics
         
     def test_extract_metrics_kyrc24_legal(self):
         """Test metric extraction from KYRC24 legal sanctions data."""
@@ -165,14 +173,16 @@ class TestSafeSchoolsDisciplineETL:
         
         metrics = etl.extract_metrics(row)
         
-        assert 'arrest_rate' in metrics
-        assert metrics['arrest_rate'] == 10.0
-        assert 'charges_rate' in metrics
-        assert metrics['charges_rate'] == 25.0
-        assert 'court_designated_worker_rate' in metrics
-        assert metrics['court_designated_worker_rate'] == 5.0
-        assert 'school_resource_officer_rate' in metrics
-        assert metrics['school_resource_officer_rate'] == 75.0
+        assert 'arrest_count' in metrics
+        assert metrics['arrest_count'] == 2
+        assert 'charges_count' in metrics
+        assert metrics['charges_count'] == 5
+        assert 'court_designated_worker_count' in metrics
+        assert metrics['court_designated_worker_count'] == 1
+        assert 'school_resource_officer_count' in metrics
+        assert metrics['school_resource_officer_count'] == 15
+        assert 'arrest_rate' not in metrics
+        assert 'total' not in metrics
     
     def test_extract_metrics_historical(self):
         """Test metric extraction from historical data."""
@@ -190,22 +200,18 @@ class TestSafeSchoolsDisciplineETL:
         
         metrics = etl.extract_metrics(row)
         
-        assert 'expelled_receiving_services_rate' in metrics
-        assert metrics['expelled_receiving_services_rate'] == round(1/85*100, 2)
-        assert 'out_of_school_suspension_count' in metrics
-        assert metrics['out_of_school_suspension_count'] == round(25/85*100, 2)
-        assert 'in_school_removal_rate' in metrics
-        assert metrics['in_school_removal_rate'] == round(40/85*100, 2)
-        assert 'restraint_rate' in metrics
-        assert metrics['restraint_rate'] == round(1/85*100, 2)
-        assert 'unilateral_removal_rate' in metrics
-        assert metrics['unilateral_removal_rate'] == round(1/85*100, 2)
+        assert metrics['expelled_receiving_services_count'] == 1
+        assert metrics['out_of_school_suspension_count'] == 25
+        assert metrics['in_school_removal_count'] == 40
+        assert metrics['restraint_count'] == 1
+        assert metrics['unilateral_removal_count'] == 1
+        assert 'expelled_receiving_services_rate' not in metrics
+        assert 'total_discipline_resolutions' not in metrics
     
     def test_extract_metrics_zero_total(self):
-        """Test metric extraction with zero total."""
+        """A zero Total on a non-All-Students row does not drop published counts."""
         etl = SafeSchoolsDisciplineETL()
         
-        # Test row with zero total
         row = pd.Series({
             'total': 0,
             'restraint_count': 1,
@@ -213,13 +219,15 @@ class TestSafeSchoolsDisciplineETL:
         })
         
         metrics = etl.extract_metrics(row)
-        assert len(metrics) == 0  # Should return no metrics when total is 0
+        assert metrics['restraint_count'] == 1
+        assert metrics['out_of_school_suspension_count'] == 2
+        assert 'total' not in metrics
+        assert sum(metrics.values()) != 0
     
     def test_extract_metrics_zero_counts(self):
-        """Test metric extraction with zero counts."""
+        """A published 0 is kept. Issue #52."""
         etl = SafeSchoolsDisciplineETL()
         
-        # Test row with zero counts (should not include zero rates)
         row = pd.Series({
             'total': 100,
             'restraint_count': 0,
@@ -229,31 +237,70 @@ class TestSafeSchoolsDisciplineETL:
         
         metrics = etl.extract_metrics(row)
         
-        # Only non-zero rates should be included
+        assert metrics['restraint_count'] == 0
+        assert metrics['in_school_removal_count'] == 0
+        assert metrics['out_of_school_suspension_count'] == 10
         assert 'restraint_rate' not in metrics
-        assert 'in_school_removal_rate' not in metrics
-        assert 'out_of_school_suspension_count' in metrics
-        assert metrics['out_of_school_suspension_count'] == 10.0
+
+    def test_extract_metrics_negative_count(self):
+        """A negative count is dropped. A published count on the same row is kept."""
+        etl = SafeSchoolsDisciplineETL()
+        row = pd.Series({
+            'out_of_school_suspension_count': -1,
+            'restraint_count': 4,
+        })
+        metrics = etl.extract_metrics(row)
+        assert 'out_of_school_suspension_count' not in metrics
+        assert metrics['restraint_count'] == 4
+
+    def test_extract_metrics_blank_total_on_all_students(self):
+        """A blank Total is not stored. A published 0 on All Students is kept."""
+        etl = SafeSchoolsDisciplineETL()
+        blank = pd.Series({
+            "demographic": "All Students",
+            "total": "",
+            "out_of_school_suspension_count": 4,
+            "restraint_count": 1,
+        })
+        blank_metrics = etl.extract_metrics(blank)
+        assert DISCIPLINE_STUDENTS_UNDUPLICATED not in blank_metrics
+        assert blank_metrics["out_of_school_suspension_count"] == 4
+
+        zero = pd.Series({
+            "demographic": "All Students",
+            "total": 0,
+            "out_of_school_suspension_count": 0,
+            "restraint_count": 0,
+        })
+        zero_metrics = etl.extract_metrics(zero)
+        assert zero_metrics[DISCIPLINE_STUDENTS_UNDUPLICATED] == 0
+
+        subgroup = pd.Series({
+            "demographic": "Female",
+            "total": 9,
+            "out_of_school_suspension_count": 4,
+            "restraint_count": 5,
+        })
+        subgroup_metrics = etl.extract_metrics(subgroup)
+        assert DISCIPLINE_STUDENTS_UNDUPLICATED not in subgroup_metrics
+        assert LEGAL_STUDENTS_UNDUPLICATED not in subgroup_metrics
+        assert subgroup_metrics["out_of_school_suspension_count"] == 4
     
     def test_get_suppressed_metric_defaults(self):
-        """Test suppressed metric defaults."""
+        """Defaults cover the count columns present on the row, not rate names."""
         etl = SafeSchoolsDisciplineETL()
-        row = pd.Series({'total': 100})
+        row = pd.Series({
+            'restraint_count': pd.NA,
+            'out_of_school_suspension_count': pd.NA,
+        })
         defaults = etl.get_suppressed_metric_defaults(row)
         
-        # Should include all possible metrics with NA values
-        expected_metrics = [
-            'corporal_punishment_rate', 'restraint_rate', 'seclusion_rate',
-            'expelled_not_receiving_services_rate', 'expelled_receiving_services_rate',
-            'in_school_removal_rate', 'out_of_school_suspension_count',
-            'removal_by_hearing_officer_rate', 'unilateral_removal_rate',
-            'arrest_rate', 'charges_rate', 'civil_proceedings_rate',
-            'court_designated_worker_rate', 'school_resource_officer_rate'
-        ]
-        
-        for metric in expected_metrics:
-            assert metric in defaults
-            assert pd.isna(defaults[metric])
+        assert 'restraint_count' in defaults
+        assert 'out_of_school_suspension_count' in defaults
+        assert pd.isna(defaults['restraint_count'])
+        assert pd.isna(defaults['out_of_school_suspension_count'])
+        assert 'arrest_count' not in defaults
+        assert 'restraint_rate' not in defaults
     
     def test_transform_integration(self):
         """Test the complete transform integration."""
@@ -295,21 +342,25 @@ class TestSafeSchoolsDisciplineETL:
         assert 'KYRC24_SAFE_Legal_Sanctions.csv' in source_files
         assert 'safe_schools_discipline_2022.csv' in source_files
         
-        # Check metric types
+        # Check metric types. These files publish counts, including zeros.
         metrics = result_df['metric'].unique()
-        assert 'restraint_rate' in metrics
+        assert 'restraint_count' in metrics
         assert 'out_of_school_suspension_count' in metrics
-        assert 'arrest_rate' in metrics
-        assert 'school_resource_officer_rate' in metrics
+        assert 'arrest_count' in metrics
+        assert 'school_resource_officer_count' in metrics
+        assert 'restraint_rate' not in metrics
+        zeros = result_df[result_df['metric'] == 'corporal_punishment_count']
+        assert len(zeros) > 0
+        assert (zeros['value'] == 0).all()
+        assert (zeros['suppressed'] == 'N').all()
         
         # Check years
         years = result_df['year'].unique()
         assert 2024 in years  # From KYRC24 data
         assert 2023 in years  # From historical data (school year 20222023)
         
-        # Check value ranges
+        # Counts are non-negative. They are not capped at 100.
         assert result_df['value'].min() >= 0
-        assert result_df['value'].max() <= 100
         
         # Check no null values in required fields
         assert result_df['district'].notna().all()
@@ -325,3 +376,481 @@ class TestSafeSchoolsDisciplineHelpers:
         """Test the transform function can be imported and called."""
         # This is a basic smoke test
         assert callable(transform)
+
+
+FIXTURE_DIR = Path(__file__).parent / "fixtures" / "safe_schools_discipline"
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _copy_fixture(dest_dir: Path, fixture_name: str, source_name: str) -> None:
+    shutil.copy(FIXTURE_DIR / fixture_name, dest_dir / source_name)
+
+
+def _run(raw_dir: Path, proc_dir: Path) -> pd.DataFrame:
+    transform(raw_dir.parent, proc_dir, {"derive": {}})
+    return pd.read_csv(proc_dir / "safe_schools_discipline.csv", dtype=str, keep_default_na=False)
+
+
+def _num(value: str) -> float:
+    """Parse a KPI value written from a float. An empty cell is not a number."""
+    assert value != ""
+    return float(value)
+
+
+def _cell(df: pd.DataFrame, year: str, school_id: str, group: str, metric: str) -> pd.Series:
+    match = df[
+        (df["year"] == year)
+        & (df["school_id"] == school_id)
+        & (df["student_group"] == group)
+        & (df["metric"] == metric)
+    ]
+    assert len(match) == 1, (year, school_id, group, metric, len(match))
+    return match.iloc[0]
+
+
+class TestSafeSchoolsDisciplineKyrc26:
+    """Real rows from the downloaded files, plus the issue #52 rules."""
+
+    def test_include_kyrc26_accepts_the_file(self):
+        etl = SafeSchoolsDisciplineETL()
+        assert etl.include_kyrc26 is True
+        assert etl.accepts_data_file(Path("KYRC26_SAFE_Discipline_Resolutions.csv"))
+        assert etl.accepts_data_file(Path("KYRC26_SAFE_Legal_Sanctions.csv"))
+
+    def test_kyrc_header_aliases(self):
+        mappings = SafeSchoolsDisciplineETL().module_column_mappings
+        assert mappings["Out-of-School Suspensions (SSP3)"] == "out_of_school_suspension_count"
+        assert mappings["Out-Of-School Suspensions (SSP3)"] == "out_of_school_suspension_count"
+        assert mappings["Removal by Hearing Officer (IAES2)"] == "removal_by_hearing_officer_count"
+        assert mappings["Unilateral Removal by School Personnel (IAES1)"] == "unilateral_removal_count"
+        assert mappings["In-School Removal (INSR) or In-District Removal (INDR) >=.5"] == "in_school_removal_count"
+        assert mappings["Expelled, Not Receiving Services (SSP2)"] == "expelled_not_receiving_services_count"
+        assert mappings["Expelled, Not Receiving Services (Ssp2)"] == "expelled_not_receiving_services_count"
+
+    def test_kyrc23_discipline_twin_and_2018_workbook_are_skipped(self):
+        """The discipline republish stays skipped. The legal file is loaded."""
+        etl = SafeSchoolsDisciplineETL()
+        assert etl.accepts_data_file(Path("KYRC23_SAFE_Discipline_Resolutions.csv")) is False
+        assert etl.accepts_data_file(Path("KYRC23_SAFE_Legal_Sanctions.csv")) is True
+        assert etl.accepts_data_file(Path("SAFE_SCHOOLS_18-19.xlsx")) is False
+        # The annual file and the permanent KYRC25 name are still accepted.
+        assert etl.accepts_data_file(Path("safe_schools_discipline_2023.csv")) is True
+        assert etl.accepts_data_file(Path("KYRC25_SAFE_Discipline_Resolutions.csv")) is True
+
+    def test_stringdtype_comma_zero_and_star(self):
+        """pandas 3 StringDtype keeps a comma count, a published 0, and a star."""
+        etl = SafeSchoolsDisciplineETL()
+        df = pd.DataFrame({
+            "demographic": ["All Students"],
+            "school_code": ["999000"],
+            "district_name": ["All Districts"],
+            "school_name": ["All Schools"],
+            "school_year": ["20252026"],
+            "out_of_school_suspension_count": pd.Series(["35,818"], dtype="string"),
+            "corporal_punishment_count": pd.Series(["0"], dtype="string"),
+            "removal_by_hearing_officer_count": pd.Series(["*"], dtype="string"),
+        })
+        cleaned = etl.standardize_missing_values(df)
+        kpi = etl.convert_to_kpi_format(cleaned, "KYRC26_SAFE_Discipline_Resolutions.csv")
+        oss = kpi[kpi["metric"] == "out_of_school_suspension_count"].iloc[0]
+        assert oss["value"] == 35818
+        assert oss["suppressed"] == "N"
+        zero = kpi[kpi["metric"] == "corporal_punishment_count"].iloc[0]
+        assert zero["value"] == 0
+        assert zero["suppressed"] == "N"
+        star = kpi[kpi["metric"] == "removal_by_hearing_officer_count"].iloc[0]
+        assert pd.isna(star["value"])
+        assert star["suppressed"] == "Y"
+
+    def test_blank_cell_is_skipped_and_total_events_is_skipped(self, tmp_path):
+        """A blank is not a star and is not stored. An all-blank row is skipped."""
+        raw = tmp_path / "raw" / "safe_schools_discipline"
+        raw.mkdir(parents=True)
+        proc = tmp_path / "processed"
+        proc.mkdir()
+        pd.DataFrame({
+            "School Year": ["20252026", "20252026", "20252026"],
+            "District Name": ["Adair County", "Adair County", "Adair County"],
+            "School Name": ["Adair County High School"] * 3,
+            "School Code": ["001010", "001010", "001010"],
+            "Demographic": ["All Students", "Migrant", "Total Events"],
+            "Out-of-School Suspensions (SSP3)": ["10", "", "99"],
+            "Corporal Punishment (SSP5)": ["0", "", "1"],
+            "Restraint (SSP7)": ["", "", "2"],
+        }).to_csv(raw / "KYRC26_SAFE_Discipline_Resolutions.csv", index=False)
+        df = _run(raw, proc)
+        kept = df[df["student_group"] == "All Students"]
+        assert set(kept["metric"]) == {
+            "out_of_school_suspension_count",
+            "corporal_punishment_count",
+        }
+        assert _num(_cell(df, "2026", "001010", "All Students", "out_of_school_suspension_count")["value"]) == 10
+        assert _num(_cell(df, "2026", "001010", "All Students", "corporal_punishment_count")["value"]) == 0
+        assert "Migrant" not in set(df["student_group"])
+        assert "Total Events" not in set(df["student_group"])
+        assert "99" not in set(df["value"].astype(str))
+        # Total Events is a published row. It is not stored, and Female
+        # plus Male is not written in its place.
+        assert not df["metric"].str.endswith("_rate").any()
+        assert "total" not in set(df["metric"])
+
+    def test_real_rows_and_prior_year_anchors(self, tmp_path):
+        """State, district, school, a suppressed group, and prior-year anchors."""
+        raw = tmp_path / "raw" / "safe_schools_discipline"
+        raw.mkdir(parents=True)
+        proc = tmp_path / "processed"
+        proc.mkdir()
+        _copy_fixture(raw, "kyrc26_discipline_rows.csv", "KYRC26_SAFE_Discipline_Resolutions.csv")
+        _copy_fixture(raw, "kyrc26_legal_rows.csv", "KYRC26_SAFE_Legal_Sanctions.csv")
+        _copy_fixture(raw, "kyrc25_discipline_state.csv", "KYRC25_SAFE_Discipline_Resolutions.csv")
+        _copy_fixture(raw, "kyrc24_discipline_state.csv", "KYRC24_SAFE_Discipline_Resolutions.csv")
+        _copy_fixture(raw, "historical_2023_state.csv", "safe_schools_discipline_2023.csv")
+        state_2020 = pd.read_csv(FIXTURE_DIR / "historical_2020_state.csv", dtype=str)
+        all_star = pd.read_csv(FIXTURE_DIR / "historical_2020_all_star.csv", dtype=str)
+        pd.concat([state_2020, all_star], ignore_index=True).to_csv(
+            raw / "safe_schools_discipline_2020.csv", index=False
+        )
+
+        df = _run(raw, proc)
+        keys = ["year", "school_id", "student_group", "metric"]
+        assert not df.duplicated(keys).any()
+
+        # 2026 state. Counts, including the published zeros. Year is the
+        # report-card year. District is All Districts.
+        oss = _cell(df, "2026", "999000", "All Students", "out_of_school_suspension_count")
+        assert _num(oss["value"]) == 35818
+        assert oss["suppressed"] == "N"
+        assert oss["district"] == "All Districts"
+        assert oss["school_name"] == "---District Total---"
+        assert _num(_cell(df, "2026", "999000", "All Students", "in_school_removal_count")["value"]) == 46101
+        assert _num(_cell(df, "2026", "999000", "All Students", "corporal_punishment_count")["value"]) == 0
+        assert _num(_cell(df, "2026", "999000", "All Students", "removal_by_hearing_officer_count")["value"]) == 0
+        assert _num(_cell(df, "2026", "999000", "All Students", "expelled_not_receiving_services_count")["value"]) == 13
+        students = _cell(df, "2026", "999000", "All Students", DISCIPLINE_STUDENTS_UNDUPLICATED)
+        assert _num(students["value"]) == 67284
+        assert students["suppressed"] == "N"
+        legal_students = _cell(df, "2026", "999000", "All Students", LEGAL_STUDENTS_UNDUPLICATED)
+        assert _num(legal_students["value"]) == 3973
+        assert legal_students["suppressed"] == "N"
+
+        # Fayette district and Bryan Station. Restraint at Bryan Station is *.
+        fayette = _cell(df, "2026", "165000", "All Students", "out_of_school_suspension_count")
+        assert _num(fayette["value"]) == 2060
+        assert fayette["district"] == "Fayette County"
+        assert fayette["co_op"] == "CKEC"
+        assert fayette["co_op_code"] == "901"
+        bryan = _cell(df, "2026", "165170", "All Students", "out_of_school_suspension_count")
+        assert _num(bryan["value"]) == 190
+        assert bryan["school_name"] == "Bryan Station High School"
+        restraint = _cell(df, "2026", "165170", "All Students", "restraint_count")
+        assert restraint["value"] == ""
+        assert restraint["suppressed"] == "Y"
+        assert _num(_cell(df, "2026", "165170", "All Students", "corporal_punishment_count")["value"]) == 0
+
+        # Adair County High, English Learner: OSS and in-school removal are *.
+        el = _cell(df, "2026", "001010", "English Learner", "out_of_school_suspension_count")
+        assert el["value"] == ""
+        assert el["suppressed"] == "Y"
+        assert _cell(df, "2026", "001010", "English Learner", "in_school_removal_count")["suppressed"] == "Y"
+        assert _num(_cell(df, "2026", "001010", "English Learner", "restraint_count")["value"]) == 0
+        el_metrics = set(df[
+            (df["year"] == "2026")
+            & (df["school_id"] == "001010")
+            & (df["student_group"] == "English Learner")
+        ]["metric"])
+        assert DISCIPLINE_STUDENTS_UNDUPLICATED not in el_metrics
+        assert LEGAL_STUDENTS_UNDUPLICATED not in el_metrics
+
+        # Legal sanctions, including a published 0 and a starred cell.
+        arrests = _cell(df, "2026", "999000", "All Students", "arrest_count")
+        assert _num(arrests["value"]) == 95
+        assert _num(_cell(df, "2026", "999000", "All Students", "charges_count")["value"]) == 1159
+        assert _num(_cell(df, "2026", "165170", "All Students", "arrest_count")["value"]) == 0
+        cdw = _cell(df, "2026", "165000", "All Students", "court_designated_worker_count")
+        assert cdw["value"] == ""
+        assert cdw["suppressed"] == "Y"
+
+        # Prior years. Published numbers stay. A star is suppressed Y.
+        assert _num(_cell(df, "2025", "999000", "All Students", "out_of_school_suspension_count")["value"]) == 35886
+        assert _num(_cell(df, "2025", "999000", "All Students", DISCIPLINE_STUDENTS_UNDUPLICATED)["value"]) == 66013
+        assert _num(_cell(df, "2025", "999000", "All Students", "expelled_not_receiving_services_count")["value"]) == 10
+        assert _num(_cell(df, "2025", "999000", "All Students", "corporal_punishment_count")["value"]) == 0
+        assert _num(_cell(df, "2024", "999000", "All Students", "out_of_school_suspension_count")["value"]) == 38983
+        assert _num(_cell(df, "2024", "999000", "All Students", DISCIPLINE_STUDENTS_UNDUPLICATED)["value"]) == 85687
+        iaes = _cell(df, "2024", "999000", "All Students", "removal_by_hearing_officer_count")
+        assert iaes["value"] == ""
+        assert iaes["suppressed"] == "Y"
+        assert _num(_cell(df, "2024", "999000", "All Students", "corporal_punishment_count")["value"]) == 0
+        state_2023 = _cell(df, "2023", "999", "All Students", "out_of_school_suspension_count")
+        assert _num(state_2023["value"]) == 40768
+        assert _num(_cell(df, "2023", "999", "All Students", DISCIPLINE_STUDENTS_UNDUPLICATED)["value"]) == 88141
+        assert state_2023["district"] == "State"
+        assert _cell(df, "2023", "999", "All Students", "removal_by_hearing_officer_count")["suppressed"] == "Y"
+        assert _num(_cell(df, "2020", "999", "All Students", "out_of_school_suspension_count")["value"]) == 28027
+        assert _num(_cell(df, "2020", "999", "All Students", DISCIPLINE_STUDENTS_UNDUPLICATED)["value"]) == 91644
+        assert _cell(df, "2020", "999", "All Students", "removal_by_hearing_officer_count")["suppressed"] == "Y"
+
+        # The 2020 Adair American Indian row is all stars. Each cell is NA/Y.
+        adair_metrics = {
+            "expelled_receiving_services_count",
+            "expelled_not_receiving_services_count",
+            "out_of_school_suspension_count",
+            "corporal_punishment_count",
+            "in_school_removal_count",
+            "restraint_count",
+            "seclusion_count",
+            "unilateral_removal_count",
+            "removal_by_hearing_officer_count",
+        }
+        adair_star = df[
+            (df["year"] == "2020")
+            & (df["school_id"] == "001010")
+            & (df["student_group"] == "American Indian or Alaska Native")
+        ]
+        assert set(adair_star["metric"]) == adair_metrics
+        assert (adair_star["value"] == "").all()
+        assert (adair_star["suppressed"] == "Y").all()
+
+
+def test_all_star_rows_are_stored_suppressed(tmp_path):
+    """Murray 2025 and Adair 2020 are all stars. Each count cell is NA/Y."""
+    raw = tmp_path / "raw" / "safe_schools_discipline"
+    raw.mkdir(parents=True)
+    proc = tmp_path / "processed"
+    proc.mkdir()
+    _copy_fixture(raw, "kyrc25_legal_murray_all_star.csv", "KYRC25_SAFE_Legal_Sanctions.csv")
+    _copy_fixture(raw, "historical_2020_all_star.csv", "safe_schools_discipline_2020.csv")
+    df = _run(raw, proc)
+
+    legal = [
+        "arrest_count",
+        "charges_count",
+        "civil_proceedings_count",
+        "court_designated_worker_count",
+        "school_resource_officer_count",
+    ]
+    for school_id, school_name in (
+        ("446000", "---District Total---"),
+        ("446050", "Murray High School"),
+    ):
+        rows = df[(df["year"] == "2025") & (df["school_id"] == school_id)]
+        assert set(rows["metric"]) == set(legal)
+        assert (rows["student_group"] == "African American").all()
+        assert (rows["value"] == "").all()
+        assert (rows["suppressed"] == "Y").all()
+        assert (rows["school_name"] == school_name).all()
+        assert "total" not in set(rows["metric"])
+
+    adair = df[
+        (df["year"] == "2020")
+        & (df["school_id"] == "001010")
+        & (df["student_group"] == "American Indian or Alaska Native")
+    ]
+    assert len(adair) == 9
+    assert (adair["value"] == "").all()
+    assert (adair["suppressed"] == "Y").all()
+    oss = adair[adair["metric"] == "out_of_school_suspension_count"].iloc[0]
+    assert oss["value"] == ""
+    assert oss["suppressed"] == "Y"
+
+
+def test_all_students_total_is_stored_unduplicated(tmp_path):
+    """Published Total is an unduplicated student count on All Students only.
+
+    Allen County ``005000`` is one of the 639 All Students rows in the
+    2026 resolutions file whose Total is below the sum of the resolution
+    columns. The stored value is the published 386. Ignite Institute's
+    Total is a star. Adair Learning Academy's Total is a published 0.
+    The English Learner row publishes Total 3 and does not emit the metric.
+    """
+    raw = tmp_path / "raw" / "safe_schools_discipline"
+    raw.mkdir(parents=True)
+    proc = tmp_path / "processed"
+    proc.mkdir()
+    _copy_fixture(
+        raw,
+        "kyrc26_students_unduplicated.csv",
+        "KYRC26_SAFE_Discipline_Resolutions.csv",
+    )
+    df = _run(raw, proc)
+    metric = DISCIPLINE_STUDENTS_UNDUPLICATED
+
+    allen = df[(df["school_id"] == "005000") & (df["student_group"] == "All Students")]
+    stored = _cell(df, "2026", "005000", "All Students", metric)
+    assert _num(stored["value"]) == 386
+    assert stored["suppressed"] == "N"
+    assert stored["district"] == "Allen County"
+    assert stored["school_name"] == "---District Total---"
+    event_metrics = [name for name in set(allen["metric"]) if name != metric]
+    event_sum = sum(_num(row["value"]) for _, row in allen[allen["metric"].isin(event_metrics)].iterrows())
+    assert event_sum == 485
+    assert _num(stored["value"]) < event_sum
+
+    ignite = _cell(df, "2026", "035160", "All Students", metric)
+    assert ignite["value"] == ""
+    assert ignite["suppressed"] == "Y"
+    assert ignite["school_name"] == "Ignite Institute"
+    assert _num(_cell(df, "2026", "035160", "All Students", "restraint_count")["value"]) == 0
+    in_school = _cell(df, "2026", "035160", "All Students", "in_school_removal_count")
+    assert in_school["value"] == ""
+    assert in_school["suppressed"] == "Y"
+
+    zero = _cell(df, "2026", "001012", "All Students", metric)
+    assert _num(zero["value"]) == 0
+    assert zero["suppressed"] == "N"
+    assert zero["school_name"] == "Adair Learning Academy"
+
+    learner = df[
+        (df["school_id"] == "001010")
+        & (df["student_group"] == "English Learner")
+    ]
+    assert metric not in set(learner["metric"])
+    assert LEGAL_STUDENTS_UNDUPLICATED not in set(learner["metric"])
+    assert _num(_cell(df, "2026", "001010", "English Learner", "restraint_count")["value"]) == 0
+    assert "total" not in set(df["metric"])
+    assert "total_discipline_resolutions" not in set(df["metric"])
+
+
+def test_kyrc23_legal_sanctions_are_the_2023_source(tmp_path):
+    """KYRC23 legal rows are year 2023 and do not collide with discipline keys.
+
+    The four rows are verbatim from ``KYRC23_SAFE_Legal_Sanctions.csv``.
+    State All Students Total is 4,609 and arrests are 190. Adair County
+    ``001000`` is the district spot check. The English Learner row does
+    not emit the unduplicated metric. The historical 2023 state row stays
+    on school ``999``.
+    """
+    raw = tmp_path / "raw" / "safe_schools_discipline"
+    raw.mkdir(parents=True)
+    proc = tmp_path / "processed"
+    proc.mkdir()
+    _copy_fixture(raw, "kyrc23_legal_sanctions.csv", "KYRC23_SAFE_Legal_Sanctions.csv")
+    _copy_fixture(raw, "historical_2023_state.csv", "safe_schools_discipline_2023.csv")
+    # A leftover discipline twin must not be read.
+    twin = raw / "KYRC23_SAFE_Discipline_Resolutions.csv"
+    twin.write_text(
+        "School Year,Demographic,School Code,District Name,School Name,"
+        "Out-of-School Suspensions (SSP3)\n"
+        "20222023,All Students,999000,All Districts,All Schools,1\n",
+        encoding="utf-8",
+    )
+
+    df = _run(raw, proc)
+    keys = ["year", "school_id", "student_group", "metric"]
+    assert not df.duplicated(keys).any()
+    assert "KYRC23_SAFE_Discipline_Resolutions.csv" not in set(df["source_file"])
+
+    legal = df[df["source_file"] == "KYRC23_SAFE_Legal_Sanctions.csv"]
+    assert set(legal["year"]) == {"2023"}
+    assert (legal["district"] != "State").all()
+    resolution = {
+        "corporal_punishment_count",
+        "restraint_count",
+        "seclusion_count",
+        "expelled_not_receiving_services_count",
+        "expelled_receiving_services_count",
+        "in_school_removal_count",
+        "out_of_school_suspension_count",
+        "removal_by_hearing_officer_count",
+        "unilateral_removal_count",
+        DISCIPLINE_STUDENTS_UNDUPLICATED,
+    }
+    assert resolution.isdisjoint(set(legal["metric"]))
+
+    state = _cell(df, "2023", "999000", "All Students", LEGAL_STUDENTS_UNDUPLICATED)
+    assert _num(state["value"]) == 4609
+    assert state["suppressed"] == "N"
+    assert state["district"] == "All Districts"
+    assert state["school_name"] == "---District Total---"
+    assert _num(_cell(df, "2023", "999000", "All Students", "arrest_count")["value"]) == 190
+    assert _num(_cell(df, "2023", "999000", "All Students", "charges_count")["value"]) == 1529
+    assert _num(_cell(df, "2023", "999000", "All Students", "civil_proceedings_count")["value"]) == 12
+    assert _num(_cell(df, "2023", "999000", "All Students", "court_designated_worker_count")["value"]) == 318
+    assert _num(_cell(df, "2023", "999000", "All Students", "school_resource_officer_count")["value"]) == 4089
+
+    district = _cell(df, "2023", "001000", "All Students", LEGAL_STUDENTS_UNDUPLICATED)
+    assert _num(district["value"]) == 33
+    assert district["suppressed"] == "N"
+    assert district["district"] == "Adair County"
+    assert district["school_name"] == "---District Total---"
+    assert district["co_op"] == "GRREC"
+    assert district["co_op_code"] == "902"
+    assert _num(_cell(df, "2023", "001000", "All Students", "arrest_count")["value"]) == 0
+    assert _cell(df, "2023", "001000", "All Students", "arrest_count")["suppressed"] == "N"
+    assert _num(_cell(df, "2023", "001000", "All Students", "charges_count")["value"]) == 7
+    assert _num(_cell(df, "2023", "001000", "All Students", "civil_proceedings_count")["value"]) == 0
+    cdw = _cell(df, "2023", "001000", "All Students", "court_designated_worker_count")
+    assert cdw["value"] == ""
+    assert cdw["suppressed"] == "Y"
+    assert _num(_cell(df, "2023", "001000", "All Students", "school_resource_officer_count")["value"]) == 32
+
+    school = _cell(df, "2023", "001010", "All Students", LEGAL_STUDENTS_UNDUPLICATED)
+    assert _num(school["value"]) == 31
+    assert school["school_name"] == "Adair County High School"
+    assert _num(_cell(df, "2023", "001010", "All Students", "arrest_count")["value"]) == 0
+    assert _num(_cell(df, "2023", "001010", "All Students", "charges_count")["value"]) == 6
+    school_cdw = _cell(df, "2023", "001010", "All Students", "court_designated_worker_count")
+    assert school_cdw["value"] == ""
+    assert school_cdw["suppressed"] == "Y"
+    assert _num(_cell(df, "2023", "001010", "All Students", "school_resource_officer_count")["value"]) == 31
+
+    learner = df[
+        (df["year"] == "2023")
+        & (df["school_id"] == "001010")
+        & (df["student_group"] == "English Learner")
+    ]
+    assert LEGAL_STUDENTS_UNDUPLICATED not in set(learner["metric"])
+    assert _num(_cell(df, "2023", "001010", "English Learner", "arrest_count")["value"]) == 0
+    assert _num(_cell(df, "2023", "001010", "English Learner", "charges_count")["value"]) == 0
+    learner_sro = _cell(df, "2023", "001010", "English Learner", "school_resource_officer_count")
+    assert learner_sro["value"] == ""
+    assert learner_sro["suppressed"] == "Y"
+
+    # The annual 2023 file still owns the discipline state row.
+    discipline = _cell(df, "2023", "999", "All Students", "out_of_school_suspension_count")
+    assert _num(discipline["value"]) == 40768
+    assert discipline["district"] == "State"
+    assert _num(_cell(df, "2023", "999", "All Students", DISCIPLINE_STUDENTS_UNDUPLICATED)["value"]) == 88141
+    state_999 = df[(df["year"] == "2023") & (df["school_id"] == "999")]
+    assert "arrest_count" not in set(state_999["metric"])
+    assert LEGAL_STUDENTS_UNDUPLICATED not in set(state_999["metric"])
+
+
+def test_registered_sources_are_the_permanent_files():
+    """KYRC25 fills 2024-25. The KYRC23 legal file is the 2022-23 source."""
+    import yaml
+
+    config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    names = []
+    hosts = {}
+    for entry in config["raw_directories"]["safe_schools_discipline"]:
+        if isinstance(entry, dict):
+            names.append(entry["file"])
+            hosts[entry["file"]] = entry.get("url")
+        else:
+            names.append(str(entry))
+    assert "KYRC25_SAFE_Discipline_Resolutions.csv" in names
+    assert "KYRC25_SAFE_Legal_Sanctions.csv" in names
+    assert hosts["KYRC25_SAFE_Discipline_Resolutions.csv"] == "kyrc25"
+    assert hosts["KYRC25_SAFE_Legal_Sanctions.csv"] == "kyrc25"
+    assert hosts["KYRC26_SAFE_Discipline_Resolutions.csv"] == "kyrc26"
+    assert hosts["KYRC26_SAFE_Legal_Sanctions.csv"] == "kyrc26"
+    assert "KYRC23_SAFE_Discipline_Resolutions.csv" not in names
+    assert "KYRC23_SAFE_Legal_Sanctions.csv" in names
+    assert hosts["KYRC23_SAFE_Legal_Sanctions.csv"] == "kyrc25"
+    assert "SAFE_SCHOOLS_18-19.xlsx" in names
+    for name in (
+        "safe_schools_discipline_2020.csv",
+        "safe_schools_discipline_2021.csv",
+        "safe_schools_discipline_2022.csv",
+        "safe_schools_discipline_2023.csv",
+        "KYRC24_SAFE_Discipline_Resolutions.csv",
+        "KYRC24_SAFE_Legal_Sanctions.csv",
+    ):
+        assert name in names
+    # The shared safe_schools download list is not this module's registration.
+    shared = []
+    for entry in config["raw_directories"]["safe_schools"]:
+        shared.append(entry["file"] if isinstance(entry, dict) else str(entry))
+    assert "KYRC25_SAFE_Discipline_Resolutions.csv" not in shared
+    assert "KYRC25_SAFE_Legal_Sanctions.csv" not in shared

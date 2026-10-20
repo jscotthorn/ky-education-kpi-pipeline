@@ -1,0 +1,5 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,Total,In-School Removal (INSR) or In-District Removal (INDR) >=.5,Restraint (SSP7),Seclusion (SSP8),Unilateral Removal by School Personnel (IAES1),Removal by Hearing Officer (IAES2),"Expelled, Not Receiving Services (SSP2)","Expelled, Receiving Services (SSP1)",Corporal Punishment (SSP5),Out-of-School Suspensions (SSP3)
+20252026,002,ALLEN,005,Allen County,,All Schools,005000,,2100070,GRREC,902,,All Students,386,314,0,0,0,0,0,4,0,167
+20252026,008,BOONE,035,Boone County,160,Ignite Institute,035160,008035160,210051002536,NKCES,905,A2,All Students,*,*,0,0,0,0,0,0,0,0
+20252026,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,English Learner,3,*,0,0,0,0,0,0,0,*
+20252026,001,ADAIR,001,Adair County,012,Adair Learning Academy,001012,001001012,210003001913,GRREC,902,A6,All Students,0,0,0,0,0,0,0,0,0,0

@@ -1,0 +1,5 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,Total,In-School Removal (INSR) or In-District Removal (INDR) >=.5,Restraint (SSP7),Seclusion (SSP8),Unilateral Removal by School Personnel (IAES1),Removal by Hearing Officer (IAES2),"Expelled, Not Receiving Services (SSP2)","Expelled, Receiving Services (SSP1)",Corporal Punishment (SSP5),Out-of-School Suspensions (SSP3)
+20252026,,,999,All Districts,,All Schools,999000,,,,,,All Students,"67,284","46,101","1,988",413,18,0,13,100,0,"35,818"
+20252026,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,English Learner,3,*,0,0,0,0,0,0,0,*
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,All Students,"3,899","2,670",230,22,0,0,0,0,0,"2,060"
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,All Students,248,103,*,0,0,0,0,0,0,190
