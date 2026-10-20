@@ -288,6 +288,53 @@ class TestSafeSchoolsClimateETL:
         defaults = etl.get_suppressed_metric_defaults(row_empty)
         assert len(defaults) == 0
     
+    def test_outside_doors_yes_no_star_and_blank(self, etl, tmp_path):
+        """Yes is 1, No is 0, a star is NA/Y, and a blank is omitted.
+
+        A published 0 stays. Lowercase yes/no matches the 2020-2023 files.
+        The star is recorded before missing-value cleanup.
+        """
+        path = tmp_path / "KYRC26_SAFE_Precautionary_Measures.csv"
+        path.write_text(
+            "School Year,School Code,School Name,District Name,"
+            "All outside doors are locked during school hours\n"
+            "20252026,111111,Yes School,Test District,Yes\n"
+            "20252026,222222,No School,Test District,No\n"
+            "20252026,333333,Lower No School,Test District,no\n"
+            "20252026,444444,Star School,Test District,*\n"
+            "20252026,555555,Blank School,Test District,\n"
+            "20252026,666666,Lower Yes School,Test District,yes\n",
+            encoding="utf-8",
+        )
+        processed = etl.process_file(path)
+        frame = etl.convert_to_kpi_format(processed, path.name)
+        doors = frame[frame["metric"] == "outside_doors_locked_during_school_hours"]
+        key = ["year", "school_id", "student_group", "metric"]
+        assert not doors.duplicated(key).any()
+        assert not frame.duplicated(key).any()
+
+        def one(school_id: str) -> pd.Series:
+            rows = doors[doors["school_id"].astype("string") == school_id]
+            assert len(rows) == 1
+            return rows.iloc[0]
+
+        yes = one("111111")
+        assert yes["value"] == 1.0
+        assert yes["suppressed"] == "N"
+        published_no = one("222222")
+        assert published_no["value"] == 0.0
+        assert published_no["suppressed"] == "N"
+        lower_no = one("333333")
+        assert lower_no["value"] == 0.0
+        assert lower_no["suppressed"] == "N"
+        star = one("444444")
+        assert pd.isna(star["value"])
+        assert star["suppressed"] == "Y"
+        lower_yes = one("666666")
+        assert lower_yes["value"] == 1.0
+        assert lower_yes["suppressed"] == "N"
+        assert "555555" not in set(doors["school_id"].astype("string"))
+
     def test_get_files_to_process(self, etl, tmp_path):
         """Test file selection logic."""
         # Create test directory structure
@@ -666,6 +713,7 @@ class TestKyrc26ClimateFiles:
             frame, year="2026", school_id="165899", metric="safety_policy_compliance_rate",
         )
         assert opportunity_doors["value"] == 0.0
+        assert opportunity_doors["suppressed"] == "N"
         assert opportunity_rate["value"] == pytest.approx(71.4)
         choices = _cell(
             frame, year="2025", school_id="476016", metric="safety_policy_compliance_rate",
@@ -678,6 +726,7 @@ class TestKyrc26ClimateFiles:
             frame, year="2025", school_id="021012", metric="outside_doors_locked_during_school_hours",
         )
         assert bavel["value"] == 0.0
+        assert bavel["suppressed"] == "N"
         assert bavel["co_op"] == "GRREC"
 
 

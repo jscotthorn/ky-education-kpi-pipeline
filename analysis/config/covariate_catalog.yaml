@@ -687,14 +687,33 @@ covariates:
       note: "2023 combined indicator rate for high school. State combined is 62.0. Status, which is not stored, is 61.7."
 
     safety_policy_compliance_rate:
-      description: "Percentage compliance across eight safety policy questions"
+      description: "Percent of published Yes answers on the safety policy questions"
       source: kde_safe_schools_climate
       unit: percentage
       expected_direction: positive
       literature_support: |
         Policy compliance indicates institutional commitment to safety.
         May be confounded with resources (wealthier schools can comply more easily).
-      note: "Administrative compliance measure, not student perception"
+      note: |
+        Administrative compliance measure, not student perception. 2020-2025
+        are 8 of 8. KYRC26 dropped classroom doors, so 2026 is 7 of 7. A 100
+        in 2026 is not the same measure as 8 of 8. Outside doors are not in
+        this rate.
+      theoretical_relevance:
+        - discipline_rate
+        - chronic_absenteeism
+
+    outside_doors_locked_during_school_hours:
+      description: "Published answer to whether outside doors are locked during school hours"
+      source: kde_safe_schools_climate
+      unit: binary
+      expected_direction: positive
+      note: |
+        A published yes/no answer, not a rate and not a share. KDE publishes
+        Yes or No. The stored value is 1 for Yes and 0 for No. A star is
+        value NA with suppressed Y. A blank is not stored. A published 0 is
+        kept. This question is not part of safety_policy_compliance_rate.
+        KYRC24 precautionary has no outside-door column.
       theoretical_relevance:
         - discipline_rate
         - chronic_absenteeism
