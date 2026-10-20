@@ -38,7 +38,7 @@ class MathGrade8AnalysisDataset(BaseAnalysisDataset):
     Filters:
     - metric == 'kentucky_summative_assessment_math_proficient_distinguished_rate_grade_8'
     - All Students only
-    - School-level (not district totals)
+    - School rows only. District totals, co-op totals, and state rows are out
     - Unsuppressed values
     """
 
@@ -76,11 +76,20 @@ class MathGrade8AnalysisDataset(BaseAnalysisDataset):
         for chunk_num, chunk in enumerate(pd.read_csv(assessment_file, chunksize=self.CHUNK_SIZE)):
             total_rows_read += len(chunk)
 
-            # Filter this chunk immediately to save memory
+            # School rows only. District totals, co-op totals, and state rows
+            # are aggregate labels. KYRC state is ---District Total--- with
+            # district All Districts. Historical state is ---State Total---
+            # with district State. Same rule as kindergarten_readiness_analysis.
+            aggregate_names = {
+                '---District Total---',
+                '---COOP Total---',
+                '---State Total---',
+            }
             chunk_filtered = chunk[
                 (chunk['metric'] == self.TARGET_METRIC) &
                 (chunk['student_group'] == self.student_group_name) &
-                (chunk['school_name'] != '---District Total---') &
+                (~chunk['school_name'].isin(aggregate_names)) &
+                (~chunk['district'].isin({'State', 'All Districts'})) &
                 (chunk['suppressed'] != 'Y')
             ]
 
