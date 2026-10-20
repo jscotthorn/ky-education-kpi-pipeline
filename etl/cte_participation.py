@@ -6,21 +6,23 @@ Normalizes column names, handles schema variations, standardizes missing values,
 applies demographic label standardization for consistent longitudinal reporting.
 
 KYRC26 is ``KYRC26_CTE_Participation.csv``. Its headers match the KYRC25 file.
-Those two files publish counts. The participation rate is participants divided
-by high-school enrollment, and the grade-12 completion rate is completers
-divided by grade-12 participants. Both rates are existing metrics.
+Those two files publish counts. The participant count and the high-school
+enrollment count are stored. ``cte_participation_rate`` is not calculated
+for those years: participants are counted where the course is taught and
+enrollment where the student is enrolled. The grade-12 completion rate is
+still completers divided by grade-12 participants.
 
 The 2022 and 2023 files use the same four headers as KYRC24, in uppercase, and
 every measure cell is a count or a ``*``. None of them is a rate. Counts are
 stored on count metrics. The rate metrics are left absent for those years.
 KYRC24 publishes the participation and completion rates in the second and
-fourth measure columns. A published rate above 100 is kept.
+fourth measure columns. A published rate above 100 is kept. That published
+participation percent is the only ``cte_participation_rate`` this module stores.
 
 There is no Suppressed column. A ``*`` cell is value NA with ``suppressed`` Y.
 A blank, ``--``, or ``N/A`` is not stored. ``N/A`` on a career-center
-enrollment means those students are counted at the home school, so it stays
-an empty denominator and does not produce a participation rate. A published
-0 is kept.
+enrollment means those students are counted at the home school, so the
+enrollment count is absent for that row. A published 0 is kept.
 """
 from pathlib import Path
 import pandas as pd
@@ -55,8 +57,8 @@ _RATE_COLUMNS: Tuple[Tuple[str, str], ...] = (
 )
 
 # KYRC25 and KYRC26 are the files with a grade-12 participant column.
-# The pipeline already computed both rates from those counts. 2022 and 2023
-# do not have this column, and their rate metrics stay absent.
+# The completion rate is still calculated from those counts. The
+# participation rate is not. 2022 and 2023 do not have this column.
 _KYRC25_GRADE12_PARTICIPANTS = "cte_participant_count_grade_12"
 
 _STAR_TEXT = {"*", "**"}
@@ -162,12 +164,11 @@ def clean_cte_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _rate_from_counts(numerator: Cell, denominator: Cell) -> Cell:
-    """Existing KYRC25/KYRC26 rate from two published counts.
+    """KYRC25/KYRC26 grade-12 completion rate from two published counts.
 
-    A blank denominator is not applicable. Career-center enrollment is the
-    text ``N/A``, and that row has no participation rate. A star on either
-    count, with the other count a number or a star, stores the rate as
-    suppressed. A zero denominator is not divided.
+    A blank cell is skipped. A star on either count, with the other count a
+    number or a star, stores the rate as suppressed. A zero denominator is
+    not divided.
     """
     numer_kind, numer_value = numerator
     denom_kind, denom_value = denominator
@@ -251,11 +252,14 @@ class CTEParticipationETL(BaseETL):
         return _classify_cell(row.get(column))
 
     def _iter_metric_cells(self, row: pd.Series) -> List[Tuple[str, str, Optional[float]]]:
-        """Published cells on this row, plus the existing KYRC25/KYRC26 rates.
+        """Published cells on this row, plus the KYRC25/KYRC26 completion rate.
 
         A blank cell is omitted. A star is returned so the converter can
         store value NA with ``suppressed`` Y. A number is returned as
         published, including a rate above 100 and a count above 100.
+        ``cte_participation_rate`` is only the percent KYRC24 published.
+        KYRC25 and KYRC26 keep the participant and enrollment counts and do
+        not divide them.
         """
         found: List[Tuple[str, str, Optional[float]]] = []
         for column, metric_name in _COUNT_COLUMNS + _RATE_COLUMNS:
@@ -267,27 +271,19 @@ class CTEParticipationETL(BaseETL):
                 continue
             found.append((metric_name, kind, number))
 
-        # Computed rates exist only on the KYRC25/KYRC26 layout. 2022 and
-        # 2023 publish counts and no rate column, so they do not get here.
+        # The completion rate exists only on the KYRC25/KYRC26 layout. 2022
+        # and 2023 publish counts and no rate column, so they do not get here.
         if self._cell(row, _KYRC25_GRADE12_PARTICIPANTS) is None:
             return found
 
-        participation = _rate_from_counts(
-            self._cell(row, "cte_participant_count") or ("blank", None),
-            self._cell(row, "total_student_count") or ("blank", None),
-        )
         completion = _rate_from_counts(
             self._cell(row, "cte_completer_count_grade_12") or ("blank", None),
             self._cell(row, _KYRC25_GRADE12_PARTICIPANTS) or ("blank", None),
         )
-        for metric_name, cell in (
-            ("cte_participation_rate", participation),
-            ("cte_completion_rate_grade_12", completion),
-        ):
-            kind, number = cell
-            if kind == "blank":
-                continue
-            found.append((metric_name, kind, number))
+        kind, number = completion
+        if kind == "blank":
+            return found
+        found.append(("cte_completion_rate_grade_12", kind, number))
         return found
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:

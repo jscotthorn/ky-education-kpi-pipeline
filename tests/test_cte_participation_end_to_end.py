@@ -214,18 +214,14 @@ class TestCTEParticipationEndToEnd(unittest.TestCase):
 
 FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures" / "cte_participation"
 
-# Values the base-branch parser already wrote. Participation rate, then the
-# grade-12 completion rate and its two counts when the file is the KYRC25
-# count format. KYRC24 stores the rate directly and an eligible-completer count.
+# Published KYRC24 participation percents. KYRC25 and KYRC26 do not emit
+# cte_participation_rate. The grade-12 completion rate below is still the
+# calculated completers / grade-12 participants rate.
 PRIOR_RATE_ANCHORS = {
     ("2024", "999000"): 68.7,
     ("2024", "165000"): 64.3,
     ("2024", "165170"): 61.3,
     ("2024", "001010"): 63.9,
-    ("2025", "999000"): 70.3,
-    ("2025", "165000"): 70.7,
-    ("2025", "165170"): 65.6,
-    ("2025", "001010"): 59.2,
 }
 
 # KYRC25 count-format grade 12: rate, completer count, participant count.
@@ -427,26 +423,31 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert learning_zero["suppressed"] == "N"
 
     bryan_2024 = _metric_value(combined, "2024", "165170", "cte_participation_rate")
-    bryan_2025 = _metric_value(combined, "2025", "165170", "cte_participation_rate")
+    bryan_2025 = _metric_value(combined, "2025", "165170", "cte_participant_count")
     assert bryan_2024["nces_id"] == "210186000388"
     assert bryan_2025["nces_id"] == "210186000000"
+    assert float(bryan_2025["value"]) == 1483
+    assert float(_metric_value(combined, "2025", "165170", "cte_high_school_enrollment_count")["value"]) == 2262
+    assert "cte_participation_rate" not in set(_rows(combined, "2025", "165170", "All Students")["metric"])
     assert bryan_2024["district"] == "Fayette County"
     assert bryan_2025["school_name"] == "Bryan Station High School"
 
-    state = _metric_value(combined, "2026", "999000", "cte_participation_rate")
-    assert float(state["value"]) == 71.9
+    state = _metric_value(combined, "2026", "999000", "cte_participant_count")
+    assert float(state["value"]) == 144661
     assert state["suppressed"] == "N"
     assert state["district"] == "All Districts"
     assert state["school_name"] == "---District Total---"
     assert state["year"] == "2026"
     assert state["school_id"] == "999000"
     assert state["source_file"] == "KYRC26_CTE_Participation.csv"
+    assert "cte_participation_rate" not in set(_rows(combined, "2026", "999000", "All Students")["metric"])
+    assert float(_metric_value(combined, "2026", "999000", "cte_high_school_enrollment_count")["value"]) == 201255
     assert float(_metric_value(combined, "2026", "999000", "cte_completion_rate_grade_12")["value"]) == 45.4
     assert float(_metric_value(combined, "2026", "999000", "cte_completer_count_grade_12")["value"]) == 19990
     assert float(_metric_value(combined, "2026", "999000", "cte_participant_count_grade_12")["value"]) == 44038
 
-    district = _metric_value(combined, "2026", "165000", "cte_participation_rate")
-    assert float(district["value"]) == 75.3
+    district = _metric_value(combined, "2026", "165000", "cte_participant_count")
+    assert float(district["value"]) == 9972
     assert district["district"] == "Fayette County"
     assert district["school_name"] == "---District Total---"
     assert district["school_id"] == "165000"
@@ -454,12 +455,14 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert district["co_op_code"] == "901"
     assert district["nces_id"] == "2101860"
     assert district["suppressed"] == "N"
+    assert "cte_participation_rate" not in set(_rows(combined, "2026", "165000", "All Students")["metric"])
+    assert float(_metric_value(combined, "2026", "165000", "cte_high_school_enrollment_count")["value"]) == 13244
     assert float(_metric_value(combined, "2026", "165000", "cte_completion_rate_grade_12")["value"]) == 47.7
     assert float(_metric_value(combined, "2026", "165000", "cte_completer_count_grade_12")["value"]) == 1404
     assert float(_metric_value(combined, "2026", "165000", "cte_participant_count_grade_12")["value"]) == 2946
 
-    school = _metric_value(combined, "2026", "165170", "cte_participation_rate")
-    assert float(school["value"]) == 60.6
+    school = _metric_value(combined, "2026", "165170", "cte_participant_count")
+    assert float(school["value"]) == 1358
     assert school["district"] == "Fayette County"
     assert school["school_name"] == "Bryan Station High School"
     assert school["state_school_id"] == "034165170"
@@ -469,32 +472,36 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert school["co_op"] == "CKEC"
     assert school["co_op_code"] == "901"
     assert school["suppressed"] == "N"
+    assert "cte_participation_rate" not in set(_rows(combined, "2026", "165170", "All Students")["metric"])
+    assert float(_metric_value(combined, "2026", "165170", "cte_high_school_enrollment_count")["value"]) == 2241
     assert float(_metric_value(combined, "2026", "165170", "cte_completion_rate_grade_12")["value"]) == 29.9
     assert float(_metric_value(combined, "2026", "165170", "cte_completer_count_grade_12")["value"]) == 144
     assert float(_metric_value(combined, "2026", "165170", "cte_participant_count_grade_12")["value"]) == 482
 
-    adair = _metric_value(combined, "2026", "001010", "cte_participation_rate")
-    assert float(adair["value"]) == 55.5
+    adair = _metric_value(combined, "2026", "001010", "cte_participant_count")
+    assert float(adair["value"]) == 454
     assert adair["district"] == "Adair County"
     assert adair["school_name"] == "Adair County High School"
     assert adair["nces_id"] == "210003000001"
     assert adair["co_op"] == "GRREC"
     assert adair["co_op_code"] == "902"
+    assert "cte_participation_rate" not in set(_rows(combined, "2026", "001010", "All Students")["metric"])
+    assert float(_metric_value(combined, "2026", "001010", "cte_high_school_enrollment_count")["value"]) == 818
     assert float(_metric_value(combined, "2026", "001010", "cte_completion_rate_grade_12")["value"]) == 20.2
 
     # Partial suppression. Participants 15 and enrollments 18 are published.
-    # The two 12th-grade cells are * and are stored as value NA with suppressed Y.
+    # The participation rate is not calculated. The two 12th-grade cells are
+    # * and are stored as value NA with suppressed Y.
     partial = _rows(combined, "2026", "165000", "American Indian or Alaska Native")
     assert set(partial["metric"]) == {
         "cte_participant_count",
         "cte_high_school_enrollment_count",
-        "cte_participation_rate",
         "cte_completer_count_grade_12",
         "cte_participant_count_grade_12",
         "cte_completion_rate_grade_12",
     }
-    assert float(_metric_value(combined, "2026", "165000", "cte_participation_rate", "American Indian or Alaska Native")["value"]) == 83.3
-    assert _metric_value(combined, "2026", "165000", "cte_participation_rate", "American Indian or Alaska Native")["suppressed"] == "N"
+    assert float(_metric_value(combined, "2026", "165000", "cte_participant_count", "American Indian or Alaska Native")["value"]) == 15
+    assert float(_metric_value(combined, "2026", "165000", "cte_high_school_enrollment_count", "American Indian or Alaska Native")["value"]) == 18
     assert partial.iloc[0]["district"] == "Fayette County"
     for metric in (
         "cte_completer_count_grade_12",
@@ -505,10 +512,12 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
         assert starred["suppressed"] == "Y"
         assert pd.isna(starred["value"])
 
-    # Foster Care publishes the participation rate from 21 / 49. Grade-12
-    # completers are * and grade-12 participants are 6.
+    # Foster Care publishes participants 21 and enrollment 49. The participation
+    # rate is not calculated. Grade-12 completers are * and grade-12 participants are 6.
     foster = _rows(combined, "2026", "165170", "Foster Care")
-    assert float(_metric_value(combined, "2026", "165170", "cte_participation_rate", "Foster Care")["value"]) == 42.9
+    assert "cte_participation_rate" not in set(foster["metric"])
+    assert float(_metric_value(combined, "2026", "165170", "cte_participant_count", "Foster Care")["value"]) == 21
+    assert float(_metric_value(combined, "2026", "165170", "cte_high_school_enrollment_count", "Foster Care")["value"]) == 49
     assert float(_metric_value(combined, "2026", "165170", "cte_participant_count_grade_12", "Foster Care")["value"]) == 6
     completers = _metric_value(combined, "2026", "165170", "cte_completer_count_grade_12", "Foster Care")
     assert completers["suppressed"] == "Y"
@@ -531,7 +540,6 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert set(hawaiian_2026["metric"]) == {
         "cte_participant_count",
         "cte_high_school_enrollment_count",
-        "cte_participation_rate",
         "cte_completer_count_grade_12",
         "cte_participant_count_grade_12",
         "cte_completion_rate_grade_12",
@@ -583,12 +591,11 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert allen_2025.iloc[0]["nces_id"] == "210007000000"
 
     # KYRC25 Bryan Station Military Dependent publishes enrollment 3.
-    # Participants and both grade-12 cells are *.
+    # Participants and both grade-12 cells are *. The participation rate is absent.
     military = _rows(combined, "2025", "165170", "Military Dependent")
+    assert "cte_participation_rate" not in set(military["metric"])
     assert float(_metric_value(combined, "2025", "165170", "cte_high_school_enrollment_count", "Military Dependent")["value"]) == 3
-    military_rate = _metric_value(combined, "2025", "165170", "cte_participation_rate", "Military Dependent")
-    assert military_rate["suppressed"] == "Y"
-    assert pd.isna(military_rate["value"])
+    assert (military[military["metric"] == "cte_participant_count"]["suppressed"] == "Y").all()
     assert (military[military["metric"] == "cte_completer_count_grade_12"]["suppressed"] == "Y").all()
 
     # 2024 Foster Care publishes the participation rate and a participant
