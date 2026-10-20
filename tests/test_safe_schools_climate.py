@@ -27,6 +27,8 @@ FIXTURE_COPIES = {
     "kyrc26_precautionary.csv": "KYRC26_SAFE_Precautionary_Measures.csv",
     "kyrc25_precautionary.csv": "KYRC25_SAFE_Precautionary_Measures.csv",
     "accountability_profile_2022_state.csv": "accountability_profile_2022.csv",
+    "accountability_profile_2023_state.csv": "accountability_profile_2023.csv",
+    "precautionary_measures_2022_adair.csv": "precautionary_measures_2022.csv",
 }
 
 
@@ -508,17 +510,43 @@ class TestKyrc26ClimateFiles:
                     frame, year=year, school_id="999000", metric=f"safety_index_score_{level}",
                 )["value"] == safety
 
-        profile = {
+        # 2022 publishes the indicator rate. 2023 publishes the combined
+        # indicator rate (status plus change), not STATUS.
+        indicator_2022 = {
             "elementary": 76.6,
             "high": 61.4,
             "middle": 65.9,
         }
-        for level, rate in profile.items():
+        for level, rate in indicator_2022.items():
             for metric in (f"climate_index_score_{level}", f"safety_index_score_{level}"):
                 row = _cell(frame, year="2022", school_id="999", metric=metric)
                 assert row["value"] == rate
                 assert row["district"] == "State"
                 assert row["school_name"] == "---State Total---"
+
+        combined_2023 = {
+            "elementary": (77.0, 76.8),
+            "high": (62.0, 61.7),
+            "middle": (65.3, 65.6),
+        }
+        for level, (combined, status) in combined_2023.items():
+            for metric in (f"climate_index_score_{level}", f"safety_index_score_{level}"):
+                row = _cell(frame, year="2023", school_id="999", metric=metric)
+                assert row["value"] == combined
+                assert row["value"] != status
+                assert row["district"] == "State"
+
+        # Historical precautionary headers. Classroom doors No makes this
+        # 7 of 8. Dropping that question would store 100.
+        adair_high = _cell(
+            frame, year="2022", school_id="001010", metric="safety_policy_compliance_rate",
+        )
+        assert adair_high["value"] == 100.0
+        adair_middle = _cell(
+            frame, year="2022", school_id="001014", metric="safety_policy_compliance_rate",
+        )
+        assert adair_middle["value"] == 87.5
+        _absent(frame, year="2022", school_id="001012", metric="safety_policy_compliance_rate")
 
         assert _cell(
             frame, year="2026", school_id="165170", metric="outside_doors_locked_during_school_hours",

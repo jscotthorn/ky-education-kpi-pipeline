@@ -230,9 +230,11 @@ raw_directories:
     - "precautionary_measures_2022.csv"
     - "precautionary_measures_2021.csv"
     - "precautionary_measures_2020.csv"
-    # KYRC23_ACCT_Index_Scores.csv is a separate 2022-23 climate and safety
-    # index, not a republish of accountability_profile_2023.csv. It is not
-    # registered. KYRC23_SAFE_Precautionary_Measures.csv republishes the
+    # KYRC23_ACCT_Index_Scores.csv is the separate 2022-23 climate and safety
+    # pair behind accountability, not a republish of accountability_profile_2023.csv.
+    # (climate + safety) / 2 matches the 2023 status rate within 0.05.
+    # This module stores the 2023 combined indicator rate instead. The file
+    # is not registered. KYRC23_SAFE_Precautionary_Measures.csv republishes the
     # answered rows of precautionary_measures_2023.csv and is not registered.
     # The parser skips both names. The 297 MB survey is not registered.
     # SCHOOL_EXPERIENCE_18-19.xlsx is teacher experience, not a climate survey.

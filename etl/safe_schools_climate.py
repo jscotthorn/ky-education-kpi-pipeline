@@ -2,9 +2,14 @@
 Safe Schools Climate ETL Module
 
 Handles Kentucky safe schools climate and safety data:
-- Climate and safety index scores (KYRC23 is not loaded; KYRC24 through KYRC26 are)
+- Climate and safety index scores for KYRC24 through KYRC26.
+  ``KYRC23_ACCT_Index_Scores.csv`` is the separate 2022-23 climate and
+  safety pair behind accountability. ``(climate + safety) / 2`` matches
+  the 2023 status rate within 0.05. That file is not loaded.
 - Precautionary measures (2020-2026)
-- Accountability profile combined climate/safety indicator (2022-2023)
+- Accountability profiles. 2022 stores ``QUALITY OF SCHOOL CLIMATE AND
+  SAFETY INDICATOR RATE``. 2023 stores ``QUALITY OF SCHOOL CLIMATE AND
+  SAFETY COMBINED INDICATOR RATE`` (status plus change), not STATUS.
 
 ``include_kyrc26`` does not apply. ``get_files_to_process`` names the files.
 
@@ -15,7 +20,8 @@ do not collapse. A row with no level keeps the unsuffixed name.
 
 A ``*`` is value NA with ``suppressed`` Y. A blank cell is not stored. A
 published 0 is kept. The compliance rate is the existing percentage of Yes
-answers among the eight policy questions. Outside doors are stored on their
+answers among the eight policy questions. KYRC26 dropped classroom doors,
+so 2026 is 7 of 7 rather than 8 of 8. Outside doors are stored on their
 own and are not part of that rate. Co-op ``GREC`` (2025) and ``GLEC`` (2026)
 are stored as published. ``GRREC`` is a different co-op.
 """
@@ -79,9 +85,11 @@ LEVEL_SUFFIXES = {
 }
 
 # Temporary index files use 3-digit school codes and would write 2025 or 2026
-# again beside the permanent KYRC file. KYRC23 index is a separate climate and
-# safety index for 2022-23, not the accountability combined rate this module
-# already stores. KYRC23 precautionary republishes the answered rows of
+# again beside the permanent KYRC file. KYRC23 index is the separate 2022-23
+# climate and safety pair behind accountability. (climate + safety) / 2
+# matches the 2023 status rate within 0.05. This module stores the 2023
+# combined indicator rate instead, and does not load the KYRC23 file.
+# KYRC23 precautionary republishes the answered rows of
 # precautionary_measures_2023.csv. None of these names are loaded.
 REJECTED_CLIMATE_FILENAMES = frozenset({
     "Quality_of_School_Climate_and_Safety_Survey_Index_Scores_2025.CSV",
@@ -502,7 +510,11 @@ class SafeSchoolsClimateETL(BaseETL):
             'QUESTION NUMBER': 'question_number',
             'Agree / Strongly Agree': 'agree_strongly_agree_pct',
             'Agree and Strongly Agree': 'agree_strongly_agree_pct',
-            # Accountability profile columns
+            # Accountability profile columns.
+            # 2022 publishes INDICATOR RATE. 2023 publishes COMBINED INDICATOR
+            # RATE (status plus change), not STATUS. Both headers feed the
+            # same stored cell. State 2023 combined vs status is elementary
+            # 77.0 vs 76.8, high 62.0 vs 61.7, and middle 65.3 vs 65.6.
             'QUALITY OF SCHOOL CLIMATE AND SAFETY STATUS': 'climate_safety_status',
             'QUALITY OF SCHOOL CLIMATE AND SAFETY STATUS RATING': 'climate_safety_rating',
             'QUALITY OF SCHOOL CLIMATE AND SAFETY COMBINED INDICATOR RATE': 'climate_safety_combined_rate',
@@ -580,9 +592,10 @@ class SafeSchoolsClimateETL(BaseETL):
             elif question_type in ["S", "SAFETY"] and not _is_blank(question_index) and not _is_star_cell(question_index):
                 metrics["safety_index_score"] = question_index
 
-        # Accountability profiles publish one combined indicator. The existing
-        # calculation stores that published number as both the climate score
-        # and the safety score. It is not a second index KDE calculated.
+        # 2022 stores the indicator rate. 2023 stores the combined indicator
+        # rate (status plus change), not STATUS. The existing calculation
+        # stores that published number as both the climate score and the
+        # safety score. It is not a second index KDE calculated.
         if "climate_safety_combined_rate" in row.index:
             self._store_index_measure(
                 metrics, row, "climate_safety_combined_rate", "climate_index_score", row_suppressed
