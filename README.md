@@ -236,6 +236,7 @@ Each directory includes detailed descriptions, file metadata, and direct downloa
 - **Secondary Enrollment** - Students with a secondary (concurrent) enrollment at this school, by grade, with middle and high school aggregations
 - **Teacher Experience** - Average years of teaching experience for classroom teachers at the school. KDE defines this as total teaching experience divided by the number of teachers, not years employed at that building
 - **Student-Teacher Ratio** - Students per one teacher. KDE defines this as school membership divided by FTE teachers, excluding administrators, guidance counselors, media specialists, and resource teachers. KYRC26 publishes school rows only
+- **District School List** - School latitude, longitude, grade span, school-type indicators, and Title I indicators. KDE's coversheet defines latitude and longitude as the school's location, school type as the A1-D1 classification, and Title I as the school's federal-grant status. There is no demographic column. District aggregate rows are not stored. The 2026 state row is district `---State---`, school id `999000`, latitude 38.184805, longitude -84.848799. Jefferson County's co-op is `GLEC` in 2026. A blank coordinate is not stored
 - **Spending Per Student** - Per-pupil spending by funding source (federal, state/local, combined)
 - **Benchmark Assessment** - Interim assessment performance data
 - **ACT Scores** - College admission test performance
