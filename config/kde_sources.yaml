@@ -201,6 +201,14 @@ raw_directories:
     - "safe_schools_events_by_grade_2020.csv"
 
   safe_schools_climate:
+    # 2022-23 climate and safety index. School year 20222023. datasets
+    # host (the kyrc25 key is that container, not the 2024-25 school year).
+    # 47,574 rows, same 18 columns as KYRC24-26. State All Students
+    # climate / safety is elementary 79.5 / 74.0, middle 68.8 / 62.3,
+    # high 64.3 / 59.1. Not a republish of accountability_profile_2023.csv.
+    # md5 3f19c5069ab9bb9458f6adf5a3dd7e9a.
+    - url: "kyrc25"
+      file: "KYRC23_ACCT_Index_Scores.csv"
     # Historical KYRC24 index. datasets and the historical host are the same
     # bytes (md5 a71574a6a75fb43a219ac1cb36ec188a).
     - "KYRC24_ACCT_Index_Scores.csv"
@@ -230,13 +238,12 @@ raw_directories:
     - "precautionary_measures_2022.csv"
     - "precautionary_measures_2021.csv"
     - "precautionary_measures_2020.csv"
-    # KYRC23_ACCT_Index_Scores.csv is the separate 2022-23 climate and safety
-    # pair behind accountability, not a republish of accountability_profile_2023.csv.
-    # (climate + safety) / 2 matches the 2023 status rate within 0.05.
-    # This module stores the 2023 combined indicator rate instead. The file
-    # is not registered. KYRC23_SAFE_Precautionary_Measures.csv republishes the
+    # KYRC23_ACCT_Index_Scores.csv is registered above. It is the 2023
+    # climate and safety index. The 2023 accountability profile stores the
+    # combined indicator rate under climate_safety_combined_indicator_rate,
+    # not this index. KYRC23_SAFE_Precautionary_Measures.csv republishes the
     # answered rows of precautionary_measures_2023.csv and is not registered.
-    # The parser skips both names. The 297 MB survey is not registered.
+    # The parser skips that name. The 297 MB survey is not registered.
     # SCHOOL_EXPERIENCE_18-19.xlsx is teacher experience, not a climate survey.
     # SAFE_SCHOOLS_18-19.xlsx has no climate table and no DEMO or DGROUP.
 

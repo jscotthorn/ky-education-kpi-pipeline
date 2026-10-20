@@ -23,6 +23,7 @@ FIXTURE_DIR = Path(__file__).parent / "fixtures" / "safe_schools_climate"
 FIXTURE_COPIES = {
     "kyrc26_index_scores.csv": "KYRC26_ACCT_Index_Scores.csv",
     "kyrc25_index_scores.csv": "KYRC25_ACCT_Index_Scores.csv",
+    "kyrc23_index_scores.csv": "KYRC23_ACCT_Index_Scores.csv",
     "kyrc24_index_scores.csv": "KYRC24_ACCT_Index_Scores.csv",
     "kyrc26_precautionary.csv": "KYRC26_SAFE_Precautionary_Measures.csv",
     "kyrc25_precautionary.csv": "KYRC25_SAFE_Precautionary_Measures.csv",
@@ -220,19 +221,25 @@ class TestSafeSchoolsClimateETL:
         assert metrics['safety_index_score_high'] == 80.0
 
     def test_extract_metrics_accountability_profile(self, etl):
-        """The published combined rate is stored on both level-suffixed names."""
-        row = pd.Series({
-            'climate_safety_combined_rate': 74.2,
-            'level': 'MS',
-        })
+        """2022 indicator and 2023 combined are stored once, under different names."""
+        indicator = etl.normalize_column_names(pd.DataFrame([{
+            'QUALITY OF SCHOOL CLIMATE AND SAFETY INDICATOR RATE': 76.6,
+            'LEVEL': 'ES',
+        }])).iloc[0]
+        metrics = etl.extract_metrics(indicator)
+        assert metrics == {'climate_safety_indicator_rate_elementary': 76.6}
 
-        metrics = etl.extract_metrics(row)
-        assert metrics['climate_index_score_middle'] == 74.2
-        assert metrics['safety_index_score_middle'] == 74.2
-        assert 'climate_index_score' not in metrics
-        assert 'safety_index_score' not in metrics
+        combined = etl.normalize_column_names(pd.DataFrame([{
+            'QUALITY OF SCHOOL CLIMATE AND SAFETY COMBINED INDICATOR RATE': 77.0,
+            'QUALITY OF SCHOOL CLIMATE AND SAFETY STATUS': 76.8,
+            'LEVEL': 'ES',
+        }])).iloc[0]
+        metrics = etl.extract_metrics(combined)
+        assert metrics == {'climate_safety_combined_indicator_rate_elementary': 77.0}
+        assert 'climate_index_score_elementary' not in metrics
+        assert 'safety_index_score_elementary' not in metrics
 
-        assert etl.extract_metrics(pd.Series({'climate_safety_combined_rate': 74.2})) == {}
+        assert etl.extract_metrics(pd.Series({'climate_safety_indicator_rate': 74.2})) == {}
 
     def test_survey_question_does_not_emit_unsuffixed_index(self, etl):
         """Question indexes are not stored as climate_index_score or safety_index_score."""
@@ -340,13 +347,13 @@ class TestKyrc26ClimateFiles:
         module_dir = tmp_path / "safe_schools_climate"
         module_dir.mkdir()
         selected = (
+            "KYRC23_ACCT_Index_Scores.csv",
             "KYRC25_ACCT_Index_Scores.csv",
             "KYRC26_ACCT_Index_Scores.csv",
             "KYRC25_SAFE_Precautionary_Measures.csv",
             "KYRC26_SAFE_Precautionary_Measures.csv",
         )
         rejected = (
-            "KYRC23_ACCT_Index_Scores.csv",
             "KYRC23_SAFE_Precautionary_Measures.csv",
             "Quality_of_School_Climate_and_Safety_Survey_Index_Scores_2025.CSV",
             "Quality_of_School_Climate_and_Safety_Survey_Index_Scores_2026.CSV",
@@ -361,15 +368,9 @@ class TestKyrc26ClimateFiles:
             assert name not in names
 
     def test_rejected_climate_filenames_are_not_loaded(self, tmp_path):
-        """A leftover KYRC23 or temporary index file does not write a second 2023 or 2026."""
+        """A leftover temporary index file does not write a second 2026."""
         module_dir = tmp_path / "safe_schools_climate"
         module_dir.mkdir()
-        rejected = module_dir / "KYRC23_ACCT_Index_Scores.csv"
-        rejected.write_text(
-            "School Year,District Name,School Name,School Code,Demographic,Level,Suppressed,Climate Index,Safety Index\n"
-            "20222023,All Districts,All Schools,999000,All Students,High School,N,1.1,1.1\n",
-            encoding="utf-8",
-        )
         temporary = module_dir / "Quality_of_School_Climate_and_Safety_Survey_Index_Scores_2026.CSV"
         temporary.write_text(
             "School Year,District Name,School Name,School Code,Demographic,Level,Suppressed,Climate Index,Safety Index\n"
@@ -377,7 +378,7 @@ class TestKyrc26ClimateFiles:
             encoding="utf-8",
         )
         etl = SafeSchoolsClimateETL("safe_schools_climate")
-        result = etl.process_files([rejected, temporary])
+        result = etl.process_files([temporary])
         assert result.empty
 
     def test_stringdtype_comma_star_zero_and_blank(self, tmp_path):
@@ -429,7 +430,7 @@ class TestKyrc26ClimateFiles:
             _assert_unique_keys(frame)
 
     def test_registered_sources_include_kyrc25(self):
-        """KYRC25 is the 2024-25 gap. KYRC23 and the survey stay unregistered."""
+        """KYRC23 is the 2023 index. KYRC25 is the 2024-25 gap. The survey stays unregistered."""
         import yaml
 
         config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
@@ -441,6 +442,7 @@ class TestKyrc26ClimateFiles:
                 hosts[entry["file"]] = entry.get("url")
             else:
                 names.append(str(entry))
+        assert hosts["KYRC23_ACCT_Index_Scores.csv"] == "kyrc25"
         assert hosts["KYRC25_ACCT_Index_Scores.csv"] == "kyrc25"
         assert hosts["KYRC25_SAFE_Precautionary_Measures.csv"] == "kyrc25"
         assert hosts["KYRC26_ACCT_Index_Scores.csv"] == "kyrc26"
@@ -453,7 +455,6 @@ class TestKyrc26ClimateFiles:
             str,
         )
         for name in (
-            "KYRC23_ACCT_Index_Scores.csv",
             "KYRC23_SAFE_Precautionary_Measures.csv",
             "Quality_of_School_Climate_and_Safety_Survey_Index_Scores_2026.CSV",
         ):
@@ -547,19 +548,28 @@ class TestKyrc26ClimateFiles:
                     frame, year=year, school_id="999000", metric=f"safety_index_score_{level}",
                 )["value"] == safety
 
-        # 2022 publishes the indicator rate. 2023 publishes the combined
-        # indicator rate (status plus change), not STATUS.
+        # 2022 publishes the indicator rate, once. 2023 publishes the combined
+        # indicator rate (status plus change), once, under a different name.
+        # Neither year writes climate_index_score or safety_index_score.
         indicator_2022 = {
             "elementary": 76.6,
             "high": 61.4,
             "middle": 65.9,
         }
         for level, rate in indicator_2022.items():
-            for metric in (f"climate_index_score_{level}", f"safety_index_score_{level}"):
-                row = _cell(frame, year="2022", school_id="999", metric=metric)
-                assert row["value"] == rate
-                assert row["district"] == "State"
-                assert row["school_name"] == "---State Total---"
+            row = _cell(
+                frame, year="2022", school_id="999",
+                metric=f"climate_safety_indicator_rate_{level}",
+            )
+            assert row["value"] == rate
+            assert row["district"] == "State"
+            assert row["school_name"] == "---State Total---"
+            _absent(frame, year="2022", school_id="999", metric=f"climate_index_score_{level}")
+            _absent(frame, year="2022", school_id="999", metric=f"safety_index_score_{level}")
+            _absent(
+                frame, year="2022", school_id="999",
+                metric=f"climate_safety_combined_indicator_rate_{level}",
+            )
 
         combined_2023 = {
             "elementary": (77.0, 76.8),
@@ -567,11 +577,69 @@ class TestKyrc26ClimateFiles:
             "middle": (65.3, 65.6),
         }
         for level, (combined, status) in combined_2023.items():
-            for metric in (f"climate_index_score_{level}", f"safety_index_score_{level}"):
-                row = _cell(frame, year="2023", school_id="999", metric=metric)
-                assert row["value"] == combined
-                assert row["value"] != status
-                assert row["district"] == "State"
+            rows = frame[
+                (frame["year"].astype("string") == "2023")
+                & (frame["school_id"].astype("string") == "999")
+                & (frame["metric"] == f"climate_safety_combined_indicator_rate_{level}")
+            ]
+            assert len(rows) == 1
+            assert rows.iloc[0]["value"] == combined
+            assert rows.iloc[0]["value"] != status
+            assert rows.iloc[0]["district"] == "State"
+            _absent(frame, year="2023", school_id="999", metric=f"climate_index_score_{level}")
+            _absent(frame, year="2023", school_id="999", metric=f"safety_index_score_{level}")
+            _absent(
+                frame, year="2023", school_id="999",
+                metric=f"climate_safety_indicator_rate_{level}",
+            )
+
+        # KYRC23 is the 2023 climate and safety index. School year 20022023
+        # on the Breathitt district rows is year 2023, and it stays on the
+        # combined-rate metric.
+        kyrc23_state = {
+            "elementary": (79.5, 74.0),
+            "middle": (68.8, 62.3),
+            "high": (64.3, 59.1),
+        }
+        for level, (climate, safety) in kyrc23_state.items():
+            climate_row = _cell(
+                frame, year="2023", school_id="999000", student_group="All Students",
+                metric=f"climate_index_score_{level}",
+            )
+            safety_row = _cell(
+                frame, year="2023", school_id="999000", student_group="All Students",
+                metric=f"safety_index_score_{level}",
+            )
+            assert climate_row["value"] == climate
+            assert safety_row["value"] == safety
+            assert climate_row["suppressed"] == "N"
+            assert climate_row["district"] == "All Districts"
+            assert climate_row["school_name"] == "---District Total---"
+
+        starred = _cell(
+            frame, year="2023", school_id="001000", metric="climate_index_score_elementary",
+        )
+        assert pd.isna(starred["value"])
+        assert starred["suppressed"] == "Y"
+        starred_safety = _cell(
+            frame, year="2023", school_id="001000", metric="safety_index_score_elementary",
+        )
+        assert pd.isna(starred_safety["value"])
+        assert starred_safety["suppressed"] == "Y"
+
+        breathitt = {
+            "elementary": 82.2,
+            "high": 46.5,
+            "middle": 66.6,
+        }
+        for level, rate in breathitt.items():
+            row = _cell(
+                frame, year="2023", school_id="061",
+                metric=f"climate_safety_combined_indicator_rate_{level}",
+            )
+            assert row["value"] == rate
+            assert row["district"] == "Breathitt County"
+            _absent(frame, year="2023", school_id="061", metric=f"climate_index_score_{level}")
 
         # Historical precautionary headers. Classroom doors No makes this
         # 7 of 8. Dropping that question would store 100.

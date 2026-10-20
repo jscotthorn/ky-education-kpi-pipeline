@@ -2,14 +2,17 @@
 Safe Schools Climate ETL Module
 
 Handles Kentucky safe schools climate and safety data:
-- Climate and safety index scores for KYRC24 through KYRC26.
-  ``KYRC23_ACCT_Index_Scores.csv`` is the separate 2022-23 climate and
-  safety pair behind accountability. ``(climate + safety) / 2`` matches
-  the 2023 status rate within 0.05. That file is not loaded.
+- Climate and safety index scores for KYRC23 through KYRC26.
+  ``KYRC23_ACCT_Index_Scores.csv`` is the 2022-23 climate and safety
+  index, the same series as KYRC24-26. It is loaded.
 - Precautionary measures (2020-2026)
 - Accountability profiles. 2022 stores ``QUALITY OF SCHOOL CLIMATE AND
-  SAFETY INDICATOR RATE``. 2023 stores ``QUALITY OF SCHOOL CLIMATE AND
-  SAFETY COMBINED INDICATOR RATE`` (status plus change), not STATUS.
+  SAFETY INDICATOR RATE`` as ``climate_safety_indicator_rate_{level}``.
+  2023 stores ``QUALITY OF SCHOOL CLIMATE AND SAFETY COMBINED INDICATOR
+  RATE`` (status plus change), not STATUS, as
+  ``climate_safety_combined_indicator_rate_{level}``. Those two names
+  are not the climate index and they are not one series. Each published
+  number is stored once.
 
 ``include_kyrc26`` does not apply. ``get_files_to_process`` names the files.
 
@@ -70,7 +73,8 @@ POLICY_COLUMNS = [
 INDEX_MEASURE_COLUMNS = (
     "climate_index",
     "safety_index",
-    "climate_safety_combined_rate",
+    "climate_safety_indicator_rate",
+    "climate_safety_combined_indicator_rate",
 )
 
 LEVEL_SUFFIXES = {
@@ -86,16 +90,12 @@ LEVEL_SUFFIXES = {
 }
 
 # Temporary index files use 3-digit school codes and would write 2025 or 2026
-# again beside the permanent KYRC file. KYRC23 index is the separate 2022-23
-# climate and safety pair behind accountability. (climate + safety) / 2
-# matches the 2023 status rate within 0.05. This module stores the 2023
-# combined indicator rate instead, and does not load the KYRC23 file.
-# KYRC23 precautionary republishes the answered rows of
-# precautionary_measures_2023.csv. None of these names are loaded.
+# again beside the permanent KYRC file. KYRC23 precautionary republishes the
+# answered rows of precautionary_measures_2023.csv. Those names are not loaded.
+# KYRC23_ACCT_Index_Scores.csv is the 2023 climate and safety index and is loaded.
 REJECTED_CLIMATE_FILENAMES = frozenset({
     "Quality_of_School_Climate_and_Safety_Survey_Index_Scores_2025.CSV",
     "Quality_of_School_Climate_and_Safety_Survey_Index_Scores_2026.CSV",
-    "KYRC23_ACCT_Index_Scores.csv",
     "KYRC23_SAFE_Precautionary_Measures.csv",
 })
 
@@ -517,13 +517,14 @@ class SafeSchoolsClimateETL(BaseETL):
             'Agree and Strongly Agree': 'agree_strongly_agree_pct',
             # Accountability profile columns.
             # 2022 publishes INDICATOR RATE. 2023 publishes COMBINED INDICATOR
-            # RATE (status plus change), not STATUS. Both headers feed the
-            # same stored cell. State 2023 combined vs status is elementary
-            # 77.0 vs 76.8, high 62.0 vs 61.7, and middle 65.3 vs 65.6.
+            # RATE (status plus change), not STATUS. The headers stay on
+            # different columns so the two years are not one series. State
+            # 2023 combined vs status is elementary 77.0 vs 76.8, high 62.0
+            # vs 61.7, and middle 65.3 vs 65.6. STATUS is not stored.
             'QUALITY OF SCHOOL CLIMATE AND SAFETY STATUS': 'climate_safety_status',
             'QUALITY OF SCHOOL CLIMATE AND SAFETY STATUS RATING': 'climate_safety_rating',
-            'QUALITY OF SCHOOL CLIMATE AND SAFETY COMBINED INDICATOR RATE': 'climate_safety_combined_rate',
-            'QUALITY OF SCHOOL CLIMATE AND SAFETY INDICATOR RATE': 'climate_safety_combined_rate',
+            'QUALITY OF SCHOOL CLIMATE AND SAFETY COMBINED INDICATOR RATE': 'climate_safety_combined_indicator_rate',
+            'QUALITY OF SCHOOL CLIMATE AND SAFETY INDICATOR RATE': 'climate_safety_indicator_rate',
             'QUALITY OF SCHOOL CLIMATE AND SAFETY INDICATOR RATING': 'climate_safety_rating',
         }
     
@@ -532,15 +533,22 @@ class SafeSchoolsClimateETL(BaseETL):
         metrics = {}
         level = row.get("level", pd.NA)
 
-        # Only include index scores if we have index columns.
         # The level suffix matches extract_metrics so a suppressed row does
         # not land on a different metric than the published number.
-        if any(col in row.index for col in ("climate_index", "safety_index", "climate_safety_combined_rate")):
+        if any(col in row.index for col in ("climate_index", "safety_index")):
             climate_name = index_metric_name("climate_index_score", level)
             safety_name = index_metric_name("safety_index_score", level)
             if climate_name and safety_name:
                 metrics[climate_name] = pd.NA
                 metrics[safety_name] = pd.NA
+        for column, base_name in (
+            ("climate_safety_indicator_rate", "climate_safety_indicator_rate"),
+            ("climate_safety_combined_indicator_rate", "climate_safety_combined_indicator_rate"),
+        ):
+            if column in row.index:
+                name = index_metric_name(base_name, level)
+                if name:
+                    metrics[name] = pd.NA
 
         if any(col in row.index for col in POLICY_COLUMNS):
             metrics["safety_policy_compliance_rate"] = pd.NA
@@ -598,18 +606,15 @@ class SafeSchoolsClimateETL(BaseETL):
         # climate_index_score_calculated and safety_index_score_calculated.
 
         # 2022 stores the indicator rate. 2023 stores the combined indicator
-        # rate (status plus change), not STATUS. The existing calculation
-        # stores that published number as both the climate score and the
-        # safety score. It is not a second index KDE calculated.
-        if "climate_safety_combined_rate" in row.index:
-            self._store_index_measure(
-                metrics, row, "climate_safety_combined_rate", "climate_index_score", row_suppressed
-            )
-            # Copy the same cell onto the safety metric. A blank stays absent.
-            climate_name = index_metric_name("climate_index_score", row.get("level", pd.NA))
-            safety_name = index_metric_name("safety_index_score", row.get("level", pd.NA))
-            if climate_name and safety_name and climate_name in metrics:
-                metrics[safety_name] = metrics[climate_name]
+        # rate (status plus change), not STATUS. Each published number is
+        # stored once, under its own level-suffixed name. Neither name is
+        # the climate or safety index, and the two years do not share a name.
+        for column, base_name in (
+            ("climate_safety_indicator_rate", "climate_safety_indicator_rate"),
+            ("climate_safety_combined_indicator_rate", "climate_safety_combined_indicator_rate"),
+        ):
+            if column in row.index:
+                self._store_index_measure(metrics, row, column, base_name, row_suppressed)
 
         answered = [
             col for col in POLICY_COLUMNS
@@ -1070,6 +1075,7 @@ class SafeSchoolsClimateETL(BaseETL):
 
         # Define file patterns to process
         patterns = [
+            'KYRC23_ACCT_Index_Scores.csv',
             'KYRC24_ACCT_Index_Scores.csv',
             'KYRC25_ACCT_Index_Scores.csv',
             'KYRC26_ACCT_Index_Scores.csv',

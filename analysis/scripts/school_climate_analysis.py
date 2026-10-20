@@ -15,8 +15,11 @@ level. The published names are climate_index_score_elementary,
 climate_index_score_middle, and climate_index_score_high. There is no
 unsuffixed climate_index_score. A grade-span pick would drop the other
 level when one school code publishes two, as Anchorage Independent
-Public School 006010 does. Years are 2022-2026, the years that series
-is published. 2020 and 2021 profiles have no climate column.
+Public School 006010 does. Years are 2023-2026. KYRC23 is the 2023
+index. The 2022 accountability number is
+climate_safety_indicator_rate_{level}, and the 2023 accountability
+number is climate_safety_combined_indicator_rate_{level}. Those are
+not this outcome.
 
 Output: analysis/datasets/school_climate_analysis_{student_group}.csv
 
@@ -65,7 +68,7 @@ class SchoolClimateAnalysisDataset(BaseAnalysisDataset):
     - metric in climate_index_score_{elementary,middle,high}
     - The student group passed to the constructor
     - Unsuppressed values
-    - Years 2022-2026
+    - Years 2023-2026
     - School rows (district and state totals named ---District Total--- are out)
     """
 
@@ -77,8 +80,8 @@ class SchoolClimateAnalysisDataset(BaseAnalysisDataset):
         return 'school_id'
 
     def get_year_range(self) -> tuple:
-        """Years the level-suffixed climate index is published."""
-        return (2022, 2026)
+        """KYRC23 through KYRC26. The 2022 indicator rate is a different metric."""
+        return (2023, 2026)
 
     def get_dedupe_subset(self) -> list:
         """Keep elementary and middle when one school publishes both."""

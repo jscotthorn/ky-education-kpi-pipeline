@@ -564,9 +564,11 @@ covariates:
         meta-analysis: positive climate associated with higher achievement, lower
         dropout, and reduced behavior problems.
       note: |
-        Direct published index for elementary school. Middle and high are the
-        sibling metrics below. A row with no level is not stored. The calculated
-        survey average remains climate_index_score_calculated.
+        Direct published index for elementary school, from KYRC23 through
+        KYRC26. Middle and high are the sibling metrics below. A row with no
+        level is not stored. The 2022 accountability indicator rate and the
+        2023 combined indicator rate are separate metrics and are not this
+        series. The calculated survey average remains climate_index_score_calculated.
       theoretical_relevance:
         - graduation_rate
         - chronic_absenteeism
@@ -630,6 +632,59 @@ covariates:
       theoretical_relevance:
         - graduation_rate
         - discipline_rate
+
+    climate_safety_indicator_rate_elementary:
+      description: "2022 published climate and safety indicator rate, elementary"
+      source: kde_safe_schools_climate
+      unit: index_score  # 0-100
+      expected_direction: positive
+      note: |
+        QUALITY OF SCHOOL CLIMATE AND SAFETY INDICATOR RATE for 2022 only.
+        Stored once, with the level suffix. Middle and high use the same
+        pattern. This is not climate_index_score and not the 2023 combined rate.
+      theoretical_relevance:
+        - graduation_rate
+
+    climate_safety_indicator_rate_middle:
+      description: "2022 published climate and safety indicator rate, middle"
+      source: kde_safe_schools_climate
+      unit: index_score  # 0-100
+      expected_direction: positive
+      note: "2022 indicator rate for middle school. Not the climate index."
+
+    climate_safety_indicator_rate_high:
+      description: "2022 published climate and safety indicator rate, high"
+      source: kde_safe_schools_climate
+      unit: index_score  # 0-100
+      expected_direction: positive
+      note: "2022 indicator rate for high school. Not the climate index."
+
+    climate_safety_combined_indicator_rate_elementary:
+      description: "2023 published climate and safety combined indicator rate, elementary"
+      source: kde_safe_schools_climate
+      unit: index_score  # 0-100
+      expected_direction: positive
+      note: |
+        QUALITY OF SCHOOL CLIMATE AND SAFETY COMBINED INDICATOR RATE for 2023
+        only. That rate is status plus change, not STATUS. State elementary
+        combined is 77.0 and status is 76.8. Stored once. Not the KYRC23
+        climate index (state elementary 79.5) and not the 2022 indicator rate.
+      theoretical_relevance:
+        - graduation_rate
+
+    climate_safety_combined_indicator_rate_middle:
+      description: "2023 published climate and safety combined indicator rate, middle"
+      source: kde_safe_schools_climate
+      unit: index_score  # 0-100
+      expected_direction: positive
+      note: "2023 combined indicator rate for middle school. State combined is 65.3. Status, which is not stored, is 65.6."
+
+    climate_safety_combined_indicator_rate_high:
+      description: "2023 published climate and safety combined indicator rate, high"
+      source: kde_safe_schools_climate
+      unit: index_score  # 0-100
+      expected_direction: positive
+      note: "2023 combined indicator rate for high school. State combined is 62.0. Status, which is not stored, is 61.7."
 
     safety_policy_compliance_rate:
       description: "Percentage compliance across eight safety policy questions"
