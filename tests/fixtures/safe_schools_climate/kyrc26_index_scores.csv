@@ -1,0 +1,12 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,Level,Suppressed,Climate Index,Safety Index
+20252026,,,999,All Districts,,All Schools,999000,,,,,,All Students,Elementary School,N,80.0,74.8
+20252026,,,999,All Districts,,All Schools,999000,,,,,,All Students,Middle School,N,71.3,65.5
+20252026,,,999,All Districts,,All Schools,999000,,,,,,All Students,High School,N,68.6,64.0
+20252026,056,JEFFERSON,006,Anchorage Independent,010,Anchorage Independent Public School,006010,056006010,210009000014,OVEC,906,A1,All Students,Elementary School,N,80.1,77.4
+20252026,056,JEFFERSON,006,Anchorage Independent,010,Anchorage Independent Public School,006010,056006010,210009000014,OVEC,906,A1,All Students,Middle School,N,74.4,72.3
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,All Students,Elementary School,N,79.3,73.8
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,All Students,Middle School,N,69.6,64.8
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,All Students,High School,N,67.1,63.5
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,All Students,High School,N,67.8,63.7
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,American Indian or Alaska Native,High School,Y,*,*
+20252026,056,JEFFERSON,275,Jefferson County,004,Camp Taylor Elementary,275004,056275004,210299000623,GLEC,909,A1,All Students,Elementary School,N,75.9,71.1
