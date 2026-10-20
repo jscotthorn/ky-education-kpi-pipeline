@@ -41,15 +41,12 @@ district cells, and the district sum is higher. That difference is
 flagged kde-recheck in issue #86. This module does not replace a level
 with the sum of the level below.
 
-``cte_pathway_completion_rate`` is completers divided by concentrators,
-times 100, rounded to one decimal place. The pipeline calculates it.
-KDE does not publish it. Scott approved it on 2026-10-19 as an
-existing-practice exception. It is not a share of concentrators, because
-the concentrator group (at least two and fewer than four credits) and
-the completer group (four or more credits) do not overlap. Any starred
-pathway suppresses the rate. 2019 has none because that file has no
-concentrator column. Concentrators appear to be counted across grades.
-A partial sum is not stored when a component is starred.
+The pipeline does not emit ``cte_pathway_completion_rate``. That figure
+was completers divided by concentrators. KDE never published it.
+Completers and concentrators are separate groups, so the ratio is not a
+share and can exceed 100%. Scott Horn dropped it on 2026-10-20. Do not
+restore it and do not add an alias. Completer and concentrator counts
+stay.
 ``num_cte_pathways`` is a count of published pathway rows. The enrollment,
 concentrator, and completer totals are sums across pathways, so a
 student in two pathways counts twice.
@@ -323,7 +320,6 @@ class CTEPathwaysETL(BaseETL):
             'cte_pathway_enrollment': pd.NA,
             'cte_concentrator_count': pd.NA,
             'cte_pathway_completer_count': pd.NA,
-            'cte_pathway_completion_rate': pd.NA,
         }
 
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
@@ -395,13 +391,11 @@ class CTEPathwaysETL(BaseETL):
             count_record["suppressed"] = "N"
             kpi_rows.append(count_record)
 
-            totals: Dict[str, Cell] = {}
             for column, metric_name in _MEASURES:
                 cells = [item[column] for item in pathways.values() if column in item]
                 if not cells:
                     continue
                 if any(kind == "star" for kind, _number in cells):
-                    totals[column] = ("star", None)
                     kpi_record = template.copy()
                     kpi_record["metric"] = metric_name
                     kpi_record["value"] = pd.NA
@@ -412,16 +406,11 @@ class CTEPathwaysETL(BaseETL):
                 if not numbers:
                     continue
                 total = float(sum(numbers))
-                totals[column] = ("number", total)
                 kpi_record = template.copy()
                 kpi_record["metric"] = metric_name
                 kpi_record["value"] = total
                 kpi_record["suppressed"] = "N"
                 kpi_rows.append(kpi_record)
-
-            rate_record = self._completion_rate_record(template, totals)
-            if rate_record is not None:
-                kpi_rows.append(rate_record)
 
         if not kpi_rows:
             logger.warning("No valid KPI rows created from %s", source_file)
@@ -429,36 +418,6 @@ class CTEPathwaysETL(BaseETL):
         kpi_df = pd.DataFrame(kpi_rows)
         available_columns = [col for col in KPI_COLUMNS if col in kpi_df.columns]
         return kpi_df[available_columns]
-
-    def _completion_rate_record(
-        self,
-        template: Dict[str, Any],
-        totals: Dict[str, Cell],
-    ) -> Optional[Dict[str, Any]]:
-        """Completers divided by concentrators, times 100, rounded to 1 place.
-
-        The pipeline calculates this rate. KDE does not publish it. Scott
-        approved it on 2026-10-19 as an existing-practice exception. Any
-        starred pathway suppresses it. It is omitted when the concentrator
-        total is 0 or was not published, including 2019.
-        """
-        concentrators = totals.get("concentrator_students")
-        completers = totals.get("pathway_completers")
-        if concentrators is None or completers is None:
-            return None
-        record = template.copy()
-        record["metric"] = "cte_pathway_completion_rate"
-        if concentrators[0] == "star" or completers[0] == "star":
-            record["value"] = pd.NA
-            record["suppressed"] = "Y"
-            return record
-        concentrator_total = concentrators[1]
-        completer_total = completers[1]
-        if concentrator_total is None or completer_total is None or concentrator_total <= 0:
-            return None
-        record["value"] = round((completer_total / concentrator_total) * 100, 1)
-        record["suppressed"] = "N"
-        return record
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

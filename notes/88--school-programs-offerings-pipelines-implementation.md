@@ -21,13 +21,12 @@ Implemented 6 new ETL pipelines to support bright spots analysis by tracking sch
 - `cte_pathway_enrollment` - Active enrollment
 - `cte_concentrator_count` - CTE concentrator students
 - `cte_pathway_completer_count` - Pathway completers
-- `cte_pathway_completion_rate` - Completion percentage
 
 **Key Implementation Details**:
 - Handles both KYRC24/25 format and historical format (2021/2023)
 - Column name variations: "Active Enrollment" vs "ACTIVE ENROLLMENTS COUNT"
 - Overrides `should_skip_row()` to handle data without demographics
-- Calculates completion rate from concentrators and completers
+- Does not calculate a completion rate. Scott Horn dropped `cte_pathway_completion_rate` on 2026-10-20. Completers divided by concentrators is not a share KDE published, and it can exceed 100%
 
 ### 2. Gifted and Talented (`etl/gifted_talented.py`)
 - **KPI Rows**: 187,216
