@@ -308,6 +308,14 @@ raw_directories:
     - "students_with_disabilities_2020.csv"
 
   district_school_list:
+    # KYRC24 stays the historical file (28 May 2025). The datasets copy
+    # (14 May 2026) is the same school year and the same coordinates. It
+    # fills 170 blank co-op cells with GLEC and changes one county number.
+    # KYRC23_OVW_District_School_List.csv returns 200 and republishes
+    # 2022-23. It rounds NCES ids. The parser skips that name.
+    # DISTRICT_SCHOOL_LIST_17-18.xlsx returns 200 (1,644 rows, state
+    # latitude 38.184805). It is not registered. The parser skips that name.
+    # The guessed OAA names District_School_List_2024/2025/2026.CSV are 404.
     - "KYRC24_OVW_District_School_List.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_District_School_List.csv"
