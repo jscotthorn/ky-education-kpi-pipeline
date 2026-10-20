@@ -10,6 +10,17 @@ Creates analysis dataset for school climate index scores using:
 School climate index measures student perceptions of safety,
 engagement, and environment. Scores typically range 0-100.
 
+Level choice (Scott, 2026-10-19): keep one row per school, year, and
+level. The published names are climate_index_score_elementary,
+climate_index_score_middle, and climate_index_score_high. There is no
+unsuffixed climate_index_score. A grade-span pick would drop the other
+level when one school code publishes two, as Anchorage Independent
+Public School 006010 does. Years are 2023-2026. KYRC23 is the 2023
+index. The 2022 accountability number is
+climate_safety_indicator_rate_{level}, and the 2023 accountability
+number is climate_safety_combined_indicator_rate_{level}. Those are
+not this outcome.
+
 Output: analysis/datasets/school_climate_analysis_{student_group}.csv
 
 Usage:
@@ -32,14 +43,33 @@ from student_groups import ALL_GROUP_SLUGS, TARGET_GROUP_SLUGS
 from base_analysis_dataset import BaseAnalysisDataset
 
 
+# One outcome column, with level kept beside it. Safety indexes are covariates
+# in the catalog, not this outcome.
+CLIMATE_INDEX_METRICS = (
+    'climate_index_score_elementary',
+    'climate_index_score_middle',
+    'climate_index_score_high',
+)
+LEVEL_BY_METRIC = {
+    'climate_index_score_elementary': 'elementary',
+    'climate_index_score_middle': 'middle',
+    'climate_index_score_high': 'high',
+}
+
+
 class SchoolClimateAnalysisDataset(BaseAnalysisDataset):
     """
     Analysis dataset for school climate index scores.
 
+    Level choice: per-level rows, not one collapsed index and not a
+    grade-span pick. Each published level stays on its own row.
+
     Filters:
-    - metric == 'climate_index_score'
-    - All Students only
+    - metric in climate_index_score_{elementary,middle,high}
+    - The student group passed to the constructor
     - Unsuppressed values
+    - Years 2023-2026
+    - School rows (district and state totals named ---District Total--- are out)
     """
 
     OUTCOME_NAME = 'school_climate_index'
@@ -50,8 +80,12 @@ class SchoolClimateAnalysisDataset(BaseAnalysisDataset):
         return 'school_id'
 
     def get_year_range(self) -> tuple:
-        """Filter to available years."""
-        return (2022, 2025)
+        """KYRC23 through KYRC26. The 2022 indicator rate is a different metric."""
+        return (2023, 2026)
+
+    def get_dedupe_subset(self) -> list:
+        """Keep elementary and middle when one school publishes both."""
+        return ['year', 'school_id', 'level']
 
     def get_school_type_filter(self) -> str:
         """No school type filter - include all schools."""
@@ -65,11 +99,17 @@ class SchoolClimateAnalysisDataset(BaseAnalysisDataset):
         """Load school climate index data from KPI master."""
         self.log("LOADING SCHOOL CLIMATE INDEX DATA", header=True)
 
-        # Use chunked reading to efficiently load from large KPI file
-        sc_df = self.read_kpi_chunked(['climate_index_score'])
+        # Chunked read of the three published climate indexes. No unsuffixed alias.
+        sc_df = self.read_kpi_chunked(list(CLIMATE_INDEX_METRICS))
         self.log(f"Found {len(sc_df):,} school climate index records")
+        if sc_df.empty:
+            return pd.DataFrame(columns=[
+                'year', 'school_id', 'school_name', 'district', 'district_number',
+                'county_number', 'county_name', 'school_climate_index', 'school_type',
+                'level', 'metric',
+            ])
 
-        # Convert value to numeric
+        sc_df['level'] = sc_df['metric'].map(LEVEL_BY_METRIC)
         sc_df['school_climate_index'] = pd.to_numeric(sc_df['value'], errors='coerce')
 
         # Remove suppressed values
@@ -85,20 +125,37 @@ class SchoolClimateAnalysisDataset(BaseAnalysisDataset):
         year_range = self.get_year_range()
         sc_df = sc_df[sc_df['year'].between(year_range[0], year_range[1])].copy()
         self.log(f"Years {year_range[0]}-{year_range[1]}: {len(sc_df):,} records")
-        self.log(f"Years: {sorted(sc_df['year'].unique())}")
+        self.log(f"Years: {sorted(sc_df['year'].dropna().unique())}")
 
-        # Exclude district totals
+        # Exclude district totals. KYRC state rows use this same school name.
         sc_df = sc_df[sc_df['school_name'] != '---District Total---'].copy()
         self.log(f"After excluding district totals: {len(sc_df):,} records")
         self.log(f"Unique schools: {sc_df['school_id'].nunique()}")
+        self._log_rows_by_year_and_level(sc_df)
 
-        # Select and return columns
         result = sc_df[[
             'year', 'school_id', 'school_name', 'district', 'district_number',
-            'county_number', 'county_name', 'school_climate_index', 'school_type'
+            'county_number', 'county_name', 'school_climate_index', 'school_type',
+            'level', 'metric',
         ]].copy()
 
         return result
+
+    def _log_rows_by_year_and_level(self, sc_df: pd.DataFrame) -> None:
+        """Print the rows kept for the analysis, one line per year and level."""
+        self.log("Rows loaded per year and level:")
+        if sc_df.empty:
+            self.log("  none")
+            return
+        counts = (
+            sc_df.groupby(['year', 'level'], dropna=False)
+            .size()
+            .reset_index(name='rows')
+            .sort_values(['year', 'level'])
+        )
+        for record in counts.itertuples(index=False):
+            year = int(record.year) if pd.notna(record.year) else record.year
+            self.log(f"  {year} {record.level}: {int(record.rows):,}")
 
 
 def run_for_group(student_group: str) -> pd.DataFrame:

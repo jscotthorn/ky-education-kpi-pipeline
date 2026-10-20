@@ -1,0 +1,5 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,Level,Suppressed,Climate Index,Safety Index
+20222023,,,999,All Districts,,All Schools,999000,,,,,,All Students,Elementary School,N,79.5,74.0
+20222023,,,999,All Districts,,All Schools,999000,,,,,,All Students,Middle School,N,68.8,62.3
+20222023,,,999,All Districts,,All Schools,999000,,,,,,All Students,High School,N,64.3,59.1
+20222023,001,ADAIR,001,Adair County,,All Schools,001000,,,GRREC,902,,African American,Elementary School,Y,*,*
