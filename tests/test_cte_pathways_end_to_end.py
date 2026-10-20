@@ -11,17 +11,17 @@ from etl.cte_pathways import transform
 ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = ROOT / "data" / "raw" / "cte_pathways"
 
-# One row per entity, year, and metric. 2019 has no concentrator column,
-# so it has no concentrator count and no completion rate.
+# One row per entity, year, and metric. 2019 has no concentrator column.
+# The completion rate is not emitted in any year.
 EXPECTED_ROWS = {
     "2019": 1392,
-    "2020": 2335,
-    "2021": 2325,
-    "2022": 2350,
-    "2023": 2350,
-    "2024": 2350,
-    "2025": 2380,
-    "2026": 2410,
+    "2020": 1868,
+    "2021": 1860,
+    "2022": 1880,
+    "2023": 1880,
+    "2024": 1880,
+    "2025": 1904,
+    "2026": 1928,
 }
 EXPECTED_ENTITIES = {
     "2019": 464,
@@ -75,7 +75,8 @@ def test_registered_files_collapse_to_one_row_per_school(tmp_path):
     assert set(df["student_group"]) == {"All Students"}
     keys = ["year", "school_id", "student_group", "metric"]
     assert not df.duplicated(keys).any()
-    assert len(df) == 17892
+    assert len(df) == 14592
+    assert "cte_pathway_completion_rate" not in set(df["metric"])
 
     for year, rows in EXPECTED_ROWS.items():
         year_rows = df[df["year"] == year]
@@ -96,7 +97,6 @@ def test_registered_files_collapse_to_one_row_per_school(tmp_path):
     assert _one(df, "2026", "081010", "cte_pathway_enrollment")["value"] == "556.0"
     assert _one(df, "2026", "081010", "cte_concentrator_count")["value"] == "413.0"
     assert _one(df, "2026", "081010", "cte_pathway_completer_count")["value"] == "143.0"
-    assert _one(df, "2026", "081010", "cte_pathway_completion_rate")["value"] == "34.6"
     assert set(
         df[(df["year"] == "2026") & (df["school_id"] == "081010")]["suppressed"]
     ) == {"N"}
