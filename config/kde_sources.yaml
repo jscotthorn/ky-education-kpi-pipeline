@@ -81,21 +81,31 @@ raw_directories:
 
   kentucky_summative_assessment:
     - "KYRC24_ACCT_Kentucky_Summative_Assessment.csv"
+    # Assessment_Performance_by_Grade_2025.CSV and
+    # Accountable_Assessment_Performance_2025.CSV on the OAA temporary
+    # URL are 404. These permanent files are the 2024-25 source.
+    # Do not register both. Do not also register Assessment_Performance_by_Grade_2026.
+    - url: "kyrc25"
+      file: "KYRC25_ACCT_Kentucky_Summative_Assessment.csv"
     - url: "kyrc26"
       file: "KYRC26_ACCT_Kentucky_Summative_Assessment.csv"
     - "KYRC24_ASMT_Kentucky_Summative_Assessment.csv"
+    - url: "kyrc25"
+      file: "KYRC25_ASMT_Kentucky_Summative_Assessment.csv"
     - url: "kyrc26"
       file: "KYRC26_ASMT_Kentucky_Summative_Assessment.csv"
-    - url: "2025"
-      file: "Assessment_Performance_by_Grade_2025.CSV"
     - "accountable_assessment_performance_2023.csv"
     - "accountable_assessment_performance_2022.csv"
     - "asmt_performance_by_level_2021.csv"
     - "asmt_performance_by_grade_2023.csv"
     - "asmt_performance_by_grade_2022.csv"
-    # Historical xlsx files (pre-2020)
+    # Historical xlsx files (pre-2020). The level workbooks are the
+    # published elementary, middle, and high rates. The grade workbooks
+    # are the grade rates. They are not the same cells.
     - "ASSESSMENT_PROFICIENCY_GRADE_18-19.xlsx"
     - "ASSESSMENT_PROFICIENCY_GRADE_17-18.xlsx"
+    - "ASSESSMENT_PROFICIENCY_LEVEL_18-19.xlsx"
+    - "ASSESSMENT_PROFICIENCY_LEVEL_17-18.xlsx"
     - "asmt_performance_by_grade_2021.csv"
 
   kindergarten_readiness:
