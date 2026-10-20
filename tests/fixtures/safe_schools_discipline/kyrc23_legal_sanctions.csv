@@ -1,0 +1,5 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,Total,Arrests,Charges,Civil Proceedings,Court Designated Worker Involvement,School Resource Officer Involvement
+20222023,,,999,All Districts,,All Schools,999000,,,,,,All Students,"4,609",190,"1,529",12,318,"4,089"
+20222023,001,ADAIR,001,Adair County,,All Schools,001000,,,GRREC,902,,All Students,33,0,7,0,*,32
+20222023,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000000.00,GRREC,902,A1,All Students,31,0,6,0,*,31
+20222023,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000000.00,GRREC,902,A1,English Learner,*,0,0,0,0,*

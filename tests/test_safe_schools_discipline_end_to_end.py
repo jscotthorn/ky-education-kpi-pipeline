@@ -114,12 +114,14 @@ class TestSafeSchoolsDisciplineEndToEnd:
         # Check that we have discipline metrics
         metrics = df_result['metric'].unique()
         expected_metrics = [
-            'restraint_rate', 'seclusion_rate', 'expelled_not_receiving_services_rate',
-            'expelled_receiving_services_rate', 'in_school_removal_rate',
-            'out_of_school_suspension_count', 'unilateral_removal_rate'
+            'restraint_count', 'seclusion_count', 'expelled_not_receiving_services_count',
+            'expelled_receiving_services_count', 'in_school_removal_count',
+            'out_of_school_suspension_count', 'unilateral_removal_count',
+            'corporal_punishment_count', 'removal_by_hearing_officer_count',
         ]
         for metric in expected_metrics:
             assert metric in metrics
+        assert 'restraint_rate' not in metrics
 
         # Check source file
         assert all(df_result['source_file'] == 'KYRC24_SAFE_Discipline_Resolutions.csv')
@@ -127,9 +129,17 @@ class TestSafeSchoolsDisciplineEndToEnd:
         # Check year
         assert all(df_result['year'] == 2024)
 
-        # Check data quality
+        # The sample out-of-school count is 60, not a rate of 30. The
+        # corporal-punishment cells are published zeros and are kept.
         assert df_result['value'].min() >= 0
-        assert df_result['value'].max() <= 100
+        oss = df_result[
+            (df_result['metric'] == 'out_of_school_suspension_count')
+            & (df_result['student_group'] == 'All Students')
+        ]
+        assert oss['value'].iloc[0] == 60
+        corp = df_result[df_result['metric'] == 'corporal_punishment_count']
+        assert (corp['value'] == 0).all()
+        assert (corp['suppressed'] == 'N').all()
         assert df_result['district'].notna().all()
         assert df_result['school_id'].notna().all()
 
@@ -152,11 +162,14 @@ class TestSafeSchoolsDisciplineEndToEnd:
         # Check that we have legal metrics
         metrics = df_result['metric'].unique()
         expected_metrics = [
-            'arrest_rate', 'charges_rate', 'civil_proceedings_rate',
-            'court_designated_worker_rate', 'school_resource_officer_rate'
+            'arrest_count', 'charges_count', 'civil_proceedings_count',
+            'court_designated_worker_count', 'school_resource_officer_count'
         ]
         for metric in expected_metrics:
             assert metric in metrics
+        civil = df_result[df_result['metric'] == 'civil_proceedings_count']
+        assert (civil['value'] == 0).any()
+        assert (civil['suppressed'] == 'N').all()
 
         # Check source file
         assert all(df_result['source_file'] == 'KYRC24_SAFE_Legal_Sanctions.csv')
@@ -222,8 +235,8 @@ class TestSafeSchoolsDisciplineEndToEnd:
 
         # Check we have both discipline and legal metrics
         metrics = df_result['metric'].unique()
-        discipline_metrics = ['restraint_rate', 'out_of_school_suspension_count', 'in_school_removal_rate']
-        legal_metrics = ['arrest_rate', 'charges_rate', 'school_resource_officer_rate']
+        discipline_metrics = ['restraint_count', 'out_of_school_suspension_count', 'in_school_removal_count']
+        legal_metrics = ['arrest_count', 'charges_count', 'school_resource_officer_count']
         
         for metric in discipline_metrics:
             assert metric in metrics
@@ -235,9 +248,8 @@ class TestSafeSchoolsDisciplineEndToEnd:
         assert 'All Students' in student_groups
         assert 'Male' in student_groups
 
-        # Validate data quality
+        # Counts are non-negative. They are not capped at 100.
         assert df_result['value'].min() >= 0
-        assert df_result['value'].max() <= 100
         assert df_result['district'].notna().all()
         assert df_result['school_id'].notna().all()
         assert df_result['metric'].notna().all()
