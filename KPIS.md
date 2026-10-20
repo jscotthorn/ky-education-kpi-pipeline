@@ -783,10 +783,10 @@ Title I federal funding status, dummy-encoded for use in Bayesian models. "Not a
 - `title_i_targeted` - Title I Targeted Assistance program (1=yes, 0=no)
 - `title_i_eligible_no_program` - Title I Eligible but no program implemented (1=yes, 0=no)
 
-**Note**: This dataset contains school-level data only. All records have `student_group='All Students'` - there are no demographic breakdowns. Coordinates are validated to fall within Kentucky's geographic boundaries.
+**Note**: This dataset contains school-level data only. All records have `student_group='All Students'`. There is no demographic column and no suppression column. A `*` does not appear. `suppressed` is N on every row. District aggregate rows (`---District Total---` through 2025, `---District---` in 2026) are not stored. The state row is stored. Its district is `State` for 2019-2025 and `---State---` for 2026. The school id is `999` for 2019-2023 and `999000` for 2024-2026. The 2026 state coordinate is 38.184805, -84.848799, the same point as the earlier years. Jefferson County's co-op was blank in KYRC25 and is `GLEC` in KYRC26. `GRREC` is unchanged. A blank coordinate is not stored. A blank grade is not stored as 0. `Adult Ed` and `Sp Ed` are not numeric grades.
 
-**Data Sources**: KYRC25_OVW_District_School_List.csv, KYRC24_OVW_District_School_List.csv, district_school_list_{year}.csv
-**Years Available**: 2020-2025
+**Data Sources**: KYRC26_OVW_District_School_List.csv, KYRC25_OVW_District_School_List.csv, KYRC24_OVW_District_School_List.csv, district_school_list_{year}.csv, DISTRICT_SCHOOL_LIST_18-19.xlsx
+**Years Available**: 2019-2026
 **Unit**: Binary indicators (0 or 1), Decimal degrees for coordinates
 **Demographics**: School-level only (All Students)
 

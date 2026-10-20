@@ -29,6 +29,13 @@ Title I Status categories:
 
 Note: This is institutional-level data without demographic breakdowns.
 All records have student_group='All Students'.
+
+KYRC26 spells the co-op headers ``CO-OP`` and ``CO-OP Code``. KYRC25 spells
+them ``Co-Op`` and ``Co-Op Code``. ``BaseETL`` maps both. A file that
+carries both spellings at once keeps one ``co_op`` column. District
+aggregate rows are ``---District Total---`` through KYRC25 and
+``---District---`` in KYRC26. Those rows are not schools. The state row
+is kept. KYRC26 names that district ``---State---``.
 """
 from pathlib import Path
 import pandas as pd
@@ -45,9 +52,42 @@ from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
 
+# A leftover copy of one of these would write a year the registered file
+# already writes, or would load a year Scott has not registered.
+# KYRC23 is the 2022-23 republish. The 2017-18 workbook is the earlier year.
+# The guessed OAA names return 404 and were never registered.
+_SKIP_FILENAMES = {
+    "KYRC23_OVW_DISTRICT_SCHOOL_LIST.CSV",
+    "DISTRICT_SCHOOL_LIST_17-18.XLSX",
+    "DISTRICT_SCHOOL_LIST_2024.CSV",
+    "DISTRICT_SCHOOL_LIST_2025.CSV",
+    "DISTRICT_SCHOOL_LIST_2026.CSV",
+}
+
+
+def _blank_text(series: pd.Series) -> pd.Series:
+    """True where a cell is missing or empty.
+
+    pandas 3 ``dtype=str`` is StringDtype. ``bool(pd.NA)`` raises, so the
+    check uses ``isna`` and a string comparison instead of truthiness.
+    """
+    missing = series.isna()
+    text = series.astype("string")
+    empty = text.str.strip().eq("")
+    return missing | empty.fillna(False)
+
 
 class DistrictSchoolListETL(BaseETL):
-    """ETL module for processing district school list data to extract coordinates."""
+    """ETL module for processing district school list data to extract coordinates.
+
+    KYRC26 is the same measure columns as KYRC25. The co-op header spelling
+    is already on ``BaseETL``. Set ``include_kyrc26`` in this class so
+    ``process`` reads the registered file.
+    """
+
+    # Opt in here, in the same change that accepts the file. BaseETL skips
+    # every KYRC26_* CSV until this is True.
+    include_kyrc26 = True
 
     @property
     def module_column_mappings(self) -> Dict[str, str]:
@@ -93,6 +133,46 @@ class DistrictSchoolListETL(BaseETL):
             'COOP': 'co_op',
             'COOP_CODE': 'co_op_code',
         }
+
+    def accepts_data_file(self, file_path: Path) -> bool:
+        """Skip the KYRC23 republish, the 2017-18 workbook, and leftover temp names.
+
+        ``district_school_list_2023.csv`` is the registered 2022-23 file.
+        KYRC23 is that same school year. The 2017-18 workbook is earlier
+        than the registered series. The guessed OAA names are 404.
+        """
+        if file_path.name.upper() in _SKIP_FILENAMES:
+            logger.info(
+                "Skipping %s; it republishes a year already loaded, is outside this series, or is a leftover temporary name",
+                file_path.name,
+            )
+            return False
+        return super().accepts_data_file(file_path)
+
+    def normalize_column_names(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Map both co-op spellings onto one column.
+
+        ``BaseETL`` sends ``Co-Op`` and ``CO-OP`` to ``co_op``, and the
+        code columns to ``co_op_code``. A frame that has both spellings
+        then has two columns with the same name. Keep the first value and
+        fill a blank from the other spelling. Real KYRC files have one
+        spelling.
+        """
+        normalized = super().normalize_column_names(df)
+        if not bool(normalized.columns.duplicated().any()):
+            return normalized
+        collapsed: Dict[str, pd.Series] = {}
+        for name in list(dict.fromkeys(normalized.columns)):
+            block = normalized.loc[:, normalized.columns == name]
+            if isinstance(block, pd.Series):
+                collapsed[name] = block
+                continue
+            series = block.iloc[:, 0]
+            for index in range(1, block.shape[1]):
+                other = block.iloc[:, index]
+                series = series.mask(_blank_text(series), other)
+            collapsed[name] = series
+        return pd.DataFrame(collapsed)
 
     # School Type codes to create dummy variables for (A1 is reference category)
     SCHOOL_TYPE_DUMMIES = ['A2', 'A3', 'A4', 'A5', 'A6', 'A8', 'B1', 'B2', 'C2', 'D1']
@@ -291,14 +371,19 @@ class DistrictSchoolListETL(BaseETL):
         """
         school_name = row.get('school_name', '')
 
-        # Skip district aggregate rows
-        if pd.isna(school_name) or school_name == '':
+        # Skip district aggregate rows.
+        # Through KYRC25 the label is ``---District Total---``. KYRC26
+        # publishes the same row as ``---District---``. A school whose
+        # name contains the word District, such as Ninth District
+        # Elementary, is not an aggregate.
+        if pd.isna(school_name) or str(school_name).strip() == '':
             return True
-        if str(school_name) in self.DISTRICT_AGGREGATE_PATTERNS:
+        name = str(school_name).strip()
+        if name in self.DISTRICT_AGGREGATE_PATTERNS or name == '---District---':
             return True
-        if '---District Total---' in str(school_name):
+        if '---District Total---' in name:
             return True
-        if 'All Schools' in str(school_name):
+        if 'All Schools' in name:
             return True
 
         # Skip rows without valid coordinates
@@ -345,6 +430,25 @@ class DistrictSchoolListETL(BaseETL):
             'source_file': source_file,
             'last_updated': pd.Timestamp.now().isoformat()
         }
+
+    def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """Drop a repeated school code, then build KPI rows.
+
+        KYRC24 lists Knott County Area Technology Center ``777125`` twice,
+        with the same coordinates and the same classification. The key is
+        year, school, group, and metric, so the second copy is not a
+        second school.
+        """
+        if 'school_code' in df.columns and bool(df['school_code'].duplicated().any()):
+            repeated = df.loc[df['school_code'].duplicated(keep=False), 'school_code']
+            codes = sorted({str(code) for code in repeated.tolist()})
+            logger.warning(
+                "Dropping repeated school code rows in %s: %s",
+                source_file,
+                ", ".join(codes),
+            )
+            df = df.drop_duplicates(subset=['school_code'], keep='first')
+        return super().convert_to_kpi_format(df, source_file)
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
