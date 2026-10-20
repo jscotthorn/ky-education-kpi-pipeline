@@ -1,0 +1,9 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,Total,Alcohol,"Assault, 1st Degree",Drugs,Harassment (Includes Bullying),Other Assault or Violence,Other Events Resulting in State Resolutions,Tobacco,Weapons
+20252026,,,999,All Districts,,All Schools,999000,,,,,,All Students,"86,009",450,41,"5,677","11,455","4,407","73,608","9,515",703
+20252026,,,999,All Districts,,All Schools,999000,,,,,,Total Events,"251,717",468,41,"6,756","14,839","5,445","211,253","12,188",727
+20252026,,,999,All Districts,,All Schools,999000,,,,,,English Learner,"23,678",40,*,441,892,272,"21,499",480,53
+20252026,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,All Students,400,0,0,19,47,12,358,45,0
+20252026,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,All Students,198,0,0,14,*,*,183,21,0
+20252026,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,Foster Care,11,0,0,*,0,0,8,*,0
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,All Students,"5,569",37,5,490,"1,200",180,"4,748",317,12
+20252026,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,All Students,397,0,0,125,19,12,337,27,0

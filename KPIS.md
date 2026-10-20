@@ -154,59 +154,31 @@ Annual Safe Schools `OUT OF SCHOOL SUSPENSION SSP3` counts are not emitted here.
 ## Safe Schools Events
 **Source**: `etl/safe_schools_events.py`
 
-### Students Affected Metrics
-- `safe_students_affected_total_events` - Students affected by any event
-- `safe_students_affected_alcohol_events` - Students affected by alcohol events
-- `safe_students_affected_assault_1st_degree` - Students affected by first-degree assault
-- `safe_students_affected_drug_events` - Students affected by drug events
-- `safe_students_affected_harassment_events` - Students affected by harassment
-- `safe_students_affected_other_assault_events` - Students affected by other assault
-- `safe_students_affected_other_state_events` - Students affected by other state events
-- `safe_students_affected_tobacco_events` - Students affected by tobacco events
-- `safe_students_affected_weapon_events` - Students affected by weapon events
+The stored count is the cell KDE published. A count of KPI rows is a count of stored cells, not a figure KDE publishes. `All Students` is the unduplicated student count (`safe_students_affected_*`). `Total Events` is the event count (`safe_event_count_*`, student group `All Students - Total Events`). Other demographic rows are event counts (`safe_event_count_*_by_demo`). Female plus Male equals `Total Events`, not `All Students`. The same metric is not a share of `All Students`. This module does not emit `out_of_school_suspension_count`. Safe Schools Discipline owns that count.
 
-### Event Count Metrics
-- `safe_event_count_total_events` - Total number of events
-- `safe_event_count_alcohol_events` - Number of alcohol-related events
-- `safe_event_count_assault_1st_degree` - Number of first-degree assault events
-- `safe_event_count_drug_events` - Number of drug-related events
-- `safe_event_count_harassment_events` - Number of harassment events
-- `safe_event_count_other_assault_events` - Number of other assault events
-- `safe_event_count_other_state_events` - Number of other state-reportable events
-- `safe_event_count_tobacco_events` - Number of tobacco-related events
-- `safe_event_count_weapon_events` - Number of weapon-related events
+A `*` is value NA with `suppressed` Y, including when every count cell on the row is `*`. A blank cell is not stored. A published 0 is kept with `suppressed` N. The 2020-2026 files publish 0, so a star is not a stand-in for zero. Grade files also publish blank cells for grades a school does not serve. KYRC state rows are district `All Districts` with school code `999000`. The 2020-2023 state rows are district `State` with school code `999`. Those codes are stored as published. `safe_incident_rate_*` is events divided by students affected, rounded to 3 decimal places. The pipeline calculates it. KDE does not publish it. It is kept as an existing calculation.
 
-### Grade-Level Event Metrics
-- `safe_event_count_all_grades` - Events across all grade levels
-- `safe_event_count_preschool` - Events in preschool
-- `safe_event_count_kindergarten` - Events in kindergarten
-- `safe_event_count_grade_3` through `safe_event_count_grade_12` - Events by grade level
+The type file owns `safe_students_affected_total` and `safe_event_count_total`. The location and context files publish the same Total. It matches the type file except where the type cell is `*` and the other file publishes a number. That second cell is not stored under the same metric name.
 
-### Location-Based Event Metrics
-- `safe_event_count_classroom` - Events in classrooms
-- `safe_event_count_bus` - Events on school buses
-- `safe_event_count_hallway_stairwell` - Events in hallways/stairwells
-- `safe_event_count_cafeteria` - Events in cafeteria
-- `safe_event_count_restroom` - Events in restrooms
-- `safe_event_count_gymnasium` - Events in gymnasium
-- `safe_event_count_playground` - Events on playground
-- `safe_event_count_other_location` - Events in other locations
-- `safe_event_count_campus_grounds` - Events on campus grounds
+### Students affected (`All Students` rows)
+- `safe_students_affected_total` - Students affected by any event
+- `safe_students_affected_alcohol`, `safe_students_affected_assault_1st`, `safe_students_affected_drugs`, `safe_students_affected_harassment`, `safe_students_affected_assault_other`, `safe_students_affected_other_state`, `safe_students_affected_tobacco`, `safe_students_affected_weapons`
 
-### Context-Based Event Metrics
-- `safe_event_count_school_sponsored_during` - School-sponsored events during school hours
-- `safe_event_count_school_sponsored_not_during` - School-sponsored events outside school hours
-- `safe_event_count_non_school_sponsored_during` - Non-school events during school hours
-- `safe_event_count_non_school_sponsored_not_during` - Non-school events outside school hours
+### Event counts (`Total Events` rows, and `_by_demo` for other groups)
+- `safe_event_count_total`
+- `safe_event_count_alcohol`, `safe_event_count_assault_1st`, `safe_event_count_drugs`, `safe_event_count_harassment`, `safe_event_count_assault_other`, `safe_event_count_other_state`, `safe_event_count_tobacco`, `safe_event_count_weapons`
 
-### Incident Rate Metrics
-- `safe_incident_rate_total_events` - Total events per affected student
-- `safe_incident_rate_alcohol_events` - Alcohol events per affected student
-- `safe_incident_rate_drug_events` - Drug events per affected student
-- (calculated for each event type where both counts and affected students exist)
+### Grade
+`safe_students_affected_*` and `safe_event_count_*` for `all_grades`, `preschool`, `kindergarten`, `grade_1` through `grade_12`, and `grade_14`. There is no `grade_13`. KYRC25 and KYRC26 headers `PS`, `K`, `1st`, and `14th` land on those names.
 
-### Demographic Breakdown Metrics
-All above metrics are also available with `_by_demo` suffix for demographic group analysis
+### Location
+`classroom`, `bus`, `hallway`, `cafeteria`, `restroom`, `gymnasium`, `playground`, `other_location`, `campus`. The 2020-2023 event-details file also has these columns. This parser reads the type columns from that file. The location and context columns in it are not emitted.
+
+### Context
+`school_sponsored_during`, `school_sponsored_after`, `non_school_sponsored_during`, `non_school_after`.
+
+### Incident rate
+`safe_incident_rate_total` and the same suffix for each measure above where both the student count and the event count are published numbers and the student count is greater than 0. A star on either cell produces no rate.
 
 ## Safe Schools Discipline
 **Source**: `etl/safe_schools_discipline.py`

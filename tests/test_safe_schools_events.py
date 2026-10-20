@@ -7,7 +7,15 @@ import pandas as pd
 from etl.constants import KPI_COLUMNS
 import tempfile
 import shutil
-from etl.safe_schools_events import transform, normalize_column_names, clean_event_data, convert_to_kpi_format, add_derived_fields
+from etl.safe_schools_events import (
+    transform,
+    normalize_column_names,
+    clean_event_data,
+    convert_to_kpi_format,
+    add_derived_fields,
+    files_to_process,
+    rejected_event_filenames,
+)
 
 
 class TestSafeSchoolsEventsETL:
@@ -486,6 +494,330 @@ class TestSafeSchoolsEventsETL:
         assert rate_row['student_group'].iloc[0] == 'All Students'
         assert rate_row['suppressed'].iloc[0] == 'N'
         assert 'derived_rates' in rate_row['source_file'].iloc[0]
+
+    def test_kyrc26_names_are_on_the_allow_list(self):
+        """The transform reads a filename list. include_kyrc26 does not apply."""
+        names = files_to_process()
+        for kind in ("Type", "Grade_Level", "Location", "Context"):
+            assert f"KYRC26_SAFE_Behavior_Events_by_{kind}.csv" in names
+            assert f"KYRC25_SAFE_Behavior_Events_by_{kind}.csv" in names
+            assert f"KYRC23_SAFE_Behavior_Events_by_{kind}.csv" not in names
+        assert "KYRC23_SAFE_Behavior_Events_by_Type.csv" in rejected_event_filenames()
+
+    def test_grade_tokens_map_before_the_column_dictionary(self):
+        """PS and 1st are the KYRC25/KYRC26 grade headers."""
+        df = pd.DataFrame(columns=["All Grades", "PS", "K", "1st", "12th", "14th", "Total"])
+        renamed = normalize_column_names(df)
+        assert "preschool" in renamed.columns
+        assert "kindergarten" in renamed.columns
+        assert "grade_1" in renamed.columns
+        assert "grade_12" in renamed.columns
+        assert "grade_14" in renamed.columns
+        assert "all_grades" in renamed.columns
+        assert "grade_13" not in renamed.columns
+
+    def test_comma_counts_survive_object_and_string_dtype(self):
+        """pandas 3 dtype=str is StringDtype. A comma must still parse."""
+        frames = [
+            pd.DataFrame({"total_events": ["86,009", "0", "*", ""]}),
+            pd.DataFrame({"total_events": pd.Series(["86,009", "0", "*", ""], dtype="string")}),
+        ]
+        for frame in frames:
+            cleaned = clean_event_data(frame.copy())
+            assert cleaned["total_events"].iloc[0] == 86009
+            assert cleaned["total_events"].iloc[1] == 0
+            assert pd.isna(cleaned["total_events"].iloc[2])
+            assert pd.isna(cleaned["total_events"].iloc[3])
+            assert cleaned["_cell_total_events"].iloc[2] == "star"
+            assert cleaned["_cell_total_events"].iloc[3] == "blank"
+
+    def test_blank_cell_is_skipped_and_star_is_stored(self):
+        """A blank is not a row. A star is NA with suppressed Y. A 0 is kept."""
+        df = pd.DataFrame({
+            "school_year": ["20252026", "20252026"],
+            "district_name": ["Adair County", "Adair County"],
+            "school_name": ["Adair County High School", "Adair County High School"],
+            "school_code": ["001010", "001010"],
+            "state_school_id": ["001001010", "001001010"],
+            "demographic": ["All Students", "English Learner"],
+            "total_events": ["198", "23,678"],
+            "alcohol_events": ["0", ""],
+            "assault_1st_degree": ["*", "*"],
+            "data_source": ["kyrc24_events_by_type", "kyrc24_events_by_type"],
+        })
+        df = clean_event_data(df)
+        kpi = convert_to_kpi_format(df)
+        blank = kpi[(kpi["student_group"] == "English Learner") & (kpi["metric"] == "safe_event_count_alcohol_by_demo")]
+        assert blank.empty
+        star = kpi[(kpi["student_group"] == "All Students") & (kpi["metric"] == "safe_students_affected_assault_1st")]
+        assert len(star) == 1
+        assert star["suppressed"].iloc[0] == "Y"
+        assert pd.isna(star["value"].iloc[0])
+        zero = kpi[(kpi["student_group"] == "All Students") & (kpi["metric"] == "safe_students_affected_alcohol")]
+        assert zero["value"].iloc[0] == 0
+        assert zero["suppressed"].iloc[0] == "N"
+        comma = kpi[(kpi["student_group"] == "English Learner") & (kpi["metric"] == "safe_event_count_total_by_demo")]
+        assert comma["value"].iloc[0] == 23678
+        assert comma["suppressed"].iloc[0] == "N"
+
+    def test_leftover_kyrc23_file_is_not_read(self):
+        """A KYRC23 behavior file republishes 2022-23 and must not add a second copy."""
+        leftover = pd.DataFrame({
+            "School Year": ["20222023"],
+            "District Name": ["All Districts"],
+            "School Name": ["All Schools"],
+            "School Code": ["999000"],
+            "Demographic": ["All Students"],
+            "Total": ["999999"],
+        })
+        path = self.sample_dir / "KYRC23_SAFE_Behavior_Events_by_Type.csv"
+        leftover.to_csv(path, index=False)
+        result = transform(str(self.raw_dir), str(self.proc_dir), {})
+        assert result == ""
+
+    def _copy_fixtures(self):
+        fixture_dir = Path(__file__).parent / "fixtures" / "safe_schools_events"
+        for path in fixture_dir.glob("*.csv"):
+            shutil.copy(path, self.sample_dir / path.name)
+
+    def _lookup(self, output, **filters):
+        matched = output
+        for column, expected in filters.items():
+            matched = matched[matched[column] == expected]
+        assert len(matched) == 1, filters
+        return matched.iloc[0]
+
+    def test_real_rows_for_2026_and_prior_year_anchors(self):
+        """Real KDE rows: state, district, school, a star, a blank, and prior years."""
+        self._copy_fixtures()
+        result = transform(str(self.raw_dir), str(self.proc_dir), {})
+        output = pd.read_csv(result)
+
+        key = ["year", "school_id", "student_group", "metric"]
+        assert not output.duplicated(key).any()
+
+        state = self._lookup(
+            output,
+            year=2026,
+            district="All Districts",
+            school_name="All Schools",
+            student_group="All Students",
+            metric="safe_students_affected_total",
+        )
+        assert state["value"] == 86009
+        assert state["suppressed"] == "N"
+        assert str(state["school_id"]) in {"999000", "999000.0"}
+
+        events = self._lookup(
+            output,
+            year=2026,
+            district="All Districts",
+            school_name="All Schools",
+            student_group="All Students - Total Events",
+            metric="safe_event_count_total",
+        )
+        assert events["value"] == 251717
+        rate = self._lookup(
+            output,
+            year=2026,
+            district="All Districts",
+            school_name="All Schools",
+            student_group="All Students",
+            metric="safe_incident_rate_total",
+        )
+        assert rate["value"] == round(251717 / 86009, 3)
+
+        adair = self._lookup(
+            output,
+            year=2026,
+            district="Adair County",
+            school_name="All Schools",
+            student_group="All Students",
+            metric="safe_students_affected_total",
+        )
+        assert adair["value"] == 400
+        assert str(adair["school_id"]) in {"001000", "1000", "1000.0"}
+
+        school = self._lookup(
+            output,
+            year=2026,
+            district="Adair County",
+            school_name="Adair County High School",
+            student_group="All Students",
+            metric="safe_students_affected_weapons",
+        )
+        assert school["value"] == 0
+        assert school["suppressed"] == "N"
+        starred = self._lookup(
+            output,
+            year=2026,
+            district="Adair County",
+            school_name="Adair County High School",
+            student_group="All Students",
+            metric="safe_students_affected_harassment",
+        )
+        assert starred["suppressed"] == "Y"
+        assert pd.isna(starred["value"])
+
+        fayette = self._lookup(
+            output,
+            year=2026,
+            district="Fayette County",
+            school_name="All Schools",
+            student_group="All Students",
+            metric="safe_students_affected_total",
+        )
+        assert fayette["value"] == 5569
+        bryan = self._lookup(
+            output,
+            year=2026,
+            district="Fayette County",
+            school_name="Bryan Station High School",
+            student_group="All Students",
+            metric="safe_students_affected_total",
+        )
+        assert bryan["value"] == 397
+
+        learner = self._lookup(
+            output,
+            year=2026,
+            district="All Districts",
+            school_name="All Schools",
+            student_group="English Learner",
+            metric="safe_event_count_assault_1st_by_demo",
+        )
+        assert learner["suppressed"] == "Y"
+        assert pd.isna(learner["value"])
+        learner_total = self._lookup(
+            output,
+            year=2026,
+            district="All Districts",
+            school_name="All Schools",
+            student_group="English Learner",
+            metric="safe_event_count_total_by_demo",
+        )
+        assert learner_total["value"] == 23678
+        assert learner_total["suppressed"] == "N"
+
+        preschool = self._lookup(
+            output,
+            year=2026,
+            district="All Districts",
+            school_name="All Schools",
+            student_group="All Students",
+            metric="safe_students_affected_preschool",
+        )
+        assert preschool["value"] == 108
+        grade_1 = self._lookup(
+            output,
+            year=2026,
+            district="All Districts",
+            school_name="All Schools",
+            student_group="All Students",
+            metric="safe_students_affected_grade_1",
+        )
+        assert grade_1["value"] == 2078
+        grade_14 = self._lookup(
+            output,
+            year=2026,
+            district="Adair County",
+            school_name="Adair County High School",
+            student_group="All Students",
+            metric="safe_students_affected_grade_14",
+        )
+        assert grade_14["value"] == 0
+        assert grade_14["suppressed"] == "N"
+        skipped_ps = output[
+            (output["year"] == 2026)
+            & (output["school_name"] == "Adair County High School")
+            & (output["student_group"] == "All Students")
+            & (output["metric"] == "safe_students_affected_preschool")
+        ]
+        assert skipped_ps.empty
+
+        classroom = self._lookup(
+            output,
+            year=2026,
+            district="All Districts",
+            school_name="All Schools",
+            student_group="All Students",
+            metric="safe_students_affected_classroom",
+        )
+        assert classroom["value"] == 61862
+        during = self._lookup(
+            output,
+            year=2026,
+            district="All Districts",
+            school_name="All Schools",
+            student_group="All Students",
+            metric="safe_students_affected_school_sponsored_during",
+        )
+        assert during["value"] == 83342
+        # The location and context files also publish Total. It is not a second metric.
+        location_total = output[
+            (output["year"] == 2026)
+            & (output["metric"] == "safe_students_affected_total")
+            & (output["district"] == "All Districts")
+            & (output["student_group"] == "All Students")
+        ]
+        assert len(location_total) == 1
+
+        prior_2025 = self._lookup(
+            output,
+            year=2025,
+            district="All Districts",
+            school_name="All Schools",
+            student_group="All Students",
+            metric="safe_students_affected_total",
+        )
+        assert prior_2025["value"] == 83921
+        prior_2024 = self._lookup(
+            output,
+            year=2024,
+            district="All Districts",
+            school_name="All Schools",
+            student_group="All Students",
+            metric="safe_students_affected_total",
+        )
+        assert prior_2024["value"] == 89951
+        prior_2023 = self._lookup(
+            output,
+            year=2023,
+            district="State",
+            school_name="---State Total---",
+            student_group="All Students",
+            metric="safe_students_affected_total",
+        )
+        assert prior_2023["value"] == 92772
+        assert str(prior_2023["school_id"]) in {"999", "999.0"}
+
+        # 2020 Adair district American Indian row is starred on every type count.
+        all_star = output[
+            (output["year"] == 2020)
+            & (output["district"] == "Adair County")
+            & (output["student_group"] == "American Indian or Alaska Native")
+            & (output["metric"] == "safe_event_count_drugs_by_demo")
+        ]
+        assert len(all_star) == 1
+        assert all_star["suppressed"].iloc[0] == "Y"
+        assert pd.isna(all_star["value"].iloc[0])
+
+        # 2020 Adair County High School preschool cell is blank and is not stored.
+        blank_2020 = output[
+            (output["year"] == 2020)
+            & (output["school_name"] == "Adair County High School")
+            & (output["student_group"] == "All Students")
+            & (output["metric"] == "safe_students_affected_preschool")
+        ]
+        assert blank_2020.empty
+        grade9 = self._lookup(
+            output,
+            year=2020,
+            school_name="Adair County High School",
+            student_group="All Students",
+            metric="safe_students_affected_grade_9",
+        )
+        assert grade9["value"] == 65
 
 
 if __name__ == "__main__":

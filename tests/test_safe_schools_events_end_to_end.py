@@ -491,6 +491,9 @@ class TestSafeSchoolsEventsEndToEnd:
         # Create larger dataset (simulate multiple schools/districts)
         larger_data = []
         base_data = self.create_comprehensive_kyrc24_events_by_type_data()
+        # One source school. Copying both schools onto the same new id
+        # would repeat All Students for that year.
+        base_data = base_data[base_data["School Number"] == "010"]
         
         # Replicate data for multiple schools
         for district_id in range(1, 6):  # 5 districts
