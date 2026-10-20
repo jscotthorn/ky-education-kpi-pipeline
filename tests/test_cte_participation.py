@@ -39,6 +39,12 @@ class TestCTEParticipationETL(unittest.TestCase):
         self.assertEqual(mappings['CTE Participants in All Grades'], 'cte_participation_rate')
         self.assertEqual(mappings['Grade 12 CTE Eligible Completer'], 'cte_eligible_completer_count')
         self.assertEqual(mappings['Grade 12 CTE Completers'], 'cte_completion_rate')
+        # 2022 and 2023 uppercase headers are counts. The title-case KYRC24
+        # headers above stay the published rate and the eligible count.
+        self.assertEqual(mappings['CTE PARTICIPANTS IN ALL GRADES'], 'cte_participant_count')
+        self.assertEqual(mappings['GRADE 12 CTE COMPLETERS'], 'cte_completer_count_grade_12')
+        self.assertEqual(mappings['TOTAL NUMBER OF STUDENT'], 'total_student_count')
+        self.assertEqual(mappings['Total Number of Student'], 'cte_participant_count')
     
     def test_extract_metrics_with_all_data(self):
         """Test metric extraction with complete data."""
@@ -114,11 +120,12 @@ class TestCTEParticipationETL(unittest.TestCase):
         
         cleaned_df = clean_cte_data(df)
         
-        # Check that invalid values are converted to NA
+        # A negative is missing. A published rate above 100 is kept.
         self.assertEqual(cleaned_df['cte_participation_rate'][0], 75.5)
         self.assertTrue(pd.isna(cleaned_df['cte_participation_rate'][1]))  # negative
-        self.assertTrue(pd.isna(cleaned_df['cte_participation_rate'][2]))  # > 100
+        self.assertEqual(cleaned_df['cte_participation_rate'][2], 150.0)  # published, above 100
         self.assertTrue(pd.isna(cleaned_df['cte_participation_rate'][3]))  # already NA
+        self.assertEqual(cleaned_df['cte_completion_rate'][2], 120.0)
         
         # Check count cleaning
         self.assertEqual(cleaned_df['cte_eligible_completer_count'][0], 100)
@@ -265,6 +272,121 @@ class TestKyrc26CTEParticipation:
         ):
             (self.sample_dir / name).write_text("School Year\n20252026\n")
             assert self.etl.accepts_data_file(self.sample_dir / name)
+
+
+def _kpi_from_frame(etl: CTEParticipationETL, frame: pd.DataFrame, name: str) -> pd.DataFrame:
+    """Run one frame through the same steps process() uses."""
+    normalized = etl.standardize_missing_values(etl.normalize_column_names(frame))
+    return etl.convert_to_kpi_format(normalized, name)
+
+
+def test_2022_counts_are_not_stored_as_rates():
+    """Uppercase 2022 cells are counts. A star is suppressed. A rate is absent."""
+    etl = CTEParticipationETL("cte_participation")
+    frame = pd.DataFrame({
+        "SCHOOL YEAR": ["20212022", "20212022"],
+        "DISTRICT NAME": ["State", "Fayette County"],
+        "SCHOOL NAME": ["---State Total---", "Bryan Station High School"],
+        "SCHOOL CODE": ["999", "165170"],
+        "DEMOGRAPHIC": ["All Students", "All Students"],
+        "TOTAL NUMBER OF STUDENT": ["*", "2017"],
+        "CTE PARTICIPANTS IN ALL GRADES": ["167510", "1528"],
+        "GRADE 12 CTE ELIGIBLE COMPLETER": ["43229", "413"],
+        "GRADE 12 CTE COMPLETERS": ["13624", "77"],
+    })
+    kpi = _kpi_from_frame(etl, frame, "cte_by_student_group_2022.csv")
+    assert set(kpi["metric"]) == {
+        "cte_high_school_enrollment_count",
+        "cte_participant_count",
+        "cte_eligible_completer_count_grade_12",
+        "cte_completer_count_grade_12",
+    }
+    bryan = kpi[kpi["school_id"] == "165170"]
+    values = dict(zip(bryan["metric"], bryan["value"]))
+    assert values == {
+        "cte_high_school_enrollment_count": 2017.0,
+        "cte_participant_count": 1528.0,
+        "cte_eligible_completer_count_grade_12": 413.0,
+        "cte_completer_count_grade_12": 77.0,
+    }
+    assert (bryan["suppressed"] == "N").all()
+    state_enrollment = kpi[
+        (kpi["school_id"] == "999") & (kpi["metric"] == "cte_high_school_enrollment_count")
+    ]
+    assert len(state_enrollment) == 1
+    assert state_enrollment.iloc[0]["suppressed"] == "Y"
+    assert pd.isna(state_enrollment.iloc[0]["value"])
+    assert float(kpi[(kpi["school_id"] == "999") & (kpi["metric"] == "cte_participant_count")].iloc[0]["value"]) == 167510.0
+
+
+def test_published_rate_above_100_is_kept_and_blank_is_skipped():
+    """KYRC24 stores the printed rate. Zero stays. A star is Y. A blank is absent."""
+    etl = CTEParticipationETL("cte_participation")
+    frame = pd.DataFrame({
+        "School Year": ["20232024", "20232024", "20232024"],
+        "District Name": ["Harlan County", "Fayette County", "Fayette County"],
+        "School Name": ["Harlan County High School", "Fayette County Learning Center", "Bryan Station High School"],
+        "School Code": ["235025", "165898", "165170"],
+        "Demographic": ["American Indian or Alaska Native", "All Students", "Foster Care"],
+        "Total Number of Student": ["4", "26", "0"],
+        "CTE Participants in All Grades": ["400.0", "0.0", "--"],
+        "Grade 12 CTE Eligible Completer": ["*", "0", ""],
+        "Grade 12 CTE Completers": ["*", "N/A", "*"],
+    })
+    kpi = _kpi_from_frame(etl, frame, "KYRC24_CTE_Participation.csv")
+    harlan = kpi[kpi["school_id"] == "235025"]
+    rate = harlan[harlan["metric"] == "cte_participation_rate"].iloc[0]
+    assert float(rate["value"]) == 400.0
+    assert rate["suppressed"] == "N"
+    assert float(harlan[harlan["metric"] == "cte_participant_count"].iloc[0]["value"]) == 4.0
+    starred = harlan[harlan["metric"] == "cte_eligible_completer_count_grade_12"].iloc[0]
+    assert starred["suppressed"] == "Y"
+    assert pd.isna(starred["value"])
+
+    learning = kpi[kpi["school_id"] == "165898"]
+    zero_rate = learning[learning["metric"] == "cte_participation_rate"].iloc[0]
+    assert float(zero_rate["value"]) == 0.0
+    assert zero_rate["suppressed"] == "N"
+    zero_count = learning[learning["metric"] == "cte_eligible_completer_count_grade_12"].iloc[0]
+    assert float(zero_count["value"]) == 0.0
+    assert "cte_completion_rate_grade_12" not in set(learning["metric"])
+
+    foster = kpi[kpi["school_id"] == "165170"]
+    assert "cte_participation_rate" not in set(foster["metric"])
+    assert "cte_eligible_completer_count_grade_12" not in set(foster["metric"])
+    assert float(foster[foster["metric"] == "cte_participant_count"].iloc[0]["value"]) == 0.0
+    completion = foster[foster["metric"] == "cte_completion_rate_grade_12"].iloc[0]
+    assert completion["suppressed"] == "Y"
+    keys = kpi[["school_id", "year", "student_group", "metric"]]
+    assert not keys.duplicated().any()
+
+
+def test_kyrc25_keeps_computed_rates_and_stores_stars():
+    """A career-center N/A enrollment is not a rate. A star is suppressed."""
+    etl = CTEParticipationETL("cte_participation")
+    frame = pd.DataFrame({
+        "School Year": ["20242025", "20242025"],
+        "District Name": ["Allen County", "Fayette County"],
+        "School Name": ["Allen County Career and Technical Center", "Bryan Station High School"],
+        "School Code": ["005901", "165170"],
+        "Demographic": ["All Students", "Military Dependent"],
+        "All High School CTE Participants": ["725", "*"],
+        "All High School Enrollments": ["N/A", "3"],
+        "12th Grade Completers": ["107", "*"],
+        "12th Grade Participants": ["233", "*"],
+    })
+    kpi = _kpi_from_frame(etl, frame, "KYRC25_CTE_Participation.csv")
+    allen = kpi[kpi["school_id"] == "005901"]
+    assert "cte_participation_rate" not in set(allen["metric"])
+    assert "cte_high_school_enrollment_count" not in set(allen["metric"])
+    assert float(allen[allen["metric"] == "cte_participant_count"].iloc[0]["value"]) == 725.0
+    assert float(allen[allen["metric"] == "cte_completion_rate_grade_12"].iloc[0]["value"]) == 45.9
+    military = kpi[kpi["school_id"] == "165170"]
+    rate = military[military["metric"] == "cte_participation_rate"].iloc[0]
+    assert rate["suppressed"] == "Y"
+    assert pd.isna(rate["value"])
+    assert float(military[military["metric"] == "cte_high_school_enrollment_count"].iloc[0]["value"]) == 3.0
+    assert (military[military["metric"] == "cte_completer_count_grade_12"]["suppressed"] == "Y").all()
 
 
 def test_registered_sources_are_the_permanent_files():

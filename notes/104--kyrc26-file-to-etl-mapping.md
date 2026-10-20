@@ -23,7 +23,7 @@ The node ids are in journal 105 (census live API, pandas `StringDtype` versus `o
 | `english_learner_progress` | In review in PR #40 (`cursor/english-learner-progress-kyrc26-26cf`). Opt-in, and a source swap in `config/kde_sources.yaml`: `English_Language_Proficiency_2025.CSV` is replaced by `KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv`. The parser skips leftover `English_Language_Proficiency_2024.CSV`, `English_Language_Proficiency_2025.CSV`, and `English_Language_Proficiency_2026.CSV` so those years are not written twice. No shared parser or dependency changes. Details are under that module |
 | `postsecondary_readiness` | In review in PR #41 (`cursor/postsecondary-readiness-kyrc26-37b0`). Opt-in, and a source swap in `config/kde_sources.yaml`: `Postsecondary_Readiness_2025.CSV` is replaced by `KYRC25_ACCT_Postsecondary_Readiness.csv`. The parser skips leftover `Postsecondary_Readiness_2024.CSV`, `Postsecondary_Readiness_2025.CSV`, and `Postsecondary_Readiness_2026.CSV` so those years are not written twice. A source row that is not `Y` and has both rates empty is skipped. That removes the empty `suppressed` `N` rows journal 75 emitted, so KYRC24 changes from 21,438 KPI rows to 15,908. 2022 and 2023 stay 18,262. No shared parser or dependency changes. Details are under that module |
 | `postsecondary_enrollment` | In review in PR #43 (`cursor/postsecondary-enrollment-kyrc26-5640`). Opt-in only. Every registered prior-year URL returned 200, and no temporary OAA name was ever registered, so there is no source swap and no leftover-file skip. Headers match KYRC25. There is no Suppressed column. Known deviation from notes/8, tracked in issue #44: a `*` cell is dropped and a fully starred group emits no KPI row. That predates KYRC26, so prior-year KPI counts stay 18,737 / 7,781 / 9,509 / 9,625 / 9,679. KYRC26 writes 10,657. No shared parser or dependency changes. Details are under that module |
-| `cte_participation` | In review in PR #45 (`cursor/cte-participation-kyrc26-4ad7`). Opt-in only. Every registered prior-year URL returned 200, and no temporary OAA name was ever registered, so there is no source swap and no leftover-file skip. Headers match KYRC25. There is no Suppressed column. Known deviation from notes/8, tracked in issue #46: a `*` cell is dropped and a fully starred group emits no KPI row. That predates KYRC26, so prior-year KPI counts stay 9,772 / 9,270 / 9,935 / 14,075. KYRC26 writes 14,424. A second pre-existing deviation, tracked in issue #47: the two columns the parser maps to rates (participants, completers) hold counts, as do all four measure columns. None of the headers is named like a rate. The base parser publishes a count of 100 or below as the rate and nulls a count above 100. KYRC24 has 42 genuine participation rates above 100 that the same cleaner nulls. Not changed here. No shared parser or dependency changes. Details are under that module |
+| `cte_participation` | In review in PR #45 (`cursor/cte-participation-kyrc26-4ad7`), with the #46 and #47 follow-up on this branch. Opt-in only. Every registered prior-year URL returned 200, and no temporary OAA name was ever registered, so there is no source swap and no leftover-file skip. Headers match KYRC25. There is no Suppressed column. A `*` cell is value NA with `suppressed` Y. A blank or `N/A` is not stored. A published 0 is kept. 2022 and 2023 publish counts only, so those years do not emit `cte_participation_rate` or `cte_completion_rate_grade_12`. KYRC24 keeps 42 published participation rates above 100. Details are under that module |
 | `student_enrollment` | In review in PR #48 (`cursor/student-enrollment-kyrc26-6f5d`). Opt-in, plus a local comma cleaner so pandas 3 StringDtype counts such as `669,865` survive. That cleaner restores the pandas 2.3.3 output for 2019-2025. The comma bug appears only on pandas 3, and pandas is unpinned. A filename skip for `OVW_Student_Membership` because the remaining grade headers would emit different totals. That file is not preschool membership: KYRC26 has no Preschool column on it. Every registered prior-year URL returned 200. No temporary OAA name was ever registered, so there is no source swap and no leftover-temp skip. Headers match KYRC25. There is no Suppressed column and no `*` cell. KYRC26 writes 180,076 KPI rows. `openpyxl` is not a declared dependency, so without it the 2019 workbook is skipped and the run continues. No shared parser or dependency changes. Details are under that module |
 | `secondary_enrollment` | In review in PR #50 (`cursor/secondary-enrollment-kyrc26-a164`). Opt-in, plus a local comma cleaner so pandas 3 StringDtype counts such as `29,360` survive. That cleaner restores the pandas 2.3.3 KYRC25 file (6,619 KPI rows, state total 29,360). The unfixed pandas 3 run aborts that file: the missing comma total becomes `pd.NA` after the Int64 cast, and `or` raises `boolean value of NA is ambiguous`. Ignoring the abort, the same missing commas leave 6,541 rows and drop 29,360. pandas is unpinned. Every registered prior-year URL returned 200. No temporary OAA name was ever registered, so there is no source swap and no leftover-temp skip. Headers match KYRC25. There is no Suppressed column and no `*` cell. KYRC26 writes 6,955 KPI rows. KYRC24 is registered on the datasets host and writes 6,378 KPI rows, state total 28,978. The series is students with a secondary (concurrent) enrollment at this school, by grade. All Grades can exceed the published grade cells in KYRC25 and KYRC26. `openpyxl` is not a declared dependency, so without it the 2019 workbook is skipped and the run continues. No shared parser or dependency changes. Details are under that module |
 | `out_of_school_suspension` | In review in PR #51 (`cursor/out-of-school-suspension-kyrc26-9246`). Opt-in. The KPI year is the report-card year: 2026 is CRDC 2021-22 and 2024 is CRDC 2020-21, and the output has no collected-year column. `KYRC25_OVW_Student_Suspensions.csv` is not registered. It republishes CRDC 2020-21 (same collected year `20202021`, same stars) under `School Year` `20242025`, and `accepts_data_file` skips that name. This module does not read `safe_schools_discipline_YYYY.csv`. `safe_schools_discipline` owns SSP3 since `e7d815a`, so 2020-2023 KPI rows from this module are 0. A total is suppressed when any component is starred: 7,173 KYRC24 totals change from 0 / `N` to empty / `Y`. KYRC24 stays 149,600 KPI rows. KYRC26 writes 149,490. pandas 2.3.3 and pandas 3.0.6 write the same 299,090 rows. No shared parser or dependency changes. Details are under that module |
@@ -107,6 +107,8 @@ After merging `safe_schools_discipline` (PR #87) into this branch, pandas 3.0.6 
 `safe_schools_climate` compare run, pandas 3.0.6, with the twelve registered climate files in `data/raw/safe_schools_climate` and without `data/processed/district_school_list.csv`: `24 failed, 647 passed, 107 skipped`, errors 0. The seven added passes are the KYRC25 and KYRC26 filename test, the rejected-filename test, the StringDtype comma, star, zero, and blank test, the duplicate-key test, the registered-source test, the real-row fixture test, and the real-file end-to-end test. `tests/test_safe_schools_climate.py::TestSafeSchoolsClimateETL::test_get_files_to_process` still fails because it expects 4 files and the survey patterns match 6. That failure is on the journal 105 list. Added node ids: 0. pandas 2.3.3 on the same checkout is `14 failed, 657 passed, 107 skipped`, errors 0. The 10 extra passes are baseline failures that still fail on pandas 3. A checkout without those climate raw files skips the real-file test, so that checkout is pandas 3.0.6 `24 failed, 646 passed, 108 skipped` and pandas 2.3.3 `14 failed, 656 passed, 108 skipped`. Do not treat 641 passed as the number to match once this module merges.
 
 `kentucky_summative_assessment` compare run after merging `safe_schools_climate` (PR #103) at `5823d74`. This checkout has no `data/raw/safe_schools_climate` and no `data/processed/district_school_list.csv`, so the climate real-file test and the eight district end-to-end tests skip. The summative raw files are present, so that end-to-end test runs. The climate compare on that skip pattern, before two later climate tests, is pandas 3.0.6 `24 failed, 646 passed, 108 skipped` and pandas 2.3.3 `14 failed, 656 passed, 108 skipped`. `test_survey_question_does_not_emit_unsuffixed_index` and `test_outside_doors_yes_no_star_and_blank` pass on top of that. 646 + 2 = 648 and 656 + 2 = 658. This module's ten passes from the `2679f81` compare stay (eight new tests and the two baseline tests that now pass). The analysis-filter test adds one. 24 − 2 = 22 and 648 + 10 + 1 = 659 on pandas 3.0.6. 14 − 2 = 12 and 658 + 10 + 1 = 669 on pandas 2.3.3. Skipped stays 108. Added node ids: 0. Do not treat 648 passed as the number to match once this module merges.
+
+`cte_participation` follow-up for issues #46 and #47, pandas 3.0.6: `22 failed, 661 passed, 109 skipped`, errors 0. The same checkout before this follow-up was `22 failed, 658 passed, 109 skipped`. The three added passes are `test_2022_counts_are_not_stored_as_rates`, `test_published_rate_above_100_is_kept_and_blank_is_skipped`, and `test_kyrc25_keeps_computed_rates_and_stores_stars`. 658 + 3 = 661. Added node ids: 0. pandas 2.3.3 on the same checkout is `12 failed, 671 passed, 109 skipped`, errors 0. The pandas 2.3.3 run before this follow-up was `12 failed, 668 passed, 109 skipped`. 668 + 3 = 671. The 10 extra passes against pandas 3 are baseline failures that still fail on pandas 3. Added node ids: 0. No new failures on either version. Do not treat 658 passed as the number to match once this follow-up merges.
 
 ## What was checked
 
@@ -708,7 +710,81 @@ Lessons for later agents:
 7. State district is `All Districts` for 2024-2026 and `State` for 2022-2023. Issue #42: `scripts/generate_report_drafts.py` selects `State`, and `get_state_average` also requires school name `---District Total---`. CTE is not in the indicator list. The 2022-2023 state rows are district `State` and school name `---State Total---` (school code `999`), so neither shape would match both conditions.
 8. `GREC` became `GLEC` on the 25 Jefferson codes that remain, plus new school `275951`. Nothing in this pipeline joins on the co-op name. District `606` and school type `B1` are code-domain changes, not header changes.
 9. Before adding a filename guard, parse one sibling row. Career Pathways, Career Readiness Indicators, the Perkins report, Postsecondary Opportunities, and Student Objectives emit nothing.
-10. The two columns the parser maps to rates (participants, completers) hold counts, as do all four 2022 and 2023 measure columns. `TOTAL NUMBER OF STUDENT` and `GRADE 12 CTE ELIGIBLE COMPLETER` are already mapped as counts. None of the headers is named like a rate. There is no decimal in them, and completers are at or below eligible wherever both are numeric. Bryan Station 2022 stores completers 77 and eligible 413: 77 of 413 is 18.6%. The base parser publishes a count of 100 or below as the rate and nulls a count above 100. That loses data. It is pre-existing, tracked in issue #47 (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/47), and not changed here. KYRC24 has 42 genuine participation rates above 100, and the same cleaner nulls those too (#47). KYRC25 and KYRC26 compute the rate from the count columns.
+10. The two columns the parser maps to rates (participants, completers) hold counts, as do all four 2022 and 2023 measure columns. `TOTAL NUMBER OF STUDENT` and `GRADE 12 CTE ELIGIBLE COMPLETER` are already mapped as counts. None of the headers is named like a rate. There is no decimal in them, and completers are at or below eligible wherever both are numeric. Bryan Station 2022 stores completers 77 and eligible 413: 77 of 413 is 18.6%. The base parser publishes a count of 100 or below as the rate and nulls a count above 100. That loses data. It is pre-existing, tracked in issue #47 (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/47). The follow-up below changes it. KYRC24 has 42 genuine participation rates above 100. The follow-up keeps them. KYRC25 and KYRC26 compute the rate from the count columns, and that existing rate stays.
+
+#### Follow-up, 20 October 2026 — issues #46 and #47
+
+Checked against the five registered files in `data/raw/cte_participation`. No shared parser, `config/kde_sources.yaml`, or dependency change.
+
+The 2022 file `cte_by_student_group_2022.csv` and the 2023 file `cte_by_student_group_2023.csv` have these measure headers, in this order:
+
+| Header | What the cells are |
+| --- | --- |
+| `TOTAL NUMBER OF STUDENT` | Count. No decimal. 2022 is 2,857 numbers (3 through 2,635) and 6,335 stars. 2023 is 2,844 numbers and 6,241 stars. District and state All Students are `*` |
+| `CTE PARTICIPANTS IN ALL GRADES` | Count. No decimal. 2022 is 5,373 numbers (3 through 167,510) and 3,819 stars. 2023 is 5,167 numbers (3 through 123,372) and 3,918 stars |
+| `GRADE 12 CTE ELIGIBLE COMPLETER` | Count. No decimal. 2022 max 43,229. 2023 max 25,097 |
+| `GRADE 12 CTE COMPLETERS` | Count. No decimal. 2022 max 13,624. 2023 max 11,471. Where both grade-12 cells are numbers, completers are at or below eligible (2,767 rows in 2022, 2,671 in 2023) |
+
+None of those four columns contains a decimal, a zero, or a negative. The only non-numeric token is `*`. State All Students completion is 13,624 / 43,229 = 31.5% in 2022 and 11,471 / 25,097 = 45.7% in 2023, which matches the published state completion rates. The rate is not in the file. This follow-up does not calculate it. The eligible cell stays on `cte_eligible_completer_count_grade_12`. The completer cell is `cte_completer_count_grade_12`. Participants are `cte_participant_count`. Enrollment is `cte_high_school_enrollment_count`. `cte_participation_rate` and `cte_completion_rate_grade_12` are absent for 2022 and 2023.
+
+KYRC24 uses the same words in title case, and the cells are not the same kind:
+
+| Header | What the cells are |
+| --- | --- |
+| `Total Number of Student` | Count. No decimal. State All Students is 143,415. Stored as `cte_participant_count`. The header does not say participants |
+| `CTE Participants in All Grades` | Rate. All 4,459 numbers have a decimal, from 0.0 through 400.0. 208 are 0. 42 are above 100. 1,156 are `*`, 554 are `--`, and 317 are `N/A`. Stored as `cte_participation_rate` |
+| `Grade 12 CTE Eligible Completer` | Count. No decimal. State All Students is 17,597. Stored as `cte_eligible_completer_count_grade_12` |
+| `Grade 12 CTE Completers` | Rate. All 2,757 numbers have a decimal, from 2.8 through 100.0. None is above 100. Stored as `cte_completion_rate_grade_12` |
+
+The 42 KYRC24 participation rates above 100 are kept. They run from 100.4 to 400.0. Harlan County and Harlan County High School, American Indian or Alaska Native, are 400.0 on a participant count of 4. Paintsville Independent Foster Care is 300.0. None of the 42 is the state row. `--` and `N/A` stay blank and are not stored. The 208 zeros stay, with `suppressed` N.
+
+KYRC25 and KYRC26 headers are `All High School CTE Participants`, `All High School Enrollments`, `12th Grade Completers`, and `12th Grade Participants`. Those are counts. The participation rate and the grade-12 completion rate are the rates this pipeline already calculated. They are not new. A published count above the rate, including the 40 KYRC25 and 50 KYRC26 participation rates above 100, stays. The largest is Kentucky Virtual Academy `132035` All Students in 2026, 30,566.7. That value was already stored before this follow-up.
+
+A `*` is value NA with `suppressed` Y, including a fully starred demographic. A blank cell is not stored. Career-center enrollment `N/A` is blank, not suppressed, and that row has no participation rate. KYRC25 has 1,057 of those cells and KYRC26 has 1,309. A published 0 is kept. Rows with a blank demographic are still skipped (1,185 in 2022, 1,197 in 2023) because there is no student group. No output key repeats on year, school, student group, and metric.
+
+The 2022 state participant count is 167,510. Scott's 18 October note compares that with the Perkins figure 141,867. The 2023 eligible cell is 25,097, against 43,229 in 2022. Those cells are stored as published and flagged for the 27 October KDE re-check. They are not dropped.
+
+Previously published numbers are unchanged. The 11,137 rows that disappear are the 2022 and 2023 counts that had been stored on the two rate metrics (2,958 and 2,618 in 2022; 3,005 and 2,556 in 2023). Every shared numeric value on 2024, 2025, and 2026 matches the previous file. The 42 KYRC24 rates above 100 are the participation-rate rows that file gains.
+
+| Year | Before | After | Suppressed N | Suppressed Y |
+| --- | --- | --- | --- | --- |
+| 2022 | 9,772 | 32,028 | 15,193 | 16,835 |
+| 2023 | 9,270 | 31,552 | 14,391 | 17,161 |
+| 2024 | 9,935 | 25,073 | 15,307 | 9,766 |
+| 2025 | 14,075 | 37,042 | 25,806 | 11,236 |
+| 2026 | 14,424 | 46,852 | 26,250 | 20,602 |
+| Total | 57,476 | 172,547 | 96,947 | 75,600 |
+
+96,947 + 75,600 = 172,547. 15,193 + 16,835 = 32,028. 14,391 + 17,161 = 31,552. 15,307 + 9,766 = 25,073. 25,806 + 11,236 = 37,042. 26,250 + 20,602 = 46,852.
+
+After, by metric:
+
+| Year | participation rate | completion rate | participant count | enrollment | eligible | completers | grade-12 participants |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 2022 | 0 | 0 | 8,007 | 8,007 | 8,007 | 8,007 | 0 |
+| 2023 | 0 | 0 | 7,888 | 7,888 | 7,888 | 7,888 | 0 |
+| 2024 | 5,615 | 6,486 | 6,486 | 0 | 6,486 | 0 | 0 |
+| 2025 | 5,469 | 6,526 | 6,526 | 5,469 | 0 | 6,526 | 6,526 |
+| 2026 | 6,936 | 8,245 | 8,245 | 6,936 | 0 | 8,245 | 8,245 |
+
+8,007 × 4 = 32,028. 7,888 × 4 = 31,552. 5,615 + 6,486 × 3 = 25,073. 6,526 × 4 + 5,469 × 2 = 37,042. 8,245 × 4 + 6,936 × 2 = 46,852. KYRC24 participation 5,615 is 4,459 numbers (including the 42 rates above 100 and 208 zeros) plus 1,156 stars. 4,459 + 1,156 + 554 + 317 = 6,486.
+
+Fayette County district `165`, All Students, 2022 and 2023. Before, a count of 100 or less was stored on a rate metric and a larger count was dropped. After, each published count is on a count metric. The district enrollment cell is `*`.
+
+| School | Year | Before | After |
+| --- | --- | --- | --- |
+| District `165` | 2022 | eligible 2,763 | enrollment suppressed, participants 11,123, eligible 2,763, completers 782 |
+| District `165` | 2023 | eligible 1,519 | enrollment suppressed, participants 7,569, eligible 1,519, completers 599 |
+| Bryan Station `165170` | 2022 | completion rate 77, eligible 413 | enrollment 2,017, participants 1,528, eligible 413, completers 77 |
+| Bryan Station `165170` | 2023 | completion rate 50, eligible 188 | enrollment 2,132, participants 976, eligible 188, completers 50 |
+| Lafayette `165060` | 2022 | completion rate 82, eligible 489 | enrollment 2,573, participants 2,081, eligible 489, completers 82 |
+| Lafayette `165060` | 2023 | completion rate 94, eligible 246 | enrollment 2,592, participants 1,300, eligible 246, completers 94 |
+| Frederick Douglass `165125` | 2022 | eligible 298 (completers 120 were above 100 and had been dropped) | enrollment 1,760, participants 1,245, eligible 298, completers 120 |
+| Frederick Douglass `165125` | 2023 | completion rate 89, eligible 250 | enrollment 1,853, participants 944, eligible 250, completers 89 |
+| Fayette County Learning Center `165898` | 2022 | completion rate 3, eligible 35 | enrollment 216, participants 114, eligible 35, completers 3 |
+| Fayette County Learning Center `165898` | 2023 | eligible 14, participation rate 39 | enrollment 224, participants 39, eligible 14, completers suppressed |
+
+The transform peaks at 151,148 KB on pandas 3.0.6 and 155,900 KB on pandas 2.3.3. Both write 172,547 rows, equal apart from `last_updated`. That is under 4 GB.
 
 ### `student_enrollment` — S — in review
 
