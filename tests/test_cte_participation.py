@@ -361,8 +361,8 @@ def test_published_rate_above_100_is_kept_and_blank_is_skipped():
     assert not keys.duplicated().any()
 
 
-def test_kyrc25_keeps_counts_and_does_not_calculate_participation():
-    """Counts stay. The participation rate is not calculated. Completion is."""
+def test_kyrc25_keeps_counts_and_does_not_calculate_rates():
+    """Counts stay. Neither participation nor completion is calculated."""
     etl = CTEParticipationETL("cte_participation")
     frame = pd.DataFrame({
         "School Year": ["20242025", "20242025"],
@@ -380,15 +380,16 @@ def test_kyrc25_keeps_counts_and_does_not_calculate_participation():
     assert "cte_participation_rate" not in set(allen["metric"])
     assert "cte_high_school_enrollment_count" not in set(allen["metric"])
     assert float(allen[allen["metric"] == "cte_participant_count"].iloc[0]["value"]) == 725.0
-    assert float(allen[allen["metric"] == "cte_completion_rate_grade_12"].iloc[0]["value"]) == 45.9
+    assert "cte_completion_rate_grade_12" not in set(allen["metric"])
+    assert float(allen[allen["metric"] == "cte_completer_count_grade_12"].iloc[0]["value"]) == 107.0
+    assert float(allen[allen["metric"] == "cte_participant_count_grade_12"].iloc[0]["value"]) == 233.0
     military = kpi[kpi["school_id"] == "165170"]
     assert "cte_participation_rate" not in set(military["metric"])
+    assert "cte_completion_rate_grade_12" not in set(military["metric"])
     assert (military[military["metric"] == "cte_participant_count"]["suppressed"] == "Y").all()
     assert float(military[military["metric"] == "cte_high_school_enrollment_count"].iloc[0]["value"]) == 3.0
     assert (military[military["metric"] == "cte_completer_count_grade_12"]["suppressed"] == "Y").all()
-    completion = military[military["metric"] == "cte_completion_rate_grade_12"].iloc[0]
-    assert completion["suppressed"] == "Y"
-    assert pd.isna(completion["value"])
+    assert (military[military["metric"] == "cte_participant_count_grade_12"]["suppressed"] == "Y").all()
 
 
 def test_registered_sources_are_the_permanent_files():

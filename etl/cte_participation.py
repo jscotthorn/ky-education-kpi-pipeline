@@ -6,18 +6,22 @@ Normalizes column names, handles schema variations, standardizes missing values,
 applies demographic label standardization for consistent longitudinal reporting.
 
 KYRC26 is ``KYRC26_CTE_Participation.csv``. Its headers match the KYRC25 file.
-Those two files publish counts. The participant count and the high-school
-enrollment count are stored. ``cte_participation_rate`` is not calculated
-for those years: participants are counted where the course is taught and
-enrollment where the student is enrolled. The grade-12 completion rate is
-still completers divided by grade-12 participants.
+Those two files publish counts. The participant count, the high-school
+enrollment count, the grade-12 completer count, and the grade-12 participant
+count are stored. Neither rate is calculated. Participants are counted where
+the course is taught and enrollment where the student is enrolled. KYRC25
+and KYRC26 do not publish eligible completers, and the 2024 file publishes
+an eligible count and a completion percent with no completer count, so
+completers divided by eligible completers cannot be checked against KDE's
+published 2024 percent.
 
 The 2022 and 2023 files use the same four headers as KYRC24, in uppercase, and
 every measure cell is a count or a ``*``. None of them is a rate. Counts are
 stored on count metrics. The rate metrics are left absent for those years.
 KYRC24 publishes the participation and completion rates in the second and
-fourth measure columns. A published rate above 100 is kept. That published
-participation percent is the only ``cte_participation_rate`` this module stores.
+fourth measure columns. A published rate above 100 is kept. Those published
+percents are the only ``cte_participation_rate`` and
+``cte_completion_rate_grade_12`` values this module stores.
 
 There is no Suppressed column. A ``*`` cell is value NA with ``suppressed`` Y.
 A blank, ``--``, or ``N/A`` is not stored. ``N/A`` on a career-center
@@ -55,11 +59,6 @@ _RATE_COLUMNS: Tuple[Tuple[str, str], ...] = (
     ("cte_participation_rate", "cte_participation_rate"),
     ("cte_completion_rate", "cte_completion_rate_grade_12"),
 )
-
-# KYRC25 and KYRC26 are the files with a grade-12 participant column.
-# The completion rate is still calculated from those counts. The
-# participation rate is not. 2022 and 2023 do not have this column.
-_KYRC25_GRADE12_PARTICIPANTS = "cte_participant_count_grade_12"
 
 _STAR_TEXT = {"*", "**"}
 _BLANK_TEXT = {"", "N/A", "n/a", "#N/A", "---", "--", "<10", '""', "nan", "None", "<NA>"}
@@ -163,24 +162,6 @@ def clean_cte_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def _rate_from_counts(numerator: Cell, denominator: Cell) -> Cell:
-    """KYRC25/KYRC26 grade-12 completion rate from two published counts.
-
-    A blank cell is skipped. A star on either count, with the other count a
-    number or a star, stores the rate as suppressed. A zero denominator is
-    not divided.
-    """
-    numer_kind, numer_value = numerator
-    denom_kind, denom_value = denominator
-    if numer_kind == "blank" or denom_kind == "blank":
-        return "blank", None
-    if numer_kind == "star" or denom_kind == "star":
-        return "star", None
-    if denom_value is None or denom_value == 0 or numer_value is None:
-        return "blank", None
-    return "number", round((numer_value / denom_value) * 100, 1)
-
-
 class CTEParticipationETL(BaseETL):
     """ETL module for processing CTE participation data.
 
@@ -252,14 +233,14 @@ class CTEParticipationETL(BaseETL):
         return _classify_cell(row.get(column))
 
     def _iter_metric_cells(self, row: pd.Series) -> List[Tuple[str, str, Optional[float]]]:
-        """Published cells on this row, plus the KYRC25/KYRC26 completion rate.
+        """Published cells on this row.
 
         A blank cell is omitted. A star is returned so the converter can
         store value NA with ``suppressed`` Y. A number is returned as
         published, including a rate above 100 and a count above 100.
-        ``cte_participation_rate`` is only the percent KYRC24 published.
-        KYRC25 and KYRC26 keep the participant and enrollment counts and do
-        not divide them.
+        ``cte_participation_rate`` and ``cte_completion_rate_grade_12`` are
+        only the percents KYRC24 published. KYRC25 and KYRC26 keep the
+        counts and do not divide them.
         """
         found: List[Tuple[str, str, Optional[float]]] = []
         for column, metric_name in _COUNT_COLUMNS + _RATE_COLUMNS:
@@ -270,20 +251,6 @@ class CTEParticipationETL(BaseETL):
             if kind == "blank":
                 continue
             found.append((metric_name, kind, number))
-
-        # The completion rate exists only on the KYRC25/KYRC26 layout. 2022
-        # and 2023 publish counts and no rate column, so they do not get here.
-        if self._cell(row, _KYRC25_GRADE12_PARTICIPANTS) is None:
-            return found
-
-        completion = _rate_from_counts(
-            self._cell(row, "cte_completer_count_grade_12") or ("blank", None),
-            self._cell(row, _KYRC25_GRADE12_PARTICIPANTS) or ("blank", None),
-        )
-        kind, number = completion
-        if kind == "blank":
-            return found
-        found.append(("cte_completion_rate_grade_12", kind, number))
         return found
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
@@ -343,9 +310,8 @@ class CTEParticipationETL(BaseETL):
         """
         kpi_rows: List[Dict[str, Any]] = []
         seen: Dict[Tuple[str, str, str, str], int] = {}
-        # KYRC25/KYRC26 rates are computed. Only a file that publishes the
-        # rate column can have a rate above 100 that KDE printed.
-        published_rate_file = _KYRC25_GRADE12_PARTICIPANTS not in df.columns
+        # Both rates are published KYRC24 percents. A value above 100 is
+        # the rate KDE printed.
         rates_above_100 = 0
 
         for _, row in df.iterrows():
@@ -365,8 +331,7 @@ class CTEParticipationETL(BaseETL):
                     kpi_record["value"] = float(number) if number is not None else pd.NA
                     kpi_record["suppressed"] = "N"
                     if (
-                        published_rate_file
-                        and metric_name in ("cte_participation_rate", "cte_completion_rate_grade_12")
+                        metric_name in ("cte_participation_rate", "cte_completion_rate_grade_12")
                         and number is not None
                         and number > 100
                     ):
