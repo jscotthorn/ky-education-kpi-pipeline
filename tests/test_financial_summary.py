@@ -412,6 +412,120 @@ class TestFinancialSummaryETL:
         assert non_teachers == 25.0  # 100 - 75
         assert total_staff == 150.0  # 100 + 50
 
+    def test_comma_formatted_values_on_string_and_object(self):
+        """Thousands separators and accounting parentheses survive both dtypes.
+
+        pandas 3 ``read_csv(..., dtype=str)`` is StringDtype. pandas 2.3.3
+        is object. ``41,013`` has to stay 41013 on both, and ``(58,197)``
+        is the published negative fund balance.
+        """
+        for dtype in ("string", "object"):
+            frame = pd.DataFrame({
+                "membership": pd.Series(["41,013", "0", "*", ""], dtype=dtype),
+                "fund_balance": pd.Series(["(1,344,948)", "0", "100", ""], dtype=dtype),
+                "fund_balance_pct": pd.Series(["(1)", "0", "8", ""], dtype=dtype),
+            })
+            cleaned = clean_numeric_values(
+                frame, ["membership", "fund_balance", "fund_balance_pct"]
+            )
+            assert cleaned.loc[0, "membership"] == 41013
+            assert cleaned.loc[1, "membership"] == 0
+            assert pd.isna(cleaned.loc[2, "membership"])
+            assert pd.isna(cleaned.loc[3, "membership"])
+            assert cleaned.loc[0, "fund_balance"] == -1344948
+            assert cleaned.loc[1, "fund_balance"] == 0
+            assert cleaned.loc[0, "fund_balance_pct"] == -1
+            assert cleaned.loc[1, "fund_balance_pct"] == 0
+
+    def test_comma_formatted_fixture(self):
+        """A comma-formatted KYRC row keeps published counts, stars, blanks, and zeros.
+
+        Fayette membership ``41,013`` is stored. Berea's ``(58,197)`` fund
+        balance is stored as a negative. A ``*`` membership is value NA
+        with suppressed Y, and a blank fund-balance percent is omitted.
+        A published 0 is kept. The state school code ``999000`` is not
+        stored. Keys are unique. Staffing ratios stay membership divided
+        by staff.
+        """
+        fixture = Path("tests/fixtures/financial_summary/comma_formatted_kyrc.csv")
+        shutil.copy(fixture, self.sample_dir / fixture.name)
+
+        transform(self.raw_dir, self.proc_dir, {"derive": {"processing_date": "2025-11-24"}})
+        df = pd.read_csv(
+            self.proc_dir / "financial_summary.csv",
+            dtype={"school_id": str, "school_code": str, "district_number": str},
+        )
+
+        assert not df.duplicated(["year", "school_id", "metric", "student_group"]).any()
+        assert not df["school_id"].astype(str).isin(["999", "999000"]).any()
+        assert (df["student_group"] == "All Students").all()
+        assert set(df["year"].unique()) == {2024}
+
+        def cell(school_id: str, metric: str) -> pd.Series:
+            match = df[(df["school_id"].astype(str) == school_id) & (df["metric"] == metric)]
+            assert len(match) == 1, f"{school_id} {metric} rows={len(match)}"
+            return match.iloc[0]
+
+        fayette_membership = cell("165000", "eoy_student_membership")
+        assert fayette_membership["value"] == 41013
+        assert fayette_membership["suppressed"] == "N"
+        assert cell("165000", "certified_staff_fte")["value"] == 3800
+        assert cell("165000", "certified_staff_teachers_fte")["value"] == 3122
+        assert cell("165000", "classified_staff_fte")["value"] == 2738
+        assert cell("165000", "certified_staff_non_teachers_fte")["value"] == 678
+        assert cell("165000", "total_staff_fte")["value"] == 6538
+        assert cell("165000", "students_per_certified_staff")["value"] == 10.79
+        assert cell("165000", "students_per_classified_staff")["value"] == 14.98
+        assert cell("165000", "students_per_non_teacher_certified_staff")["value"] == 60.49
+
+        berea_balance = cell("034000", "fund_balance")
+        assert berea_balance["value"] == -58197
+        assert berea_balance["suppressed"] == "N"
+        assert cell("034000", "fund_balance_pct")["value"] == -1
+        assert cell("034000", "classified_staff_fte")["value"] == 0
+        assert cell("034000", "classified_staff_fte")["suppressed"] == "N"
+        berea_ratio = df[
+            (df["school_id"].astype(str) == "034000")
+            & (df["metric"] == "students_per_classified_staff")
+        ]
+        assert len(berea_ratio) == 0
+
+        starred = cell("005000", "eoy_student_membership")
+        assert starred["suppressed"] == "Y"
+        assert pd.isna(starred["value"])
+        assert cell("005000", "fund_balance")["value"] == 1000
+        assert cell("005000", "fund_balance")["suppressed"] == "N"
+        blank_pct = df[
+            (df["school_id"].astype(str) == "005000")
+            & (df["metric"] == "fund_balance_pct")
+        ]
+        assert len(blank_pct) == 0
+        starred_ratios = df[
+            (df["school_id"].astype(str) == "005000")
+            & (df["metric"] == "students_per_certified_staff")
+        ]
+        assert len(starred_ratios) == 0
+        assert cell("005000", "certified_staff_non_teachers_fte")["value"] == 2
+
+        for metric in (
+            "eoy_student_membership",
+            "fund_balance",
+            "fund_balance_pct",
+            "certified_staff_fte",
+            "certified_staff_teachers_fte",
+            "certified_staff_non_teachers_fte",
+            "classified_staff_fte",
+            "total_staff_fte",
+        ):
+            zero_row = cell("001000", metric)
+            assert zero_row["value"] == 0
+            assert zero_row["suppressed"] == "N"
+        zero_ratios = df[
+            (df["school_id"].astype(str) == "001000")
+            & (df["metric"].astype(str).str.startswith("students_per_"))
+        ]
+        assert len(zero_ratios) == 0
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

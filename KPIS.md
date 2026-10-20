@@ -495,7 +495,7 @@ Percent favorable from the Impact Kentucky working conditions survey. KDE's repo
 
 District-level financial and staffing metrics from KDE Financial Summary reports. Provides end-of-year student membership, fund balance data, and staff FTE counts.
 
-**Note**: This dataset contains district-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns or school-level data.
+**Note**: This dataset contains district-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns or school-level data. School codes `999` and `999000` are the state total and are not stored. A `*` is value NA with suppressed Y. A blank cell is not stored. A published 0 is kept. A thousands separator is part of the published number (`41,013` is 41013). `(58,197)` is a published negative fund balance. Fund-balance percent can be negative.
 
 ### Student Membership
 - `eoy_student_membership` - End-of-year student membership count for the district
@@ -511,8 +511,14 @@ District-level financial and staffing metrics from KDE Financial Summary reports
 - `classified_staff_fte` - Classified (non-certified) staff FTE
 - `total_staff_fte` - Total staff FTE (certified + classified) - *derived metric*
 
-**Data Sources**: KYRC24_FT_Financial_Summary.csv, financial_summary_{year}.csv
-**Years Available**: 2020-2024
+### Staffing Ratios
+Existing derived ratios. Each is end-of-year membership divided by the staff FTE, rounded to two decimals. A star or a blank in either input omits the ratio. A published 0 staff FTE omits the ratio.
+- `students_per_certified_staff`
+- `students_per_classified_staff`
+- `students_per_non_teacher_certified_staff`
+
+**Data Sources**: KYRC25_FT_Financial_Summary.csv, KYRC24_FT_Financial_Summary.csv, financial_summary_{year}.csv, FINANCE_18-19.xlsx
+**Years Available**: 2019-2025
 **Unit**: Counts (FTE or student headcount), dollars (fund balance), percentage (fund balance %)
 **Demographics**: District-level only (All Students)
 
