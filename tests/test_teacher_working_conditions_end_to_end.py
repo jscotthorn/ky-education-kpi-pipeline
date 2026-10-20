@@ -364,11 +364,14 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
 
     State percent favorable is 69 behavior, 67 climate, and 70 leadership.
     KPI year is 2026, from school year 20252026. District is All Districts.
-    The 2021, 2023, and KYRC25 fixtures are the same surveys again. They are
-    copied into the raw directory and must not produce rows. The 2023 Ashland
+    The 2021 and 2023 fixtures are the same surveys again. They are copied
+    into the raw directory and must not produce rows. The 2023 Ashland
     Head Start rows are the text N/A and stay in that skipped fixture.
-    Boys & Girls Haven leadership is the published 0 on the 2023-24 file.
-    The school is not in the 2026 file.
+    The KYRC24 fixture is the datasets copy. KYRC25 overlaps it and also
+    publishes Mason County Career Magnet 777135, stored as 2024. The
+    historical KYRC24 fixture publishes Carroll behavior 67, which is not
+    stored, and Craft Academy, which is. Boys & Girls Haven leadership is
+    the published 0 on the 2023-24 file. The school is not in the 2026 file.
     """
     fixture_dir = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "teacher_working_conditions"
     na_text = (fixture_dir / "teacher_working_conditions_2023.csv").read_text(encoding="utf-8")
@@ -379,12 +382,13 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
         "teacher_working_conditions_2020.csv",
         "teacher_working_conditions_2022.csv",
         "KYRC24_OVW_Teacher_Working_Conditions.csv",
+        "KYRC24_OVW_Teacher_Working_Conditions_historical.csv",
+        "KYRC25_OVW_Teacher_Working_Conditions.csv",
         "KYRC26_OVW_Teacher_Working_Conditions.csv",
     ]
     skipped_names = [
         "teacher_working_conditions_2021.csv",
         "teacher_working_conditions_2023.csv",
-        "KYRC25_OVW_Teacher_Working_Conditions.csv",
     ]
     prior_names = [
         "teacher_working_conditions_2020.csv",
@@ -392,6 +396,7 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
         "teacher_working_conditions_2022.csv",
         "teacher_working_conditions_2023.csv",
         "KYRC24_OVW_Teacher_Working_Conditions.csv",
+        "KYRC24_OVW_Teacher_Working_Conditions_historical.csv",
         "KYRC25_OVW_Teacher_Working_Conditions.csv",
     ]
     current_names = prior_names + ["KYRC26_OVW_Teacher_Working_Conditions.csv"]
@@ -440,8 +445,8 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert set(school["co_op"]) == {"CKEC"}
     assert set(school["co_op_code"]) == {"901"}
 
-    # 2023-24 survey, stored as 2024 from the historical KYRC24 file.
-    # The KYRC25 copy of this survey is not loaded.
+    # 2023-24 survey, stored as 2024 from the datasets KYRC24 file.
+    # KYRC25 does not replace a key that file already supplies.
     assert _scores(combined, "2024", "999000") == {behavior: 67.0, climate: 65.0, leadership: 69.0}
     row = combined[(combined["year"] == "2024") & (combined["school_id"] == "999000")].iloc[0]
     assert row["district"] == "All Districts"
@@ -460,8 +465,29 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert _scores(combined, "2024", "275028") == {behavior: 42.0, climate: 28.0, leadership: 0.0}
     haven = combined[(combined["year"] == "2024") & (combined["school_id"] == "275028")].iloc[0]
     assert haven["school_name"] == "Boys & Girls Haven"
+    assert haven["co_op"] == "GREC"
     assert haven["co_op_code"] == "909"
     assert haven["nces_id"] == "210299001475"
+    assert haven["source_file"] == "KYRC24_OVW_Teacher_Working_Conditions.csv"
+    adair = combined[(combined["year"] == "2024") & (combined["school_id"] == "001010")].iloc[0]
+    assert adair["nces_id"] == "210003000001"
+    assert adair["source_file"] == "KYRC24_OVW_Teacher_Working_Conditions.csv"
+    assert _scores(combined, "2024", "101000") == {behavior: 57.0, climate: 51.0, leadership: 60.0}
+    carroll = combined[(combined["year"] == "2024") & (combined["school_id"] == "101000")].iloc[0]
+    assert carroll["source_file"] == "KYRC24_OVW_Teacher_Working_Conditions.csv"
+    assert _scores(combined, "2024", "610000") == {behavior: 75.0, climate: 75.0, leadership: 78.0}
+    craft = combined[(combined["year"] == "2024") & (combined["school_id"] == "610000")].iloc[0]
+    assert craft["source_file"] == "KYRC24_OVW_Teacher_Working_Conditions_historical.csv"
+    assert craft["district"] == "Craft Academy"
+    assert _scores(combined, "2024", "610300") == {behavior: 97.0, climate: 96.0, leadership: 98.0}
+    academy = combined[(combined["year"] == "2024") & (combined["school_id"] == "610300")].iloc[0]
+    assert academy["nces_id"] == "210029002440"
+    assert academy["source_file"] == "KYRC24_OVW_Teacher_Working_Conditions_historical.csv"
+    assert _scores(combined, "2024", "777135") == {behavior: 86.0, climate: 78.0, leadership: 78.0}
+    magnet = combined[(combined["year"] == "2024") & (combined["school_id"] == "777135")].iloc[0]
+    assert magnet["source_file"] == "KYRC25_OVW_Teacher_Working_Conditions.csv"
+    assert magnet["school_name"] == "Mason County Career Magnet School"
+    assert magnet["district"] == "Kentucky Tech System"
     leadership_zero = combined[
         (combined["year"] == "2024")
         & (combined["school_id"] == "275028")

@@ -29,15 +29,23 @@ digits). Years with no administration are absent.
 - November 1-December 17, 2021, school year 2021-22, KPI year 2022.
   Kept file: ``teacher_working_conditions_2022.csv`` (``20212022``).
 - November 1-December 15, 2023, school year 2023-24, KPI year 2024.
-  Kept file: ``KYRC24_OVW_Teacher_Working_Conditions.csv`` (``20232024``).
+  Kept file: the datasets copy of
+  ``KYRC24_OVW_Teacher_Working_Conditions.csv`` (``20232024``). The
+  historical file of that name starts at district 101. It is downloaded
+  under ``KYRC24_OVW_Teacher_Working_Conditions_historical.csv`` and
+  contributes only Craft Academy ``610000`` and ``610300``, the codes the
+  datasets file does not publish. ``KYRC25_OVW_Teacher_Working_Conditions.csv``
+  is the same survey with school year ``20242025``. It contributes only
+  Mason County Career Magnet ``777135``, stored as KPI year 2024.
 - November 10-December 19, 2025, school year 2025-26, KPI year 2026.
   Kept file: ``KYRC26_OVW_Teacher_Working_Conditions.csv`` (``20252026``).
 
 ``accepts_data_file`` skips the other report-card copy by exact filename:
 ``teacher_working_conditions_2021.csv``, ``teacher_working_conditions_2023.csv``,
-``KYRC25_OVW_Teacher_Working_Conditions.csv``, and
-``KYRC23_OVW_Teacher_Working_Conditions.csv``. KYRC23 also turns 945 ``N/A``
-cells into 0. None of those four names is registered.
+and ``KYRC23_OVW_Teacher_Working_Conditions.csv``. KYRC23 also turns 945
+``N/A`` cells into 0. None of those three names is registered. KYRC25 is
+registered and is not a second KPI year: only keys the datasets KYRC24 file
+does not already supply are stored, under 2024.
 
 KYRC26 uses the same headers as KYRC24. No temporary OAA extract is
 registered, and the guessed temporary names return 404, so there is no
@@ -64,8 +72,24 @@ logger = logging.getLogger(__name__)
 _REPUBLISHED_SURVEY_FILES = {
     "TEACHER_WORKING_CONDITIONS_2021.CSV": "teacher_working_conditions_2020.csv",
     "TEACHER_WORKING_CONDITIONS_2023.CSV": "teacher_working_conditions_2022.csv",
-    "KYRC25_OVW_TEACHER_WORKING_CONDITIONS.CSV": "KYRC24_OVW_Teacher_Working_Conditions.csv",
     "KYRC23_OVW_TEACHER_WORKING_CONDITIONS.CSV": "teacher_working_conditions_2022.csv",
+}
+
+# Datasets KYRC24 is the 2024 source. Its school year is 20232024, and its
+# percents match KYRC25 on every shared key. The historical file of the same
+# remote name is truncated and disagrees on nine district totals. It is
+# stored locally under another name so the download does not overwrite the
+# datasets file. A supplement row is kept only when that school-and-metric
+# key is absent from the datasets file (issue #95).
+_PRIMARY_2024_FILE = "KYRC24_OVW_Teacher_Working_Conditions.csv"
+_HISTORICAL_2024_SUPPLEMENT = "KYRC24_OVW_Teacher_Working_Conditions_historical.csv"
+_KYRC25_SUPPLEMENT = "KYRC25_OVW_Teacher_Working_Conditions.csv"
+# KYRC25's school-year cell is 20242025. The three 777135 cells are the
+# 2023-24 administration, so they are stored as 2024.
+_ADMINISTRATION_YEAR_2024 = "20232024"
+_SUPPLEMENT_2024_FILES = {
+    _HISTORICAL_2024_SUPPLEMENT.upper(),
+    _KYRC25_SUPPLEMENT.upper(),
 }
 
 # Text that is not a percent. These files have no count column, so N/A is
@@ -103,8 +127,9 @@ class TeacherWorkingConditionsETL(BaseETL):
 
     KYRC26 uses the same headers as KYRC24. The 2020 and 2022 files use the
     uppercase names, which are already mapped. Each administration is loaded
-    from the file whose school year is the survey year. The later report-card
-    copy is skipped by filename.
+    from the file whose school year is the survey year. The 2021, 2023, and
+    KYRC23 copies are skipped by filename. KYRC25 and the historical KYRC24
+    file add only keys the datasets KYRC24 file does not already supply.
     """
 
     # Opt in here, in the same change that accepts the file. BaseETL skips
@@ -124,12 +149,15 @@ class TeacherWorkingConditionsETL(BaseETL):
         - ``teacher_working_conditions_2023.csv`` is school year ``20222023``.
           It republishes the November-December 2021 survey already loaded
           from ``teacher_working_conditions_2022.csv``.
-        - ``KYRC25_OVW_Teacher_Working_Conditions.csv`` is school year
-          ``20242025``. It republishes the November-December 2023 survey
-          already loaded from ``KYRC24_OVW_Teacher_Working_Conditions.csv``.
         - ``KYRC23_OVW_Teacher_Working_Conditions.csv`` is that 2021-22
           survey again. It relabels Teaching Environment as School Climate
           and turns 945 ``N/A`` cells into 0.
+
+        ``KYRC25_OVW_Teacher_Working_Conditions.csv`` is accepted. It is the
+        2023-24 survey again. ``convert_to_kpi_format`` keeps a row only when
+        the datasets KYRC24 file does not already supply that school and
+        metric, and stores the kept rows as year 2024. The historical KYRC24
+        download uses the same rule.
 
         The guessed OAA names are 404 and were never registered, so they
         are not skipped here. ``TELL_EQUITY_17-18.xlsx`` and
@@ -327,6 +355,78 @@ class TeacherWorkingConditionsETL(BaseETL):
             'last_updated': datetime.now().isoformat()
         }
 
+    def process(self, raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
+        """Index the datasets KYRC24 keys, then run the shared writer.
+
+        The index is the set of school-and-metric keys that file already
+        supplies. Supplement files add a row only when its key is absent.
+        """
+        self._primary_2024_loaded = False
+        self._primary_2024_keys = set()
+        source_dir = raw_dir / self.source_name
+        primary = source_dir / _PRIMARY_2024_FILE
+        if (
+            source_dir.exists()
+            and primary.is_file()
+            and primary.stat().st_size > 0
+            and self.accepts_data_file(primary)
+        ):
+            try:
+                self._primary_2024_keys = self._index_primary_2024(primary)
+                self._primary_2024_loaded = True
+            except Exception as exc:
+                logger.error("Could not index datasets KYRC24 keys from %s: %s", primary.name, exc)
+        super().process(raw_dir, proc_dir, cfg)
+
+    def _index_primary_2024(self, path: Path) -> set[tuple[str, str]]:
+        """Return (school id, metric) keys the datasets KYRC24 file supplies."""
+        frame = self._read_data_file(path, None)
+        frame = self.normalize_column_names(frame)
+        frame = self.standardize_missing_values(frame)
+        keys: set[tuple[str, str]] = set()
+        for _, row in frame.iterrows():
+            if self.should_skip_row(row):
+                continue
+            try:
+                school_id = self.extract_school_id(row)
+            except ValueError:
+                continue
+            for metric in self._key_metrics(row):
+                keys.add((school_id, metric))
+        return keys
+
+    def _key_metrics(self, row: pd.Series) -> list[str]:
+        """Metric names this row would write, including a suppressed star."""
+        names = list(self.extract_metrics(row))
+        if names:
+            return names
+        suppressed = row.get("suppressed", "N")
+        starred = _is_star_text(row.get("impact_value", pd.NA))
+        if starred or (isinstance(suppressed, str) and suppressed == "Y"):
+            return list(self.get_suppressed_metric_defaults(row))
+        return []
+
+    def _rows_absent_from_primary(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Keep source rows whose school-and-metric key the datasets file lacks."""
+        keep: list[bool] = []
+        for _, row in df.iterrows():
+            if self.should_skip_row(row):
+                keep.append(False)
+                continue
+            try:
+                school_id = self.extract_school_id(row)
+            except ValueError:
+                keep.append(False)
+                continue
+            metrics = self._key_metrics(row)
+            if not metrics:
+                keep.append(False)
+                continue
+            keep.append(any((school_id, metric) not in self._primary_2024_keys for metric in metrics))
+        if not keep:
+            return df.iloc[0:0].copy()
+        return df.loc[pd.Series(keep, index=df.index)].copy()
+
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
         """Convert one file, then leave one row per KPI key.
 
@@ -334,8 +434,41 @@ class TeacherWorkingConditionsETL(BaseETL):
         same construct. When those percents agree, one row is kept. When
         they disagree, neither is kept: both numbers are published, and this
         parser does not choose between them.
+
+        The historical KYRC24 file and KYRC25 add only keys the datasets
+        KYRC24 file does not already supply. A KYRC25 row that is kept is
+        the 2023-24 administration, so its school year is stored as 2024.
+        The source filename stays on the row.
         """
-        kpi_df = super().convert_to_kpi_format(df, source_file)
+        name = Path(source_file).name
+        frame = df
+        if name.upper() in _SUPPLEMENT_2024_FILES:
+            if not getattr(self, "_primary_2024_loaded", False):
+                logger.info(
+                    "Skipping %s; %s is not in this batch, so its keys are not supplemented",
+                    name,
+                    _PRIMARY_2024_FILE,
+                )
+                return pd.DataFrame()
+            frame = self._rows_absent_from_primary(df)
+            if frame.empty:
+                logger.info(
+                    "%s adds no school-and-metric key that %s does not already supply",
+                    name,
+                    _PRIMARY_2024_FILE,
+                )
+                return pd.DataFrame()
+            if name.upper() == _KYRC25_SUPPLEMENT.upper():
+                frame["school_year"] = _ADMINISTRATION_YEAR_2024
+            added = sorted({self.extract_school_id(row) for _, row in frame.iterrows()})
+            logger.info(
+                "%s supplies %s rows for codes absent from %s: %s",
+                name,
+                len(frame),
+                _PRIMARY_2024_FILE,
+                ", ".join(added),
+            )
+        kpi_df = super().convert_to_kpi_format(frame, source_file)
         return self._collapse_duplicate_keys(kpi_df, source_file)
 
     def _collapse_duplicate_keys(self, kpi_df: pd.DataFrame, source_file: str) -> pd.DataFrame:

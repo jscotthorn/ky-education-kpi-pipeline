@@ -8,6 +8,12 @@ School Year,County Number,County Name,District Number,District Name,School Numbe
 20232024,034,FAYETTE,165,Fayette County,,All Schools,165000,,,CKEC,901,,Managing Student Behavior,63
 20232024,034,FAYETTE,165,Fayette County,,All Schools,165000,,,CKEC,901,,School Climate,63
 20232024,034,FAYETTE,165,Fayette County,,All Schools,165000,,,CKEC,901,,School Leadership,64
-20232024,056,JEFFERSON,275,Jefferson County,028,Boys & Girls Haven,275028,056275028,210299001475,,909,A6,Managing Student Behavior,42
-20232024,056,JEFFERSON,275,Jefferson County,028,Boys & Girls Haven,275028,056275028,210299001475,,909,A6,School Climate,28
-20232024,056,JEFFERSON,275,Jefferson County,028,Boys & Girls Haven,275028,056275028,210299001475,,909,A6,School Leadership,0
+20232024,056,JEFFERSON,275,Jefferson County,028,Boys & Girls Haven,275028,056275028,210299001475,GREC,909,A6,Managing Student Behavior,42
+20232024,056,JEFFERSON,275,Jefferson County,028,Boys & Girls Haven,275028,056275028,210299001475,GREC,909,A6,School Climate,28
+20232024,056,JEFFERSON,275,Jefferson County,028,Boys & Girls Haven,275028,056275028,210299001475,GREC,909,A6,School Leadership,0
+20232024,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,Managing Student Behavior,67
+20232024,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,School Climate,45
+20232024,001,ADAIR,001,Adair County,010,Adair County High School,001010,001001010,210003000001,GRREC,902,A1,School Leadership,55
+20232024,021,CARROLL,101,Carroll County,,All Schools,101000,,,OVEC,906,,Managing Student Behavior,57
+20232024,021,CARROLL,101,Carroll County,,All Schools,101000,,,OVEC,906,,School Climate,51
+20232024,021,CARROLL,101,Carroll County,,All Schools,101000,,,OVEC,906,,School Leadership,60

@@ -293,9 +293,12 @@ class TestTeacherWorkingConditionsETL:
             self.sample_dir / "teacher_working_conditions_2020.csv",
             index=False
         )
-        # The later report card for each of those surveys must not load.
+        # A KYRC25 key the datasets file already supplies is not loaded.
+        # 777135 is not in that file, so those cells are stored as 2024.
         (self.sample_dir / "KYRC25_OVW_Teacher_Working_Conditions.csv").write_text(
-            "School Year,Impact Measure,Impact Value\n20242025,School Climate,1\n"
+            "School Year,District Name,School Name,School Code,Impact Measure,Impact Value\n"
+            "20242025,Adair County,All Schools,001000,School Climate,1\n"
+            "20242025,Kentucky Tech System,Mason County Career Magnet School,777135,Managing Student Behavior,86\n"
         )
         (self.sample_dir / "teacher_working_conditions_2021.csv").write_text(
             "SCHOOL YEAR,IMPACT MEASURE,IMPACT VALUE\n20202021,School Climate Composite,1\n"
@@ -309,8 +312,8 @@ class TestTeacherWorkingConditionsETL:
         output_file = self.proc_dir / "teacher_working_conditions.csv"
         assert output_file.exists()
 
-        # Load and validate output
-        result_df = pd.read_csv(output_file)
+        # Load and validate output. School codes keep their leading zeros.
+        result_df = pd.read_csv(output_file, dtype=str)
         assert not result_df.empty
         assert set(result_df.columns).issubset(set(KPI_COLUMNS))
 
@@ -318,12 +321,19 @@ class TestTeacherWorkingConditionsETL:
         source_files = set(result_df['source_file'].unique())
         assert "KYRC24_OVW_Teacher_Working_Conditions.csv" in source_files
         assert "teacher_working_conditions_2020.csv" in source_files
-        assert "KYRC25_OVW_Teacher_Working_Conditions.csv" not in source_files
+        assert "KYRC25_OVW_Teacher_Working_Conditions.csv" in source_files
         assert "teacher_working_conditions_2021.csv" not in source_files
 
-        # Check years. 2025 and 2021 are the republished copies.
+        # 2021 is the republished copy. 777135 from KYRC25 is year 2024.
         years = set(result_df['year'].astype(str).unique())
         assert years == {"2024", "2020"}
+        magnet = result_df[result_df["school_id"].astype(str) == "777135"]
+        assert len(magnet) == 1
+        assert float(magnet.iloc[0]["value"]) == 86.0
+        assert magnet.iloc[0]["source_file"] == "KYRC25_OVW_Teacher_Working_Conditions.csv"
+        adair = result_df[result_df["school_id"].astype(str) == "001000"]
+        assert set(adair["source_file"]) == {"KYRC24_OVW_Teacher_Working_Conditions.csv"}
+        assert float(adair[adair["metric"] == "teacher_working_conditions_school_climate"].iloc[0]["value"]) == 65.0
 
         # Check all metrics are present
         metrics = result_df['metric'].unique()
@@ -418,11 +428,12 @@ class TestKyrc26TeacherWorkingConditions:
         accepted = [
             "KYRC26_OVW_Teacher_Working_Conditions.csv",
             "KYRC24_OVW_Teacher_Working_Conditions.csv",
+            "KYRC24_OVW_Teacher_Working_Conditions_historical.csv",
+            "KYRC25_OVW_Teacher_Working_Conditions.csv",
             "teacher_working_conditions_2022.csv",
             "teacher_working_conditions_2020.csv",
         ]
         skipped = [
-            "KYRC25_OVW_Teacher_Working_Conditions.csv",
             "KYRC23_OVW_Teacher_Working_Conditions.csv",
             "teacher_working_conditions_2023.csv",
             "teacher_working_conditions_2021.csv",
@@ -627,22 +638,101 @@ class TestKyrc26TeacherWorkingConditions:
         keys = ["school_id", "year", "student_group", "metric"]
         assert not result.duplicated(keys).any()
 
+    def test_datasets_file_wins_and_missing_codes_are_filled(self):
+        """Datasets KYRC24 supplies the 2024 percents. Gaps are filled from the other copies.
+
+        Carroll behavior 67 is the historical district total. The datasets
+        file publishes 57, and that is the stored value. Craft Academy is
+        only in the historical file. Mason County Career Magnet 777135 is
+        only in KYRC25, whose school year is 20242025, and is stored as 2024.
+        """
+        header = "School Year,District Name,School Name,School Code,Impact Measure,Impact Value\n"
+        (self.sample_dir / "KYRC24_OVW_Teacher_Working_Conditions.csv").write_text(
+            header
+            + "20232024,Carroll County,All Schools,101000,Managing Student Behavior,57\n"
+            + "20232024,Carroll County,All Schools,101000,School Climate,51\n"
+            + "20232024,Carroll County,All Schools,101000,School Leadership,60\n"
+        )
+        (self.sample_dir / "KYRC24_OVW_Teacher_Working_Conditions_historical.csv").write_text(
+            header
+            + "20232024,Carroll County,All Schools,101000,Managing Student Behavior,67\n"
+            + "20232024,Craft Academy,All Schools,610000,Managing Student Behavior,75\n"
+            + "20232024,Craft Academy,All Schools,610000,School Climate,75\n"
+            + "20232024,Craft Academy,All Schools,610000,School Leadership,78\n"
+            + "20232024,Craft Academy,The Craft Academy for Excellence in Science and Mathematics,610300,Managing Student Behavior,97\n"
+            + "20232024,Craft Academy,The Craft Academy for Excellence in Science and Mathematics,610300,School Climate,96\n"
+            + "20232024,Craft Academy,The Craft Academy for Excellence in Science and Mathematics,610300,School Leadership,98\n"
+        )
+        (self.sample_dir / "KYRC25_OVW_Teacher_Working_Conditions.csv").write_text(
+            header
+            + "20242025,Carroll County,All Schools,101000,Managing Student Behavior,57\n"
+            + "20242025,Kentucky Tech System,Mason County Career Magnet School,777135,Managing Student Behavior,86\n"
+            + "20242025,Kentucky Tech System,Mason County Career Magnet School,777135,School Climate,78\n"
+            + "20242025,Kentucky Tech System,Mason County Career Magnet School,777135,School Leadership,78\n"
+        )
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "teacher_working_conditions.csv", dtype=str)
+        behavior = "teacher_working_conditions_managing_student_behavior"
+        climate = "teacher_working_conditions_school_climate"
+        leadership = "teacher_working_conditions_school_leadership"
+        carroll = result[result["school_id"] == "101000"]
+        assert set(carroll["year"]) == {"2024"}
+        assert set(carroll["source_file"]) == {"KYRC24_OVW_Teacher_Working_Conditions.csv"}
+        assert {
+            row["metric"]: float(row["value"]) for _, row in carroll.iterrows()
+        } == {behavior: 57.0, climate: 51.0, leadership: 60.0}
+        craft_district = result[result["school_id"] == "610000"]
+        assert set(craft_district["source_file"]) == {
+            "KYRC24_OVW_Teacher_Working_Conditions_historical.csv"
+        }
+        assert set(craft_district["year"]) == {"2024"}
+        assert {
+            row["metric"]: float(row["value"]) for _, row in craft_district.iterrows()
+        } == {behavior: 75.0, climate: 75.0, leadership: 78.0}
+        craft_school = result[result["school_id"] == "610300"]
+        assert {
+            row["metric"]: float(row["value"]) for _, row in craft_school.iterrows()
+        } == {behavior: 97.0, climate: 96.0, leadership: 98.0}
+        magnet = result[result["school_id"] == "777135"]
+        assert set(magnet["year"]) == {"2024"}
+        assert set(magnet["source_file"]) == {"KYRC25_OVW_Teacher_Working_Conditions.csv"}
+        assert {
+            row["metric"]: float(row["value"]) for _, row in magnet.iterrows()
+        } == {behavior: 86.0, climate: 78.0, leadership: 78.0}
+        assert "2025" not in set(result["year"])
+        keys = ["school_id", "year", "student_group", "metric"]
+        assert not result.duplicated(keys).any()
+        assert len(result) == 12
+
 
 def test_registered_sources_are_the_permanent_files():
-    """The four administration files are registered. The republished copies are not."""
+    """The administration files are registered. The full republished copies are not.
+
+    Datasets KYRC24 is the 2024 file. The historical copy is saved under
+    another local name. KYRC25 is registered so 777135 can be filled.
+    """
     config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
+    entries = config["raw_directories"]["teacher_working_conditions"]
     names = []
-    for entry in config["raw_directories"]["teacher_working_conditions"]:
+    for entry in entries:
         names.append(entry["file"] if isinstance(entry, dict) else entry)
 
     assert names == [
         "KYRC24_OVW_Teacher_Working_Conditions.csv",
+        "KYRC24_OVW_Teacher_Working_Conditions.csv",
+        "KYRC25_OVW_Teacher_Working_Conditions.csv",
         "KYRC26_OVW_Teacher_Working_Conditions.csv",
         "teacher_working_conditions_2022.csv",
         "teacher_working_conditions_2020.csv",
     ]
+    datasets = entries[0]
+    historical = entries[1]
+    assert datasets["url"] == "kyrc25"
+    assert "save_as" not in datasets
+    assert historical["url"] == "historical"
+    assert historical["save_as"] == "KYRC24_OVW_Teacher_Working_Conditions_historical.csv"
+    assert entries[2]["url"] == "kyrc25"
     assert not any("KYRC23" in name for name in names)
-    assert not any("KYRC25" in name for name in names)
     assert "teacher_working_conditions_2021.csv" not in names
     assert "teacher_working_conditions_2023.csv" not in names
     assert not any("Teacher_Working_Conditions_20" in name for name in names)
