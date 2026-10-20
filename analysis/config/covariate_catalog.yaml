@@ -552,8 +552,10 @@ covariates:
   # Category 8: School Climate and Safety
   # ---------------------------------------------------------------------------
   school_climate:
-    climate_index_score:
-      description: "School climate composite index from accountability system"
+    # Scott, 2026-10-19: the level is part of the name. There is no
+    # unsuffixed climate_index_score or safety_index_score.
+    climate_index_score_elementary:
+      description: "Published elementary school climate index"
       source: kde_safe_schools_climate
       unit: index_score  # 0-100
       expected_direction: positive
@@ -561,7 +563,10 @@ covariates:
         School climate is a robust predictor of student outcomes. Thapa et al. (2013)
         meta-analysis: positive climate associated with higher achievement, lower
         dropout, and reduced behavior problems.
-      note: "Direct from KDE accountability profiles; demographic breakdowns available via calculated version"
+      note: |
+        Direct published index for elementary school. Middle and high are the
+        sibling metrics below. A row with no level is not stored. The calculated
+        survey average remains climate_index_score_calculated.
       theoretical_relevance:
         - graduation_rate
         - chronic_absenteeism
@@ -569,17 +574,60 @@ covariates:
         - proficiency_rate
         - postsecondary_readiness
 
-    safety_index_score:
-      description: "School safety composite index from accountability system"
+    climate_index_score_middle:
+      description: "Published middle school climate index"
+      source: kde_safe_schools_climate
+      unit: index_score  # 0-100
+      expected_direction: positive
+      note: "Same published series as climate_index_score_elementary, for middle school."
+      theoretical_relevance:
+        - chronic_absenteeism
+        - discipline_rate
+
+    climate_index_score_high:
+      description: "Published high school climate index"
+      source: kde_safe_schools_climate
+      unit: index_score  # 0-100
+      expected_direction: positive
+      note: "Same published series as climate_index_score_elementary, for high school."
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+        - discipline_rate
+
+    safety_index_score_elementary:
+      description: "Published elementary school safety index"
       source: kde_safe_schools_climate
       unit: index_score  # 0-100
       expected_direction: positive
       literature_support: |
         Students who feel safe at school have better attendance and academic outcomes.
         Lacoe (2015): perceived safety affects concentration and engagement.
-      note: "Direct from KDE accountability profiles; reflects student perception of safety"
+      note: |
+        Direct published safety index for elementary school. Middle and high are
+        the sibling metrics. There is no unsuffixed safety_index_score.
       theoretical_relevance:
         - chronic_absenteeism
+        - graduation_rate
+        - discipline_rate
+
+    safety_index_score_middle:
+      description: "Published middle school safety index"
+      source: kde_safe_schools_climate
+      unit: index_score  # 0-100
+      expected_direction: positive
+      note: "Same published series as safety_index_score_elementary, for middle school."
+      theoretical_relevance:
+        - chronic_absenteeism
+        - discipline_rate
+
+    safety_index_score_high:
+      description: "Published high school safety index"
+      source: kde_safe_schools_climate
+      unit: index_score  # 0-100
+      expected_direction: positive
+      note: "Same published series as safety_index_score_elementary, for high school."
+      theoretical_relevance:
         - graduation_rate
         - discipline_rate
 
@@ -707,8 +755,8 @@ indicators:
       - tract_pct_single_parent
       - tract_pct_owner_occupied
       - tract_unemployment_rate
-      # School climate (new November 2025)
-      - climate_index_score
+      # High-school climate index. Graduation rows are A1 schools.
+      - climate_index_score_high
       - twc_school_climate
 
     optional_covariates:
@@ -736,8 +784,8 @@ indicators:
       # Teacher working conditions (new November 2025)
       - twc_managing_student_behavior
       - twc_school_leadership
-      # School climate/safety (new November 2025)
-      - safety_index_score
+      # High-school safety index. Graduation rows are A1 schools.
+      - safety_index_score_high
       # Educational opportunity (new November 2025)
       - ap_participation_rate
       - num_ap_courses_offered
@@ -761,6 +809,7 @@ indicators:
         as dummy-encoded categorical variables to control for school classification
       - Version 1.1: Added school climate indices, teacher working conditions,
         educational opportunity measures, and additional staffing ratios
+      - The climate and safety covariates are the high-school indexes, matching A1 schools
 
   chronic_absenteeism:
     description: "Percentage of students chronically absent (>10% of days)"
@@ -775,9 +824,9 @@ indicators:
       - tract_pct_owner_occupied  # Housing stability affects attendance
       - tract_unemployment_rate
       - teacher_turnover_rate  # School climate
-      # School climate (new November 2025) - strong theoretical relevance
-      - climate_index_score
-      - safety_index_score
+      # Elementary climate and safety. The chronic analysis keeps high_grade = 5.
+      - climate_index_score_elementary
+      - safety_index_score_elementary
       - twc_managing_student_behavior
 
     optional_covariates:
@@ -809,6 +858,8 @@ indicators:
       Use horseshoe prior to let data determine relevant covariates.
       Title I and school type added as controls for institutional differences.
       Version 1.1: Added school climate indices, safety scores, and staffing ratios.
+      The climate and safety covariates are the elementary indexes, matching the
+      analysis filter high_grade = 5.
 
   postsecondary_readiness:
     description: "College/career readiness indicator"
@@ -837,8 +888,8 @@ indicators:
       # Educational opportunity (new November 2025)
       - num_ap_courses_offered
       - cte_participation_rate
-      # School climate (new November 2025)
-      - climate_index_score
+      # High-school climate index. Readiness rows are A1 schools.
+      - climate_index_score_high
       - twc_school_leadership
       # Staffing (new November 2025)
       - students_per_non_teacher_certified_staff  # Counselor access matters
@@ -849,6 +900,7 @@ indicators:
       Version 1.1: Added educational opportunity measures (AP, dual credit, CTE)
       which directly capture access to college/career preparation pathways.
       Counselor availability (via staffing ratio) linked to college enrollment.
+      The climate covariate is the high-school index, matching A1 schools.
 
   discipline_rate:
     description: "Suspension/expulsion rate"
@@ -862,9 +914,13 @@ indicators:
     recommended_covariates:
       - teacher_turnover_rate  # School climate
       - tract_unemployment_rate  # Community stress
-      # School climate (new November 2025) - critical for discipline
-      - climate_index_score
-      - safety_index_score
+      # Discipline is not one grade span, so each published level is listed.
+      - climate_index_score_elementary
+      - climate_index_score_middle
+      - climate_index_score_high
+      - safety_index_score_elementary
+      - safety_index_score_middle
+      - safety_index_score_high
       - twc_managing_student_behavior
 
     optional_covariates:
@@ -884,6 +940,8 @@ indicators:
       Version 1.1: Added school climate indices and teacher working conditions.
       Managing student behavior index directly captures school disciplinary climate.
       Staffing ratios may matter - more counselors/support staff can reduce suspensions.
+      Discipline is not one grade span, so the covariate list names every published
+      climate and safety level. A school has a value only for the level it publishes.
 
 # =============================================================================
 # MODEL SELECTION SETTINGS

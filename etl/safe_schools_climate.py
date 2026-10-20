@@ -16,7 +16,8 @@ Handles Kentucky safe schools climate and safety data:
 Index files publish elementary, middle, and high on the same school code.
 The level is part of the metric name (``climate_index_score_elementary`` and
 the middle and high siblings, and the same three for safety) so those rows
-do not collapse. A row with no level keeps the unsuffixed name.
+do not collapse. A row with no level is not stored under those names. There
+is no unsuffixed ``climate_index_score`` or ``safety_index_score``.
 
 A ``*`` is value NA with ``suppressed`` Y. A blank cell is not stored. A
 published 0 is kept. The compliance rate is the existing percentage of Yes
@@ -144,12 +145,16 @@ def level_suffix(level: Any) -> str:
     return re.sub(r"[^a-z0-9]+", "_", text).strip("_")
 
 
-def index_metric_name(base: str, level: Any) -> str:
-    """``climate_index_score_elementary`` when KDE published a level."""
+def index_metric_name(base: str, level: Any) -> Optional[str]:
+    """``climate_index_score_elementary`` when KDE published a level.
+
+    A blank level returns None. The unsuffixed names ``climate_index_score``
+    and ``safety_index_score`` are not emitted.
+    """
     suffix = level_suffix(level)
-    if suffix:
-        return f"{base}_{suffix}"
-    return base
+    if not suffix:
+        return None
+    return f"{base}_{suffix}"
 
 
 def _star_flag_name(column: str) -> str:
@@ -531,8 +536,11 @@ class SafeSchoolsClimateETL(BaseETL):
         # The level suffix matches extract_metrics so a suppressed row does
         # not land on a different metric than the published number.
         if any(col in row.index for col in ("climate_index", "safety_index", "climate_safety_combined_rate")):
-            metrics[index_metric_name("climate_index_score", level)] = pd.NA
-            metrics[index_metric_name("safety_index_score", level)] = pd.NA
+            climate_name = index_metric_name("climate_index_score", level)
+            safety_name = index_metric_name("safety_index_score", level)
+            if climate_name and safety_name:
+                metrics[climate_name] = pd.NA
+                metrics[safety_name] = pd.NA
 
         if any(col in row.index for col in POLICY_COLUMNS):
             metrics["safety_policy_compliance_rate"] = pd.NA
@@ -553,6 +561,8 @@ class SafeSchoolsClimateETL(BaseETL):
         if column not in row.index:
             return
         name = index_metric_name(base_name, row.get("level", pd.NA))
+        if not name:
+            return
         starred = _row_measure_is_star(row, column)
         blank = _is_blank(row.get(column, pd.NA))
         if starred or (row_suppressed and blank):
@@ -579,18 +589,13 @@ class SafeSchoolsClimateETL(BaseETL):
                 ):
                     if column in row.index:
                         name = index_metric_name(base_name, row.get("level", pd.NA))
-                        if name not in metrics:
+                        if name and name not in metrics:
                             metrics[name] = STAR_TOKEN
 
-        # Survey question rows. These are not the index-score file. The metric
-        # name stays unsuffixed, which is what the calculated-score path uses.
-        if "question_type" in row.index and "question_index" in row.index:
-            question_type = _cell_text(row.get("question_type", "")).upper()
-            question_index = row.get("question_index", pd.NA)
-            if question_type in ["C", "CLIMATE"] and not _is_blank(question_index) and not _is_star_cell(question_index):
-                metrics["climate_index_score"] = question_index
-            elif question_type in ["S", "SAFETY"] and not _is_blank(question_index) and not _is_star_cell(question_index):
-                metrics["safety_index_score"] = question_index
+        # A survey question index is not the published climate or safety index.
+        # Those names stay level-suffixed and are not written from question
+        # rows. calculate_aggregate_index_scores still emits
+        # climate_index_score_calculated and safety_index_score_calculated.
 
         # 2022 stores the indicator rate. 2023 stores the combined indicator
         # rate (status plus change), not STATUS. The existing calculation
@@ -603,7 +608,7 @@ class SafeSchoolsClimateETL(BaseETL):
             # Copy the same cell onto the safety metric. A blank stays absent.
             climate_name = index_metric_name("climate_index_score", row.get("level", pd.NA))
             safety_name = index_metric_name("safety_index_score", row.get("level", pd.NA))
-            if climate_name in metrics:
+            if climate_name and safety_name and climate_name in metrics:
                 metrics[safety_name] = metrics[climate_name]
 
         answered = [

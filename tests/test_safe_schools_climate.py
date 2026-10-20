@@ -187,50 +187,87 @@ class TestSafeSchoolsClimateETL:
         assert metrics['safety_policy_compliance_rate'] == 75.0
     
     def test_extract_metrics_index_scores(self, etl):
-        """Test metric extraction for index scores."""
+        """A published level is part of the name. A blank level stores nothing."""
         row = pd.Series({
             'climate_index': 75.5,
-            'safety_index': 80.0
+            'safety_index': 80.0,
+            'level': 'Elementary School',
         })
-        
+
         metrics = etl.extract_metrics(row)
-        assert 'climate_index_score' in metrics
-        assert 'safety_index_score' in metrics
-        assert metrics['climate_index_score'] == 75.5
-        assert metrics['safety_index_score'] == 80.0
-    
+        assert metrics['climate_index_score_elementary'] == 75.5
+        assert metrics['safety_index_score_elementary'] == 80.0
+        assert 'climate_index_score' not in metrics
+        assert 'safety_index_score' not in metrics
+
+        blank_level = pd.Series({
+            'climate_index': 75.5,
+            'safety_index': 80.0,
+        })
+        assert etl.extract_metrics(blank_level) == {}
+
     def test_extract_metrics_missing_values(self, etl):
-        """Test metric extraction with missing values."""
+        """A blank index cell is skipped. The sibling number keeps its level."""
         row = pd.Series({
             'climate_index': pd.NA,
-            'safety_index': 80.0
+            'safety_index': 80.0,
+            'level': 'High School',
         })
-        
+
         metrics = etl.extract_metrics(row)
-        # When climate_index is NA, it's not included in metrics
+        assert 'climate_index_score_high' not in metrics
         assert 'climate_index_score' not in metrics
-        assert metrics['safety_index_score'] == 80.0
-    
+        assert metrics['safety_index_score_high'] == 80.0
+
     def test_extract_metrics_accountability_profile(self, etl):
-        """Test metric extraction for accountability profile data."""
+        """The published combined rate is stored on both level-suffixed names."""
         row = pd.Series({
-            'climate_safety_combined_rate': 74.2
+            'climate_safety_combined_rate': 74.2,
+            'level': 'MS',
         })
-        
+
         metrics = etl.extract_metrics(row)
-        assert 'climate_index_score' in metrics
-        assert 'safety_index_score' in metrics
-        assert metrics['climate_index_score'] == 74.2
-        assert metrics['safety_index_score'] == 74.2
-    
+        assert metrics['climate_index_score_middle'] == 74.2
+        assert metrics['safety_index_score_middle'] == 74.2
+        assert 'climate_index_score' not in metrics
+        assert 'safety_index_score' not in metrics
+
+        assert etl.extract_metrics(pd.Series({'climate_safety_combined_rate': 74.2})) == {}
+
+    def test_survey_question_does_not_emit_unsuffixed_index(self, etl):
+        """Question indexes are not stored as climate_index_score or safety_index_score."""
+        climate_question = pd.Series({
+            'question_type': 'C',
+            'question_index': 80,
+            'level': 'Elementary School',
+        })
+        safety_question = pd.Series({
+            'question_type': 'SAFETY',
+            'question_index': 70,
+            'level': 'High School',
+        })
+        assert etl.extract_metrics(climate_question) == {}
+        assert etl.extract_metrics(safety_question) == {}
+
     def test_get_suppressed_metric_defaults(self, etl):
         """Test suppressed metric defaults based on data type."""
         # Test with index score data
-        row_index = pd.Series({'climate_index': 75.0, 'safety_index': 70.0})
+        row_index = pd.Series({
+            'climate_index': 75.0,
+            'safety_index': 70.0,
+            'level': 'Middle School',
+        })
         defaults = etl.get_suppressed_metric_defaults(row_index)
-        assert 'climate_index_score' in defaults
-        assert 'safety_index_score' in defaults
+        assert 'climate_index_score_middle' in defaults
+        assert 'safety_index_score_middle' in defaults
+        assert 'climate_index_score' not in defaults
+        assert 'safety_index_score' not in defaults
         assert 'safety_policy_compliance_rate' not in defaults
+
+        no_level = etl.get_suppressed_metric_defaults(
+            pd.Series({'climate_index': 75.0, 'safety_index': 70.0})
+        )
+        assert no_level == {}
         
         # Test with policy data
         row_policy = pd.Series({'visitors_sign_in': 'Yes', 'classroom_doors_lock': 'No'})

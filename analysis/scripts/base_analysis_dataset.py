@@ -231,6 +231,14 @@ class BaseAnalysisDataset(ABC):
         """
         return None
 
+    def get_dedupe_subset(self) -> list:
+        """Columns that identify one analysis row.
+
+        The default is one row per school-year. A per-level outcome overrides
+        this so two levels at the same school are both kept.
+        """
+        return ['year', 'school_id']
+
     def get_school_type_filter(self) -> Optional[str]:
         """
         Return school_type value to filter (e.g., 'A1' for high schools).
@@ -1172,13 +1180,14 @@ class BaseAnalysisDataset(ABC):
         # Handle missing values
         merged = self.impute_missing_values(merged)
 
-        # Deduplicate to ensure one row per school-year (merges can create duplicates
-        # from upstream data quality issues; keep first occurrence)
+        # Deduplicate on the subclass key. The default is one row per
+        # school-year. A per-level outcome includes level so both rows survive.
+        dedupe_subset = [col for col in self.get_dedupe_subset() if col in merged.columns]
         n_before = len(merged)
-        merged = merged.drop_duplicates(subset=['year', 'school_id'], keep='first')
+        merged = merged.drop_duplicates(subset=dedupe_subset, keep='first')
         n_dropped = n_before - len(merged)
         if n_dropped > 0:
-            self.log(f"\nDeduplication: removed {n_dropped} duplicate rows on (year, school_id)")
+            self.log(f"\nDeduplication: removed {n_dropped} duplicate rows on {tuple(dedupe_subset)}")
 
         # Clean up temporary columns
         for col in ['school_name_norm', 'district_norm']:
