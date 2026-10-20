@@ -179,8 +179,12 @@ def test_safe_schools_climate_metrics_generated(setup_test_data):
     # Check metrics
     metrics = df['metric'].unique()
     assert 'safety_policy_compliance_rate' in metrics
-    assert 'climate_index_score' in metrics
-    assert 'safety_index_score' in metrics
+    # Level is part of the metric name, so elementary, middle, and high
+    # rows that share a school code do not collapse.
+    assert 'climate_index_score_high' in metrics
+    assert 'safety_index_score_high' in metrics
+    assert 'climate_index_score_middle' in metrics
+    assert 'safety_index_score_middle' in metrics
 
 
 def test_safe_schools_climate_policy_compliance_calculation(setup_test_data):
@@ -230,19 +234,25 @@ def test_safe_schools_climate_index_scores(setup_test_data):
     df = pd.read_csv(processed_dir / "safe_schools_climate.csv")
     
     # Check 2024 climate scores from direct index file
-    climate_2024 = df[(df['metric'] == 'climate_index_score') & 
+    climate_2024 = df[(df['metric'] == 'climate_index_score_high') & 
                       (df['year'] == 2024) & 
                       (df['student_group'] == 'All Students') &
                       (df['school_name'] == 'Test High School')]
     assert len(climate_2024) == 1
     assert climate_2024.iloc[0]['value'] == 70.0
     
-    # Check 2023 combined scores from accountability profile
-    combined_2023 = df[(df['metric'] == 'climate_index_score') & 
+    # Check 2023 combined scores from accountability profile. LEVEL is MS,
+    # so the published combined rate is stored on the middle-school metrics.
+    combined_2023 = df[(df['metric'] == 'climate_index_score_middle') & 
                       (df['year'] == 2023) & 
                       (df['student_group'] == 'All Students')]
     assert len(combined_2023) == 1
     assert combined_2023.iloc[0]['value'] == 75.5
+    safety_2023 = df[(df['metric'] == 'safety_index_score_middle') &
+                     (df['year'] == 2023) &
+                     (df['student_group'] == 'All Students')]
+    assert len(safety_2023) == 1
+    assert safety_2023.iloc[0]['value'] == 75.5
 
 
 def test_safe_schools_climate_suppressed_data(setup_test_data):
@@ -295,6 +305,83 @@ def test_safe_schools_climate_no_duplicates(setup_test_data):
     )
     
     assert not duplicate_check.any(), "Found duplicate records in output"
+
+
+RAW_DIR = Path(__file__).resolve().parents[1] / "data" / "raw" / "safe_schools_climate"
+REAL_FILE_NAMES = (
+    "KYRC24_ACCT_Index_Scores.csv",
+    "KYRC25_ACCT_Index_Scores.csv",
+    "KYRC26_ACCT_Index_Scores.csv",
+    "KYRC24_SAFE_Precautionary_Measures.csv",
+    "KYRC25_SAFE_Precautionary_Measures.csv",
+    "KYRC26_SAFE_Precautionary_Measures.csv",
+    "accountability_profile_2022.csv",
+    "accountability_profile_2023.csv",
+    "precautionary_measures_2020.csv",
+    "precautionary_measures_2021.csv",
+    "precautionary_measures_2022.csv",
+    "precautionary_measures_2023.csv",
+)
+
+
+def _real_files_present() -> bool:
+    return all((RAW_DIR / name).is_file() for name in REAL_FILE_NAMES)
+
+
+@pytest.mark.skipif(not _real_files_present(), reason="safe_schools_climate raw files are not downloaded")
+def test_real_kyrc26_file_matches_published_rows(tmp_path):
+    """The downloaded KYRC26 file keeps the published state, district, and school cells."""
+    processed_dir = tmp_path / "processed"
+    processed_dir.mkdir()
+    transform(RAW_DIR.parent, processed_dir, {})
+    frame = pd.read_csv(
+        processed_dir / "safe_schools_climate.csv",
+        dtype={"school_id": "string", "year": "string"},
+    )
+    assert len(frame) == 308993
+    assert not frame.duplicated(["year", "school_id", "student_group", "metric"]).any()
+
+    state = frame[
+        (frame["year"] == "2026")
+        & (frame["school_id"] == "999000")
+        & (frame["student_group"] == "All Students")
+        & (frame["district"] == "All Districts")
+    ]
+    expected = {
+        "climate_index_score_elementary": 80.0,
+        "safety_index_score_elementary": 74.8,
+        "climate_index_score_middle": 71.3,
+        "safety_index_score_middle": 65.5,
+        "climate_index_score_high": 68.6,
+        "safety_index_score_high": 64.0,
+    }
+    for metric, value in expected.items():
+        row = state[state["metric"] == metric]
+        assert len(row) == 1
+        assert row.iloc[0]["value"] == value
+        assert row.iloc[0]["suppressed"] == "N"
+        assert row.iloc[0]["school_name"] == "---District Total---"
+
+    fayette = frame[
+        (frame["year"] == "2026")
+        & (frame["school_id"] == "165000")
+        & (frame["student_group"] == "All Students")
+        & (frame["metric"] == "climate_index_score_elementary")
+    ]
+    assert fayette.iloc[0]["value"] == 79.3
+    assert fayette.iloc[0]["district"] == "Fayette County"
+
+    bryan = frame[
+        (frame["year"] == "2026")
+        & (frame["school_id"] == "165170")
+        & (frame["metric"] == "climate_index_score_high")
+    ]
+    published = bryan[bryan["student_group"] == "All Students"].iloc[0]
+    starred = bryan[bryan["student_group"] == "American Indian or Alaska Native"].iloc[0]
+    assert published["value"] == 67.8
+    assert published["suppressed"] == "N"
+    assert pd.isna(starred["value"])
+    assert starred["suppressed"] == "Y"
 
 
 if __name__ == "__main__":

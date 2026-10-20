@@ -201,22 +201,42 @@ raw_directories:
     - "safe_schools_events_by_grade_2020.csv"
 
   safe_schools_climate:
+    # Historical KYRC24 index. datasets and the historical host are the same
+    # bytes (md5 a71574a6a75fb43a219ac1cb36ec188a).
     - "KYRC24_ACCT_Index_Scores.csv"
+    # 2024-25. School year 20242025. Not a republish of KYRC24.
+    # State elementary climate / safety is 80.0 / 74.8, middle 70.9 / 64.9,
+    # high 67.8 / 62.9. datasets md5 4ed1db91200993f70df96242b4f081d7.
+    - url: "kyrc25"
+      file: "KYRC25_ACCT_Index_Scores.csv"
     - url: "kyrc26"
       file: "KYRC26_ACCT_Index_Scores.csv"
+    # Historical KYRC24 precautionary. The datasets copy of this same name
+    # is a 3,637-byte stub with a different schema. Keep the historical URL.
     - "KYRC24_SAFE_Precautionary_Measures.csv"
+    # 2024-25. School year 20242025. Not a republish. datasets md5
+    # 446580c8066e3bfb10d8bdffaffe14d0.
+    - url: "kyrc25"
+      file: "KYRC25_SAFE_Precautionary_Measures.csv"
     - url: "kyrc26"
       file: "KYRC26_SAFE_Precautionary_Measures.csv"
     - "accountability_profile_2023.csv"
     - "accountability_profile_2022.csv"
+    # 2020 and 2021 profiles have no climate column. They stay registered
+    # for download and are not in get_files_to_process.
     - "accountability_profile_2021.csv"
     - "accountability_profile_2020.csv"
     - "precautionary_measures_2023.csv"
     - "precautionary_measures_2022.csv"
     - "precautionary_measures_2021.csv"
     - "precautionary_measures_2020.csv"
-    # Note: SCHOOL_EXPERIENCE_18-19.xlsx is teacher experience years, not climate survey
-    # Note: SAFE_SCHOOLS_18-19.xlsx is behavior events in wide format, incompatible
+    # KYRC23_ACCT_Index_Scores.csv is a separate 2022-23 climate and safety
+    # index, not a republish of accountability_profile_2023.csv. It is not
+    # registered. KYRC23_SAFE_Precautionary_Measures.csv republishes the
+    # answered rows of precautionary_measures_2023.csv and is not registered.
+    # The parser skips both names. The 297 MB survey is not registered.
+    # SCHOOL_EXPERIENCE_18-19.xlsx is teacher experience, not a climate survey.
+    # SAFE_SCHOOLS_18-19.xlsx has no climate table and no DEMO or DGROUP.
 
   safe_schools_discipline:
     # Historical KYRC24. The datasets copy of this name matches these

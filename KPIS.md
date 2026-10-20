@@ -204,13 +204,16 @@ The parser stores the count KDE published. That is the existing calculation. No 
 
 ## Safe Schools Climate
 **Source**: `etl/safe_schools_climate.py`
-- `safety_policy_compliance_rate` - Percentage compliance across eight safety policy questions
-- `climate_index_score` - School climate composite index score (direct from KDE accountability profiles and 2024 index scores)
-- `climate_index_score_calculated` - School climate index calculated as average of individual survey question responses
-- `safety_index_score` - School safety composite index score (direct from KDE accountability profiles and 2024 index scores)
-- `safety_index_score_calculated` - School safety index calculated as average of individual survey question responses
+- `safety_policy_compliance_rate` - Percent of published Yes answers among the eight policy questions. A blank or `*` is not an answer and is not counted as No. KYRC26 does not publish classroom doors, so that year the denominator is the seven questions still published. Outside doors are not in this rate
+- `outside_doors_locked_during_school_hours` - 1 for a published Yes and 0 for a published No on `All outside doors are locked during school hours`. A blank is not stored. This question is not part of the compliance rate
+- `climate_index_score_elementary`, `climate_index_score_middle`, `climate_index_score_high` - Published climate index. The level is part of the name so elementary, middle, and high rows that share a school code do not collapse. A row with no level keeps `climate_index_score`
+- `safety_index_score_elementary`, `safety_index_score_middle`, `safety_index_score_high` - Published safety index, with the same level suffix
+- `climate_index_score_calculated` - School climate index calculated as the average of individual survey question responses
+- `safety_index_score_calculated` - School safety index calculated as the average of individual survey question responses
 
-**Note**: The `_calculated` metrics provide demographic breakdowns for historical years (2021-2023) where direct index scores are only available for "All Students"
+The 2022-2023 accountability profiles publish one combined climate and safety indicator. That published number is stored as both the climate metric and the safety metric for the row's level. A `*` is value NA with `suppressed` Y, including an all-star row. A blank cell is not stored. A published 0 is kept. KYRC state rows are district `All Districts` and school code `999000`. The 2022-2023 profile state rows are district `State` and school code `999`. Those codes are not padded. Co-op `GREC` (2025) and `GLEC` (2026) are stored as published. `GRREC` is a different co-op.
+
+**Note**: The `_calculated` metrics provide demographic breakdowns for historical years (2021-2023) where direct index scores are only available for "All Students". `analysis/scripts/school_climate_analysis.py` still filters the unsuffixed name `climate_index_score`. Index rows for 2022-2026 are now the level-suffixed names.
 
 ## Kentucky Summative Assessment
 **Source**: `etl/kentucky_summative_assessment.py`
