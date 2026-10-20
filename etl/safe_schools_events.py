@@ -15,12 +15,25 @@
 """
 Safe Schools Behavioral Events ETL Module
 
-Handles behavioral events data from Kentucky SAFE program across years 2020-2024.
-Maps KYRC24 format files to historical equivalents for longitudinal analysis.
-Covers event types, grade levels, locations, and contexts for school safety metrics.
+Handles behavioral event counts from the Kentucky SAFE files for 2019-20
+through 2025-26. KYRC24, KYRC25, and KYRC26 are separate type, grade,
+location, and context files. The 2019-20 through 2022-23 type counts come
+from the combined event-details files, and the grade counts come from the
+events-by-grade files.
+
+Each stored count is the cell KDE published. A ``*`` is value NA with
+``suppressed`` Y. A blank cell is not stored. A published 0 is kept.
+``safe_incident_rate_*`` is an incident rate: events per involved student.
+The pipeline calculates it. KDE does not publish it.
+
+The module reads an allow-list of filenames under ``data/raw/safe_schools``.
+``include_kyrc26`` does not apply. ``KYRC23_SAFE_Behavior_Events_by_*.csv``
+republishes 2022-23 and is not on the list.
 """
 from pathlib import Path
+import gc
 import pandas as pd
+from pandas.api.types import union_categoricals
 from typing import Dict, Any, Optional, Union
 import logging
 try:
@@ -47,8 +60,126 @@ except ImportError:
         from pathlib import Path
         sys.path.append(str(Path(__file__).parent))
         from demographic_mapper import DemographicMapper
+try:
+    from .kyrc import normalize_kyrc_grade_token
+except ImportError:
+    try:
+        from kyrc import normalize_kyrc_grade_token
+    except ImportError:
+        from etl.kyrc import normalize_kyrc_grade_token
 
 logger = logging.getLogger(__name__)
+
+# KYRC25 and KYRC26 grade headers are PS / 1st / 14th. The helper maps
+# those onto Preschool / Grade 1 / Grade 14 before the column map below.
+BEHAVIOR_KINDS = ("Type", "Grade_Level", "Location", "Context")
+KYRC_RELEASES = (24, 25, 26)
+CELL_FLAG_PREFIX = "_cell_"
+
+# The Total column is the same measure on the type, location, and context
+# files. Location and context publish a number on some rows where the type
+# file publishes ``*``. Emitting all three under ``safe_*_total`` duplicates
+# the key. The type file keeps the metric. Location and context keep their
+# own breakdown columns.
+_TOTAL_METRIC = "total_events"
+
+HISTORICAL_EVENT_FILES = [
+    "safe_schools_event_details_2020.csv",
+    "safe_schools_event_details_2021.csv",
+    "safe_schools_event_details_2022.csv",
+    "safe_schools_event_details_2023.csv",
+    "safe_schools_events_by_grade_2020.csv",
+    "safe_schools_events_by_grade_2021.csv",
+    "safe_schools_events_by_grade_2022.csv",
+    "safe_schools_events_by_grade_2023.csv",
+]
+
+
+def kyrc_behavior_filenames() -> list[str]:
+    """KYRC24, KYRC25, and KYRC26 behavior files this module reads."""
+    return [
+        f"KYRC{release}_SAFE_Behavior_Events_by_{kind}.csv"
+        for release in KYRC_RELEASES
+        for kind in BEHAVIOR_KINDS
+    ]
+
+
+def rejected_event_filenames() -> frozenset[str]:
+    """Names that must not be parsed, even if a copy is left in the raw directory.
+
+    ``KYRC23_SAFE_Behavior_Events_by_*.csv`` republishes 2022-23. The guessed
+    temporary OAA names returned 404 and were never registered. The allow-list
+    is what ``transform`` reads. This set is the explicit reject list so a
+    later directory scan cannot write the year twice.
+    """
+    rejected = [
+        f"KYRC23_SAFE_Behavior_Events_by_{kind}.csv" for kind in BEHAVIOR_KINDS
+    ]
+    for year in (2024, 2025, 2026):
+        for kind in BEHAVIOR_KINDS:
+            rejected.append(f"Behavior_Events_by_{kind}_{year}.CSV")
+            rejected.append(f"SAFE_Behavior_Events_by_{kind}_{year}.CSV")
+    rejected.append("SAFE_SCHOOLS_18-19.xlsx")
+    rejected.append("SAFE_SCHOOLS_17-18.xlsx")
+    return frozenset(rejected)
+
+
+def files_to_process() -> list[str]:
+    """Allow-list of behavior files. Rejected names are not included."""
+    allowed = kyrc_behavior_filenames() + list(HISTORICAL_EVENT_FILES)
+    rejected = rejected_event_filenames()
+    return [name for name in allowed if name not in rejected]
+
+
+def _is_string_like(series: pd.Series) -> bool:
+    """True for object text and for pandas StringDtype.
+
+    ``read_csv(..., dtype=str)`` on pandas 3 returns StringDtype, not object.
+    A comma in ``86,009`` has to be removed before ``to_numeric``. pandas
+    2.3.3 still returns object. pandas is unpinned.
+    """
+    return series.dtype == object or bool(pd.api.types.is_string_dtype(series))
+
+
+def _missing_mask(series: pd.Series) -> pd.Series:
+    """True for None, blanks, and pandas missing values.
+
+    ``bool(pd.NA)`` is not used. A numeric 0 is present.
+    """
+    if _is_string_like(series):
+        text = series.astype("string").str.strip()
+        return text.isna() | text.eq("") | text.str.lower().isin(["nan", "<na>", "none"])
+    return series.isna()
+
+
+def _classify_measure(series: pd.Series) -> tuple[pd.Series, pd.Series]:
+    """Return numeric values and a flag of number, star, blank, or invalid.
+
+    The star is recorded before the cell is coerced. A blank is not a star.
+    A published 0 stays 0. Commas are stripped on object and on StringDtype.
+    """
+    if not _is_string_like(series):
+        values = pd.to_numeric(series, errors="coerce")
+        flag = pd.Series("number", index=series.index, dtype="object")
+        neg = values.notna() & (values < 0)
+        flag.loc[values.isna()] = "blank"
+        flag.loc[neg] = "invalid"
+        values = values.mask(values.isna() | neg)
+        return values, flag
+
+    text = series.astype("string").str.strip()
+    star = text.eq("*").fillna(False)
+    blank = (text.isna() | text.eq("")).fillna(False)
+    stripped = text.str.replace(",", "", regex=False)
+    values = pd.to_numeric(stripped.mask(star | blank), errors="coerce")
+    invalid = ~(star | blank) & values.isna()
+    neg = values.notna() & (values < 0)
+    values = values.mask(star | blank | invalid | neg)
+    flag = pd.Series("number", index=series.index, dtype="object")
+    flag.loc[blank] = "blank"
+    flag.loc[star] = "star"
+    flag.loc[invalid | neg] = "invalid"
+    return values, flag
 
 
 def extract_year_from_school_year(year_value):
@@ -63,7 +194,21 @@ def extract_year_from_school_year(year_value):
 
 
 def normalize_column_names(df: pd.DataFrame) -> pd.DataFrame:
-    """Normalize column names to lowercase with underscores."""
+    """Normalize column names to lowercase with underscores.
+
+    KYRC25 and KYRC26 grade headers are ``PS``, ``K``, ``1st`` through
+    ``12th``, and ``14th``. There is no ``13th``. ``normalize_kyrc_grade_token``
+    maps those onto the KYRC24 names (``Preschool``, ``Grade 1``) before the
+    dictionary below. Labels that are already historical are unchanged.
+    """
+    renamed_grades = {}
+    for col in df.columns:
+        mapped = normalize_kyrc_grade_token(col)
+        if mapped != col:
+            renamed_grades[col] = mapped
+    if renamed_grades:
+        df = df.rename(columns=renamed_grades)
+
     column_mapping = {
         # KYRC24 format columns
         'School Year': 'school_year',
@@ -244,30 +389,56 @@ def add_derived_fields(df: pd.DataFrame, derive_config: Dict[str, Any]) -> pd.Da
     return df
 
 
-def clean_event_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Clean and validate event count values."""
-    # Identify numeric columns (event counts)
-    numeric_columns = []
+_IDENTIFIER_COLUMNS = {
+    "school_year",
+    "county_number",
+    "county_name",
+    "district_number",
+    "district_name",
+    "school_number",
+    "school_name",
+    "school_code",
+    "state_school_id",
+    "nces_id",
+    "co_op",
+    "co_op_code",
+    "school_type",
+    "demographic",
+    "data_source",
+    "year",
+}
+
+
+def _metric_columns_present(df: pd.DataFrame) -> list[str]:
+    """Every non-identifier column. Those are the published count cells.
+
+    A keyword list misses ``assault_1st_degree`` and ``other_location``.
+    ``county_name`` contains ``count`` and is an identifier, so it is excluded
+    by name rather than by substring.
+    """
+    columns = []
     for col in df.columns:
-        if any(keyword in col for keyword in ['events', 'count', 'total', 'grade_', 'classroom', 'bus', 'hallway', 'cafeteria', 'restroom', 'gymnasium', 'playground', 'campus', 'school_sponsored', 'non_school']):
-            if col not in ['school_year', 'data_source']:
-                numeric_columns.append(col)
-    
-    for col in numeric_columns:
-        if col in df.columns:
-            # Handle suppression markers
-            df[col] = df[col].astype(str).str.replace('*', '', regex=False)
-            df[col] = df[col].replace('', pd.NA)
-            
-            # Convert to numeric, errors='coerce' will make invalid values NaN
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-            
-            # Validate counts are non-negative
-            invalid_mask = df[col] < 0
-            if invalid_mask.any():
-                logger.warning(f"Found {invalid_mask.sum()} negative event counts in {col}")
-                df.loc[invalid_mask, col] = pd.NA
-    
+        if str(col).startswith(CELL_FLAG_PREFIX) or col in _IDENTIFIER_COLUMNS:
+            continue
+        columns.append(col)
+    return columns
+
+
+def clean_event_data(df: pd.DataFrame) -> pd.DataFrame:
+    """Clean event counts and record whether each cell was a star or a blank.
+
+    A ``*`` is stored as missing and flagged ``star``, so the KPI row can be
+    ``suppressed`` Y. A blank is flagged ``blank`` and is not emitted. A
+    published 0 stays 0 and is flagged ``number``. Commas are stripped before
+    ``to_numeric`` on both object and StringDtype columns.
+    """
+    for col in _metric_columns_present(df):
+        values, flag = _classify_measure(df[col])
+        invalid_mask = flag.eq("invalid")
+        if invalid_mask.any():
+            logger.warning(f"Found {int(invalid_mask.sum())} non-numeric event counts in {col}")
+        df[col] = values
+        df[f"{CELL_FLAG_PREFIX}{col}"] = flag
     return df
 
 
@@ -330,7 +501,7 @@ def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[Demogra
     if all_kpi_data:
         combined_df = pd.concat(all_kpi_data, ignore_index=True)
         
-        # Add Tier 4: Derived rate calculations (events per affected student)
+        # Add Tier 4: incident rate, events per involved student
         logger.info(f"Calculating derived rates for {len(combined_df)} KPI records")
         derived_rates = _calculate_derived_rates(combined_df)
         if not derived_rates.empty:
@@ -344,6 +515,27 @@ def convert_to_kpi_format(df: pd.DataFrame, demographic_mapper: Optional[Demogra
     else:
         logger.warning("No valid data found for KPI conversion")
         return pd.DataFrame()
+
+
+def _school_id_series(kpi_df: pd.DataFrame) -> pd.Series:
+    """State school id when KDE published one, otherwise the school code.
+
+    District and state aggregate rows leave State School Id blank. Using
+    that blank as ``school_id`` collides every district on the same key.
+    The published school code is already 999 or 999000. It is not padded.
+    School rows that have a state school id keep that id.
+    """
+    if "state_school_id" in kpi_df.columns:
+        sid = kpi_df["state_school_id"]
+    else:
+        sid = pd.Series(pd.NA, index=kpi_df.index)
+    if "school_code" in kpi_df.columns:
+        code = kpi_df["school_code"]
+    else:
+        code = pd.Series(pd.NA, index=kpi_df.index)
+    missing = _missing_mask(sid)
+    school_id = sid.astype("object")
+    return school_id.where(~missing, code.astype("object"))
 
 
 def _process_rows_helper(
@@ -388,8 +580,11 @@ def _process_rows_helper(
             "grade_14",
         ]
     elif "events_by_location" in data_source:
+        # total_events is omitted. The type file owns safe_*_total. The
+        # location Total matches that cell except where the type file is
+        # starred and this file publishes a number. Those cells are not a
+        # second measure and are not stored under the same key.
         metric_columns = [
-            "total_events",
             "classroom",
             "bus",
             "hallway_stairwell",
@@ -402,7 +597,6 @@ def _process_rows_helper(
         ]
     elif "events_by_context" in data_source:
         metric_columns = [
-            "total_events",
             "school_sponsored_during",
             "school_sponsored_not_during",
             "non_school_sponsored_during",
@@ -423,6 +617,7 @@ def _process_rows_helper(
     id_columns = [
         "district_name",
         "state_school_id",
+        "school_code",
         "school_name",
         "year",
         "demographic",
@@ -436,6 +631,23 @@ def _process_rows_helper(
         var_name="metric_raw",
         value_name="value",
     )
+
+    flag_source = df[id_columns].copy()
+    for col in metric_columns:
+        flag_name = f"{CELL_FLAG_PREFIX}{col}"
+        if flag_name in df.columns:
+            flag_source[col] = df[flag_name]
+        else:
+            flag_source[col] = "number"
+    flag_long = flag_source.melt(
+        id_vars=id_columns,
+        value_vars=metric_columns,
+        var_name="metric_raw",
+        value_name="cell_flag",
+    )
+    kpi_df["cell_flag"] = flag_long["cell_flag"].to_numpy()
+    # A blank cell is not an event and is not stored. A star stays, as NA.
+    kpi_df = kpi_df.loc[kpi_df["cell_flag"] != "blank"].copy()
 
     kpi_df["value"] = pd.to_numeric(kpi_df["value"], errors="coerce")
 
@@ -461,8 +673,12 @@ def _process_rows_helper(
     }
     kpi_df["metric"] = kpi_df["metric_raw"].map(metric_mapping)
 
+    # The star was recorded before coercion. Invalid text is missing too.
+    # A published number, including 0, stays suppressed N.
     kpi_df["suppressed"] = "N"
-    kpi_df.loc[kpi_df["value"].isna(), "suppressed"] = "Y"
+    starred = kpi_df["cell_flag"].isin(["star", "invalid"])
+    kpi_df.loc[starred, "suppressed"] = "Y"
+    kpi_df.loc[starred, "value"] = pd.NA
 
     if isinstance(student_group, pd.Series):
         repeated = pd.concat([
@@ -476,7 +692,7 @@ def _process_rows_helper(
     final_df = pd.DataFrame(
         {
             "district": kpi_df.get("district_name", "Unknown"),
-            "school_id": kpi_df.get("state_school_id", kpi_df.get("nces_id", pd.NA)),
+            "school_id": _school_id_series(kpi_df),
             "school_name": kpi_df.get("school_name", "Unknown"),
             "year": kpi_df["year"],
             "student_group": kpi_df["student_group"],
@@ -679,6 +895,88 @@ def _process_aggregate_rows(df: pd.DataFrame) -> pd.DataFrame:
     return final_df
 
 
+def _read_events_csv(file_path: Path) -> pd.DataFrame:
+    """Read one behavior file.
+
+    School Code is read as text so a district code ``001000`` is not inferred
+    as ``1000``. Other columns keep pandas' inference. State School Id on a
+    school row stays the value the previous parser stored. Measure columns
+    that contain ``*`` or a thousands comma stay text and are cleaned later.
+    """
+    header = pd.read_csv(file_path, nrows=0, encoding="utf-8-sig")
+    dtype: Dict[str, str] = {}
+    for name in ("School Code", "SCHOOL CODE"):
+        if name in header.columns:
+            dtype[name] = "string"
+    return pd.read_csv(file_path, encoding="utf-8-sig", dtype=dtype or None)
+
+
+def _string_columns(df: pd.DataFrame) -> list[str]:
+    """Columns whose values are text. ``year`` and ``value`` stay numeric."""
+    columns = []
+    for col in df.columns:
+        if col in ("year", "value"):
+            continue
+        series = df[col]
+        if _is_string_like(series) or series.dtype == object:
+            columns.append(col)
+    return columns
+
+
+def _cast_string_columns_to_category(df: pd.DataFrame) -> pd.DataFrame:
+    """Store repeated labels once per file so the concat does not hold every string.
+
+    A float school id such as ``1001010.0`` and a code such as ``001000`` become
+    the same text ``to_csv`` already writes. Every file then has string
+    categories, which ``union_categoricals`` can combine.
+    """
+    for col in _string_columns(df):
+        df[col] = df[col].astype("string").astype("category")
+    return df
+
+
+def _align_categories(frames: list[pd.DataFrame]) -> None:
+    """Give each file the same category codes so ``concat`` does not expand them.
+
+    ``union_categoricals`` keeps the values. It only widens the code set.
+    """
+    if len(frames) < 2:
+        return
+    columns = [
+        col for col in frames[0].columns
+        if isinstance(frames[0][col].dtype, pd.CategoricalDtype)
+    ]
+    for col in columns:
+        unified = union_categoricals(
+            [frame[col] for frame in frames],
+            sort_categories=False,
+        )
+        categories = unified.categories
+        codes = unified.codes
+        start = 0
+        for frame in frames:
+            count = len(frame)
+            frame[col] = pd.Categorical.from_codes(
+                codes[start:start + count],
+                categories=categories,
+            )
+            start += count
+        del unified
+
+
+def _assert_unique_keys(combined_df: pd.DataFrame) -> None:
+    """Raise when year, school, student group, and metric repeat."""
+    key = ["year", "school_id", "student_group", "metric"]
+    duplicate_rows = combined_df.duplicated(key, keep=False)
+    if not bool(duplicate_rows.any()):
+        return
+    sample = combined_df.loc[duplicate_rows, key].head(5)
+    raise ValueError(
+        f"safe_schools_events has {int(duplicate_rows.sum())} duplicate-key rows. "
+        f"Sample: {sample.to_dict('records')}"
+    )
+
+
 def transform(raw_dir: str, proc_dir: str, config: Dict[str, Any]) -> str:
     """Transform safe schools events data from raw to processed format."""
     raw_path = Path(raw_dir) / "safe_schools"
@@ -691,85 +989,46 @@ def transform(raw_dir: str, proc_dir: str, config: Dict[str, Any]) -> str:
     demographic_mapper = DemographicMapper()
     
     all_data = []
+    rejected = rejected_event_filenames()
     
-    # Process KYRC24 files
-    kyrc24_files = [
-        'KYRC24_SAFE_Behavior_Events_by_Type.csv',
-        'KYRC24_SAFE_Behavior_Events_by_Grade_Level.csv',
-        'KYRC24_SAFE_Behavior_Events_by_Location.csv',
-        'KYRC24_SAFE_Behavior_Events_by_Context.csv'
-    ]
-    
-    for filename in kyrc24_files:
+    for filename in files_to_process():
+        if filename in rejected:
+            logger.info(f"Skipping rejected behavior file: {filename}")
+            continue
         file_path = raw_path / filename
-        if file_path.exists():
-            try:
-                logger.info(f"Processing KYRC24 file: {filename}")
-                df = pd.read_csv(file_path, encoding='utf-8-sig')
-                
-                # Apply transformations
-                df = normalize_column_names(df)
-                df = add_derived_fields(df, config.get('derive', {}))
-                df = clean_event_data(df)
-                
-                # Convert to KPI format
-                kpi_df = convert_to_kpi_format(df, demographic_mapper)
-                
-                if not kpi_df.empty:
-                    all_data.append(kpi_df)
-                    logger.info(f"Processed {len(kpi_df)} KPI records from {filename}")
-                else:
-                    logger.warning(f"No data produced from {filename}")
-                    
-            except Exception as e:
-                logger.error(f"Error processing {filename}: {str(e)}")
-    
-    # Process historical files
-    historical_files = [
-        ('safe_schools_event_details_2020.csv', 'historical_event_details'),
-        ('safe_schools_event_details_2021.csv', 'historical_event_details'),
-        ('safe_schools_event_details_2022.csv', 'historical_event_details'),
-        ('safe_schools_event_details_2023.csv', 'historical_event_details'),
-        ('safe_schools_events_by_grade_2020.csv', 'historical_events_by_grade'),
-        ('safe_schools_events_by_grade_2021.csv', 'historical_events_by_grade'),
-        ('safe_schools_events_by_grade_2022.csv', 'historical_events_by_grade'),
-        ('safe_schools_events_by_grade_2023.csv', 'historical_events_by_grade')
-    ]
-    
-    for filename, expected_source in historical_files:
-        file_path = raw_path / filename
-        if file_path.exists():
-            try:
-                logger.info(f"Processing historical file: {filename}")
-                df = pd.read_csv(file_path, encoding='utf-8-sig')
-                
-                # Apply transformations
-                df = normalize_column_names(df)
-                df = add_derived_fields(df, config.get('derive', {}))
-                df = clean_event_data(df)
-                
-                # Convert to KPI format
-                kpi_df = convert_to_kpi_format(df, demographic_mapper)
-                
-                if not kpi_df.empty:
-                    all_data.append(kpi_df)
-                    logger.info(f"Processed {len(kpi_df)} KPI records from {filename}")
-                else:
-                    logger.warning(f"No data produced from {filename}")
-                    
-            except Exception as e:
-                logger.error(f"Error processing {filename}: {str(e)}")
+        if not file_path.exists():
+            continue
+        try:
+            logger.info(f"Processing behavior file: {filename}")
+            df = _read_events_csv(file_path)
+            df = normalize_column_names(df)
+            df = add_derived_fields(df, config.get('derive', {}))
+            df = clean_event_data(df)
+            kpi_df = convert_to_kpi_format(df, demographic_mapper)
+            del df
+            if not kpi_df.empty:
+                _cast_string_columns_to_category(kpi_df)
+                all_data.append(kpi_df)
+                logger.info(f"Processed {len(kpi_df)} KPI records from {filename}")
+            else:
+                logger.warning(f"No data produced from {filename}")
+        except Exception as e:
+            logger.error(f"Error processing {filename}: {str(e)}")
+            raise
     
     # Combine all data
     if all_data:
+        # Each file is already in KPI_COLUMNS order. A second reindex copies
+        # the whole frame. Align the category codes, then drop the per-file frames.
+        _align_categories(all_data)
         combined_df = pd.concat(all_data, ignore_index=True)
-
-        # Ensure standard column order
-        combined_df = combined_df.reindex(columns=KPI_COLUMNS)
+        del all_data
+        gc.collect()
 
         # FIX: Ensure value column is numeric for etl_runner validation
         # Convert value column to numeric, this will properly handle suppressed records as NaN
         combined_df['value'] = pd.to_numeric(combined_df['value'], errors='coerce')
+        _assert_unique_keys(combined_df)
         
         # Save main output
         output_file = proc_path / 'safe_schools_events.csv'

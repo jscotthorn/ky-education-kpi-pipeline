@@ -153,15 +153,29 @@ raw_directories:
 
   safe_schools:
     - "KYRC24_SAFE_Behavior_Events_by_Context.csv"
+    # 2024-25. School year 20242025. Not a republish of another year.
+    # The historical host and datasets are the same bytes.
+    - url: "kyrc25"
+      file: "KYRC25_SAFE_Behavior_Events_by_Context.csv"
     - url: "kyrc26"
       file: "KYRC26_SAFE_Behavior_Events_by_Context.csv"
     - "KYRC24_SAFE_Behavior_Events_by_Grade_Level.csv"
+    # 2024-25 grade file. Headers are PS, K, 1st through 12th, and 14th.
+    # The historical KYRC24 grade file still uses Preschool and Grade N.
+    # datasets KYRC24 grade turns published zeros into stars. Same filename,
+    # so the historical KYRC24 file stays the only KYRC24 registration.
+    - url: "kyrc25"
+      file: "KYRC25_SAFE_Behavior_Events_by_Grade_Level.csv"
     - url: "kyrc26"
       file: "KYRC26_SAFE_Behavior_Events_by_Grade_Level.csv"
     - "KYRC24_SAFE_Behavior_Events_by_Location.csv"
+    - url: "kyrc25"
+      file: "KYRC25_SAFE_Behavior_Events_by_Location.csv"
     - url: "kyrc26"
       file: "KYRC26_SAFE_Behavior_Events_by_Location.csv"
     - "KYRC24_SAFE_Behavior_Events_by_Type.csv"
+    - url: "kyrc25"
+      file: "KYRC25_SAFE_Behavior_Events_by_Type.csv"
     - url: "kyrc26"
       file: "KYRC26_SAFE_Behavior_Events_by_Type.csv"
     - "KYRC24_SAFE_Discipline_Resolutions.csv"
