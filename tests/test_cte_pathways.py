@@ -124,7 +124,7 @@ class TestCTEPathwaysETL:
         assert _one(df, "2026", "999000", "cte_concentrator_count")["value"] == "2017.0"
         assert _one(df, "2026", "999000", "cte_concentrator_count")["suppressed"] == "N"
         assert _one(df, "2026", "999000", "cte_pathway_completer_count")["suppressed"] == "Y"
-        assert _one(df, "2026", "999000", "cte_pathway_completion_rate")["suppressed"] == "Y"
+        assert "cte_pathway_completion_rate" not in set(df["metric"])
 
         caldwell = _one(df, "2026", "081010", "num_cte_pathways")
         assert caldwell["value"] == "7.0"
@@ -133,9 +133,6 @@ class TestCTEPathwaysETL:
         assert _one(df, "2026", "081010", "cte_pathway_enrollment")["value"] == "556.0"
         assert _one(df, "2026", "081010", "cte_concentrator_count")["value"] == "413.0"
         assert _one(df, "2026", "081010", "cte_pathway_completer_count")["value"] == "143.0"
-        rate = _one(df, "2026", "081010", "cte_pathway_completion_rate")
-        assert rate["value"] == "34.6"
-        assert rate["suppressed"] == "N"
         assert set(_rows(df, "2026", "081010")["suppressed"]) == {"N"}
 
         bellevue_enrollment = _one(df, "2026", "032010", "cte_pathway_enrollment")
@@ -144,7 +141,6 @@ class TestCTEPathwaysETL:
         assert _one(df, "2026", "032010", "num_cte_pathways")["value"] == "2.0"
         assert _one(df, "2026", "032010", "cte_concentrator_count")["value"] == "41.0"
         assert _one(df, "2026", "032010", "cte_pathway_completer_count")["suppressed"] == "Y"
-        assert _one(df, "2026", "032010", "cte_pathway_completion_rate")["suppressed"] == "Y"
 
         for school_id in ("606000", "606460"):
             count = _one(df, "2026", school_id, "num_cte_pathways")
@@ -171,7 +167,7 @@ class TestCTEPathwaysETL:
         assert _one(df, "2021", "555070", "cte_concentrator_count")["suppressed"] == "N"
         assert _one(df, "2021", "555070", "cte_pathway_enrollment")["suppressed"] == "Y"
         assert _one(df, "2021", "555070", "cte_pathway_completer_count")["suppressed"] == "Y"
-        assert _one(df, "2021", "555070", "cte_pathway_completion_rate")["suppressed"] == "Y"
+        assert "cte_pathway_completion_rate" not in set(df["metric"])
         assert _one(df, "2021", "555070", "num_cte_pathways")["district"] == "Trigg County"
 
     def test_blank_row_is_not_offered(self, tmp_path):
@@ -206,7 +202,7 @@ class TestCTEPathwaysETL:
         """pandas 3 dtype=str is StringDtype. ``2,546`` stays 2546.
 
         The same strip works for object text. A published 0 concentrator
-        total does not produce a rate.
+        total is kept. The completion rate is not emitted.
         """
         for dtype in ("string", object):
             frame = pd.DataFrame(
@@ -321,7 +317,6 @@ class TestCTEPathwaysETL:
             "cte_pathway_enrollment",
             "cte_concentrator_count",
             "cte_pathway_completer_count",
-            "cte_pathway_completion_rate",
         }
 
     def test_file_without_measure_columns_writes_nothing(self, tmp_path):
