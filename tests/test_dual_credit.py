@@ -118,6 +118,7 @@ class TestDualCreditETL:
         assert metrics['dual_credit_qualifying_score_count'] == 900
         assert 'dual_credit_completion_rate' in metrics
         assert metrics['dual_credit_completion_rate'] == 95.0
+        assert 'has_dual_credit_program' not in metrics
 
     def test_extract_metrics_with_qualifying_rate(self):
         """Test qualifying score rate calculation."""
@@ -224,34 +225,16 @@ class TestDualCreditETL:
         assert output_file.exists()
         df = pd.read_csv(output_file)
         # A fully starred participation row is stored. notes/8: value NA, suppressed Y.
-        # Three counts plus the program flag. Rates are omitted because neither
-        # component was published.
-        assert len(df) == 4
+        # Three counts. Rates are omitted because neither component was published.
+        # has_dual_credit_program is not emitted.
+        assert len(df) == 3
         assert set(df['metric']) == {
             'dual_credit_enrollment',
             'dual_credit_completion_count',
             'dual_credit_qualifying_score_count',
-            'has_dual_credit_program',
         }
         assert (df['suppressed'] == 'Y').all()
         assert df['value'].isna().all()
-
-    def test_has_dual_credit_program_indicator(self):
-        """Test has_dual_credit_program boolean indicator."""
-        row_with_enrollment = pd.Series({
-            'course_enrollment': '100',
-            'course_completers': '80',
-        })
-        row_zero_enrollment = pd.Series({
-            'course_enrollment': '0',
-            'course_completers': '0',
-        })
-
-        metrics_with = self.etl.extract_metrics(row_with_enrollment)
-        metrics_zero = self.etl.extract_metrics(row_zero_enrollment)
-
-        assert metrics_with.get('has_dual_credit_program') == 1
-        assert metrics_zero.get('has_dual_credit_program') == 0
 
 
 class TestDualCreditHelpers:
@@ -271,6 +254,7 @@ class TestDualCreditHelpers:
         assert pd.isna(defaults['dual_credit_enrollment'])
         assert 'dual_credit_completion_count' in defaults
         assert pd.isna(defaults['dual_credit_completion_count'])
+        assert 'has_dual_credit_program' not in defaults
 
     def test_should_skip_row_with_demographic(self):
         """Test row skipping with demographic column."""
@@ -418,8 +402,9 @@ class TestDualCreditKyrc26:
             assert len(rows) == 1, metric
             assert rows.iloc[0]["suppressed"] == "N"
             assert float(rows.iloc[0]["value"]) == float(expected)
-        # A zero enrollment does not invent a rate.
+        # A zero enrollment does not invent a rate, and the program flag is not stored.
         assert "dual_credit_completion_rate" not in set(df["metric"])
+        assert "has_dual_credit_program" not in set(df["metric"])
 
     def test_repeated_school_key_keeps_the_larger_enrollment(self):
         """2023-2026 do not repeat a key. A synthetic pair must not both be stored.
@@ -499,6 +484,7 @@ class TestDualCreditKyrc26:
         assert (result.loc[~published, "suppressed"] == "Y").all()
         keys = ["year", "school_id", "student_group", "metric"]
         assert result.groupby(keys).size().max() == 1
+        assert "has_dual_credit_program" not in set(result["metric"])
 
         def cell(year, school_id, group, metric):
             rows = result[
@@ -526,7 +512,6 @@ class TestDualCreditKyrc26:
         assert float(cell("2026", "999000", "All Students", "dual_credit_qualifying_score_count")["value"]) == 50002.0
         assert float(cell("2026", "999000", "All Students", "dual_credit_completion_rate")["value"]) == 94.0
         assert float(cell("2026", "999000", "All Students", "dual_credit_qualifying_score_rate")["value"]) == 95.8
-        assert float(cell("2026", "999000", "All Students", "has_dual_credit_program")["value"]) == 1.0
 
         offered = cell("2026", "999000", "All Students", "dual_credit_course_enrollment_all_enrollments")
         assert float(offered["value"]) == 143848.0
@@ -562,7 +547,6 @@ class TestDualCreditKyrc26:
         suppressed("2026", "001010", "African American", "dual_credit_enrollment")
         suppressed("2026", "001010", "African American", "dual_credit_completion_count")
         suppressed("2026", "001010", "African American", "dual_credit_qualifying_score_count")
-        suppressed("2026", "001010", "African American", "has_dual_credit_program")
 
         partial = cell("2026", "011020", "African American", "dual_credit_enrollment")
         assert float(partial["value"]) == 3.0
