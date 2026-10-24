@@ -395,17 +395,18 @@ STATE_SCHOOL_CODES = ('999', '999000')
 def state_row_mask(df: pd.DataFrame) -> pd.Series:
     """Boolean mask for statewide rows.
 
-    Files through 2023 label the state row district 'State' (school code 999);
-    KYRC-era files (2024+) label it 'All Districts' (school code 999000).
-    The school code is preferred when the column is present and matches;
-    otherwise fall back to the district label.
+    Files through 2023 label the state row district 'State' (school code 999).
+    KYRC files (KYRC23 onward, e.g. the 2023 CTE rates and 2024+) label it
+    'All Districts' (school code 999000). A row is a state row when its school
+    code is 999 or 999000, or its district is one of those labels. The result
+    does not depend on which other rows are in the frame, so chunked and
+    whole-file loads select the same rows.
     """
+    mask = df['district'].isin(STATE_DISTRICT_LABELS)
     if 'school_code' in df.columns:
         codes = df['school_code'].astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
-        by_code = codes.isin(STATE_SCHOOL_CODES)
-        if by_code.any():
-            return by_code
-    return df['district'].isin(STATE_DISTRICT_LABELS)
+        mask = mask | codes.isin(STATE_SCHOOL_CODES)
+    return mask
 
 
 def load_data(data_path: Path, county: Optional[str] = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -786,7 +787,7 @@ def get_state_average(
 ) -> Optional[float]:
     """Get the state average for a metric.
 
-    State data has district='State' (or 'All Districts' from 2024) and school_name='---District Total---'.
+    State data has district='State' (or 'All Districts' in KYRC files) and school_name='---District Total---'.
 
     Args:
         state_df: DataFrame containing state-level data

@@ -45,12 +45,24 @@ def test_state_average_still_found_for_legacy_state_label(kpi_csv):
     assert get_state_average(state_df, "synthetic_rate_test", 2023) == 61.5
 
 
-def test_state_mask_prefers_school_code_over_label():
+def test_state_mask_matches_school_code_regardless_of_label():
     df = pd.DataFrame({
         "district": ["Testville", "Testville"],
         "school_code": ["999000", "901000"],
     })
     assert state_row_mask(df).tolist() == [True, False]
+
+
+def test_state_mask_keeps_label_rows_alongside_code_rows():
+    # One frame (or one read_csv chunk) can hold both shapes, e.g. 2023 CTE
+    # counts on State/999 and rates on All Districts/999000. A state label
+    # with a blank or float-read code must not be dropped because another
+    # row in the same frame matched by code.
+    df = pd.DataFrame({
+        "district": ["State", "All Districts", "State", "Testville"],
+        "school_code": [999.0, "999000", None, "901000"],
+    })
+    assert state_row_mask(df).tolist() == [True, True, True, False]
 
 
 def test_state_mask_falls_back_to_label_without_school_code():
