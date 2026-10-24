@@ -484,12 +484,18 @@ Percent favorable from the Impact Kentucky working conditions survey. KDE's repo
 - `teacher_working_conditions_managing_student_behavior` - Percent favorable for managing student behavior (0-100)
 - `teacher_working_conditions_school_climate` - Percent favorable for school climate (0-100, KYRC24 through KYRC26)
 - `teacher_working_conditions_school_leadership` - Percent favorable for school leadership (0-100)
-- `teacher_working_conditions_teaching_environment` - Percent favorable for teaching environment (0-100, 2020-2023 files only)
+- `teacher_working_conditions_teaching_environment` - Percent favorable for teaching environment (0-100, 2020 and 2022 administrations only)
+
+**Administration**: The survey is administered in even years only: 2020, 2022, 2024, and 2026. The KPI year is the ending year of the school year of administration, so odd years have no row (see `notes/105.md`).
+
+**Series break**: 2020 and 2022 publish a Teaching Environment construct. 2024 and later publish School Climate. They are separate series with no bridge between them (Scott's decision); neither is copied onto the other metric name.
+
+**Known gap**: KYRC26 is missing districts 001-095 at the source (Refs #111).
 
 **Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns. State rows use district `All Districts` for 2024-2026 and `State` for 2020-2023. A published 0 is kept. The text `N/A` has no response count beside it, so those rows are omitted rather than stored as zero.
 
 **Data Sources**: KYRC26_OVW_Teacher_Working_Conditions.csv, KYRC25_OVW_Teacher_Working_Conditions.csv, KYRC24_OVW_Teacher_Working_Conditions.csv, teacher_working_conditions_{year}.csv
-**Years Available**: 2020-2026
+**Years Available**: 2020, 2022, 2024, 2026 (even years only)
 **Unit**: Percent favorable (0-100)
 **Demographics**: School-level only (All Students)
 
@@ -515,6 +521,13 @@ District-level financial and staffing metrics from KDE Financial Summary reports
 - `certified_staff_non_teachers_fte` - Certified staff FTE for non-teachers (administrators, counselors, etc.) - *derived metric*
 - `classified_staff_fte` - Classified (non-certified) staff FTE
 - `total_staff_fte` - Total staff FTE (certified + classified) - *derived metric*
+
+### Students per Staff
+- `students_per_certified_staff` - `eoy_student_membership` / `certified_staff_fte`, rounded to 2 decimals
+- `students_per_classified_staff` - `eoy_student_membership` / `classified_staff_fte`, rounded to 2 decimals
+- `students_per_non_teacher_certified_staff` - `eoy_student_membership` / `certified_staff_non_teachers_fte`, rounded to 2 decimals
+
+These three are recomputed by the pipeline from the KDE-published membership and staff FTE inputs; KDE does not publish them. A ratio is omitted when membership or the staff count is missing, starred, or 0.
 
 **Data Sources**: KYRC25_FT_Financial_Summary.csv, KYRC24_FT_Financial_Summary.csv, financial_summary_{year}.csv, FINANCE_18-19.xlsx
 **Years Available**: 2019-2025
