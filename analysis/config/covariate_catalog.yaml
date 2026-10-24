@@ -749,20 +749,6 @@ covariates:
         - postsecondary_readiness
         - graduation_rate
 
-    has_dual_credit_program:
-      description: "School offers dual credit courses (binary indicator)"
-      source: kde_dual_credit
-      unit: binary
-      expected_direction: positive
-      literature_support: |
-        Dual credit programs increase college enrollment and persistence.
-        An (2013): dual credit participation predicts college completion,
-        especially for first-generation students.
-      encoding: dummy
-      theoretical_relevance:
-        - postsecondary_readiness
-        - graduation_rate
-
     has_algebra_1_access_grade_8:
       description: "8th graders have access to Algebra 1 (binary indicator)"
       source: kde_school_courses
@@ -863,7 +849,6 @@ indicators:
       # Educational opportunity (new November 2025)
       - ap_participation_rate
       - num_ap_courses_offered
-      - has_dual_credit_program
       - num_cte_pathways
       - cte_participation_rate
       # Staffing ratios (new November 2025)
@@ -884,6 +869,9 @@ indicators:
       - Version 1.1: Added school climate indices, teacher working conditions,
         educational opportunity measures, and additional staffing ratios
       - The climate and safety covariates are the high-school indexes, matching A1 schools
+      - Scott Horn removed `has_dual_credit_program` from the optional covariates
+        on 2026-10-20. The flag was never 0 in the published files. No other
+        metric was substituted.
 
   chronic_absenteeism:
     description: "Percentage of students chronically absent (>10% of days)"
@@ -951,7 +939,6 @@ indicators:
       - tract_median_household_income
       # Educational opportunity (new November 2025) - critical for readiness
       - ap_participation_rate
-      - has_dual_credit_program
       - num_cte_pathways
 
     optional_covariates:
@@ -971,8 +958,11 @@ indicators:
     notes: |
       Parental education (tract_pct_bachelors_plus) is the strongest predictor
       of college-going behavior - always include.
-      Version 1.1: Added educational opportunity measures (AP, dual credit, CTE)
+      Version 1.1: Added educational opportunity measures (AP and CTE)
       which directly capture access to college/career preparation pathways.
+      Scott Horn removed `has_dual_credit_program` on 2026-10-20. It was 1
+      whenever enrollment was positive, and no published enrollment is 0, so
+      the flag carried no information. No other metric was substituted.
       Counselor availability (via staffing ratio) linked to college enrollment.
       The climate covariate is the high-school index, matching A1 schools.
 
