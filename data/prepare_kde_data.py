@@ -60,15 +60,21 @@ class KDEDownloader:
         return self.config["base_url"]
 
     def _entry_url(self, file_entry: object) -> tuple[str, str]:
-        """Return (filename, absolute url) for a string or dict config entry."""
+        """Return (local filename, absolute url) for a string or dict entry.
+
+        ``file`` is the remote object name. ``save_as`` is an optional local
+        name for a second copy of that same remote name.
+        """
         if isinstance(file_entry, dict):
             url_type = str(file_entry.get("url", "default"))
-            filename = str(file_entry["file"])
+            remote_name = str(file_entry["file"])
+            local_name = str(file_entry.get("save_as") or remote_name)
             base_url = self._base_url_for(url_type)
         else:
-            filename = str(file_entry)
+            remote_name = str(file_entry)
+            local_name = remote_name
             base_url = self.config["base_url"]
-        return filename, f"{base_url}{filename}"
+        return local_name, f"{base_url}{remote_name}"
 
     def _meta_path(self, file_path: Path) -> Path:
         return file_path.with_name(file_path.name + ".kde-source.yaml")

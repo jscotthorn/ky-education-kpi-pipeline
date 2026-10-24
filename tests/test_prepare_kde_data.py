@@ -297,3 +297,30 @@ def test_content_md5_mismatch_redownloads(downloader, monkeypatch):
     assert results["KYRC26_OVW_Chronic_Absenteeism.csv"] is True
     assert target.read_bytes() == b"replaced"
     assert tool._read_source_meta(target)["content_md5"] == "new="
+
+
+def test_save_as_downloads_the_remote_name_to_a_local_name(downloader, monkeypatch):
+    """Two hosts can publish one filename. save_as keeps both local copies."""
+    module, tool = downloader
+    tool.config["base_url"] = "https://historical.example/"
+    remote = "KYRC24_OVW_Teacher_Working_Conditions.csv"
+    local = "KYRC24_OVW_Teacher_Working_Conditions_historical.csv"
+    tool.config["raw_directories"]["chronic_absenteeism"] = [
+        {"url": "historical", "file": remote, "save_as": local}
+    ]
+    stamp = "Thu, 29 May 2025 22:07:04 GMT"
+    requested = []
+
+    def get(url, **_kwargs):
+        requested.append(url)
+        return _response(b"historical-copy", stamp)
+
+    monkeypatch.setattr(module.requests, "get", get)
+    results = tool.download_directory("chronic_absenteeism")
+
+    assert results[local] is True
+    assert remote not in results
+    stored = tool.raw_data_path / "chronic_absenteeism" / local
+    assert stored.read_bytes() == b"historical-copy"
+    assert not (tool.raw_data_path / "chronic_absenteeism" / remote).exists()
+    assert requested == [f"https://historical.example/{remote}"]

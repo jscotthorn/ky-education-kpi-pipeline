@@ -83,7 +83,10 @@
 - School size, Title I status, Urban/Rural, School type, Region
 
 **Optional Covariates:**
-- Teacher experience, student-teacher ratio, spending per student, climate/safety scores
+- Teacher experience, student-teacher ratio, spending per student
+- Published climate and safety indexes: `climate_index_score_{elementary|middle|high}` and `safety_index_score_{elementary|middle|high}`
+
+Scott decided on 2026-10-20 to remove `climate_index_score_calculated` and `safety_index_score_calculated`, and the `format_calculated_scores_as_kpi()` path that wrote them. The survey average ignored school level and kept the elementary file. The published per-level indexes replace them. There is no unsuffixed alias. 2021-22 is not in this series.
 
 ## Files Modified
 

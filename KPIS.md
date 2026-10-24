@@ -217,12 +217,10 @@ The parser stores the count KDE published. That is the existing calculation. No 
 - `safety_index_score_elementary`, `safety_index_score_middle`, `safety_index_score_high` - Published safety index, with the same level suffix and the same decision. A row with no level is not stored
 - `climate_safety_indicator_rate_elementary`, `climate_safety_indicator_rate_middle`, `climate_safety_indicator_rate_high` - 2022 `QUALITY OF SCHOOL CLIMATE AND SAFETY INDICATOR RATE`, stored once. State elementary / high / middle is 76.6 / 61.4 / 65.9. This is not the climate index
 - `climate_safety_combined_indicator_rate_elementary`, `climate_safety_combined_indicator_rate_middle`, `climate_safety_combined_indicator_rate_high` - 2023 `QUALITY OF SCHOOL CLIMATE AND SAFETY COMBINED INDICATOR RATE` (status plus change), stored once. Not STATUS. State combined versus status is elementary 77.0 versus 76.8, high 62.0 versus 61.7, and middle 65.3 versus 65.6. This is not the 2022 indicator rate and not the KYRC23 climate index. Three Breathitt County rows with school year `20022023` are year 2023 (combined rates 82.2, 46.5, and 66.6)
-- `climate_index_score_calculated` - School climate index calculated as the average of individual survey question responses
-- `safety_index_score_calculated` - School safety index calculated as the average of individual survey question responses
 
 The 2022 accountability profile stores `QUALITY OF SCHOOL CLIMATE AND SAFETY INDICATOR RATE` as `climate_safety_indicator_rate_{level}`. The 2023 profile stores `QUALITY OF SCHOOL CLIMATE AND SAFETY COMBINED INDICATOR RATE` (status plus change), not STATUS, as `climate_safety_combined_indicator_rate_{level}`. Each published number is stored once. The two years do not share a metric name. State 2023 combined versus status is elementary 77.0 versus 76.8, high 62.0 versus 61.7, and middle 65.3 versus 65.6. `KYRC23_ACCT_Index_Scores.csv` is the 2023 climate and safety index and is loaded. A `*` is value NA with `suppressed` Y, including an all-star row. A blank cell is not stored. A published 0 is kept. KYRC state rows are district `All Districts` and school code `999000`. The 2022-2023 profile state rows are district `State` and school code `999`. Those codes are not padded. Co-op `GREC` (2025) and `GLEC` (2026) are stored as published. `GRREC` is a different co-op.
 
-**Note**: The `_calculated` metrics provide demographic breakdowns for historical years (2021-2023) where direct index scores are only available for "All Students". They are not an unsuffixed alias for the published index. `analysis/scripts/school_climate_analysis.py` keeps one row per school, year, and level for `climate_index_score_elementary`, `climate_index_score_middle`, and `climate_index_score_high` in 2023-2026. It does not pick a grade span, because one school code can publish two levels. The 2022 indicator rate is not that outcome. Scott decided on 2026-10-20 to keep `outside_doors_locked_during_school_hours` as the published yes/no answer (1 for Yes, 0 for No). It is not a rate and not a share.
+**Note**: `analysis/scripts/school_climate_analysis.py` keeps one row per school, year, and level for `climate_index_score_elementary`, `climate_index_score_middle`, and `climate_index_score_high` in 2023-2026. It does not pick a grade span, because one school code can publish two levels. The 2022 indicator rate is not that outcome. Scott decided on 2026-10-20 to remove `climate_index_score_calculated` and `safety_index_score_calculated`. Those averages ignored school level and kept the elementary survey file, so district and multi-level school values were elementary-only. The published per-level indexes replace them. There is no unsuffixed alias. 2021-22 is not in this series. Scott decided on 2026-10-20 to keep `outside_doors_locked_during_school_hours` as the published yes/no answer (1 for Yes, 0 for No). It is not a rate and not a share.
 
 ## Kentucky Summative Assessment
 **Source**: `etl/kentucky_summative_assessment.py`
@@ -508,8 +506,8 @@ District-level financial and staffing metrics from KDE Financial Summary reports
 - `eoy_student_membership` - End-of-year student membership count for the district
 
 ### Fund Balance
-- `fund_balance` - District fund balance in dollars
-- `fund_balance_pct` - Fund balance as percentage of expenditures
+- `fund_balance` - District fund balance in dollars. This can be negative. KDE publishes a deficit in accounting parentheses: Berea Independent is `(58,197)` in 2024 and `(1,344,948)` in 2025, and Estill County is `(546,409)` in 2025.
+- `fund_balance_pct` - Fund balance as percentage of expenditures. This can be negative for the same reason: Berea Independent is `(1)` in 2024 and `(12)` in 2025, and Estill County is `(3)` in 2025.
 
 ### Staff FTE Counts
 - `certified_staff_fte` - Total certified staff FTE (teachers + other certified personnel)
@@ -518,8 +516,8 @@ District-level financial and staffing metrics from KDE Financial Summary reports
 - `classified_staff_fte` - Classified (non-certified) staff FTE
 - `total_staff_fte` - Total staff FTE (certified + classified) - *derived metric*
 
-**Data Sources**: KYRC24_FT_Financial_Summary.csv, financial_summary_{year}.csv
-**Years Available**: 2020-2024
+**Data Sources**: KYRC25_FT_Financial_Summary.csv, KYRC24_FT_Financial_Summary.csv, financial_summary_{year}.csv, FINANCE_18-19.xlsx
+**Years Available**: 2019-2025
 **Unit**: Counts (FTE or student headcount), dollars (fund balance), percentage (fund balance %)
 **Demographics**: District-level only (All Students)
 
