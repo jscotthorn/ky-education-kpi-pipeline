@@ -17,6 +17,13 @@ KDE publishes two different measures, and this module keeps them apart:
 
 There is no Suppressed column. A ``*`` on a measure cell is stored as
 value NA with suppressed Y. A blank cell is not a star and is not stored.
+
+The pipeline does not emit ``has_dual_credit_program``. That flag was 1
+whenever enrollment was positive and suppressed Y when enrollment was
+starred. No published enrollment is 0, and a school without a program has
+no row, so the flag was never 0. Scott Horn dropped it on 2026-10-20. Do
+not restore it and do not add an alias. Enrollment, completion,
+qualifying-score rates, and the course-level rates stay.
 """
 from pathlib import Path
 import re
@@ -436,13 +443,6 @@ class DualCreditETL(BaseETL):
         else:
             rate_completion = "dual_credit_completion_rate"
             rate_qualifying = "dual_credit_qualifying_score_rate"
-            # The program flag follows the unduplicated enrollment. A star
-            # means the flag is withheld. A published 0 means the program
-            # is not reported for that group.
-            if _metric_was_starred(row, "course_enrollment"):
-                metrics["has_dual_credit_program"] = pd.NA
-            elif not _is_missing(enrollment) and enrollment >= 0:
-                metrics["has_dual_credit_program"] = 1 if enrollment > 0 else 0
 
         if not _is_missing(enrollment) and not _is_missing(completers) and enrollment > 0 and completers >= 0:
             metrics[rate_completion] = round((completers / enrollment) * 100, 1)
@@ -454,7 +454,8 @@ class DualCreditETL(BaseETL):
         """Write a published cell as ``N`` and a ``*`` cell as ``Y``.
 
         A blank cell is not a row. A fully starred participation row writes
-        the three counts and ``has_dual_credit_program`` as suppressed.
+        the three counts as suppressed. ``has_dual_credit_program`` is not
+        emitted.
         Courses-offered subjects do not share a metric with the
         participation file, so All Enrollments (143,848 in 2026) is not
         written on top of All Students (55,553 in 2026).
@@ -491,7 +492,6 @@ class DualCreditETL(BaseETL):
         names = self._metric_names(row) or dict(_STUDENT_METRICS)
         defaults = {metric_name: pd.NA for metric_name in names.values()}
         if not self._is_course_row(row):
-            defaults["has_dual_credit_program"] = pd.NA
             defaults["dual_credit_completion_rate"] = pd.NA
             defaults["dual_credit_qualifying_score_rate"] = pd.NA
         return defaults

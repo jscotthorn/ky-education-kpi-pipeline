@@ -25,7 +25,7 @@ The pipelines were restructured by an automated linter with the following change
 
 **Dual Credit (`etl/dual_credit.py`)**:
 - Simplified metric naming: `dual_credit_enrollment`, `dual_credit_completion_count`
-- Added `has_dual_credit_program` boolean indicator
+- Added `has_dual_credit_program` boolean indicator. Scott Horn removed it on 2026-10-20. Do not restore it and do not add an alias
 - Improved handling of files with and without demographics
 
 ### Test Updates
@@ -68,7 +68,8 @@ The pipelines were restructured by an automated linter with the following change
 | `dual_credit_qualifying_score_count` | Students with qualifying scores |
 | `dual_credit_completion_rate` | Enrollment to completion percentage |
 | `dual_credit_qualifying_score_rate` | Completion to qualifying percentage |
-| `has_dual_credit_program` | Boolean (1/0) program indicator |
+
+Scott Horn removed `has_dual_credit_program` on 2026-10-20. It is not emitted, and there is no alias.
 
 ## Data Quality Note
 
