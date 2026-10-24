@@ -14,7 +14,7 @@ KDE also writes a negative fund balance in accounting parentheses. Berea Indepen
 
 ## Parser
 
-Commas are removed on object and on StringDtype. `(1,344,948)` becomes `-1344948`. A `*` is recorded first and stored as value NA with suppressed Y. A blank cell is not stored. A published 0 is kept. `BaseETL` is unchanged.
+Commas are removed on object and on StringDtype. `(1,344,948)` becomes `-1344948`. A `*` is recorded first and stored as value NA with suppressed Y. A blank cell is not stored. A 0 is kept. No registered financial summary file publishes a `*` or a 0 in these columns. `BaseETL` is unchanged.
 
 The three staffing ratios are still membership divided by staff FTE, rounded to two decimals. A star or a blank in either input omits the ratio. A published 0 staff FTE omits the ratio. Metric names are unchanged.
 
@@ -86,8 +86,8 @@ Breathitt County's 2023 school-year text is `20022023`. The ending year is still
 
 ## Tests
 
-`tests/fixtures/financial_summary/comma_formatted_kyrc.csv` has a comma-formatted Fayette row, Berea's `(58,197)`, a `*` membership, a blank percent, a published 0, and a state row. The same comma and parenthesis cases are checked on StringDtype and on object.
+`tests/fixtures/financial_summary/comma_formatted_kyrc.csv` copies the Fayette, Berea, and state rows byte-for-byte from `KYRC24_FT_Financial_Summary.csv`. Berea's classified staff is the published 67, so `students_per_classified_staff` is 948/67 = 14.15. The `*` membership, the blank percent, and the zero row are labelled synthetic (`SYNSTAR`, `SYNBLNK`, `SYNZERO`). They are not KDE district rows. Hardin County's blank 2022 fund-balance percent is the real blank, and it stays omitted. The same comma and parenthesis cases are checked on StringDtype and on object.
 
 `test_extract_metrics`, `test_get_suppressed_metric_defaults`, `test_transform_2020_format`, and `test_mixed_year_formats` still expect 8 metrics. The module already emitted 11, including the three staffing ratios, before this change. Those assertions were not edited.
 
-This note is `notes/110.md`. `KPIS.md`, `README.md`, and `notes/104--kyrc26-file-to-etl-mapping.md` are unchanged from `feature/2025-26-kyrc26`. The pre-review comparison against `18f4a675dbe20120718c5f448b2351166780ca42` is in the pull request.
+This note is `notes/110--financial-summary-thousands-separators.md`. `KPIS.md` records that `fund_balance` and `fund_balance_pct` can be negative, lists years 2019-2025, and names `KYRC25_FT_Financial_Summary.csv` and `FINANCE_18-19.xlsx`. `README.md` and `notes/104--kyrc26-file-to-etl-mapping.md` are unchanged from `feature/2025-26-kyrc26`. The pre-review comparison is in the pull request.

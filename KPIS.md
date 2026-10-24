@@ -501,8 +501,8 @@ District-level financial and staffing metrics from KDE Financial Summary reports
 - `eoy_student_membership` - End-of-year student membership count for the district
 
 ### Fund Balance
-- `fund_balance` - District fund balance in dollars
-- `fund_balance_pct` - Fund balance as percentage of expenditures
+- `fund_balance` - District fund balance in dollars. This can be negative. KDE publishes a deficit in accounting parentheses: Berea Independent is `(58,197)` in 2024 and `(1,344,948)` in 2025, and Estill County is `(546,409)` in 2025.
+- `fund_balance_pct` - Fund balance as percentage of expenditures. This can be negative for the same reason: Berea Independent is `(1)` in 2024 and `(12)` in 2025, and Estill County is `(3)` in 2025.
 
 ### Staff FTE Counts
 - `certified_staff_fte` - Total certified staff FTE (teachers + other certified personnel)
@@ -511,8 +511,8 @@ District-level financial and staffing metrics from KDE Financial Summary reports
 - `classified_staff_fte` - Classified (non-certified) staff FTE
 - `total_staff_fte` - Total staff FTE (certified + classified) - *derived metric*
 
-**Data Sources**: KYRC24_FT_Financial_Summary.csv, financial_summary_{year}.csv
-**Years Available**: 2020-2024
+**Data Sources**: KYRC25_FT_Financial_Summary.csv, KYRC24_FT_Financial_Summary.csv, financial_summary_{year}.csv, FINANCE_18-19.xlsx
+**Years Available**: 2019-2025
 **Unit**: Counts (FTE or student headcount), dollars (fund balance), percentage (fund balance %)
 **Demographics**: District-level only (All Students)
 

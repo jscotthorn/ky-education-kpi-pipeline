@@ -392,6 +392,8 @@ class FinancialSummaryETL(BaseETL):
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
         """Write a published number as ``N`` and a ``*`` cell as ``Y``.
 
+        This override must track ``BaseETL.convert_to_kpi_format``.
+
         A blank measure is not a row. A published 0 is kept. A starred
         cell is value NA with ``suppressed`` Y. The other measures on
         that district stay ``N``. Derived ratios are omitted when an
