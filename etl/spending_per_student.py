@@ -1,7 +1,7 @@
 """
 Spending Per Student ETL Module
 
-Handles Kentucky per-pupil spending data across years 2020-2025.
+Handles Kentucky per-pupil spending data across years 2019-2025.
 Normalizes column names, handles schema variations, standardizes missing values,
 and processes spending metrics across different funding sources.
 
@@ -18,7 +18,6 @@ import pandas as pd
 from typing import Dict, Any
 import logging
 import sys
-import re
 
 # Add etl directory to path for imports
 etl_dir = Path(__file__).parent
@@ -29,32 +28,151 @@ from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
 
+# Source measure columns after the column rename. A comma in ``20,164``
+# has to be gone before ``to_numeric``. These are published dollars per
+# student. Nothing in this list is calculated from the others.
+_MEASURE_COLUMNS = (
+    'personnel_spending_federal',
+    'non_personnel_spending_federal',
+    'total_spending_federal',
+    'personnel_spending_state_local',
+    'non_personnel_spending_state_local',
+    'total_spending_state_local',
+    'total_spending_all_funds',
+)
+
+_SOURCE_METRICS = (
+    ('personnel_spending_federal', 'personnel_spending_per_student_federal'),
+    ('non_personnel_spending_federal', 'non_personnel_spending_per_student_federal'),
+    ('total_spending_federal', 'total_spending_per_student_federal'),
+    ('personnel_spending_state_local', 'personnel_spending_per_student_state_local'),
+    ('non_personnel_spending_state_local', 'non_personnel_spending_per_student_state_local'),
+    ('total_spending_state_local', 'total_spending_per_student_state_local'),
+    ('total_spending_all_funds', 'total_spending_per_student_all_funds'),
+)
+
+
+def _star_column_name(column: str) -> str:
+    """Boolean column that remembers a ``*`` after the cell becomes NA."""
+    return f'_star_{column}'
+
+
+def _is_string_like(series: pd.Series) -> bool:
+    """True for object text and for pandas StringDtype.
+
+    ``read_csv(..., dtype=str)`` on pandas 3 returns StringDtype, not object.
+    A comma in ``20,164`` has to be removed before ``to_numeric``. pandas
+    2.3.3 still returns object, so a ``dtype == object`` strip already keeps
+    that amount. pandas is unpinned.
+    """
+    return series.dtype == object or bool(pd.api.types.is_string_dtype(series))
+
+
+def _is_star_text(value: Any) -> bool:
+    """True when the cell text is a privacy star.
+
+    A blank is not a star. ``bool(pd.NA)`` is not used.
+    """
+    if isinstance(value, str):
+        return value.strip() in {'*', '**'}
+    return False
+
+
+def _star_mask(series: pd.Series) -> pd.Series:
+    """Boolean mask of ``*`` cells, false for blanks and numbers.
+
+    pandas 3 ``dtype=str`` is StringDtype. pandas 2.3.3 is object. Both go
+    through ``astype("string")``. A missing cell is false, not NA, so later
+    code never calls ``bool`` on ``pd.NA``.
+    """
+    if not _is_string_like(series):
+        return pd.Series(False, index=series.index)
+    stripped = series.astype('string').str.strip()
+    return stripped.isin(['*', '**']).fillna(False).astype(bool)
+
+
+def _flag_is_set(value: Any) -> bool:
+    """True for a recorded star flag. Missing and false stay false."""
+    try:
+        if bool(pd.isna(value)):
+            return False
+    except (TypeError, ValueError):
+        return False
+    if isinstance(value, str):
+        return False
+    return bool(value)
+
+
+def _metric_was_starred(row: pd.Series, column: str) -> bool:
+    """True when this measure cell was a ``*``.
+
+    ``standardize_missing_values`` records the position before it turns the
+    star into NA. A caller that still has the raw ``*`` is recognized from
+    the cell text. A blank is not a star.
+    """
+    flag_name = _star_column_name(column)
+    if flag_name in row.index:
+        return _flag_is_set(row.get(flag_name))
+    return _is_star_text(row.get(column))
+
+
+def _is_missing(value: Any) -> bool:
+    """True for None and for pandas missing values.
+
+    ``bool(pd.NA)`` raises. A blank string is missing. A published 0 is not.
+    """
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip() == ''
+    try:
+        return bool(pd.isna(value))
+    except (TypeError, ValueError):
+        return True
+
+
+def _normalize_numeric_text(series: pd.Series) -> pd.Series:
+    """Remove thousands separators.
+
+    ``20,164`` becomes ``20164``. ``astype("string")`` keeps a blank as
+    ``<NA>``. ``astype(str)`` would turn it into the literal ``"nan"``.
+    A ``*`` is left for ``to_numeric`` to drop after the star flag has
+    been recorded. A published 0 is left as 0.
+    """
+    text = series.astype('string').str.strip()
+    text = text.str.replace(',', '', regex=False)
+    text = text.str.replace('"', '', regex=False)
+    return text
+
 
 def clean_spending_values(df: pd.DataFrame) -> pd.DataFrame:
     """
     Clean and validate spending values.
 
     Handles:
-    - Comma-separated values (e.g., "9,827" -> 9827.0)
-    - Missing/suppressed values
+    - Comma-separated values (e.g., "20,164" -> 20164.0) on object and StringDtype
+    - Missing values, including a privacy star, become NA
+    - A published 0 stays 0
     - Negative values (should be very rare, log warnings)
     """
-    spending_columns = [col for col in df.columns if 'spending' in col.lower() or 'expenditure' in col.lower()]
+    spending_columns = [
+        col for col in df.columns
+        if not str(col).startswith('_star_')
+        and ('spending' in col.lower() or 'expenditure' in col.lower())
+    ]
 
     for col in spending_columns:
-        if col in df.columns:
-            # Remove commas from string values
-            if df[col].dtype == 'object':
-                df[col] = df[col].str.replace(',', '', regex=False)
+        if _is_string_like(df[col]):
+            df[col] = _normalize_numeric_text(df[col])
 
-            # Convert to numeric
-            df[col] = pd.to_numeric(df[col], errors='coerce')
+        # Convert to numeric
+        df[col] = pd.to_numeric(df[col], errors='coerce')
 
-            # Validate: spending should be non-negative
-            negative_mask = df[col] < 0
-            if negative_mask.any():
-                logger.warning(f"Found {negative_mask.sum()} negative spending values in {col}")
-                df.loc[negative_mask, col] = pd.NA
+        # Validate: spending should be non-negative
+        negative_mask = df[col] < 0
+        if negative_mask.any():
+            logger.warning(f"Found {negative_mask.sum()} negative spending values in {col}")
+            df.loc[negative_mask, col] = pd.NA
 
     return df
 
@@ -170,36 +288,23 @@ class SpendingPerStudentETL(BaseETL):
         """
         Extract spending metrics from a data row.
 
-        Returns all 7 spending metrics:
+        Returns the published spending amounts:
         - Federal: personnel, non-personnel, total
         - State/Local: personnel, non-personnel, total
         - All Funds: total
+
+        A starred source cell is stored as NA. A blank is omitted. A
+        published 0 is kept. No metric is calculated from the others.
         """
         metrics = {}
 
-        # Federal funding
-        if pd.notna(row.get('personnel_spending_federal')):
-            metrics['personnel_spending_per_student_federal'] = row['personnel_spending_federal']
-
-        if pd.notna(row.get('non_personnel_spending_federal')):
-            metrics['non_personnel_spending_per_student_federal'] = row['non_personnel_spending_federal']
-
-        if pd.notna(row.get('total_spending_federal')):
-            metrics['total_spending_per_student_federal'] = row['total_spending_federal']
-
-        # State/Local funding
-        if pd.notna(row.get('personnel_spending_state_local')):
-            metrics['personnel_spending_per_student_state_local'] = row['personnel_spending_state_local']
-
-        if pd.notna(row.get('non_personnel_spending_state_local')):
-            metrics['non_personnel_spending_per_student_state_local'] = row['non_personnel_spending_state_local']
-
-        if pd.notna(row.get('total_spending_state_local')):
-            metrics['total_spending_per_student_state_local'] = row['total_spending_state_local']
-
-        # All funds
-        if pd.notna(row.get('total_spending_all_funds')):
-            metrics['total_spending_per_student_all_funds'] = row['total_spending_all_funds']
+        for column, metric_name in _SOURCE_METRICS:
+            if _metric_was_starred(row, column):
+                metrics[metric_name] = pd.NA
+                continue
+            value = row.get(column)
+            if not _is_missing(value):
+                metrics[metric_name] = value
 
         return metrics
 
@@ -220,14 +325,63 @@ class SpendingPerStudentETL(BaseETL):
         }
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Override to include spending-specific data cleaning."""
-        # Apply base missing value standardization
+        """Record ``*`` positions, then strip thousands separators.
+
+        ``clean_spending_values`` used to remove commas only when
+        ``dtype == object``. pandas 3 ``dtype=str`` is StringDtype, so a
+        comma in ``20,164`` survived that check and ``to_numeric`` dropped
+        it. The cleaner runs on object and StringDtype. A ``*`` is recorded
+        before it becomes NA. A blank is not recorded. A published 0 is
+        left as 0.
+        """
+        star_columns = {
+            column: _star_mask(df[column])
+            for column in _MEASURE_COLUMNS
+            if column in df.columns
+        }
         df = super().standardize_missing_values(df)
-
-        # Apply spending-specific cleaning
         df = clean_spending_values(df)
-
+        for column, mask in star_columns.items():
+            df[_star_column_name(column)] = mask
         return df
+
+    def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """Write a published number as ``N`` and a ``*`` cell as ``Y``.
+
+        This override must track ``BaseETL.convert_to_kpi_format``.
+
+        A blank measure is not a row. A published 0 is kept. A starred
+        cell is value NA with ``suppressed`` Y. The other measures on
+        that school stay ``N``. No spending amount is calculated.
+        """
+        kpi_rows = []
+        for _, row in df.iterrows():
+            if self.should_skip_row(row):
+                continue
+            kpi_template = self.create_kpi_template(row, source_file)
+            if kpi_template is None:
+                continue
+            metrics = self.extract_metrics(row)
+            row_suppressed = kpi_template.get('suppressed') == 'Y'
+            if not metrics and row_suppressed:
+                metrics = self.get_suppressed_metric_defaults(row)
+            for metric_name, value in metrics.items():
+                kpi_record = kpi_template.copy()
+                kpi_record['metric'] = metric_name
+                if row_suppressed or _is_missing(value):
+                    kpi_record['value'] = pd.NA
+                    kpi_record['suppressed'] = 'Y'
+                else:
+                    kpi_record['value'] = float(value)
+                    kpi_record['suppressed'] = 'N'
+                kpi_rows.append(kpi_record)
+
+        if not kpi_rows:
+            logger.warning('No valid KPI rows created')
+            return pd.DataFrame()
+        kpi_df = pd.DataFrame(kpi_rows)
+        available_columns = [col for col in KPI_COLUMNS if col in kpi_df.columns]
+        return kpi_df[available_columns]
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

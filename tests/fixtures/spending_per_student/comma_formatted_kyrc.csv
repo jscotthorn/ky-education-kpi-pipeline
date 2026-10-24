@@ -1,0 +1,6 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP CODE,School Type,Personnel Expenditures State Local Per Student,Non-Personnel Expenditures State Local Per Student,Personnel Spending per Student - Federal Funds,Non-Personnel Spending per Student - Federal Funds,Total Spending per Student - State/Local Funds,Total Expenditures Federal Per Student,Total Expenditures Per Student
+20232024,034,FAYETTE,165,Fayette County,039,Henry Clay High School,165039,034165039,210186000364,CKEC,901,A1,"14,081","2,972",287,955,"17,053","1,242","20,164"
+20232024,045,GREENUP,502,Raceland-Worthington Independent,030,Raceland-Worthington Middle School,502030,045502030,210498001241,KEDC,903,A1,"7,604","2,768",428,0,"10,357",381,"15,894"
+20232024,054,HOPKINS,265,Hopkins County,105,Hopkins Co Career & Technology Center,265105,054265105,210286002425,WKEC,908,A2,0,0,0,0,0,0,0
+20232024,034,FAYETTE,165,Fayette County,009,UK Early Childhood Lab,165009,034165009,210186002385,CKEC,901,A4,,,,,,,
+20232024,034,FAYETTE,165,Synthetic Star,900,Synthetic Star School,SYNSTAR,,,CKEC,901,A1,*,0,0,,0,0,0
