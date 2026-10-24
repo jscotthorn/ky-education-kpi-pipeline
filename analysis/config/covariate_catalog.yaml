@@ -568,7 +568,8 @@ covariates:
         KYRC26. Middle and high are the sibling metrics below. A row with no
         level is not stored. The 2022 accountability indicator rate and the
         2023 combined indicator rate are separate metrics and are not this
-        series. The calculated survey average remains climate_index_score_calculated.
+        series. Scott decided on 2026-10-20 to remove the calculated survey
+        averages. These published names are the covariates. There is no alias.
       theoretical_relevance:
         - graduation_rate
         - chronic_absenteeism

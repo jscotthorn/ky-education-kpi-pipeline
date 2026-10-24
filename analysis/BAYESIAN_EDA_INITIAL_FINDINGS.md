@@ -67,8 +67,10 @@ Based on BRIGHT_SPOTS_BAYESIAN_APPROACH.md and KPIS.md:
 
 **Resources (optional covariates):**
 - `total_spending_per_student_all_funds`
-- `climate_index_score`
-- `safety_index_score`
+- `climate_index_score_elementary`, `climate_index_score_middle`, `climate_index_score_high`
+- `safety_index_score_elementary`, `safety_index_score_middle`, `safety_index_score_high`
+
+Those six names are the indexes KDE publishes for KYRC23 through KYRC26. Scott decided on 2026-10-20 to remove `climate_index_score_calculated` and `safety_index_score_calculated`. There is no unsuffixed alias. 2021-22 is not in this series. Use the level that matches the outcome: high school for graduation and postsecondary readiness, elementary for chronic absenteeism (`high_grade = 5`), and all three levels for discipline.
 
 ## Data Quality Issue
 

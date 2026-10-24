@@ -19,7 +19,9 @@ Public School 006010 does. Years are 2023-2026. KYRC23 is the 2023
 index. The 2022 accountability number is
 climate_safety_indicator_rate_{level}, and the 2023 accountability
 number is climate_safety_combined_indicator_rate_{level}. Those are
-not this outcome.
+not this outcome. The calculated survey averages
+climate_index_score_calculated and safety_index_score_calculated are
+not loaded. Scott removed them on 2026-10-20.
 
 Output: analysis/datasets/school_climate_analysis_{student_group}.csv
 
