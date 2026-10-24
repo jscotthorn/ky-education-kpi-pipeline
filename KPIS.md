@@ -477,14 +477,14 @@ KRS 161.1221 requires the Education Professional Standards Board to identify tea
 Percent favorable from the Impact Kentucky working conditions survey. KDE's report-card glossary defines the Impact Value as the percentage of respondents who selected a favorable answer, most often the top two of five choices. The constructs are connected to teacher retention and student achievement. Each school has one row per construct.
 
 - `teacher_working_conditions_managing_student_behavior` - Percent favorable for managing student behavior (0-100)
-- `teacher_working_conditions_school_climate` - Percent favorable for school climate (0-100, 2024 and 2026)
+- `teacher_working_conditions_school_climate` - Percent favorable for school climate (0-100, KYRC24 through KYRC26)
 - `teacher_working_conditions_school_leadership` - Percent favorable for school leadership (0-100)
-- `teacher_working_conditions_teaching_environment` - Percent favorable for teaching environment (0-100, 2020 and 2022 only)
+- `teacher_working_conditions_teaching_environment` - Percent favorable for teaching environment (0-100, 2020-2023 files only)
 
-**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns. State rows use district `All Districts` for 2024 and 2026 and `State` for 2020 and 2022. A published 0 is kept. The text `N/A` has no response count beside it, so those rows are omitted rather than stored as zero. A `*` is stored as value NA with `suppressed` Y. A conflicting Glasgow Independent district total (`197`, 2020 and 2022) is also stored once that way. Issue #108. The series is biennial. Impact Kentucky is administered every other school year, and each administration is stored once. Years without a survey (2021, 2023, 2025, and any later off-year) are absent. The KPI year is the ending year of the school year in which the survey was administered.
+**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns. State rows use district `All Districts` for 2024-2026 and `State` for 2020-2023. A published 0 is kept. The text `N/A` has no response count beside it, so those rows are omitted rather than stored as zero.
 
-**Data Sources**: KYRC26_OVW_Teacher_Working_Conditions.csv, the datasets copy of KYRC24_OVW_Teacher_Working_Conditions.csv (2024), Craft Academy `610000`/`610300` from the historical KYRC24 file, Mason County Career Magnet `777135` from KYRC25_OVW_Teacher_Working_Conditions.csv stored as 2024, teacher_working_conditions_2022.csv, teacher_working_conditions_2020.csv
-**Years Available**: 2020, 2022, 2024, 2026 (biennial; years without a survey are absent)
+**Data Sources**: KYRC26_OVW_Teacher_Working_Conditions.csv, KYRC25_OVW_Teacher_Working_Conditions.csv, KYRC24_OVW_Teacher_Working_Conditions.csv, teacher_working_conditions_{year}.csv
+**Years Available**: 2020-2026
 **Unit**: Percent favorable (0-100)
 **Demographics**: School-level only (All Students)
 
@@ -579,7 +579,8 @@ Participation metrics (unduplicated students, `student_group` is the demographic
 - `dual_credit_qualifying_score_count` - Students with a qualifying grade of C or better in at least one dual credit course
 - `dual_credit_completion_rate` - Derived: completers divided by enrollment, times 100
 - `dual_credit_qualifying_score_rate` - Derived: qualifying grades divided by completers, times 100
-- `has_dual_credit_program` - 1 when enrollment is positive, suppressed Y when enrollment is starred. No registered enrollment is 0, so this flag is never 0
+
+Scott Horn dropped `has_dual_credit_program` on 2026-10-20. The pipeline had set it to 1 whenever enrollment was positive and stored it as suppressed Y when enrollment was starred. No registered enrollment is 0, and a school without a program has no row, so the flag was never 0. It is not stored, and there is no alias.
 
 Courses-offered metrics (duplicated course enrollments, `student_group` is All Students, subject is in the metric name):
 
@@ -606,7 +607,7 @@ State rows are district `All Districts` and school `All Schools`, stored as `---
 
 **Data Sources**: KYRC23, KYRC24, KYRC25, and KYRC26 `EDOP_Dual_Credit_Participation_and_Performance.csv` and `EDOP_Dual_Credit_Courses_Offered.csv`
 **Years Available**: 2023-2026
-**Unit**: Count (non-negative integers), Rate (0-100%), Boolean (0/1)
+**Unit**: Count (non-negative integers), Rate (0-100%)
 
 ---
 
