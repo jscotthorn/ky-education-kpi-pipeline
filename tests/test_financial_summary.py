@@ -10,6 +10,23 @@ import shutil
 from etl.financial_summary import transform, clean_numeric_values, FinancialSummaryETL
 
 
+# Every metric financial_summary emits: 6 published, 2 derived staff counts,
+# and 3 students-per-staff ratios recomputed from the published inputs.
+EXPECTED_METRICS = {
+    'eoy_student_membership',
+    'fund_balance',
+    'fund_balance_pct',
+    'certified_staff_fte',
+    'certified_staff_teachers_fte',
+    'certified_staff_non_teachers_fte',
+    'classified_staff_fte',
+    'total_staff_fte',
+    'students_per_certified_staff',
+    'students_per_classified_staff',
+    'students_per_non_teacher_certified_staff',
+}
+
+
 class TestFinancialSummaryETL:
 
     def setup_method(self):
@@ -204,8 +221,8 @@ class TestFinancialSummaryETL:
 
         metrics = self.etl.extract_metrics(row)
 
-        # Verify all 8 metrics are extracted (including derived)
-        assert len(metrics) == 8
+        # Verify all 11 metrics are extracted (including derived and ratios)
+        assert set(metrics) == EXPECTED_METRICS
         assert metrics['eoy_student_membership'] == 2546.0
         assert metrics['fund_balance'] == 992533.0
         assert metrics['fund_balance_pct'] == 5.0
@@ -214,6 +231,9 @@ class TestFinancialSummaryETL:
         assert metrics['certified_staff_non_teachers_fte'] == 32.0  # Derived: 219 - 187
         assert metrics['classified_staff_fte'] == 168.0
         assert metrics['total_staff_fte'] == 387.0  # Derived: 219 + 168
+        assert metrics['students_per_certified_staff'] == 11.63  # 2546 / 219
+        assert metrics['students_per_classified_staff'] == 15.15  # 2546 / 168
+        assert metrics['students_per_non_teacher_certified_staff'] == 79.56  # 2546 / 32
 
     def test_extract_metrics_partial_data(self):
         """Test metric extraction with some missing values."""
@@ -243,8 +263,8 @@ class TestFinancialSummaryETL:
         row = pd.Series({})
         defaults = self.etl.get_suppressed_metric_defaults(row)
 
-        # Should have all 8 metrics with NA values
-        assert len(defaults) == 8
+        # Should have all 11 metrics with NA values
+        assert set(defaults) == EXPECTED_METRICS
         assert all(pd.isna(val) for val in defaults.values())
 
     def test_transform_kyrc24_format(self):
@@ -329,9 +349,9 @@ class TestFinancialSummaryETL:
         district_rows = df[df['school_name'] == '---District Total---']
         assert len(district_rows) > 0
 
-        # Verify all 8 metrics extracted
+        # Verify all 11 metrics extracted
         metrics = df['metric'].unique()
-        assert len(metrics) == 8
+        assert set(metrics) == EXPECTED_METRICS
 
     def test_mixed_year_formats(self):
         """Test transform with both 2020 and KYRC24 format files."""
@@ -364,7 +384,10 @@ class TestFinancialSummaryETL:
         for year in [2020, 2024]:
             year_df = df[df['year'] == year]
             metrics = year_df['metric'].unique()
-            assert len(metrics) == 8, f"Expected 8 metrics for year {year}, got {len(metrics)}"
+            assert set(metrics) == EXPECTED_METRICS, (
+                f"Metric mismatch for year {year}: "
+                f"missing {EXPECTED_METRICS - set(metrics)}, extra {set(metrics) - EXPECTED_METRICS}"
+            )
 
     def test_derived_metrics_calculation(self):
         """Test calculation of derived metrics."""
