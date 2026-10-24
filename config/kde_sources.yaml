@@ -42,6 +42,14 @@ raw_directories:
       file: "KYRC25_CTE_Participation.csv"
     - url: "kyrc26"
       file: "KYRC26_CTE_Participation.csv"
+    # 2022-23 published rates. School year 20222023, KPI year 2023.
+    # datasets host (the kyrc25 key is that container). md5
+    # 9ac6152de241e6ec5e68f65dc871b13f. Same title-case headers as KYRC24.
+    # The parser stores the two rate columns only. cte_by_student_group_2023.csv
+    # keeps the 2023 counts. 0 numeric conflicts with that file. A star
+    # against a blank is not a conflict. The historical host is not this file.
+    - url: "kyrc25"
+      file: "KYRC23_CTE_Participation.csv"
     - "cte_by_student_group_2023.csv"
     - "cte_by_student_group_2022.csv"
 

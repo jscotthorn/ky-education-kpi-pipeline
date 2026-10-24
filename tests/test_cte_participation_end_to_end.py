@@ -220,7 +220,8 @@ class TestCTEParticipationEndToEnd(unittest.TestCase):
 
 FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures" / "cte_participation"
 
-# Published KYRC24 percents. KYRC25 and KYRC26 do not emit either rate.
+# Published KYRC24 percents. KYRC23 rates are asserted separately.
+# KYRC25 and KYRC26 do not emit either rate.
 PRIOR_RATE_ANCHORS = {
     ("2024", "999000"): 68.7,
     ("2024", "165000"): 64.3,
@@ -242,8 +243,9 @@ PRIOR_GRADE12_ANCHORS = {
     ("2025", "001010"): (None, 40, 172),
 }
 
-# 2022 and 2023 publish counts in all four measure columns. The rate
-# metrics are absent. Bryan Station 2022 is 77 completers and 413 eligible,
+# 2022 and 2023 annual files publish counts. The 2022 rate metrics are
+# absent. 2023 rates come from KYRC23 and are not on the 3-digit district
+# and state ids. Bryan Station 2022 is 77 completers and 413 eligible,
 # stored as counts. The state enrollment cell is *.
 COUNT_ANCHORS = {
     ("2022", "999"): {
@@ -359,11 +361,13 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     enrollments. Neither rate is stored. KPI year is 2026, from school
     year 20252026. District is All Districts. The 2024 anchors are the
     published percents and the published completer count. The 2025 anchors
-    are the published counts. 2022 and 2023 anchors are the published counts.
+    are the published counts. 2022 anchors are the published counts. 2023
+    count anchors stay the annual file. KYRC23 adds the published rates.
     """
     prior_names = [
         "cte_by_student_group_2022.csv",
         "cte_by_student_group_2023.csv",
+        "KYRC23_CTE_Participation.csv",
         "KYRC24_CTE_Participation.csv",
         "KYRC25_CTE_Participation.csv",
     ]
@@ -411,8 +415,13 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
             assert float(row["value"]) == value
             assert row["suppressed"] == "N"
         rates = _rows(combined, year, school_id, "All Students")
-        assert "cte_participation_rate" not in set(rates["metric"])
-        assert "cte_completion_rate_grade_12" not in set(rates["metric"])
+        count_rows = rates[rates["metric"].isin(expected)]
+        assert set(count_rows["source_file"]) == {f"cte_by_student_group_{year}.csv"}
+        # 2023 school rows also carry KYRC23 rates. District and state rates
+        # use the six-digit KYRC code, so they are not on this 3-digit id.
+        if year == "2022" or len(school_id) <= 3:
+            assert "cte_participation_rate" not in set(rates["metric"])
+            assert "cte_completion_rate_grade_12" not in set(rates["metric"])
         if school_id == "999":
             state_count = _metric_value(combined, year, school_id, "cte_eligible_completer_count_grade_12")
             assert state_count["district"] == "State"
@@ -425,6 +434,34 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert len(completers) == 1
     assert completers.iloc[0]["suppressed"] == "Y"
     assert pd.isna(completers.iloc[0]["value"])
+    assert completers.iloc[0]["source_file"] == "cte_by_student_group_2023.csv"
+    # KYRC23 publishes 0.0 for both rates on this row and leaves the completer blank.
+    assert float(_metric_value(combined, "2023", "165898", "cte_participation_rate")["value"]) == 0.0
+    assert float(_metric_value(combined, "2023", "165898", "cte_completion_rate_grade_12")["value"]) == 0.0
+    assert _metric_value(combined, "2023", "165898", "cte_participation_rate")["source_file"] == "KYRC23_CTE_Participation.csv"
+
+    # Published KYRC23 rates. Counts for these schools stay on the annual file.
+    published_2023 = {
+        "999000": (59.1, 45.7),
+        "165000": (55.7, 39.4),
+        "165060": (50.2, 38.2),
+        "165125": (50.9, 35.6),
+        "165170": (45.8, 26.6),
+        "001010": (0.0, 66.1),
+    }
+    for school_id, (participation, completion) in published_2023.items():
+        participation_row = _metric_value(combined, "2023", school_id, "cte_participation_rate")
+        completion_row = _metric_value(combined, "2023", school_id, "cte_completion_rate_grade_12")
+        assert float(participation_row["value"]) == participation
+        assert float(completion_row["value"]) == completion
+        assert participation_row["suppressed"] == "N"
+        assert completion_row["suppressed"] == "N"
+        assert participation_row["source_file"] == "KYRC23_CTE_Participation.csv"
+        assert completion_row["source_file"] == "KYRC23_CTE_Participation.csv"
+    assert _metric_value(combined, "2023", "165060", "cte_participant_count")["source_file"] == "cte_by_student_group_2023.csv"
+    kyrc23_rows = combined[combined["source_file"] == "KYRC23_CTE_Participation.csv"]
+    assert set(kyrc23_rows["metric"]) <= {"cte_participation_rate", "cte_completion_rate_grade_12"}
+    assert set(kyrc23_rows["year"]) == {"2023"}
 
     # KYRC24 state participant count is the "Total Number of Student" cell.
     # The participation rate stays the published percent.

@@ -779,7 +779,7 @@ covariates:
         - postsecondary_readiness
 
     cte_participation_rate:
-      description: "KDE-published participation rate, available for 2024 only in KYRC years, can exceed 100, and includes published 0.0 artifacts (#112)"
+      description: "KDE-published participation rate for 2023 and 2024 (KYRC23/KYRC24), can exceed 100, and includes published 0.0 artifacts (#112)"
       source: kde_cte_participation
       unit: percentage
       expected_direction: mixed
