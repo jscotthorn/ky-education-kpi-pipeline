@@ -506,9 +506,9 @@ covariates:
   # ---------------------------------------------------------------------------
   teacher_working_conditions:
     twc_managing_student_behavior:
-      description: "Teacher working conditions index for managing student behavior"
+      description: "Teacher working conditions percent favorable for managing student behavior"
       source: kde_teacher_working_conditions
-      unit: index_score  # 0-100
+      unit: percentage  # percent favorable, 0-100 (even survey years only)
       expected_direction: positive
       literature_support: |
         Teacher perception of student behavior management correlates with school
@@ -520,9 +520,9 @@ covariates:
         - graduation_rate
 
     twc_school_climate:
-      description: "Teacher working conditions index for school climate"
+      description: "Teacher working conditions percent favorable for school climate"
       source: kde_teacher_working_conditions
-      unit: index_score  # 0-100
+      unit: percentage  # percent favorable, 0-100 (even survey years only)
       expected_direction: positive
       literature_support: |
         Teacher-reported school climate is a leading indicator of organizational
@@ -535,9 +535,9 @@ covariates:
         - proficiency_rate
 
     twc_school_leadership:
-      description: "Teacher working conditions index for school leadership"
+      description: "Teacher working conditions percent favorable for school leadership"
       source: kde_teacher_working_conditions
-      unit: index_score  # 0-100
+      unit: percentage  # percent favorable, 0-100 (even survey years only)
       expected_direction: positive
       literature_support: |
         Leadership quality is second only to instruction in impact on student

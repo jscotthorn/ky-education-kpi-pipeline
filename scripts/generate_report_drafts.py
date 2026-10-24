@@ -388,6 +388,31 @@ def load_school_grade_ranges(school_list_path: Path, county: str) -> Dict[str, L
     return lookup
 
 
+STATE_DISTRICT_LABELS = ('State', 'All Districts')
+STATE_SCHOOL_CODES = ('999', '999000')
+# school_name of the state total row: '---State Total---' in 2018-2023 files
+# (district 'State', code 999); '---District Total---' in KYRC files
+# (district 'All Districts', code 999000).
+STATE_TOTAL_SCHOOL_NAMES = ('---District Total---', '---State Total---')
+
+
+def state_row_mask(df: pd.DataFrame) -> pd.Series:
+    """Boolean mask for statewide rows.
+
+    Files through 2023 label the state row district 'State' (school code 999).
+    KYRC files (KYRC23 onward, e.g. the 2023 CTE rates and 2024+) label it
+    'All Districts' (school code 999000). A row is a state row when its school
+    code is 999 or 999000, or its district is one of those labels. The result
+    does not depend on which other rows are in the frame, so chunked and
+    whole-file loads select the same rows.
+    """
+    mask = df['district'].isin(STATE_DISTRICT_LABELS)
+    if 'school_code' in df.columns:
+        codes = df['school_code'].astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+        mask = mask | codes.isin(STATE_SCHOOL_CODES)
+    return mask
+
+
 def load_data(data_path: Path, county: Optional[str] = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Load KPI data from CSV.
 
@@ -406,6 +431,10 @@ def load_data(data_path: Path, county: Optional[str] = None) -> Tuple[pd.DataFra
     # Columns we need for report generation
     use_columns = ['year', 'metric', 'district', 'school_name', 'student_group',
                    'value', 'suppressed']
+    # school_code identifies the state row across labels; optional in older extracts
+    header_cols = pd.read_csv(data_path, nrows=0).columns
+    if 'school_code' in header_cols:
+        use_columns.append('school_code')
 
     # Check file size to determine loading strategy
     file_size = data_path.stat().st_size
@@ -425,7 +454,7 @@ def load_data(data_path: Path, county: Optional[str] = None) -> Tuple[pd.DataFra
             if len(county_filtered) > 0:
                 county_chunks.append(county_filtered)
             # Also get state data
-            state_filtered = chunk[chunk['district'] == 'State']
+            state_filtered = chunk[state_row_mask(chunk)]
             if len(state_filtered) > 0:
                 state_chunks.append(state_filtered)
 
@@ -445,7 +474,7 @@ def load_data(data_path: Path, county: Optional[str] = None) -> Tuple[pd.DataFra
         # Large file but no county filter - just load with appropriate settings
         print(f"  Large file detected ({file_size / 1_000_000:.0f}MB), loading...")
         df = pd.read_csv(data_path, usecols=use_columns, low_memory=False)
-        state_df = df[df['district'] == 'State'].copy()
+        state_df = df[state_row_mask(df)].copy()
         print(f"  Loaded {len(df):,} rows")
     else:
         # Small file, load normally
@@ -454,7 +483,7 @@ def load_data(data_path: Path, county: Optional[str] = None) -> Tuple[pd.DataFra
         available_cols = [c for c in use_columns if c in df.columns]
         if available_cols:
             df = df[available_cols]
-        state_df = df[df['district'] == 'State'].copy()
+        state_df = df[state_row_mask(df)].copy()
         if county:
             df = df[df['district'] == county]
 
@@ -762,7 +791,11 @@ def get_state_average(
 ) -> Optional[float]:
     """Get the state average for a metric.
 
-    State data has district='State' and school_name='---District Total---'.
+    State rows are district 'State', code 999, school_name '---State Total---'
+    in 2018-2023 files, and district 'All Districts', code 999000,
+    school_name '---District Total---' in KYRC files. Both school names are
+    accepted here. District averages (get_district_data) still require
+    '---District Total---'.
 
     Args:
         state_df: DataFrame containing state-level data
@@ -776,7 +809,7 @@ def get_state_average(
     mask = (
         (state_df['metric'] == metric) &
         (state_df['year'] == year) &
-        (state_df['school_name'] == '---District Total---') &
+        (state_df['school_name'].isin(STATE_TOTAL_SCHOOL_NAMES)) &
         (state_df['student_group'] == student_group) &
         (state_df['suppressed'] != 'Y')
     )

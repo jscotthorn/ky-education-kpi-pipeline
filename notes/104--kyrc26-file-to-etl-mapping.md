@@ -861,7 +861,7 @@ pandas 3.0.6: `22 failed, 661 passed, 109 skipped`, the same 22 failure node ids
 
 The column is stored as `cte_completer_count_grade_12`. `cte_eligible_completer_count_grade_12` is only the 2022 and 2023 `GRADE 12 CTE ELIGIBLE COMPLETER` cell. The 6,486 KYRC24 rows move from the eligible metric to the completer metric. The row total stays 145,371. The 2024 state All Students completer count is 17,597 and the completion rate stays 42.3. Fayette `165000` All Students is 1,053 completers and 38.5.
 
-KYRC24 also publishes 208 participation rates of 0.0, every one of them on a positive participant count, across 24 schools. Pike County Virtual Academy `491020` All Students is 108 participants and 0.0. Those cells stay as published. Refs #112. Every 2022 and 2023 district and state enrollment cell is `*` (2,833 cells in 2022, 2,817 in 2023), in every demographic. That starring is structural. KYRC23's published 2023 rates are not loaded. The registered KYRC24 file stays the historical copy.
+KYRC24 also publishes 208 participation rates of 0.0, every one of them on a positive participant count, across 24 schools. Pike County Virtual Academy `491020` All Students is 108 participants and 0.0. Those cells stay as published. Refs #112. Every 2022 and 2023 district and state enrollment cell is `*` (2,833 cells in 2022, 2,817 in 2023), in every demographic. That starring is structural. KYRC23's published 2023 rates were not loaded when this follow-up was written; PR #114 now loads them (next follow-up). The registered KYRC24 file stays the historical copy.
 
 #### Follow-up, 24 October 2026 — KYRC23 published rates (PR #114)
 
