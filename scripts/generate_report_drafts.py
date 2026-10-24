@@ -390,6 +390,10 @@ def load_school_grade_ranges(school_list_path: Path, county: str) -> Dict[str, L
 
 STATE_DISTRICT_LABELS = ('State', 'All Districts')
 STATE_SCHOOL_CODES = ('999', '999000')
+# school_name of the state total row: '---State Total---' in 2018-2023 files
+# (district 'State', code 999); '---District Total---' in KYRC files
+# (district 'All Districts', code 999000).
+STATE_TOTAL_SCHOOL_NAMES = ('---District Total---', '---State Total---')
 
 
 def state_row_mask(df: pd.DataFrame) -> pd.Series:
@@ -787,7 +791,11 @@ def get_state_average(
 ) -> Optional[float]:
     """Get the state average for a metric.
 
-    State data has district='State' (or 'All Districts' in KYRC files) and school_name='---District Total---'.
+    State rows are district 'State', code 999, school_name '---State Total---'
+    in 2018-2023 files, and district 'All Districts', code 999000,
+    school_name '---District Total---' in KYRC files. Both school names are
+    accepted here. District averages (get_district_data) still require
+    '---District Total---'.
 
     Args:
         state_df: DataFrame containing state-level data
@@ -801,7 +809,7 @@ def get_state_average(
     mask = (
         (state_df['metric'] == metric) &
         (state_df['year'] == year) &
-        (state_df['school_name'] == '---District Total---') &
+        (state_df['school_name'].isin(STATE_TOTAL_SCHOOL_NAMES)) &
         (state_df['student_group'] == student_group) &
         (state_df['suppressed'] != 'Y')
     )
