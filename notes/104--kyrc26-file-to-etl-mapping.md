@@ -861,11 +861,28 @@ pandas 3.0.6: `22 failed, 661 passed, 109 skipped`, the same 22 failure node ids
 
 The column is stored as `cte_completer_count_grade_12`. `cte_eligible_completer_count_grade_12` is only the 2022 and 2023 `GRADE 12 CTE ELIGIBLE COMPLETER` cell. The 6,486 KYRC24 rows move from the eligible metric to the completer metric. The row total stays 145,371. The 2024 state All Students completer count is 17,597 and the completion rate stays 42.3. Fayette `165000` All Students is 1,053 completers and 38.5.
 
-KYRC24 also publishes 208 participation rates of 0.0, every one of them on a positive participant count, across 24 schools. Pike County Virtual Academy `491020` All Students is 108 participants and 0.0. Those cells stay as published. Refs #112. Every 2022 and 2023 district and state enrollment cell is `*` (2,833 cells in 2022, 2,817 in 2023), in every demographic. That starring is structural. KYRC23's published 2023 rates were not loaded when this follow-up was written; PR #114 now loads them (next follow-up). The registered KYRC24 file stays the historical copy.
+KYRC24 also publishes 208 participation rates of 0.0, every one of them on a positive participant count, across 24 schools. Pike County Virtual Academy `491020` All Students is 108 participants and 0.0. Those cells stay as published. Refs #112. Every 2022 and 2023 district and state enrollment cell is `*` (2,833 cells in 2022, 2,817 in 2023), in every demographic. That starring is structural. KYRC23's published 2023 rates were not loaded when this follow-up was written; PR #114 now loads them (next follow-up). The registered KYRC24 file was the historical copy when this follow-up was written. PR #116 replaces it (next follow-up).
 
 #### Follow-up, 24 October 2026 — KYRC23 published rates (PR #114)
 
 `KYRC23_CTE_Participation.csv` stores the published 2023 `cte_participation_rate` and `cte_completion_rate_grade_12` (14,658 rows). The 2023 counts stay on the annual file, with 0 numeric conflicts. Scott accepted on 24 October 2026 that 2023 district and state rates stay on `xxx000`, `999000`, and district `All Districts`, while 2023 counts stay on `xxx`, `999`, and district `State`, until #61's shared normalization. The 2023 completion rate stays `cte_completion_rate_grade_12`. It is not comparable year over year, and it is on the 27 October KDE recheck. Refs #112. Details are in `notes/114--cte-2023-published-rates.md`.
+
+#### Follow-up, 24 October 2026 — KYRC24 republish (PR #116)
+
+This supersedes the sentence in the completer-count follow-up that left the registered KYRC24 file on the historical copy. The registered source is the 14 May 2026 republish on the live `datasets` container, `KYRC24_CTE_Participation.csv` (`url: kyrc25`). md5 `86677fc9b17a32b62cb533f4352ed63e`. The 29 May 2025 historical copy (md5 `0b0d30c79ff6c5f3c039aafd5ceb8081`) is not loaded. Refs #113. Refs #112.
+
+3,544 stars change. No published number changes.
+
+| Column | May 2025 | May 2026 | Cells |
+| --- | --- | --- | --- |
+| Completer count (`Grade 12 CTE Eligible Completer`) | `*` | blank | 1,944 |
+| Completion rate (`Grade 12 CTE Completers`) | `*` | 0.0 | 1,230 |
+| Participant count (`Total Number of Student`) | `*` | blank | 185 |
+| Participation rate (`CTE Participants in All Grades`) | `*` | 0.0 | 146 |
+| Participation rate | `*` | `--` | 20 |
+| Participation rate | `*` | `N/A` | 19 |
+
+1,944 + 1,230 + 185 + 146 + 20 + 19 = 3,544. The CTE output goes from 160,029 rows to 157,861. 2,168 rows are removed. 1,376 rows change from suppressed Y with an empty value to suppressed N with 0.0 (1,230 completion rates and 146 participation rates). Details are in `notes/116--cte-kyrc24-republish.md`.
 
 ### `student_enrollment` — S — in review
 

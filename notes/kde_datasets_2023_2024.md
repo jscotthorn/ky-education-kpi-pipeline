@@ -40,7 +40,7 @@ Source: Extracted from HTML files in `/Users/scott/Projects/equity-etl/historica
 ## Attendance
 
 - [KYRC24_CRDC_Chronic_Absenteeism](https://www.education.ky.gov/Open-House/data/HistoricalDatasets/KYRC24_CRDC_Chronic_Absenteeism.csv)
-- [KYRC24_CTE_Participation](https://www.education.ky.gov/Open-House/data/HistoricalDatasets/KYRC24_CTE_Participation.csv)
+- [KYRC24_CTE_Participation](https://www.education.ky.gov/Open-House/data/HistoricalDatasets/KYRC24_CTE_Participation.csv) (superseded). The registered source is the 14 May 2026 [datasets copy](https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC24_CTE_Participation.csv) (md5 `86677fc9b17a32b62cb533f4352ed63e`)
 - [KYRC24_OVW_Adjusted_Average_Daily_Attendance_AADA](https://www.education.ky.gov/Open-House/data/HistoricalDatasets/KYRC24_OVW_Adjusted_Average_Daily_Attendance_AADA.csv)
 - [KYRC24_OVW_Attendance_Rate](https://www.education.ky.gov/Open-House/data/HistoricalDatasets/KYRC24_OVW_Attendance_Rate.csv)
 - [KYRC24_OVW_Chronic_Absenteeism](https://www.education.ky.gov/Open-House/data/HistoricalDatasets/KYRC24_OVW_Chronic_Absenteeism.csv)

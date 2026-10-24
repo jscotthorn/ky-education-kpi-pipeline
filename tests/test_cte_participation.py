@@ -524,107 +524,84 @@ def test_registered_sources_are_the_permanent_files():
 
 
 def test_kyrc24_republish_does_not_keep_the_may_2025_stars():
-    """May 2026 datasets lines. A former star printed as 0.0 stays 0.0.
+    """May 2026 lines (md5 86677fc9) replace May 2025 stars (md5 0b0d30c7).
 
-    The republish lines are copied from the datasets file (md5
-    86677fc9b17a32b62cb533f4352ed63e). The historical lines are copied
-    from the 29 May 2025 copy (md5 0b0d30c79ff6c5f3c039aafd5ceb8081).
-    Allen County ``005000`` Native Hawaiian was ``*`` in every measure
-    cell and is now blank, 0.0, blank, 0.0. Adair ``001000`` Asian keeps
-    3 and 60.0 and replaces two stars with a blank completer count and
-    completion 0.0. Trailblazer ``777123`` American Indian replaces the
-    participant count star with a blank and the participation star with
-    ``--``. Muhlenberg ``445902`` Homeless replaces participation with
-    ``N/A`` and completion with 0.0. Butler ``275045`` African American
-    keeps 454, 55.8, 35, and 19.4, and CO-OP becomes GREC. Augusta
-    ``013011`` All Students keeps participation 0.0 on 63 participants
-    and replaces the completion star with 0.0. Parsing the historical
-    lines suppresses those cells. This test fails if the fixture returns
-    to that copy.
+    A published 0.0 is kept. A blank, ``--``, or ``N/A`` is omitted.
+    ``expected`` is the republish row: a float is suppressed N, ``Y`` is a
+    star, and a missing metric is omitted. The historical line for the
+    same school is not in the fixture. Parsing it still suppresses every
+    measure that the republish changed, so the old copy fails this test.
     """
     fixture = ROOT / "tests" / "fixtures" / "cte_participation" / "KYRC24_CTE_Participation.csv"
     lines = fixture.read_text(encoding="utf-8").splitlines()
-    republish = {
-        "005000": "20232024,002,ALLEN,005,Allen County,,All Schools,005000,,,GRREC,902,,Native Hawaiian or Pacific Islander,,0.0,,0.0",
-        "001000": "20232024,001,ADAIR,001,Adair County,,All Schools,001000,,,GRREC,902,,Asian,3,60.0,,0.0",
-        "777123": "20232024,037,FRANKLIN,777,Kentucky Tech System,123,Trailblazer Academy,777123,037777123,210028902091,,,C2,American Indian or Alaska Native,,--,*,*",
-        "445902": "20232024,089,MUHLENBERG,445,Muhlenberg County,902,Muhlenberg County Career & Tech Center,445902,089445902,210008102139,WKEC,908,A2,Homeless,,N/A,,0.0",
-        "275045": "20232024,056,JEFFERSON,275,Jefferson County,045,Butler Traditional High,275045,056275045,210299000644,GREC,909,A1,African American,454,55.8,35,19.4",
-        "013011": "20232024,012,BRACKEN,013,Augusta Independent,011,Augusta Independent School,013011,012013011,210018001968,KEDC,903,A1,All Students,63,0.0,,0.0",
-        "165170": "20232024,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,Native Hawaiian or Pacific Islander,*,*,,*",
-        "165898": "20232024,034,FAYETTE,165,Fayette County,898,Fayette County Learning Center,165898,034165898,210186002251,CKEC,901,A5,All Students,26,0.0,,0.0",
-    }
-    historical = {
-        "005000": "20232024,002,ALLEN,005,Allen County,,All Schools,005000,,,GRREC,902,,Native Hawaiian or Pacific Islander,*,*,*,*",
-        "001000": "20232024,001,ADAIR,001,Adair County,,All Schools,001000,,,GRREC,902,,Asian,3,60.0,*,*",
-        "777123": "20232024,037,FRANKLIN,777,Kentucky Tech System,123,Trailblazer Academy,777123,037777123,210028902091,,,C2,American Indian or Alaska Native,*,*,*,*",
-        "445902": "20232024,089,MUHLENBERG,445,Muhlenberg County,902,Muhlenberg County Career & Tech Center,445902,089445902,210008102139,WKEC,908,A2,Homeless,*,*,*,*",
-        "275045": "20232024,056,JEFFERSON,275,Jefferson County,045,Butler Traditional High,275045,056275045,210299000644,,909,A1,African American,454,55.8,35,19.4",
-        "013011": "20232024,012,BRACKEN,013,Augusta Independent,011,Augusta Independent School,013011,012013011,210018001968,KEDC,903,A1,All Students,63,0.0,*,*",
-        "165170": "20232024,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,Native Hawaiian or Pacific Islander,*,*,*,*",
-        "165898": "20232024,034,FAYETTE,165,Fayette County,898,Fayette County Learning Center,165898,034165898,210186002251,CKEC,901,A5,All Students,26,0.0,*,*",
-    }
-    for school_id, line in republish.items():
-        assert line in lines, school_id
-        assert historical[school_id] not in lines, school_id
-
-    frame = pd.read_csv(fixture, dtype=str, keep_default_na=False)
-    etl = CTEParticipationETL("cte_participation")
     header = lines[0]
+    # republish line, historical line, expected metrics, co-op if it changed
+    cases = [
+        (
+            "20232024,002,ALLEN,005,Allen County,,All Schools,005000,,,GRREC,902,,Native Hawaiian or Pacific Islander,,0.0,,0.0",
+            "20232024,002,ALLEN,005,Allen County,,All Schools,005000,,,GRREC,902,,Native Hawaiian or Pacific Islander,*,*,*,*",
+            {"cte_participation_rate": 0.0, "cte_completion_rate_grade_12": 0.0},
+            None,
+        ),
+        (
+            "20232024,001,ADAIR,001,Adair County,,All Schools,001000,,,GRREC,902,,Asian,3,60.0,,0.0",
+            "20232024,001,ADAIR,001,Adair County,,All Schools,001000,,,GRREC,902,,Asian,3,60.0,*,*",
+            {"cte_participant_count": 3.0, "cte_participation_rate": 60.0, "cte_completion_rate_grade_12": 0.0},
+            None,
+        ),
+        (
+            "20232024,037,FRANKLIN,777,Kentucky Tech System,123,Trailblazer Academy,777123,037777123,210028902091,,,C2,American Indian or Alaska Native,,--,*,*",
+            "20232024,037,FRANKLIN,777,Kentucky Tech System,123,Trailblazer Academy,777123,037777123,210028902091,,,C2,American Indian or Alaska Native,*,*,*,*",
+            {"cte_completer_count_grade_12": "Y", "cte_completion_rate_grade_12": "Y"},
+            None,
+        ),
+        (
+            "20232024,089,MUHLENBERG,445,Muhlenberg County,902,Muhlenberg County Career & Tech Center,445902,089445902,210008102139,WKEC,908,A2,Homeless,,N/A,,0.0",
+            "20232024,089,MUHLENBERG,445,Muhlenberg County,902,Muhlenberg County Career & Tech Center,445902,089445902,210008102139,WKEC,908,A2,Homeless,*,*,*,*",
+            {"cte_completion_rate_grade_12": 0.0},
+            None,
+        ),
+        (
+            "20232024,056,JEFFERSON,275,Jefferson County,045,Butler Traditional High,275045,056275045,210299000644,GREC,909,A1,African American,454,55.8,35,19.4",
+            "20232024,056,JEFFERSON,275,Jefferson County,045,Butler Traditional High,275045,056275045,210299000644,,909,A1,African American,454,55.8,35,19.4",
+            {
+                "cte_participant_count": 454.0,
+                "cte_participation_rate": 55.8,
+                "cte_completer_count_grade_12": 35.0,
+                "cte_completion_rate_grade_12": 19.4,
+            },
+            "GREC",
+        ),
+        (
+            "20232024,012,BRACKEN,013,Augusta Independent,011,Augusta Independent School,013011,012013011,210018001968,KEDC,903,A1,All Students,63,0.0,,0.0",
+            "20232024,012,BRACKEN,013,Augusta Independent,011,Augusta Independent School,013011,012013011,210018001968,KEDC,903,A1,All Students,63,0.0,*,*",
+            {"cte_participant_count": 63.0, "cte_participation_rate": 0.0, "cte_completion_rate_grade_12": 0.0},
+            None,
+        ),
+        (
+            "20232024,034,FAYETTE,165,Fayette County,898,Fayette County Learning Center,165898,034165898,210186002251,CKEC,901,A5,All Students,26,0.0,,0.0",
+            "20232024,034,FAYETTE,165,Fayette County,898,Fayette County Learning Center,165898,034165898,210186002251,CKEC,901,A5,All Students,26,0.0,*,*",
+            {"cte_participant_count": 26.0, "cte_participation_rate": 0.0, "cte_completion_rate_grade_12": 0.0},
+            None,
+        ),
+        (
+            "20232024,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,Native Hawaiian or Pacific Islander,*,*,,*",
+            "20232024,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,Native Hawaiian or Pacific Islander,*,*,*,*",
+            {
+                "cte_participant_count": "Y",
+                "cte_participation_rate": "Y",
+                "cte_completion_rate_grade_12": "Y",
+            },
+            None,
+        ),
+    ]
+    etl = CTEParticipationETL("cte_participation")
 
     def stored(source_line: str) -> dict:
         one = pd.read_csv(io.StringIO(header + "\n" + source_line + "\n"), dtype=str, keep_default_na=False)
         kpi = _kpi_from_frame(etl, one, "KYRC24_CTE_Participation.csv")
-        out = {}
-        for _, row in kpi.iterrows():
-            out[row["metric"]] = (row["suppressed"], row["value"], row["co_op"])
-        return out
+        return {row["metric"]: row for _, row in kpi.iterrows()}
 
-    def value(kpi: dict, metric: str) -> float:
-        suppressed, number, _co_op = kpi[metric]
-        assert suppressed == "N", metric
-        assert pd.notna(number)
-        return float(number)
-
-    allen = stored(republish["005000"])
-    assert set(allen) == {"cte_participation_rate", "cte_completion_rate_grade_12"}
-    assert value(allen, "cte_participation_rate") == 0.0
-    assert value(allen, "cte_completion_rate_grade_12") == 0.0
-    old_allen = stored(historical["005000"])
-    assert set(old_allen) == {
-        "cte_participant_count",
-        "cte_participation_rate",
-        "cte_completer_count_grade_12",
-        "cte_completion_rate_grade_12",
-    }
-    assert all(item[0] == "Y" and pd.isna(item[1]) for item in old_allen.values())
-
-    adair = stored(republish["001000"])
-    assert value(adair, "cte_participant_count") == 3.0
-    assert value(adair, "cte_participation_rate") == 60.0
-    assert "cte_completer_count_grade_12" not in adair
-    assert value(adair, "cte_completion_rate_grade_12") == 0.0
-    old_adair = stored(historical["001000"])
-    assert old_adair["cte_completion_rate_grade_12"][0] == "Y"
-    assert old_adair["cte_completer_count_grade_12"][0] == "Y"
-
-    trailblazer = stored(republish["777123"])
-    assert "cte_participant_count" not in trailblazer
-    assert "cte_participation_rate" not in trailblazer
-    assert trailblazer["cte_completer_count_grade_12"][0] == "Y"
-    assert trailblazer["cte_completion_rate_grade_12"][0] == "Y"
-    assert "cte_participation_rate" in stored(historical["777123"])
-
-    homeless = stored(republish["445902"])
-    assert set(homeless) == {"cte_completion_rate_grade_12"}
-    assert value(homeless, "cte_completion_rate_grade_12") == 0.0
-    assert stored(historical["445902"])["cte_completion_rate_grade_12"][0] == "Y"
-
-    butler = stored(republish["275045"])
-    assert value(butler, "cte_participant_count") == 454.0
-    assert value(butler, "cte_participation_rate") == 55.8
-    assert value(butler, "cte_completer_count_grade_12") == 35.0
-    assert value(butler, "cte_completion_rate_grade_12") == 19.4
     def coop_text(value: object) -> str:
         if value is None:
             return ""
@@ -635,35 +612,38 @@ def test_kyrc24_republish_does_not_keep_the_may_2025_stars():
             return ""
         return str(value).strip()
 
-    assert coop_text(butler["cte_participant_count"][2]) == "GREC"
-    assert coop_text(stored(historical["275045"])["cte_participant_count"][2]) == ""
-
-    augusta = stored(republish["013011"])
-    assert value(augusta, "cte_participant_count") == 63.0
-    assert value(augusta, "cte_participation_rate") == 0.0
-    assert "cte_completer_count_grade_12" not in augusta
-    assert value(augusta, "cte_completion_rate_grade_12") == 0.0
-    assert stored(historical["013011"])["cte_completion_rate_grade_12"][0] == "Y"
-
-    learning = frame[(frame["School Code"] == "165898") & (frame["Demographic"] == "All Students")]
-    learning_kpi = _kpi_from_frame(etl, learning, "KYRC24_CTE_Participation.csv")
-    assert float(learning_kpi[learning_kpi["metric"] == "cte_completion_rate_grade_12"].iloc[0]["value"]) == 0.0
-    assert "cte_completer_count_grade_12" not in set(learning_kpi["metric"])
-    assert stored(historical["165898"])["cte_completion_rate_grade_12"][0] == "Y"
-
-    hawaiian = frame[
-        (frame["School Code"] == "165170")
-        & (frame["Demographic"] == "Native Hawaiian or Pacific Islander")
-    ]
-    hawaiian_kpi = _kpi_from_frame(etl, hawaiian, "KYRC24_CTE_Participation.csv")
-    assert "cte_completer_count_grade_12" not in set(hawaiian_kpi["metric"])
-    assert set(hawaiian_kpi["metric"]) == {
-        "cte_participant_count",
-        "cte_participation_rate",
-        "cte_completion_rate_grade_12",
-    }
-    assert (hawaiian_kpi["suppressed"] == "Y").all()
-    assert "cte_completer_count_grade_12" in stored(historical["165170"])
+    for republish_line, historical_line, expected, coop in cases:
+        assert republish_line in lines
+        assert historical_line not in lines
+        got = stored(republish_line)
+        assert set(got) == set(expected)
+        for metric, want in expected.items():
+            row = got[metric]
+            if want == "Y":
+                assert row["suppressed"] == "Y"
+                assert pd.isna(row["value"])
+            else:
+                assert row["suppressed"] == "N"
+                assert float(row["value"]) == want
+        if coop is not None:
+            assert coop_text(next(iter(got.values()))["co_op"]) == coop
+            assert coop_text(stored(historical_line)["cte_participant_count"]["co_op"]) == ""
+        old = stored(historical_line)
+        for metric in (
+            "cte_participant_count",
+            "cte_participation_rate",
+            "cte_completer_count_grade_12",
+            "cte_completion_rate_grade_12",
+        ):
+            republish_value = expected.get(metric)
+            if republish_value not in (0.0, None) and metric in expected:
+                continue
+            # Omitted cells, and 0.0 cells that were not already 0.0, were stars.
+            if republish_value == 0.0 and old[metric]["suppressed"] == "N":
+                assert float(old[metric]["value"]) == 0.0
+                continue
+            assert old[metric]["suppressed"] == "Y"
+            assert pd.isna(old[metric]["value"])
 
 
 def test_kyrc23_stores_published_rates_and_not_counts():

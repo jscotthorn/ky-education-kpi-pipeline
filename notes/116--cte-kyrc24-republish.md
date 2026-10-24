@@ -10,7 +10,7 @@ The cell rules are the ones KYRC24 and KYRC23 already use. A `*` or `<10` is val
 
 Both copies have 6,486 data rows and the same school-code and demographic keys. 0 duplicate keys. 0 numeric cells differ.
 
-#113 said the republish replaced 3,524 `*` cells with 0.0, blanks, `--`, or `N/A`. The verified count is 3,544. The difference is 20, and those 20 are `*` to `--` on the participation rate. 3,544 − 20 = 3,524. Historical stars are 9,766. Republish stars are 6,222. 9,766 − 6,222 = 3,544.
+#113 said 3,524 cells changed. That was a miscount. The correct number is 3,544. The 20 cells left out of 3,524 are participation rates that go from `*` to `--`. 3,544 − 20 = 3,524. Historical stars are 9,766. Republish stars are 6,222. 9,766 − 6,222 = 3,544.
 
 | Column | May 2025 | May 2026 | Cells |
 | --- | --- | --- | --- |
@@ -22,6 +22,8 @@ Both copies have 6,486 data rows and the same school-code and demographic keys. 
 | `CTE Participants in All Grades` | `*` | `N/A` | 19 |
 
 1,944 + 1,230 + 185 + 146 + 20 + 19 = 3,544.
+
+The 1,376 new 0.0 rates (1,230 completion and 146 participation) are questionable. Each sits next to a blank paired count, and the same cells were `*` in KDE's May 2025 copy. KYRC24 never pairs a 0.0 completion rate with a numeric count, so these rates are not evidence of zero completers or participants. They are kept as published under the existing rule, and they are on the 27 October KDE recheck. Refs #112.
 
 Every one of the 1,230 completion 0.0 cells has a completer count that goes from `*` to blank on the same row. The other 714 completer counts that go from `*` to blank keep a `*` completion rate. 1,230 + 714 = 1,944.
 
@@ -58,7 +60,7 @@ Fayette County Learning Center `165898` All Students stays 26 participants and p
 
 333 + 16 = 349. Butler Traditional High `275045`, African American, keeps 454 participants, participation 55.8, 35 completers, and completion 19.4. CO-OP becomes `GREC`.
 
-KYRC26 labels Jefferson `GLEC`. #110 records a GLEC versus GREC difference on the datasets financial summary. This file prints `GREC`. The stored co-op is that token. No crosswalk is applied.
+Kentucky School for the Blind `602` is `GREC` in this KYRC24 file and blank in KYRC25 and KYRC26. Jefferson `GREC` versus KYRC26's `GLEC` has no data impact: co-op is not part of the key, code 909 is stable (KYRC25 Jefferson is `GREC` / 909 and KYRC26 Jefferson is `GLEC` / 909), and any crosswalk belongs to #61. This file prints `GREC`. The stored co-op is that token.
 
 ## Rows
 
@@ -117,4 +119,4 @@ Suppressed-Y rows go from 67,861 to 64,317. 2,168 removed plus 1,376 flipped to 
 
 The head transform's max RSS was 138,188 KB on pandas 3.0.6 and 144,440 KB on pandas 2.3.3. The two outputs match apart from `last_updated`.
 
-The 1,376 new 0.0 rates are kept as published. Refs #112. They were stars in the May 2025 file, and the paired count is blank. The pipeline does not treat them as a new kind of suppression.
+The 1,376 new 0.0 rates are questionable and are kept as published. Refs #112. They were stars in the May 2025 file, the paired count is blank, and a 0.0 completion rate is never next to a numeric count. The pipeline does not treat them as a new kind of suppression.
