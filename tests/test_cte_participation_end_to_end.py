@@ -114,6 +114,7 @@ class TestCTEParticipationEndToEnd(unittest.TestCase):
         metrics = kpi_df['metric'].unique()
         self.assertIn('cte_participation_rate', metrics)
         self.assertIn('cte_eligible_completer_count_grade_12', metrics)
+        self.assertIn('cte_completer_count_grade_12', metrics)
         self.assertIn('cte_completion_rate_grade_12', metrics)
         
         # Check years are extracted correctly
@@ -157,15 +158,20 @@ class TestCTEParticipationEndToEnd(unittest.TestCase):
         # Read output
         kpi_df = pd.read_csv(self.proc_dir / 'cte_participation.csv')
         
-        # Check that large numbers were converted correctly
-        eligible_completer = kpi_df[
-            (kpi_df['year'] == 2024) & 
-            (kpi_df['student_group'] == 'All Students') & 
+        # The KYRC24 "Grade 12 CTE Eligible Completer" cell is the completer count.
+        completer_count = kpi_df[
+            (kpi_df['year'] == 2024) &
+            (kpi_df['student_group'] == 'All Students') &
             (kpi_df['district'] == 'All Districts') &
+            (kpi_df['metric'] == 'cte_completer_count_grade_12')
+        ]
+        self.assertEqual(len(completer_count), 1)
+        self.assertEqual(completer_count.iloc[0]['value'], 17597)  # comma removed
+        eligible_2024 = kpi_df[
+            (kpi_df['year'] == 2024) &
             (kpi_df['metric'] == 'cte_eligible_completer_count_grade_12')
         ]
-        self.assertEqual(len(eligible_completer), 1)
-        self.assertEqual(eligible_completer.iloc[0]['value'], 17597)  # comma removed
+        self.assertTrue(eligible_2024.empty)
     
     def test_invalid_data_handling(self):
         """Test handling of invalid data values."""
@@ -222,7 +228,8 @@ PRIOR_RATE_ANCHORS = {
     ("2024", "001010"): 63.9,
 }
 
-# KYRC24 published completion percent and eligible-completer count.
+# KYRC24 published completion percent and completer count. The count is the
+# "Grade 12 CTE Eligible Completer" cell. The third slot is unused.
 # KYRC25 grade-12 anchors are the two published counts, with no rate.
 PRIOR_GRADE12_ANCHORS = {
     ("2024", "999000"): (42.3, 17597, None),
@@ -348,11 +355,11 @@ def _metric_value(df: pd.DataFrame, year: str, school_id: str, metric: str, stud
 def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     """2025-26 KPIs from real CTE rows, with fixed earlier-year anchors.
 
-    State All Students is 144,661 participants and 201,255 enrollments.
-    The participation rate is 71.9 and the grade-12 rate is 45.4. KPI year
-    is 2026, from school year 20252026. District is All Districts.
-    The 2024 and 2025 rate anchors are the published or previously computed
-    rates. 2022 and 2023 anchors are the published counts.
+    State All Students in 2026 is 144,661 participants and 201,255
+    enrollments. Neither rate is stored. KPI year is 2026, from school
+    year 20252026. District is All Districts. The 2024 anchors are the
+    published percents and the published completer count. The 2025 anchors
+    are the published counts. 2022 and 2023 anchors are the published counts.
     """
     prior_names = [
         "cte_by_student_group_2022.csv",
@@ -387,8 +394,11 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
             assert float(completion["value"]) == rate
             assert completion["suppressed"] == "N"
         if participants is None:
-            count = _metric_value(combined, year, school_id, "cte_eligible_completer_count_grade_12")
-            assert float(count["value"]) == eligible_or_completers
+            completers = _metric_value(combined, year, school_id, "cte_completer_count_grade_12")
+            assert float(completers["value"]) == eligible_or_completers
+            assert "cte_eligible_completer_count_grade_12" not in set(
+                _rows(combined, year, school_id, "All Students")["metric"]
+            )
         else:
             completers = _metric_value(combined, year, school_id, "cte_completer_count_grade_12")
             grade_participants = _metric_value(combined, year, school_id, "cte_participant_count_grade_12")
@@ -533,7 +543,7 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert set(hawaiian_2024["metric"]) == {
         "cte_participant_count",
         "cte_participation_rate",
-        "cte_eligible_completer_count_grade_12",
+        "cte_completer_count_grade_12",
         "cte_completion_rate_grade_12",
     }
     assert (hawaiian_2024["suppressed"] == "Y").all()
@@ -596,18 +606,20 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert (military[military["metric"] == "cte_completer_count_grade_12"]["suppressed"] == "Y").all()
 
     # 2024 Foster Care publishes the participation rate and a participant
-    # count of 9. The grade-12 cells are *.
+    # count of 9. The grade-12 cells are *. The eligible header is the
+    # completer count.
     foster_2024 = _rows(combined, "2024", "165170", "Foster Care")
     assert float(_metric_value(combined, "2024", "165170", "cte_participation_rate", "Foster Care")["value"]) == 29.0
     assert float(_metric_value(combined, "2024", "165170", "cte_participant_count", "Foster Care")["value"]) == 9
     assert _metric_value(combined, "2024", "165170", "cte_participation_rate", "Foster Care")["suppressed"] == "N"
-    eligible = _metric_value(combined, "2024", "165170", "cte_eligible_completer_count_grade_12", "Foster Care")
-    assert eligible["suppressed"] == "Y"
-    assert pd.isna(eligible["value"])
+    completers = _metric_value(combined, "2024", "165170", "cte_completer_count_grade_12", "Foster Care")
+    assert completers["suppressed"] == "Y"
+    assert pd.isna(completers["value"])
+    assert "cte_eligible_completer_count_grade_12" not in set(foster_2024["metric"])
     assert set(foster_2024["metric"]) == {
         "cte_participant_count",
         "cte_participation_rate",
-        "cte_eligible_completer_count_grade_12",
+        "cte_completer_count_grade_12",
         "cte_completion_rate_grade_12",
     }
     keys = combined[["year", "school_id", "student_group", "metric"]]

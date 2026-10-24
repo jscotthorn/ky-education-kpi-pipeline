@@ -10,23 +10,30 @@ Those two files publish counts. The participant count, the high-school
 enrollment count, the grade-12 completer count, and the grade-12 participant
 count are stored. Neither rate is calculated. Participants are counted where
 the course is taught and enrollment where the student is enrolled. KYRC25
-and KYRC26 do not publish eligible completers, and the 2024 file publishes
-an eligible count and a completion percent with no completer count, so
-completers divided by eligible completers cannot be checked against KDE's
-published 2024 percent.
+and KYRC26 do not publish eligible completers.
 
 The 2022 and 2023 files use the same four headers as KYRC24, in uppercase, and
 every measure cell is a count or a ``*``. None of them is a rate. Counts are
 stored on count metrics. The rate metrics are left absent for those years.
-KYRC24 publishes the participation and completion rates in the second and
-fourth measure columns. A published rate above 100 is kept. Those published
-percents are the only ``cte_participation_rate`` and
-``cte_completion_rate_grade_12`` values this module stores.
+Every district and state enrollment cell in those two files is ``*``.
 
-There is no Suppressed column. A ``*`` cell is value NA with ``suppressed`` Y.
-A blank, ``--``, or ``N/A`` is not stored. ``N/A`` on a career-center
-enrollment means those students are counted at the home school, so the
-enrollment count is absent for that row. A published 0 is kept.
+KYRC24 publishes the participation rate in ``CTE Participants in All Grades``
+and the completion rate in ``Grade 12 CTE Completers``. ``Total Number of
+Student`` is the participant count. ``Grade 12 CTE Eligible Completer`` is
+the completer count: the header does not match the cells, same as ``Total
+Number of Student``. KYRC23's column of that name equals the 2023 annual
+``GRADE 12 CTE COMPLETERS`` count wherever both are numbers. A published rate
+above 100 is kept. A published 0.0 is kept, including the 208 KYRC24
+participation rates on a positive participant count (Refs #112). Those
+published percents are the only ``cte_participation_rate`` and
+``cte_completion_rate_grade_12`` values this module stores. KYRC23's
+published 2023 rates are not loaded.
+
+There is no Suppressed column. A ``*`` or ``<10`` cell is value NA with
+``suppressed`` Y. A blank, ``--``, or ``N/A`` is not stored. ``N/A`` on a
+career-center enrollment means those students are counted at the home school,
+so the enrollment count is absent for that row. A published 0 is kept. A
+later star on the same key does not replace a published number.
 """
 from pathlib import Path
 import pandas as pd
@@ -60,8 +67,9 @@ _RATE_COLUMNS: Tuple[Tuple[str, str], ...] = (
     ("cte_completion_rate", "cte_completion_rate_grade_12"),
 )
 
-_STAR_TEXT = {"*", "**"}
-_BLANK_TEXT = {"", "N/A", "n/a", "#N/A", "---", "--", "<10", '""', "nan", "None", "<NA>"}
+# ``<10`` is suppressed, not blank. No registered CTE file uses it.
+_SUPPRESSED_TEXT = {"*", "**", "<10"}
+_BLANK_TEXT = {"", "N/A", "n/a", "#N/A", "---", "--", '""', "nan", "None", "<NA>"}
 
 Cell = Tuple[str, Optional[float]]
 
@@ -89,13 +97,13 @@ def _cell_text(value: Any) -> str:
 def _classify_cell(value: Any) -> Cell:
     """Classify one measure cell.
 
-    ``star`` is a privacy star. ``blank`` is empty, not applicable, or not a
-    number. ``number`` is a parsed value, including a published 0 and a
-    published rate above 100. Commas are removed for object text and for
+    ``star`` is a privacy star or ``<10``. ``blank`` is empty, not applicable,
+    or not a number. ``number`` is a parsed value, including a published 0 and
+    a published rate above 100. Commas are removed for object text and for
     pandas StringDtype. A negative is not stored.
     """
     text = _cell_text(value)
-    if text in _STAR_TEXT:
+    if text in _SUPPRESSED_TEXT:
         return "star", None
     if text in _BLANK_TEXT:
         return "blank", None
@@ -199,8 +207,13 @@ class CTEParticipationETL(BaseETL):
             '12th Grade Participants': 'cte_participant_count_grade_12',
             '12TH GRADE PARTICIPANTS': 'cte_participant_count_grade_12',
 
-            # 2022, 2023, and KYRC24. The header is the existing count metric.
-            'Grade 12 CTE Eligible Completer': 'cte_eligible_completer_count',
+            # KYRC24. The header says eligible completers. The cells are the
+            # completer count (state All Students 17,597). Same
+            # header-versus-content problem as Total Number of Student.
+            'Grade 12 CTE Eligible Completer': 'cte_completer_count_grade_12',
+
+            # 2022 and 2023 eligible-completer count. The uppercase header
+            # matches the cells. KYRC24 does not use this metric.
             'GRADE 12 CTE ELIGIBLE COMPLETER': 'cte_eligible_completer_count',
 
             # KYRC24 published completion rate.
@@ -213,7 +226,8 @@ class CTEParticipationETL(BaseETL):
             # the participant count. It is not high-school enrollment.
             'Total Number of Student': 'cte_participant_count',
 
-            # 2022 and 2023 high-school enrollment. District and state are *.
+            # 2022 and 2023 high-school enrollment. Every district and state
+            # cell is *, in every demographic.
             'TOTAL NUMBER OF STUDENT': 'total_student_count',
         }
 
@@ -303,10 +317,11 @@ class CTEParticipationETL(BaseETL):
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
         """One row per school, year, student group, and published measure.
 
-        A star suppresses that measure only. Another measure on the same
-        row stays as published. A blank cell is not a row. A published 0
-        is kept. A published rate above 100 is kept. The same key is not
-        written twice.
+        A star or ``<10`` suppresses that measure only. Another measure on
+        the same row stays as published. A blank cell is not a row. A
+        published 0 is kept. A published rate above 100 is kept. The same
+        key is not written twice. A star does not replace a number already
+        stored on that key.
         """
         kpi_rows: List[Dict[str, Any]] = []
         seen: Dict[Tuple[str, str, str, str], int] = {}
@@ -358,7 +373,11 @@ class CTEParticipationETL(BaseETL):
                         key[1],
                         key[2],
                     )
-                    if kpi_record["suppressed"] == "Y":
+                    # Keep a published number. A star must not replace it,
+                    # whichever row came first.
+                    previous_is_number = previous["suppressed"] != "Y"
+                    new_is_number = kpi_record["suppressed"] != "Y"
+                    if new_is_number and not previous_is_number:
                         kpi_rows[seen[key]] = kpi_record
                     continue
 

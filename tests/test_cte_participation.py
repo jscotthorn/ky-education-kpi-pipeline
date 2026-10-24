@@ -37,11 +37,12 @@ class TestCTEParticipationETL(unittest.TestCase):
         
         # Check mapping values follow naming convention
         self.assertEqual(mappings['CTE Participants in All Grades'], 'cte_participation_rate')
-        self.assertEqual(mappings['Grade 12 CTE Eligible Completer'], 'cte_eligible_completer_count')
+        # KYRC24 title case. The header says eligible. The cells are completers.
+        self.assertEqual(mappings['Grade 12 CTE Eligible Completer'], 'cte_completer_count_grade_12')
         self.assertEqual(mappings['Grade 12 CTE Completers'], 'cte_completion_rate')
-        # 2022 and 2023 uppercase headers are counts. The title-case KYRC24
-        # headers above stay the published rate and the eligible count.
+        # 2022 and 2023 uppercase headers are counts. Eligible stays eligible.
         self.assertEqual(mappings['CTE PARTICIPANTS IN ALL GRADES'], 'cte_participant_count')
+        self.assertEqual(mappings['GRADE 12 CTE ELIGIBLE COMPLETER'], 'cte_eligible_completer_count')
         self.assertEqual(mappings['GRADE 12 CTE COMPLETERS'], 'cte_completer_count_grade_12')
         self.assertEqual(mappings['TOTAL NUMBER OF STUDENT'], 'total_student_count')
         self.assertEqual(mappings['Total Number of Student'], 'cte_participant_count')
@@ -320,45 +321,130 @@ def test_2022_counts_are_not_stored_as_rates():
 
 
 def test_published_rate_above_100_is_kept_and_blank_is_skipped():
-    """KYRC24 stores the printed rate. Zero stays. A star is Y. A blank is absent."""
+    """KYRC24 stores the printed rate. A star is Y. ``--`` and ``N/A`` are absent.
+
+    The four rows are copied from the registered historical KYRC24 file.
+    Harlan County High School ``235025`` American Indian is 400.0 on 4
+    participants. Pike County Virtual ``491020`` All Students is 0.0 on 108
+    participants. Belfry ``777101`` All Students has ``--``. Allen County
+    Career and Technical Center ``005901`` All Students has ``N/A``.
+    ``Grade 12 CTE Eligible Completer`` is the completer count.
+    """
+    fixture = ROOT / "tests" / "fixtures" / "cte_participation" / "KYRC24_CTE_Participation.csv"
+    text = fixture.read_text(encoding="utf-8")
+    verbatim = [
+        "20232024,048,HARLAN,235,Harlan County,025,Harlan County High School,235025,048235025,210254002213,SESC,907,A1,American Indian or Alaska Native,4,400.0,*,*",
+        "20232024,098,PIKE,491,Pike County,020,Pike County Virtual Academy,491020,098491020,210480002532,KVEC,904,A8,All Students,108,0.0,*,*",
+        "20232024,037,FRANKLIN,777,Kentucky Tech System,101,Belfry Area Technology Center,777101,037777101,210028902107,,,C2,All Students,523,--,85,42.1",
+        "20232024,002,ALLEN,005,Allen County,901,Allen County Career and Technical Center,005901,002005901,210007002061,GRREC,902,A2,All Students,704,N/A,76,40.4",
+    ]
+    for line in verbatim:
+        assert line in text.splitlines()
+
+    frame = pd.read_csv(fixture, dtype=str, keep_default_na=False)
+    frame = frame[frame["School Code"].isin(["235025", "491020", "777101", "005901"])]
     etl = CTEParticipationETL("cte_participation")
-    frame = pd.DataFrame({
-        "School Year": ["20232024", "20232024", "20232024"],
-        "District Name": ["Harlan County", "Fayette County", "Fayette County"],
-        "School Name": ["Harlan County High School", "Fayette County Learning Center", "Bryan Station High School"],
-        "School Code": ["235025", "165898", "165170"],
-        "Demographic": ["American Indian or Alaska Native", "All Students", "Foster Care"],
-        "Total Number of Student": ["4", "26", "0"],
-        "CTE Participants in All Grades": ["400.0", "0.0", "--"],
-        "Grade 12 CTE Eligible Completer": ["*", "0", ""],
-        "Grade 12 CTE Completers": ["*", "N/A", "*"],
-    })
     kpi = _kpi_from_frame(etl, frame, "KYRC24_CTE_Participation.csv")
+
     harlan = kpi[kpi["school_id"] == "235025"]
     rate = harlan[harlan["metric"] == "cte_participation_rate"].iloc[0]
     assert float(rate["value"]) == 400.0
     assert rate["suppressed"] == "N"
     assert float(harlan[harlan["metric"] == "cte_participant_count"].iloc[0]["value"]) == 4.0
-    starred = harlan[harlan["metric"] == "cte_eligible_completer_count_grade_12"].iloc[0]
+    starred = harlan[harlan["metric"] == "cte_completer_count_grade_12"].iloc[0]
     assert starred["suppressed"] == "Y"
     assert pd.isna(starred["value"])
+    assert "cte_eligible_completer_count_grade_12" not in set(harlan["metric"])
 
-    learning = kpi[kpi["school_id"] == "165898"]
-    zero_rate = learning[learning["metric"] == "cte_participation_rate"].iloc[0]
+    pike = kpi[kpi["school_id"] == "491020"]
+    zero_rate = pike[pike["metric"] == "cte_participation_rate"].iloc[0]
     assert float(zero_rate["value"]) == 0.0
     assert zero_rate["suppressed"] == "N"
-    zero_count = learning[learning["metric"] == "cte_eligible_completer_count_grade_12"].iloc[0]
-    assert float(zero_count["value"]) == 0.0
-    assert "cte_completion_rate_grade_12" not in set(learning["metric"])
+    assert float(pike[pike["metric"] == "cte_participant_count"].iloc[0]["value"]) == 108.0
 
-    foster = kpi[kpi["school_id"] == "165170"]
-    assert "cte_participation_rate" not in set(foster["metric"])
-    assert "cte_eligible_completer_count_grade_12" not in set(foster["metric"])
-    assert float(foster[foster["metric"] == "cte_participant_count"].iloc[0]["value"]) == 0.0
-    completion = foster[foster["metric"] == "cte_completion_rate_grade_12"].iloc[0]
-    assert completion["suppressed"] == "Y"
+    belfry = kpi[kpi["school_id"] == "777101"]
+    assert "cte_participation_rate" not in set(belfry["metric"])
+    assert float(belfry[belfry["metric"] == "cte_participant_count"].iloc[0]["value"]) == 523.0
+    assert float(belfry[belfry["metric"] == "cte_completer_count_grade_12"].iloc[0]["value"]) == 85.0
+    assert float(belfry[belfry["metric"] == "cte_completion_rate_grade_12"].iloc[0]["value"]) == 42.1
+
+    allen = kpi[kpi["school_id"] == "005901"]
+    assert "cte_participation_rate" not in set(allen["metric"])
+    assert float(allen[allen["metric"] == "cte_participant_count"].iloc[0]["value"]) == 704.0
+    assert float(allen[allen["metric"] == "cte_completer_count_grade_12"].iloc[0]["value"]) == 76.0
+    assert float(allen[allen["metric"] == "cte_completion_rate_grade_12"].iloc[0]["value"]) == 40.4
+    assert "cte_eligible_completer_count_grade_12" not in set(kpi["metric"])
     keys = kpi[["school_id", "year", "student_group", "metric"]]
     assert not keys.duplicated().any()
+
+
+def test_star_does_not_overwrite_a_published_number(caplog):
+    """A starred duplicate keeps the number. The rows are synthetic.
+
+    No registered file has two rows for the same school, year, and
+    demographic. School code ``SYNSTAR`` is not a district code.
+    """
+    etl = CTEParticipationETL("cte_participation")
+    frame = pd.DataFrame({
+        "School Year": ["20232024", "20232024"],
+        "District Name": ["Synthetic District", "Synthetic District"],
+        "School Name": ["Synthetic School", "Synthetic School"],
+        "School Code": ["SYNSTAR", "SYNSTAR"],
+        "Demographic": ["All Students", "All Students"],
+        "Total Number of Student": ["10", "*"],
+        "CTE Participants in All Grades": ["*", "80.0"],
+        "Grade 12 CTE Eligible Completer": ["4", "*"],
+        "Grade 12 CTE Completers": ["*", "*"],
+    })
+    with caplog.at_level("WARNING"):
+        kpi = _kpi_from_frame(etl, frame, "synthetic_duplicate.csv")
+    participants = kpi[kpi["metric"] == "cte_participant_count"].iloc[0]
+    assert float(participants["value"]) == 10.0
+    assert participants["suppressed"] == "N"
+    rate = kpi[kpi["metric"] == "cte_participation_rate"].iloc[0]
+    assert float(rate["value"]) == 80.0
+    assert rate["suppressed"] == "N"
+    completers = kpi[kpi["metric"] == "cte_completer_count_grade_12"].iloc[0]
+    assert float(completers["value"]) == 4.0
+    assert completers["suppressed"] == "N"
+    assert "two cte_participant_count values" in caplog.text
+    assert "two cte_participation_rate values" in caplog.text
+    keys = kpi[["school_id", "year", "student_group", "metric"]]
+    assert not keys.duplicated().any()
+
+
+def test_less_than_10_is_suppressed_not_blank():
+    """``<10`` is value NA with suppressed Y. The row is synthetic.
+
+    No registered CTE file contains ``<10``. School code ``SYNLT10`` is
+    not a district code.
+    """
+    etl = CTEParticipationETL("cte_participation")
+    frame = pd.DataFrame({
+        "School Year": ["20232024"],
+        "District Name": ["Synthetic District"],
+        "School Name": ["Synthetic School"],
+        "School Code": ["SYNLT10"],
+        "Demographic": ["All Students"],
+        "Total Number of Student": ["<10"],
+        "CTE Participants in All Grades": ["12.5"],
+        "Grade 12 CTE Eligible Completer": ["<10"],
+        "Grade 12 CTE Completers": ["--"],
+    })
+    kpi = _kpi_from_frame(etl, frame, "synthetic_lt10.csv")
+    assert set(kpi["metric"]) == {
+        "cte_participant_count",
+        "cte_participation_rate",
+        "cte_completer_count_grade_12",
+    }
+    count = kpi[kpi["metric"] == "cte_participant_count"].iloc[0]
+    assert count["suppressed"] == "Y"
+    assert pd.isna(count["value"])
+    completers = kpi[kpi["metric"] == "cte_completer_count_grade_12"].iloc[0]
+    assert completers["suppressed"] == "Y"
+    assert pd.isna(completers["value"])
+    assert float(kpi[kpi["metric"] == "cte_participation_rate"].iloc[0]["value"]) == 12.5
+    assert "cte_completion_rate_grade_12" not in set(kpi["metric"])
 
 
 def test_kyrc25_keeps_counts_and_does_not_calculate_rates():
