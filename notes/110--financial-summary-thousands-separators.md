@@ -1,0 +1,93 @@
+# Financial summary thousands separators
+
+**Date**: 2026-10-20
+
+## What was wrong
+
+`clean_numeric_values` removed commas only when `dtype == object`. `BaseETL._read_data_file` reads with `dtype=str`. On pandas 3.0.6 that dtype is StringDtype, so the comma stayed in the cell and `to_numeric` turned it into missing. pandas 2.3.3 still returns object, so the same files kept the comma numbers there.
+
+The audit count is the 2023-24 file (`KYRC24_FT_Financial_Summary.csv`, KPI year 2024). Membership survived for 39 of 172 source rows, and the largest survivor was 997. The 2024-25 file (`KYRC25_FT_Financial_Summary.csv`, KPI year 2025) had the same shape: 39 of 172, largest survivor 992. Fayette County is `41,013` in 2024 and `40,792` in 2025, so both years lost it. The state membership is `636,427` and `630,946`, so both years lost that cell too. Every fund balance in both files contains a comma, so fund balance survived for 0 districts. Staffing ratios need membership, so they covered only the districts under 1,000 students.
+
+2020-2023 and the 2018-19 workbook do not put thousands separators in the measure columns. Their row counts did not change.
+
+KDE also writes a negative fund balance in accounting parentheses. Berea Independent 2024 is `(58,197)` and `(1)`. Berea Independent 2025 is `(1,344,948)` and `(12)`. Estill County 2025 is `(546,409)` and `(3)`. A comma strip leaves `(58197)`, and `to_numeric` still drops it. That happened on pandas 2.3.3 and on pandas 3.0.6. Those six cells are published negatives, so they are stored as negatives.
+
+## Parser
+
+Commas are removed on object and on StringDtype. `(1,344,948)` becomes `-1344948`. A `*` is recorded first and stored as value NA with suppressed Y. A blank cell is not stored. A 0 is kept. No registered financial summary file publishes a `*` or a 0 in these columns. `BaseETL` is unchanged.
+
+The three staffing ratios are still membership divided by staff FTE, rounded to two decimals. A star or a blank in either input omits the ratio. A published 0 staff FTE omits the ratio. Metric names are unchanged.
+
+State school codes `999` and `999000` are still not written. That skip already removed the state row in 2019-2023, where membership has no comma. The 39-of-172 count is source rows, including the state row, before that skip.
+
+## Row counts
+
+Before is pandas 3.0.6, which is the run that dropped the comma values. After is the same on pandas 3.0.6 and pandas 2.3.3 (13,177 rows, no value or suppressed differences). 2019-2023 match the pandas 3 before file on every value. pandas 2.3.3 before already had the comma values; the only rows it gained are the six parenthetical fund-balance cells below.
+
+| Year | Before, membership / fund balance / fund balance % / certified / teachers / classified / non-teachers / ratios (each) / total staff | After, every metric |
+| --- | --- | --- |
+| 2019 | 172 / 172 / 172 / 172 / 172 / 172 / 172 / 172 / 172 | 172 |
+| 2020 | 171 / 171 / 171 / 171 / 171 / 171 / 171 / 171 / 171 | 171 |
+| 2021 | 171 / 171 / 171 / 171 / 171 / 171 / 171 / 171 / 171 | 171 |
+| 2022 | 171 / 171 / 170 / 171 / 171 / 171 / 171 / 171 / 171 | 171, and fund balance % stays 170 |
+| 2023 | 171 / 171 / 171 / 171 / 171 / 171 / 171 / 171 / 171 | 171 |
+| 2024 | 39 / 0 / 170 / 166 / 167 / 166 / 166 / 39 / 166 | 171 |
+| 2025 | 39 / 0 / 169 / 166 / 167 / 166 / 166 / 39 / 166 | 171 |
+
+2022 fund balance % is 170 because Hardin County publishes a blank percent. That blank stays omitted. 2019 has 172 districts in the workbook after the state row is skipped. Later years have 171.
+
+Total KPI rows: 11,728 before, 13,177 after. No duplicate `year` / `school_id` / `metric` / `student_group` keys. The transform does not read the output back. Peak resident memory was 87,072 KB on pandas 3.0.6 and 92,312 KB on pandas 2.3.3.
+
+## Fayette County (district 165) and the state
+
+KPI school id `165000`. These are stored.
+
+| | 2024 | 2025 |
+| --- | --- | --- |
+| `eoy_student_membership` | 41,013 | 40,792 |
+| `certified_staff_fte` | 3,800 | 3,794 |
+| `classified_staff_fte` | 2,738 | 2,845 |
+| `certified_staff_non_teachers_fte` | 678 | 727 |
+| `certified_staff_teachers_fte` | 3,122 | 3,067 |
+| `fund_balance` | 43,291,115 | 26,221,245 |
+| `fund_balance_pct` | 8 | 5 |
+| `total_staff_fte` | 6,538 | 6,639 |
+| `students_per_certified_staff` | 10.79 | 10.75 |
+| `students_per_classified_staff` | 14.98 | 14.34 |
+| `students_per_non_teacher_certified_staff` | 60.49 | 56.11 |
+
+The state row is district `All Districts`, school code `999000`. The parser reads it. The KPI file still does not store it, same as 2019-2023.
+
+| | 2024 | 2025 |
+| --- | --- | --- |
+| `eoy_student_membership` | 636,427 | 630,946 |
+| `certified_staff_fte` | 52,601 | 52,488 |
+| `certified_staff_teachers_fte` | 43,103 | 42,839 |
+| `classified_staff_fte` | 45,454 | 46,184 |
+| `certified_staff_non_teachers_fte` | 9,498 | 9,649 |
+| `fund_balance` | 1,896,359,959 | 1,822,550,000 |
+| `fund_balance_pct` | 30 | 27 |
+| `total_staff_fte` | 98,055 | 98,672 |
+| `students_per_certified_staff` | 12.10 | 12.02 |
+| `students_per_classified_staff` | 14.00 | 13.66 |
+| `students_per_non_teacher_certified_staff` | 67.01 | 65.39 |
+
+## Fayette 2024 and 2025 are not the same year
+
+The equity-dashboard snapshot shows Fayette 2024 and 2025 as 41013 / 3800 / 2738 / 678. Those four numbers are the 2023-24 publication. Non-teacher certified staff is 3,800 minus 3,122.
+
+The current 2024-25 file publishes 40,792 / 3,794 / 2,845, and non-teacher certified staff is 3,794 minus 3,067 = 727. Membership matches on 0 of 172 districts. Fund balance matches on 0. `School Year` is `20232024` and `20242025`, and the KPI year is the ending year. Nothing writes one file onto both years.
+
+`datasets` and `datasetsuat6051276` serve the same KYRC25 bytes (md5 `3ea42d1850692de5fd468d3eb56c58c8`, Last-Modified Sat, 18 Jul 2026). KYRC24 was last modified Mon, 09 Jun 2025.
+
+On pandas 3 the comma bug drops Fayette in both years, so that run cannot be the source of a snapshot that contains 41,013. On pandas 2.3.3 the pipeline already stored 41,013 for 2024 and 40,792 for 2025. The identical snapshot is not a year-mapping bug, and it is not what the current files publish. The snapshot's 2025 slot is holding the 2023-24 figures. No year-mapping change was made.
+
+Breathitt County's 2023 school-year text is `20022023`. The ending year is still 2023, and the district has one row. That source typo is not a second key.
+
+## Tests
+
+`tests/fixtures/financial_summary/comma_formatted_kyrc.csv` copies the Fayette, Berea, and state rows byte-for-byte from `KYRC24_FT_Financial_Summary.csv`. Berea's classified staff is the published 67, so `students_per_classified_staff` is 948/67 = 14.15. The `*` membership, the blank percent, and the zero row are labelled synthetic (`SYNSTAR`, `SYNBLNK`, `SYNZERO`). They are not KDE district rows. Hardin County's blank 2022 fund-balance percent is the real blank, and it stays omitted. The same comma and parenthesis cases are checked on StringDtype and on object.
+
+`test_extract_metrics`, `test_get_suppressed_metric_defaults`, `test_transform_2020_format`, and `test_mixed_year_formats` still expect 8 metrics. The module already emitted 11, including the three staffing ratios, before this change. Those assertions were not edited.
+
+This note is `notes/110--financial-summary-thousands-separators.md`. `KPIS.md` records that `fund_balance` and `fund_balance_pct` can be negative, lists years 2019-2025, and names `KYRC25_FT_Financial_Summary.csv` and `FINANCE_18-19.xlsx`. `README.md` and `notes/104--kyrc26-file-to-etl-mapping.md` are unchanged from `feature/2025-26-kyrc26`. The pre-review comparison is in the pull request.

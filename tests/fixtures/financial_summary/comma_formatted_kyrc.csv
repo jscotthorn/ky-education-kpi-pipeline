@@ -1,0 +1,7 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,End-of-Year Student Membership,Fund Balance,Fund Balance %,Certified Staff,Certified Staff Teachers,Classified Staff
+20232024,034,FAYETTE,165,Fayette County,,All Schools,165000,,,CKEC,901,,"41,013","43,291,115",8,"3,800","3,122","2,738"
+20232024,073,MADISON,034,Berea Independent,,All Schools,034000,,,SESC,907,,948,"(58,197)",(1),100,81,67
+20232024,,,999,All Districts,,All Schools,999000,,,,,,"636,427","1,896,359,959",30,"52,601","43,103","45,454"
+20232024,,SYNTHETIC,SYN,Synthetic Star,,Synthetic Star,SYNSTAR,,,,,,*,1000,8,10,8,5
+20232024,,SYNTHETIC,SYN,Synthetic Blank,,Synthetic Blank,SYNBLNK,,,,,,100,1000,,10,8,5
+20232024,,SYNTHETIC,SYN,Synthetic Zero,,Synthetic Zero,SYNZERO,,,,,,0,0,0,0,0,0
