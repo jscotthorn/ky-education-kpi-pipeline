@@ -12,10 +12,19 @@ count are stored. Neither rate is calculated. Participants are counted where
 the course is taught and enrollment where the student is enrolled. KYRC25
 and KYRC26 do not publish eligible completers.
 
-The 2022 and 2023 files use the same four headers as KYRC24, in uppercase, and
-every measure cell is a count or a ``*``. None of them is a rate. Counts are
-stored on count metrics. The rate metrics are left absent for those years.
+The 2022 and 2023 annual files use the same four headers as KYRC24, in
+uppercase, and every measure cell is a count or a ``*``. None of them is a
+rate. Counts are stored on count metrics. The 2022 rate metrics are absent.
 Every district and state enrollment cell in those two files is ``*``.
+
+``KYRC23_CTE_Participation.csv`` is the KYRC republish of 2022-23. Its
+headers match KYRC24, including the two headers whose text does not match
+the cells. This module stores only the two published 2023 rates from that
+file: ``CTE Participants in All Grades`` and ``Grade 12 CTE Completers``.
+It does not store the KYRC23 count columns, and it does not calculate a
+rate. The 2023 counts stay the annual file's counts. Where both files have
+a number, those counts agree. A star against a blank is not a conflict.
+The annual count is kept either way.
 
 KYRC24 publishes the participation rate in ``CTE Participants in All Grades``
 and the completion rate in ``Grade 12 CTE Completers``. ``Total Number of
@@ -24,10 +33,10 @@ the completer count: the header does not match the cells, same as ``Total
 Number of Student``. KYRC23's column of that name equals the 2023 annual
 ``GRADE 12 CTE COMPLETERS`` count wherever both are numbers. A published rate
 above 100 is kept. A published 0.0 is kept, including the 208 KYRC24
-participation rates on a positive participant count (Refs #112). Those
-published percents are the only ``cte_participation_rate`` and
-``cte_completion_rate_grade_12`` values this module stores. KYRC23's
-published 2023 rates are not loaded.
+participation rates on a positive participant count and the KYRC23
+participation rates published as 0.0 (Refs #112). Those published percents
+are the only ``cte_participation_rate`` and ``cte_completion_rate_grade_12``
+values this module stores.
 
 There is no Suppressed column. A ``*`` or ``<10`` cell is value NA with
 ``suppressed`` Y. A blank, ``--``, or ``N/A`` is not stored. ``N/A`` on a
@@ -61,11 +70,24 @@ _COUNT_COLUMNS: Tuple[Tuple[str, str], ...] = (
     ("cte_participant_count_grade_12", "cte_participant_count_grade_12"),
 )
 
-# Published rate columns. KYRC24 only. Values above 100 stay as published.
+# Published rate columns. KYRC23 and KYRC24. Values above 100 stay as published.
 _RATE_COLUMNS: Tuple[Tuple[str, str], ...] = (
     ("cte_participation_rate", "cte_participation_rate"),
     ("cte_completion_rate", "cte_completion_rate_grade_12"),
 )
+
+# KYRC23 count header, 2023 annual count header, KPI name used in the report.
+# The KYRC23 cells are not stored. The annual file already stores the count.
+_KYRC23_COUNT_PAIRS: Tuple[Tuple[str, str, str], ...] = (
+    ("Total Number of Student", "CTE PARTICIPANTS IN ALL GRADES", "cte_participant_count"),
+    (
+        "Grade 12 CTE Eligible Completer",
+        "GRADE 12 CTE COMPLETERS",
+        "cte_completer_count_grade_12",
+    ),
+)
+_KYRC23_RATES_FILE = "KYRC23_CTE_PARTICIPATION.CSV"
+_ANNUAL_2023_FILE = "cte_by_student_group_2023.csv"
 
 # ``<10`` is suppressed, not blank. No registered CTE file uses it.
 _SUPPRESSED_TEXT = {"*", "**", "<10"}
@@ -116,6 +138,113 @@ def _classify_cell(value: Any) -> Cell:
         logger.warning("Ignoring negative CTE value %r", text)
         return "blank", None
     return "number", number
+
+
+def _is_kyrc23_rates_file(source_file: str) -> bool:
+    """True when this file contributes published 2023 rates and no counts."""
+    return Path(source_file).name.upper() == _KYRC23_RATES_FILE
+
+
+def _school_code_key(code: Any, pad_short: bool) -> str:
+    """School-code join key.
+
+    The 2023 annual file stores a district or the state as three digits.
+    KYRC23 stores the same row as those digits plus ``000``. A school code
+    is already six digits on both files. A non-numeric code is left as written.
+    """
+    text = _cell_text(code)
+    if text.endswith(".0"):
+        text = text[:-2]
+    if pad_short and text.isdigit() and len(text) <= 3:
+        return text.zfill(3) + "000"
+    return text
+
+
+def _count_number(value: Any) -> Optional[float]:
+    """A published count, or None when the cell is a star or blank."""
+    kind, number = _classify_cell(value)
+    if kind == "number":
+        return number
+    return None
+
+
+def find_kyrc23_count_conflicts(kyrc_path: Path, annual_path: Path) -> List[Dict[str, Any]]:
+    """Numeric disagreements between KYRC23 counts and the 2023 annual file.
+
+    A conflict is one school, one demographic, and one count where both
+    cells are numbers and the numbers differ. A star, a blank, ``--``, and
+    ``N/A`` are not numbers, so a star against a blank is not a conflict.
+    The caller keeps the annual count and does not store the KYRC23 count.
+    """
+    kyrc = pd.read_csv(kyrc_path, dtype=str, keep_default_na=False)
+    annual = pd.read_csv(annual_path, dtype=str, keep_default_na=False)
+    annual_rows: Dict[Tuple[str, str], pd.Series] = {}
+    for _, row in annual.iterrows():
+        demographic = _cell_text(row.get("DEMOGRAPHIC"))
+        if not demographic:
+            continue
+        key = (_school_code_key(row.get("SCHOOL CODE"), pad_short=True), demographic)
+        annual_rows[key] = row
+
+    conflicts: List[Dict[str, Any]] = []
+    for _, row in kyrc.iterrows():
+        demographic = _cell_text(row.get("Demographic"))
+        if not demographic:
+            continue
+        key = (_school_code_key(row.get("School Code"), pad_short=False), demographic)
+        annual_row = annual_rows.get(key)
+        if annual_row is None:
+            continue
+        for kyrc_column, annual_column, metric_name in _KYRC23_COUNT_PAIRS:
+            kyrc_value = _count_number(row.get(kyrc_column))
+            annual_value = _count_number(annual_row.get(annual_column))
+            if kyrc_value is None or annual_value is None or kyrc_value == annual_value:
+                continue
+            conflicts.append(
+                {
+                    "metric": metric_name,
+                    "school_code": key[0],
+                    "demographic": demographic,
+                    "annual": annual_value,
+                    "kyrc23": kyrc_value,
+                }
+            )
+    return conflicts
+
+
+def report_kyrc23_count_conflicts(source_dir: Path) -> List[Dict[str, Any]]:
+    """Log numeric KYRC23 count conflicts. An empty result is zero conflicts.
+
+    Missing inputs are not conflicts. The annual counts stay in the output
+    whether or not this list is empty, because the KYRC23 file does not
+    emit count metrics.
+    """
+    kyrc_path = source_dir / "KYRC23_CTE_Participation.csv"
+    annual_path = source_dir / _ANNUAL_2023_FILE
+    if not kyrc_path.exists() or not annual_path.exists():
+        return []
+    conflicts = find_kyrc23_count_conflicts(kyrc_path, annual_path)
+    if conflicts:
+        logger.warning(
+            "KYRC23 has %s numeric count conflicts with %s; annual counts are kept",
+            len(conflicts),
+            _ANNUAL_2023_FILE,
+        )
+        for item in conflicts[:20]:
+            logger.warning(
+                "KYRC23 %s for %s %s is %s; the annual count %s is kept",
+                item["metric"],
+                item["school_code"],
+                item["demographic"],
+                item["kyrc23"],
+                item["annual"],
+            )
+        return conflicts
+    logger.info(
+        "KYRC23 count cells have 0 numeric conflicts with %s; annual counts are kept",
+        _ANNUAL_2023_FILE,
+    )
+    return conflicts
 
 
 def clean_numeric_with_commas(series: pd.Series) -> pd.Series:
@@ -176,7 +305,8 @@ class CTEParticipationETL(BaseETL):
     KYRC26 uses the same count headers as KYRC25. No temporary OAA extract
     is registered for this directory, and the guessed temporary names return
     404, so there is no leftover filename to skip. The 2022 and 2023
-    historical names stay.
+    historical names stay. ``KYRC23_CTE_Participation.csv`` adds the
+    published 2023 rates and does not add counts.
     """
 
     # Opt in here, in the same change that accepts the file. BaseETL skips
@@ -186,8 +316,9 @@ class CTEParticipationETL(BaseETL):
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {
-            # KYRC24 published participation rate. The header says participants.
-            # The cells are percents, including values above 100.
+            # KYRC23 and KYRC24 published participation rate. The header says
+            # participants. The cells are percents, including values above 100.
+            # KYRC23 does not also store the count columns under these headers.
             'CTE Participants in All Grades': 'cte_participation_rate',
 
             # 2022 and 2023. The same words are a count in every row.
@@ -210,13 +341,14 @@ class CTEParticipationETL(BaseETL):
             # KYRC24. The header says eligible completers. The cells are the
             # completer count (state All Students 17,597). Same
             # header-versus-content problem as Total Number of Student.
+            # KYRC23 uses this header for the same count and does not store it.
             'Grade 12 CTE Eligible Completer': 'cte_completer_count_grade_12',
 
             # 2022 and 2023 eligible-completer count. The uppercase header
             # matches the cells. KYRC24 does not use this metric.
             'GRADE 12 CTE ELIGIBLE COMPLETER': 'cte_eligible_completer_count',
 
-            # KYRC24 published completion rate.
+            # KYRC23 and KYRC24 published completion rate.
             'Grade 12 CTE Completers': 'cte_completion_rate',
 
             # 2022 and 2023 completer count. Not a rate.
@@ -224,6 +356,8 @@ class CTEParticipationETL(BaseETL):
 
             # KYRC24. The header says students. The state cell is 143,415,
             # the participant count. It is not high-school enrollment.
+            # KYRC23 uses this header for the 2023 participant count and does
+            # not store it. The annual file already has that count.
             'Total Number of Student': 'cte_participant_count',
 
             # 2022 and 2023 high-school enrollment. Every district and state
@@ -246,18 +380,25 @@ class CTEParticipationETL(BaseETL):
             return None
         return _classify_cell(row.get(column))
 
-    def _iter_metric_cells(self, row: pd.Series) -> List[Tuple[str, str, Optional[float]]]:
+    def _iter_metric_cells(
+        self, row: pd.Series, source_file: str = ""
+    ) -> List[Tuple[str, str, Optional[float]]]:
         """Published cells on this row.
 
         A blank cell is omitted. A star is returned so the converter can
         store value NA with ``suppressed`` Y. A number is returned as
         published, including a rate above 100 and a count above 100.
         ``cte_participation_rate`` and ``cte_completion_rate_grade_12`` are
-        only the percents KYRC24 published. KYRC25 and KYRC26 keep the
-        counts and do not divide them.
+        the percents KYRC23 and KYRC24 published. KYRC23 does not emit the
+        count columns. KYRC25 and KYRC26 keep the counts and do not divide
+        them.
         """
+        if _is_kyrc23_rates_file(source_file):
+            columns = _RATE_COLUMNS
+        else:
+            columns = _COUNT_COLUMNS + _RATE_COLUMNS
         found: List[Tuple[str, str, Optional[float]]] = []
-        for column, metric_name in _COUNT_COLUMNS + _RATE_COLUMNS:
+        for column, metric_name in columns:
             cell = self._cell(row, column)
             if cell is None:
                 continue
@@ -318,15 +459,16 @@ class CTEParticipationETL(BaseETL):
         """One row per school, year, student group, and published measure.
 
         A star or ``<10`` suppresses that measure only. Another measure on
-        the same row stays as published. A blank cell is not a row. A
-        published 0 is kept. A published rate above 100 is kept. The same
-        key is not written twice. A star does not replace a number already
-        stored on that key.
+        the same row stays as published. A blank, ``--``, or ``N/A`` cell
+        is not a row. A published 0 is kept. A published rate above 100 is
+        kept. The same key is not written twice. A star does not replace a
+        number already stored on that key. KYRC23 writes the two published
+        rates and does not write counts.
         """
         kpi_rows: List[Dict[str, Any]] = []
         seen: Dict[Tuple[str, str, str, str], int] = {}
-        # Both rates are published KYRC24 percents. A value above 100 is
-        # the rate KDE printed.
+        # Both rates are published KYRC23 and KYRC24 percents. A value
+        # above 100 is the rate KDE printed.
         rates_above_100 = 0
 
         for _, row in df.iterrows():
@@ -336,7 +478,7 @@ class CTEParticipationETL(BaseETL):
             if kpi_template is None:
                 continue
 
-            for metric_name, kind, number in self._iter_metric_cells(row):
+            for metric_name, kind, number in self._iter_metric_cells(row, source_file):
                 kpi_record = kpi_template.copy()
                 kpi_record["metric"] = metric_name
                 if kind == "star":
@@ -401,9 +543,13 @@ class CTEParticipationETL(BaseETL):
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
-    """Read newest CTE participation files, normalize, and convert to KPI format with demographic standardization using BaseETL."""
-    # Use BaseETL for consistent processing
+    """Read newest CTE participation files, normalize, and convert to KPI format with demographic standardization using BaseETL.
+
+    KYRC23 count conflicts are logged and are not written. The annual
+    2023 counts stay the stored counts.
+    """
     etl = CTEParticipationETL('cte_participation')
+    report_kyrc23_count_conflicts(raw_dir / 'cte_participation')
     etl.process(raw_dir, proc_dir, cfg)
 
 

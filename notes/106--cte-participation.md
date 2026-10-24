@@ -4,7 +4,7 @@ PR #106. Refs #47, #46, and #112.
 
 The 2022 and 2023 files publish counts in every measure column. Those counts had been stored on `cte_participation_rate` and `cte_completion_rate_grade_12` when they were 100 or less, and dropped when they were larger. This change stores each published cell on a count metric. It does not calculate a rate from counts.
 
-`cte_participation_rate` and `cte_completion_rate_grade_12` hold only the percents KYRC24 published. KYRC25 and KYRC26 store the published counts and do not emit either rate. KYRC23 publishes 2023 rates and is not loaded. The registered KYRC24 file stays the historical copy.
+`cte_participation_rate` and `cte_completion_rate_grade_12` hold only the percents KYRC24 published. KYRC25 and KYRC26 store the published counts and do not emit either rate. KYRC23's published 2023 rates are loaded in `notes/114--cte-2023-published-rates.md`. The registered KYRC24 file stays the historical copy.
 
 A `*` or `<10` is value NA with `suppressed` Y, including a fully starred demographic. A blank, `--`, or `N/A` is omitted. A published 0 is kept. No output key repeats on year, school, student group, and metric. A star on a duplicate key does not replace a published number.
 
