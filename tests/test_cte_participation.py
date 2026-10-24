@@ -1,6 +1,7 @@
 """
 Unit tests for the CTE Participation ETL module.
 """
+import io
 import unittest
 from pathlib import Path
 import pandas as pd
@@ -329,12 +330,13 @@ def test_2022_counts_are_not_stored_as_rates():
 def test_published_rate_above_100_is_kept_and_blank_is_skipped():
     """KYRC24 stores the printed rate. A star is Y. ``--`` and ``N/A`` are absent.
 
-    The four rows are copied from the registered historical KYRC24 file.
-    Harlan County High School ``235025`` American Indian is 400.0 on 4
-    participants. Pike County Virtual ``491020`` All Students is 0.0 on 108
-    participants. Belfry ``777101`` All Students has ``--``. Allen County
-    Career and Technical Center ``005901`` All Students has ``N/A``.
-    ``Grade 12 CTE Eligible Completer`` is the completer count.
+    The four rows are copied from KYRC24. They are the same in the May 2026
+    republish and the May 2025 historical copy. Harlan County High School
+    ``235025`` American Indian is 400.0 on 4 participants. Pike County
+    Virtual ``491020`` All Students is 0.0 on 108 participants. Belfry
+    ``777101`` All Students has ``--``. Allen County Career and Technical
+    Center ``005901`` All Students has ``N/A``. ``Grade 12 CTE Eligible
+    Completer`` is the completer count.
     """
     fixture = ROOT / "tests" / "fixtures" / "cte_participation" / "KYRC24_CTE_Participation.csv"
     text = fixture.read_text(encoding="utf-8")
@@ -504,8 +506,144 @@ def test_registered_sources_are_the_permanent_files():
         if isinstance(entry, dict):
             hosts[entry["file"]] = entry.get("url")
     assert hosts["KYRC23_CTE_Participation.csv"] == "kyrc25"
+    assert hosts["KYRC24_CTE_Participation.csv"] == "kyrc25"
     assert hosts["KYRC25_CTE_Participation.csv"] == "kyrc25"
     assert hosts["KYRC26_CTE_Participation.csv"] == "kyrc26"
+    # The comment records the datasets md5. The May 2025 historical md5 is
+    # the copy that is not registered.
+    source_text = (ROOT / "config" / "kde_sources.yaml").read_text(encoding="utf-8")
+    section = source_text.split("cte_participation:", 1)[1].split("\n  english_learner_progress:", 1)[0]
+    assert "86677fc9b17a32b62cb533f4352ed63e" in section
+    assert "0b0d30c79ff6c5f3c039aafd5ceb8081" in section
+    kyrc24 = next(
+        entry
+        for entry in config["raw_directories"]["cte_participation"]
+        if isinstance(entry, dict) and entry.get("file") == "KYRC24_CTE_Participation.csv"
+    )
+    assert "save_as" not in kyrc24
+
+
+def test_kyrc24_republish_does_not_keep_the_may_2025_stars():
+    """May 2026 lines (md5 86677fc9) replace May 2025 stars (md5 0b0d30c7).
+
+    A published 0.0 is kept. A blank, ``--``, or ``N/A`` is omitted.
+    ``expected`` is the republish row: a float is suppressed N, ``Y`` is a
+    star, and a missing metric is omitted. The historical line for the
+    same school is not in the fixture. Parsing it still suppresses every
+    measure that the republish changed, so the old copy fails this test.
+    """
+    fixture = ROOT / "tests" / "fixtures" / "cte_participation" / "KYRC24_CTE_Participation.csv"
+    lines = fixture.read_text(encoding="utf-8").splitlines()
+    header = lines[0]
+    # republish line, historical line, expected metrics, co-op if it changed
+    cases = [
+        (
+            "20232024,002,ALLEN,005,Allen County,,All Schools,005000,,,GRREC,902,,Native Hawaiian or Pacific Islander,,0.0,,0.0",
+            "20232024,002,ALLEN,005,Allen County,,All Schools,005000,,,GRREC,902,,Native Hawaiian or Pacific Islander,*,*,*,*",
+            {"cte_participation_rate": 0.0, "cte_completion_rate_grade_12": 0.0},
+            None,
+        ),
+        (
+            "20232024,001,ADAIR,001,Adair County,,All Schools,001000,,,GRREC,902,,Asian,3,60.0,,0.0",
+            "20232024,001,ADAIR,001,Adair County,,All Schools,001000,,,GRREC,902,,Asian,3,60.0,*,*",
+            {"cte_participant_count": 3.0, "cte_participation_rate": 60.0, "cte_completion_rate_grade_12": 0.0},
+            None,
+        ),
+        (
+            "20232024,037,FRANKLIN,777,Kentucky Tech System,123,Trailblazer Academy,777123,037777123,210028902091,,,C2,American Indian or Alaska Native,,--,*,*",
+            "20232024,037,FRANKLIN,777,Kentucky Tech System,123,Trailblazer Academy,777123,037777123,210028902091,,,C2,American Indian or Alaska Native,*,*,*,*",
+            {"cte_completer_count_grade_12": "Y", "cte_completion_rate_grade_12": "Y"},
+            None,
+        ),
+        (
+            "20232024,089,MUHLENBERG,445,Muhlenberg County,902,Muhlenberg County Career & Tech Center,445902,089445902,210008102139,WKEC,908,A2,Homeless,,N/A,,0.0",
+            "20232024,089,MUHLENBERG,445,Muhlenberg County,902,Muhlenberg County Career & Tech Center,445902,089445902,210008102139,WKEC,908,A2,Homeless,*,*,*,*",
+            {"cte_completion_rate_grade_12": 0.0},
+            None,
+        ),
+        (
+            "20232024,056,JEFFERSON,275,Jefferson County,045,Butler Traditional High,275045,056275045,210299000644,GREC,909,A1,African American,454,55.8,35,19.4",
+            "20232024,056,JEFFERSON,275,Jefferson County,045,Butler Traditional High,275045,056275045,210299000644,,909,A1,African American,454,55.8,35,19.4",
+            {
+                "cte_participant_count": 454.0,
+                "cte_participation_rate": 55.8,
+                "cte_completer_count_grade_12": 35.0,
+                "cte_completion_rate_grade_12": 19.4,
+            },
+            "GREC",
+        ),
+        (
+            "20232024,012,BRACKEN,013,Augusta Independent,011,Augusta Independent School,013011,012013011,210018001968,KEDC,903,A1,All Students,63,0.0,,0.0",
+            "20232024,012,BRACKEN,013,Augusta Independent,011,Augusta Independent School,013011,012013011,210018001968,KEDC,903,A1,All Students,63,0.0,*,*",
+            {"cte_participant_count": 63.0, "cte_participation_rate": 0.0, "cte_completion_rate_grade_12": 0.0},
+            None,
+        ),
+        (
+            "20232024,034,FAYETTE,165,Fayette County,898,Fayette County Learning Center,165898,034165898,210186002251,CKEC,901,A5,All Students,26,0.0,,0.0",
+            "20232024,034,FAYETTE,165,Fayette County,898,Fayette County Learning Center,165898,034165898,210186002251,CKEC,901,A5,All Students,26,0.0,*,*",
+            {"cte_participant_count": 26.0, "cte_participation_rate": 0.0, "cte_completion_rate_grade_12": 0.0},
+            None,
+        ),
+        (
+            "20232024,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,Native Hawaiian or Pacific Islander,*,*,,*",
+            "20232024,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,Native Hawaiian or Pacific Islander,*,*,*,*",
+            {
+                "cte_participant_count": "Y",
+                "cte_participation_rate": "Y",
+                "cte_completion_rate_grade_12": "Y",
+            },
+            None,
+        ),
+    ]
+    etl = CTEParticipationETL("cte_participation")
+
+    def stored(source_line: str) -> dict:
+        one = pd.read_csv(io.StringIO(header + "\n" + source_line + "\n"), dtype=str, keep_default_na=False)
+        kpi = _kpi_from_frame(etl, one, "KYRC24_CTE_Participation.csv")
+        return {row["metric"]: row for _, row in kpi.iterrows()}
+
+    def coop_text(value: object) -> str:
+        if value is None:
+            return ""
+        try:
+            if bool(pd.isna(value)):
+                return ""
+        except (TypeError, ValueError):
+            return ""
+        return str(value).strip()
+
+    for republish_line, historical_line, expected, coop in cases:
+        assert republish_line in lines
+        assert historical_line not in lines
+        got = stored(republish_line)
+        assert set(got) == set(expected)
+        for metric, want in expected.items():
+            row = got[metric]
+            if want == "Y":
+                assert row["suppressed"] == "Y"
+                assert pd.isna(row["value"])
+            else:
+                assert row["suppressed"] == "N"
+                assert float(row["value"]) == want
+        if coop is not None:
+            assert coop_text(next(iter(got.values()))["co_op"]) == coop
+            assert coop_text(stored(historical_line)["cte_participant_count"]["co_op"]) == ""
+        old = stored(historical_line)
+        for metric in (
+            "cte_participant_count",
+            "cte_participation_rate",
+            "cte_completer_count_grade_12",
+            "cte_completion_rate_grade_12",
+        ):
+            republish_value = expected.get(metric)
+            if republish_value not in (0.0, None) and metric in expected:
+                continue
+            # Omitted cells, and 0.0 cells that were not already 0.0, were stars.
+            if republish_value == 0.0 and old[metric]["suppressed"] == "N":
+                assert float(old[metric]["value"]) == 0.0
+                continue
+            assert old[metric]["suppressed"] == "Y"
+            assert pd.isna(old[metric]["value"])
 
 
 def test_kyrc23_stores_published_rates_and_not_counts():

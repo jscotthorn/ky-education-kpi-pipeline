@@ -33,10 +33,13 @@ the completer count: the header does not match the cells, same as ``Total
 Number of Student``. KYRC23's column of that name equals the 2023 annual
 ``GRADE 12 CTE COMPLETERS`` count wherever both are numbers. A published rate
 above 100 is kept. A published 0.0 is kept, including the 208 KYRC24
-participation rates on a positive participant count and the KYRC23
+participation rates on a positive participant count, the 0.0 rates in the
+14 May 2026 KYRC24 republish that replace a May 2025 ``*``, and the KYRC23
 participation rates published as 0.0 (Refs #112). Those published percents
 are the only ``cte_participation_rate`` and ``cte_completion_rate_grade_12``
-values this module stores.
+values this module stores. The registered KYRC24 file is that republish
+(datasets md5 ``86677fc9b17a32b62cb533f4352ed63e``), not the 29 May 2025
+historical copy.
 
 There is no Suppressed column. A ``*`` or ``<10`` cell is value NA with
 ``suppressed`` Y. A blank, ``--``, or ``N/A`` is not stored. ``N/A`` on a
