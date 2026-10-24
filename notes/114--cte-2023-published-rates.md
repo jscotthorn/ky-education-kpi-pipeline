@@ -15,7 +15,11 @@ This change stores only the two published rates. It does not calculate a rate. I
 
 ## Counts stay on the annual file
 
-The annual file uses three-digit codes for a district and the state (`165`, `999`). KYRC23 uses those digits plus `000` (`165000`, `999000`). School codes are already six digits on both files. Compared on that key plus demographic:
+The annual file uses three-digit codes for a district and the state (`165`, `999`). KYRC23 uses those digits plus `000` (`165000`, `999000`). School codes are already six digits on both files.
+
+2023 district and state rates stay on `xxx000`, `999000`, and district `All Districts`. 2023 counts stay on `xxx`, `999`, and district `State`. Scott accepted that split on 24 October 2026 until #61's shared normalization.
+
+Compared on that key plus demographic:
 
 | Count | Both numeric | Equal | Numeric conflicts |
 | --- | --- | --- | --- |
@@ -52,11 +56,11 @@ Nothing in this module divides a count by another count. The stored percent is t
 
 Participation (`CTE Participants in All Grades`): 5,806 numbers, 964 `*`, 776 `--`, 342 `N/A`. Numbers run from 0.0 through 400.0. 1,980 are 0.0. 21 are above 100 (102.4 through 400.0). North Hardin High School `231075`, Migrant, is 400.0 on a participant count of 4.
 
-Completion (`Grade 12 CTE Completers`): 4,962 numbers and 2,926 `*`. No blanks, no `--`, no `N/A`. Numbers run from 0.0 through 100.0. 2,542 are 0.0. None of those 0.0 cells has a numeric completer count. Fayette County Learning Center `165898` All Students is a blank completer count and a completion rate of 0.0.
+Completion (`Grade 12 CTE Completers`): 4,962 numbers and 2,926 `*`. No blanks, no `--`, no `N/A`. Numbers run from 0.0 through 100.0. 2,542 are 0.0. None of those 0.0 cells has a numeric completer count. All 2,542 completion 0.0 cells have a blank KYRC23 completer count and a `*` annual completer count. Fayette County Learning Center `165898` All Students is a blank completer count and a completion rate of 0.0.
 
 Stored rows from this file: 5,806 + 964 = 6,770 participation rates, and 4,962 + 2,926 = 7,888 completion rates. 6,770 + 7,888 = 14,658. All of them are year 2023. The run before this change was 145,371 rows. 145,371 + 14,658 = 160,029.
 
-A `*` or `<10` is value NA with `suppressed` Y. This file has no `<10>` cell. A blank, `--`, or `N/A` is not stored. That is the KYRC24 rule. Storing `--` would also add the 554 KYRC24 participation cells that are `--`, and this change does not add 2024 rows. The 776 KYRC23 participation cells of `--` are omitted, and the 342 `N/A` cells are omitted. A published 0 is kept. No output key repeats. A later star on the same key does not replace a published number.
+A `*` or `<10` is value NA with `suppressed` Y. This file has no `<10` cell. A blank, `--`, or `N/A` is not stored. That is the KYRC24 rule. Storing `--` would also add the 554 KYRC24 participation cells that are `--`, and this change does not add 2024 rows. The 776 KYRC23 participation cells of `--` are omitted, and the 342 `N/A` cells are omitted. 555 of 776 `--` and 278 of 342 `N/A` participation cells sit on a numeric participant count; omitting them is still the KYRC24 rule. A published 0 is kept. No output key repeats. A later star on the same key does not replace a published number.
 
 ## 0.0 participation rates
 
@@ -70,7 +74,11 @@ Of the 1,980 participation rates of 0.0:
 
 Where the annual participant count and the annual enrollment are both numbers (2,474 school rows; district and state enrollment in the annual file is `*`), participants divided by enrollment, rounded half-up to 0.1, matches the published participation rate on 1,854 rows and does not match on 620. 481 of those 620 are 0.0. 2,474 = 1,854 + 620. The 481 are a subset of the 491 zeros on a positive participant count. The other 10 have a starred enrollment, so that division is not defined. The published percent is what is stored, including the 139 non-zero rates in the 620 that do not match.
 
-The same check on the completion percent, completers divided by eligible completers where both annual counts are numbers (2,420 rows), matches on 2,406 rows. The other 14 differ by 0.1. Those 14 published percents are stored as printed. The calculated percent is not stored.
+The same check on the completion percent, published completers divided by published eligible completers where both are numbers (2,420 rows), rounded half-up to 0.1, matches on 2,420 of 2,420 rows. The earlier 2,406 matches and 14 differences of 0.1 came from float `round()`. The stored value is still the printed cell.
+
+## 2023 completion is not comparable year over year
+
+The 2023 completion rate stays on `cte_completion_rate_grade_12`. It is not comparable year over year. Its eligible base is about half of 2022's and 2024's: state eligible is 43,229 in 2022 and 25,097 in 2023, with about 41,600 implied for 2024. The school-level median of 2023 eligible over 2022 eligible is 0.49, and the school-level median of the implied 2024 denominator over 2023 eligible is 1.99. Participation is consistent across those years. The stored value is still KDE's published figure. The 2023 rate is on the 27 October KDE recheck. Refs #112.
 
 ## State and Fayette
 

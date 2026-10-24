@@ -863,6 +863,10 @@ The column is stored as `cte_completer_count_grade_12`. `cte_eligible_completer_
 
 KYRC24 also publishes 208 participation rates of 0.0, every one of them on a positive participant count, across 24 schools. Pike County Virtual Academy `491020` All Students is 108 participants and 0.0. Those cells stay as published. Refs #112. Every 2022 and 2023 district and state enrollment cell is `*` (2,833 cells in 2022, 2,817 in 2023), in every demographic. That starring is structural. KYRC23's published 2023 rates are not loaded. The registered KYRC24 file stays the historical copy.
 
+#### Follow-up, 24 October 2026 — KYRC23 published rates (PR #114)
+
+`KYRC23_CTE_Participation.csv` stores the published 2023 `cte_participation_rate` and `cte_completion_rate_grade_12` (14,658 rows). The 2023 counts stay on the annual file, with 0 numeric conflicts. Scott accepted on 24 October 2026 that 2023 district and state rates stay on `xxx000`, `999000`, and district `All Districts`, while 2023 counts stay on `xxx`, `999`, and district `State`, until #61's shared normalization. The 2023 completion rate stays `cte_completion_rate_grade_12`. It is not comparable year over year, and it is on the 27 October KDE recheck. Refs #112. Details are in `notes/114--cte-2023-published-rates.md`.
+
 ### `student_enrollment` — S — in review
 
 | | |
