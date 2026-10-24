@@ -586,7 +586,8 @@ Participation metrics (unduplicated students, `student_group` is the demographic
 - `dual_credit_qualifying_score_count` - Students with a qualifying grade of C or better in at least one dual credit course
 - `dual_credit_completion_rate` - Derived: completers divided by enrollment, times 100
 - `dual_credit_qualifying_score_rate` - Derived: qualifying grades divided by completers, times 100
-- `has_dual_credit_program` - 1 when enrollment is positive, suppressed Y when enrollment is starred. No registered enrollment is 0, so this flag is never 0
+
+Scott Horn dropped `has_dual_credit_program` on 2026-10-20. The pipeline had set it to 1 whenever enrollment was positive and stored it as suppressed Y when enrollment was starred. No registered enrollment is 0, and a school without a program has no row, so the flag was never 0. It is not stored, and there is no alias.
 
 Courses-offered metrics (duplicated course enrollments, `student_group` is All Students, subject is in the metric name):
 
@@ -613,7 +614,7 @@ State rows are district `All Districts` and school `All Schools`, stored as `---
 
 **Data Sources**: KYRC23, KYRC24, KYRC25, and KYRC26 `EDOP_Dual_Credit_Participation_and_Performance.csv` and `EDOP_Dual_Credit_Courses_Offered.csv`
 **Years Available**: 2023-2026
-**Unit**: Count (non-negative integers), Rate (0-100%), Boolean (0/1)
+**Unit**: Count (non-negative integers), Rate (0-100%)
 
 ---
 

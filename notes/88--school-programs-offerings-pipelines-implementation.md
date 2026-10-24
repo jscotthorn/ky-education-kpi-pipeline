@@ -56,13 +56,13 @@ Implemented 6 new ETL pipelines to support bright spots analysis by tracking sch
 - `dual_credit_completion_rate` - Completion percentage
 - `dual_credit_qualifying_score_count` - Students with qualifying scores
 - `dual_credit_qualifying_score_rate` - Qualifying score percentage
-- `has_dual_credit_program` - Boolean indicator (1/0)
 
 **Key Implementation Details**:
 - Handles two file types: Courses Offered (no demographics) and Participation & Performance (with demographics)
 - Flexible `should_skip_row()` logic to handle both formats
 - Handles typo in column name: "Couse Completers " (with extra space and typo)
 - Calculates rates from enrollment, completers, and qualifying scores
+- Does not emit `has_dual_credit_program`. Scott Horn dropped it on 2026-10-20. The flag was 1 whenever enrollment was positive, and no published enrollment is 0, so it was never 0. There is no alias
 
 ### 4. Advanced Coursework (`etl/advanced_coursework.py`)
 - **KPI Rows**: 491,086 (largest pipeline)
@@ -250,9 +250,10 @@ These pipelines support the bright spots analysis by providing:
 ### High Schools
 - Number of AP/IB courses offered (`num_ap_courses_offered`, `num_ib_courses_offered`)
 - AP/IB participation rates (`ap_participation_rate`, `ib_participation_rate`)
-- Dual credit program availability (`has_dual_credit_program`)
 - CTE pathways offered (`num_cte_pathways`)
 - Career readiness indicators (certifications, apprenticeships, internships)
+
+`has_dual_credit_program` was removed from this list on 2026-10-20. No other metric was substituted.
 
 ### Middle Schools
 - Algebra 1 access for 8th graders (`has_algebra_1_access`, `algebra_1_grade_8_count`)
