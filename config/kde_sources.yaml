@@ -37,7 +37,16 @@ raw_directories:
     - "CHRONIC_ABSENTEEISM_18-19.xlsx"
 
   cte_participation:
-    - "KYRC24_CTE_Participation.csv"
+    # May 2026 KYRC24 republish. School year 20232024, KPI year 2024.
+    # datasets host (the kyrc25 key is that container). Last-Modified
+    # Thu, 14 May 2026 19:11:29 GMT. md5
+    # 86677fc9b17a32b62cb533f4352ed63e. UAT is the same bytes. The
+    # historical copy (29 May 2025, md5
+    # 0b0d30c79ff6c5f3c039aafd5ceb8081) is not this file. 3,544 stars in
+    # that copy are 0.0, blank, --, or N/A here. No published number
+    # changes. 349 blank CO-OP cells are GREC.
+    - url: "kyrc25"
+      file: "KYRC24_CTE_Participation.csv"
     - url: "kyrc25"
       file: "KYRC25_CTE_Participation.csv"
     - url: "kyrc26"

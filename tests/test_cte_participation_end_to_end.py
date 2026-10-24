@@ -472,6 +472,12 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     learning_zero = _metric_value(combined, "2024", "165898", "cte_participation_rate")
     assert float(learning_zero["value"]) == 0.0
     assert learning_zero["suppressed"] == "N"
+    # The May 2026 republish prints completion 0.0 and leaves the completer
+    # count blank. The May 2025 copy starred both cells.
+    learning_completion = _metric_value(combined, "2024", "165898", "cte_completion_rate_grade_12")
+    assert float(learning_completion["value"]) == 0.0
+    assert learning_completion["suppressed"] == "N"
+    assert "cte_completer_count_grade_12" not in set(_rows(combined, "2024", "165898", "All Students")["metric"])
 
     bryan_2024 = _metric_value(combined, "2024", "165170", "cte_participation_rate")
     bryan_2025 = _metric_value(combined, "2025", "165170", "cte_participant_count")
@@ -575,16 +581,18 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert "cte_completion_rate_grade_12" not in set(foster["metric"])
     assert foster.iloc[0]["school_name"] == "Bryan Station High School"
 
-    # Fully starred in KYRC24 and KYRC26. Each starred measure is suppressed Y.
+    # KYRC24 republish leaves the completer count blank and keeps the other
+    # three cells as *. The May 2025 copy starred the completer count too.
+    # KYRC26 is still fully starred.
     hawaiian_2024 = _rows(combined, "2024", "165170", "Native Hawaiian or Pacific Islander")
     assert set(hawaiian_2024["metric"]) == {
         "cte_participant_count",
         "cte_participation_rate",
-        "cte_completer_count_grade_12",
         "cte_completion_rate_grade_12",
     }
     assert (hawaiian_2024["suppressed"] == "Y").all()
     assert hawaiian_2024["value"].isna().all()
+    assert "cte_completer_count_grade_12" not in set(hawaiian_2024["metric"])
     hawaiian_2026 = _rows(combined, "2026", "165170", "Native Hawaiian or Pacific Islander")
     assert set(hawaiian_2026["metric"]) == {
         "cte_participant_count",
