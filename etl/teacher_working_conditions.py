@@ -433,7 +433,7 @@ class TeacherWorkingConditionsETL(BaseETL):
         Glasgow Independent ``197`` publishes two district-total rows for the
         same construct. When those percents agree, one row is kept. When
         they disagree, one row is stored with value NA and ``suppressed``
-        ``Y``. Both published numbers stay in notes/104. Issue #108.
+        ``Y``. Both published numbers stay in notes/105.md. Issue #108.
 
         The historical KYRC24 file and KYRC25 add only keys the datasets
         KYRC24 file does not already supply. A KYRC25 row that is kept is
