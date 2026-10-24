@@ -779,7 +779,7 @@ covariates:
         - postsecondary_readiness
 
     cte_participation_rate:
-      description: "Percentage of students participating in CTE programs"
+      description: "KDE-published participation rate, available for 2024 only in KYRC years, can exceed 100, and includes published 0.0 artifacts (#112)"
       source: kde_cte_participation
       unit: percentage
       expected_direction: mixed
