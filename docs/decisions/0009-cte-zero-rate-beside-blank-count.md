@@ -23,7 +23,7 @@ The 24 October comment on issue #112 states the count as 5,407 cells:
 
 Pull request #116's review calls this option A. The decision comment does not use that label.
 
-The same #112 comment leaves a different set undecided: 208 KYRC24 and 491 KYRC23 participation rates of 0.0 that sit on a positive participant count.
+A different set, 208 KYRC24 and 491 KYRC23 participation rates of 0.0 on a positive participant count, is [0051](0051-cte-zero-rate-on-positive-count.md).
 
 `notes/116` also says 918 of the 1,230 new completion zeros have a positive, unchanged participant count and a positive, unchanged participation rate. Further rows in that table also have a positive participant count (72 `--`, 46 `N/A`, 42 already 0.0). 918 is not the count of every 0.0 completion cell on a positive participant count.
 
@@ -33,7 +33,11 @@ The review name "option A" is keep as published. Other options are not written i
 
 ## Decision
 
-24 October 2026. Keep KDE's published 0.0 CTE rates that sit next to a blank paired count as published (`suppressed` N, value 0.0), with a caveat in `KPIS.md` and the notes, until the 27 October 2026 KDE recheck.
+24 October 2026. Keep KDE's published 0.0 CTE rates that sit next to a blank paired count as published (`suppressed` N, value 0.0), with a warning in `KPIS.md` and the notes. Pull request #116 calls this option A.
+
+25 October 2026, 12:04 PM ET. The end condition is no longer "until the 27 October 2026 KDE recheck." Scott said the recheck is likely to cover only the most recent year's data. That year is 2025-26, not these 2022-23 and 2023-24 cells. The cells stay as published with a warning until KDE republishes those years (2022-23 / 2023-24).
+
+The phrase "until KDE republishes those years (2022-23 / 2023-24)" is Moon's summary of that remark. It is not Scott's own words. His words are quoted on [0051](0051-cte-zero-rate-on-positive-count.md). This end condition will be revisited under the republish standing rule being added next.
 
 ## Who decided and how we know
 
@@ -43,7 +47,7 @@ The pull request #116 approval says this matches option A and does not convert t
 
 ## Why
 
-The comment gives evidence the cells may be suppressed, and still says keep them as published until the recheck:
+The 24 October comment gives evidence the cells may be suppressed, and at that time said keep them as published until a recheck. The 25 October end condition, above, replaces that date:
 
 - All 1,376 such 2024 cells were `*` in the May 2025 copy.
 - All 2,542 such 2023 completion cells are `*` in the 2023 annual file.
@@ -67,4 +71,4 @@ Matches the keep-as-published rule. `etl/cte_participation.py` stores a numeric 
 
 Verdict: possible conflict. Flag only.
 
-The base rule "a published 0 is kept" is what the decision applies. The flag: the 2024 cells were `*` a year earlier, and CWM-2024-12 says KYRC reloads change "the way small cell counts are suppressed" (https://content.govdelivery.com/accounts/KYDE/bulletins/3c68ec8, not re-fetched). Storing them as measured zeros may present suppressed cells as zeros. CHG-2022's suppression sentence is the privacy rule that sentence is about (quote in [0001](0001-suppression-rule.md)). Not found: a KDE definition of a 0.0 rate beside a blank count. The recheck is issue #112.
+The base rule "a published 0 is kept" is what the decision applies. The flag: the 2024 cells were `*` a year earlier, and CWM-2024-12 says KYRC reloads change "the way small cell counts are suppressed" (https://content.govdelivery.com/accounts/KYDE/bulletins/3c68ec8, not re-fetched). Storing them as measured zeros may present suppressed cells as zeros. CHG-2022's suppression sentence is the privacy rule that sentence is about (quote in [0001](0001-suppression-rule.md)). Not found: a KDE definition of a 0.0 rate beside a blank count. The 27 October 2026 recheck is not the end condition for these cells. See the decision.

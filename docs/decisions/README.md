@@ -2,7 +2,7 @@
 
 This folder records choices about Kentucky Department of Education (KDE) sources and how this pipeline treats them. It does not change pipeline code. A later edit to a choice is a new record. The old record stays, keeps its number, and links to the new one.
 
-Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0051`. A number is never reused.
+Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0052`. A number is never reused.
 
 ## When a record is needed
 
@@ -117,6 +117,7 @@ Two note numbers are used twice. They were not renamed.
 | [0045](0045-school-courses-one-row.md) | accepted | no KDE guidance found |
 | [0046](0046-outside-doors-locked.md) | accepted | no KDE guidance found |
 | [0047](0047-workbook-demographic-labels-2018-19.md) | accepted | no KDE guidance found |
-| [0048](0048-crdc-kpi-year-split.md) | unconfirmed | no KDE guidance found |
+| [0048](0048-crdc-kpi-year-split.md) | accepted, not yet implemented | no KDE guidance found |
 | [0049](0049-kyrc26-files-loaded-15-oct-2026.md) | unconfirmed | possible conflict |
 | [0050](0050-cte-all-star-rows-stored.md) | accepted | consistent |
+| [0051](0051-cte-zero-rate-on-positive-count.md) | accepted | possible conflict |

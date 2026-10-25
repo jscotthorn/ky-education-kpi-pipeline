@@ -46,4 +46,4 @@ Matches. `config/kde_sources.yaml` registers the May 2026 datasets file and desc
 
 Verdict: consistent. Flag only.
 
-The research cites CWM-2025-10: datasets refresh with the dashboard after release (https://content.govdelivery.com/accounts/KYDE/bulletins/3f857fd, not re-fetched). Using the current live file follows that practice. Not found: a KDE notice of why this file was republished in May 2026, or of what a star that became 0.0 or blank means. That question is the 27 October recheck in [0009](0009-cte-zero-rate-beside-blank-count.md).
+The research cites CWM-2025-10: datasets refresh with the dashboard after release (https://content.govdelivery.com/accounts/KYDE/bulletins/3f857fd, not re-fetched). Using the current live file follows that practice. Not found: a KDE notice of why this file was republished in May 2026. What a star that became 0.0 means is kept as published with a warning until KDE republishes 2022-23 and 2023-24. See [0009](0009-cte-zero-rate-beside-blank-count.md) and [0051](0051-cte-zero-rate-on-positive-count.md).

@@ -1,6 +1,6 @@
-# 0048 CRDC modules use different year fields
+# 0048 CRDC KPI year is the collection year
 
-Status: unconfirmed
+Status: accepted, not yet implemented
 
 ## Question
 
@@ -12,25 +12,34 @@ CRDC is a biennial federal collection. The files carry both year fields. No KDE 
 
 ## Options considered
 
-No Scott choice between the two fields was found. The two modules already differ. This record flags that split. It does not choose a year.
+Keep the split the two modules already had, or use the collection year in every module. Suspensions can move in this change or in a later pull request.
 
 ## Decision
 
-No decision found. The repo documents the split as implemented behavior.
+25 October 2026, 12:05 PM ET. Use the CRDC collection year as the KPI year everywhere. Move suspensions over in a later pull request.
 
-- Out-of-school suspension uses the report-card school year. KPI year 2026 is the 2021-22 collection. KPI year 2024 is the 2020-21 collection. There is no state row. `etl/out_of_school_suspension.py` and `README.md`.
-- Advanced coursework CRDC uses the collection year. KPI year 2021 is the 2020-21 collection, from the KYRC23 overview. KPI year 2022 is the 2021-22 collection, from the KYRC26 overview. `etl/advanced_coursework.py` and `README.md`.
+Scott's words: "Use the CRDC collection year as the KPI year everywhere; move suspensions over in a later PR."
+
+- Advanced coursework, pull request #79, already uses the collection year. KPI year 2021 is the 2020-21 collection, from the KYRC23 overview. KPI year 2022 is the 2021-22 collection, from the KYRC26 overview. `etl/advanced_coursework.py` and `README.md`.
+- Out-of-school suspension, pull request #51, still uses the report-card school year. KPI year 2026 is the 2021-22 collection. KPI year 2024 is the 2020-21 collection. There is no state row. `etl/out_of_school_suspension.py` and `README.md`. That move is tracked on issue #122. It is not done on this branch.
+
+The #51 rule "KPI year = report-card year (2026 = CRDC 2021-22)" is superseded by this record once #122 lands. Until then the suspension code does not match. This log does not change any code.
 
 ## Who decided and how we know
 
-Nobody's choice was found. `README.md` states both rules. The module docstrings state them. There is no "Decision (Scott, …)" comment that says the two modules should use different fields.
+Scott, direct, 2026-10-25 12:05 PM ET, his answer on a question card in the ECC manager bot's chat; transcript checked by Archivist.
+
+Issue #122 records the same choice: "Decision (Scott, 2026-10-25): every module uses the CRDC collection year as the KPI year." https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/122
 
 ## Why
 
-Reason not documented. The cause of the split is not in an issue, a pull request, a note, or a commit that this pass found.
+Scott's sentence is the choice. It does not say why the collection year is the KPI year. Reason for preferring that field: not documented beyond the sentence. The later pull request is so suspensions move without changing them in this decision.
 
 ## Links
 
+- Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/51
+- Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/79
+- Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/122
 - `README.md` (CRDC year sentences)
 - `etl/out_of_school_suspension.py`
 - `etl/advanced_coursework.py`
@@ -39,7 +48,7 @@ Reason not documented. The cause of the split is not in an issue, a pull request
 
 ## Code check
 
-The code matches the split the README describes. That is the inconsistency. This record does not change either module.
+Partial match. Advanced coursework already uses the collection year. Suspension still uses the report-card year. That mismatch stays until issue #122 lands. This record does not change either module.
 
 ## KDE guidance check
 
