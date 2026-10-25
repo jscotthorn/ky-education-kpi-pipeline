@@ -2,7 +2,7 @@
 
 These are series a consumer of this pipeline can be missing. The FCPS equity dashboard repository (`jscotthorn/fcps-equity-dashboard`) returned HTTP 404 to this pass, so the dashboard's own wording was not read. Classifications use this repository, its issues, and the KDE sources in [kde-guidance-sources.md](kde-guidance-sources.md).
 
-Classes: `deliberate`, `dashboard scope, deliberate filter`, `planned or deferred`, `KDE publication gap`, `bug, fix in progress`, `fixed`, `unconfirmed`.
+Classes: `deliberate`, `dashboard scope, deliberate filter`, `planned or deferred`, `KDE publication gap`, `bug, fix in progress`, `fixed`, `comparison recorded`, `unconfirmed`.
 
 ## AP participation for 2023 onward
 
