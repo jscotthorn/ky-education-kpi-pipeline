@@ -290,6 +290,7 @@ All ETL pipelines use `DemographicMapper` to ensure consistent student group nam
 - Document new data sources in numbered journal entries: `notes/#--description.md`
 - Update this README for new features or data sources
 - Maintain AI usage patterns in `CLAUDE.md`
+- Decision log: [docs/decisions/README.md](docs/decisions/README.md)
 
 ### AI Assistance
 See [CLAUDE.md](./CLAUDE.md) for AI assistant usage patterns and workflows.
