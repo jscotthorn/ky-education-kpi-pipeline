@@ -529,6 +529,29 @@ class TestSpendingPerStudentETL:
             assert fayette_clean["total_spending_all_funds"] == 22322
             assert state_clean["total_spending_all_funds"] == 19020
 
+    def test_district_state_fixture_lines_match_source(self):
+        """Real district and state fixture lines are copied verbatim from source.
+
+        Synthetic star and published-0 lines are not in the source files.
+        """
+        fixture_dir = Path("tests/fixtures/spending_per_student/district_state")
+        raw_dir = Path("data/raw/spending_per_student")
+        if not raw_dir.exists():
+            pytest.skip(
+                "data/raw/spending_per_student is absent, so the real fixture "
+                "lines were not compared to the source files"
+            )
+        for fixture in sorted(fixture_dir.glob("*.csv")):
+            source = raw_dir / fixture.name
+            source_lines = set(source.read_text(encoding="utf-8-sig").splitlines())
+            for line in fixture.read_text(encoding="utf-8").splitlines()[1:]:
+                if not line.strip():
+                    continue
+                if "Synthetic" in line:
+                    assert line not in source_lines
+                else:
+                    assert line in source_lines
+
     def test_district_and_state_rows_2024_2025(self):
         """Long KYRC24/KYRC25 files add district and state rows.
 
@@ -541,17 +564,8 @@ class TestSpendingPerStudentETL:
         suppressed N. The all-funds figure is the published cell.
         """
         fixture_dir = Path("tests/fixtures/spending_per_student/district_state")
-        raw_dir = Path("data/raw/spending_per_student")
         for fixture in fixture_dir.glob("*.csv"):
             shutil.copy(fixture, self.sample_dir / fixture.name)
-            if not raw_dir.exists():
-                continue
-            source_lines = set((raw_dir / fixture.name).read_text(encoding="utf-8-sig").splitlines())
-            for line in fixture.read_text(encoding="utf-8").splitlines()[1:]:
-                if "Synthetic" in line:
-                    assert line not in source_lines
-                else:
-                    assert line in source_lines
 
         transform(self.raw_dir, self.proc_dir, {"derive": {"processing_date": "2025-11-24"}})
         df = pd.read_csv(

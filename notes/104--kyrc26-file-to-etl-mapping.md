@@ -2579,7 +2579,15 @@ Lessons for later agents:
 | KYRC26 files | `KYRC26_FT_Spending_per_Student.csv` |
 | Header changes | Unknown until the name returns 200 |
 | Fixtures / assertions | Add them after a header check against the KYRC25 file |
-| Gotchas | 404 on both containers. Do not register it. Five other KYRC25 spending variants are also 404 and are not this module. Wait does not change because of those variants |
+| Gotchas | `KYRC26_FT_Spending_per_Student.csv` is 404 on both containers. Do not register that name. The five KYRC25 long files and the five KYRC24 long files return 200 on the datasets host and this module loads them (`url: kyrc25`). The historical host is 404 for those ten names. See the 25 October 2026 follow-up |
+
+#### Follow-up, 25 October 2026 — KYRC24/KYRC25 district and state totals (PR #119)
+
+The wide `KYRC24_FT_Spending_per_Student.csv` and `KYRC25_FT_Spending_per_Student.csv` files are schools only. District and state totals are five long files for each year: `FT_Total_Spending_per_Student_All_Fund_Sources.csv`, `FT_Total_Spending_per_Student_Federal_Funds.csv`, `FT_Total_Spending_per_Student_State_Local_Funds.csv`, `FT_Personnel_Spending_per_Student_Federal_Funds.csv`, and `FT_Personnel_Spending_per_Student_State_Local_Funds.csv`. All ten return 200 on the datasets host and are registered with `url: kyrc25`. The historical host returns 404 for those names.
+
+Each year stores 171 districts and the state, across 7 metrics: 1,197 district rows and 7 state rows. 2024 and 2025 together add 2,408 rows.
+
+Scott decided on 25 October 2026, 12:12 PM ET, on PR #119 (https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/119#issuecomment-6399994227) to keep these rows on 3-digit ids (`xxx`, `999`, district `State`) so they match this module's 2020-2023 rows, until #61's shared normalization. The source publishes `xxx000` and `999000`. This module rewrites those codes to 3 digits. PR #114 kept KDE's 6-digit ids as published (notes/114 line 20). The 24 October 2026 comment on #61 records that CTE case (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/61#issuecomment-6387831105). Details are in `notes/118--kyrc24-kyrc25-district-state-spending.md`.
 
 ### `financial_summary` — S, blocked
 
