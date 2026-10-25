@@ -20,7 +20,7 @@ The issue asks for a fix. The decision leaves the issue open.
 
 25 October 2026, 12:00 PM ET. That scope stands. Scott approved one narrow exception: the state-row lookup already merged in pull request #115. `scripts/generate_report_drafts.py` may treat a state district as `State` or `All Districts`. The same change accepts school code `999` or `999000`, and school name `---District Total---` or `---State Total---`. That exception does not open the rest of the report-script work.
 
-Background, source type chat answer. His words in the ECC manager bot's chat, checked verbatim against the transcript by Archivist: "Keep report scripts out of scope for KYRC26; record #115's state-row fix as a narrow exception."
+Background, source type chat answer. The option he selected in the ECC manager bot's chat, checked verbatim against the transcript by Archivist: "Keep report scripts out of scope for KYRC26; record #115's state-row fix as a narrow exception."
 
 Per Moon, 2026-10-25; not in Scott's answer: the NaN guard and extending the analysis past 2025 stay out of scope. Those two items are an open confirmation. Scott's answer does not mention them.
 

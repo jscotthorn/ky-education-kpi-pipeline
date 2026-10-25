@@ -2,7 +2,7 @@
 
 These are series a consumer of this pipeline can be missing. The FCPS equity dashboard repository (`jscotthorn/fcps-equity-dashboard`) returned HTTP 404 to this pass, so the dashboard's own wording was not read. Classifications use this repository, its issues, and the KDE sources in [kde-guidance-sources.md](kde-guidance-sources.md).
 
-Classes: `deliberate`, `dashboard scope, deliberate filter`, `planned or deferred`, `KDE publication gap`, `bug, fix in progress`, `unconfirmed`.
+Classes: `deliberate`, `dashboard scope, deliberate filter`, `planned or deferred`, `KDE publication gap`, `bug, fix in progress`, `fixed`, `unconfirmed`.
 
 ## AP participation for 2023 onward
 
@@ -54,9 +54,9 @@ Classification: **KDE publication gap**.
 
 ## District per-pupil spending for 2024-25
 
-Classification: **bug, fix in progress** ([#118](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/118), [#119](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/119)).
+Classification: **fixed**. Pull request [#119](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/119) merged on 2026-10-25 as `22f588ea0d34ebcc9431b2cdea1f14562fc8d0aa`. Issue [#118](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/118) is closed.
 
-`KYRC24_FT_Spending_per_Student.csv` and `KYRC25_FT_Spending_per_Student.csv` are school rows only, so 2024 and 2025 have no district or state per-pupil rows. District `165` and state `999` rows exist for 2020-2023. KDE publishes the 2024 and 2025 totals in five long files per year (`FT_Total` for all funds, federal, and state/local; `FT_Personnel` for federal and state/local). Pull request #119, open, reads those ten files and adds the rows. It is not merged. [#117](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/117) fixed comma parsing for the school file only.
+`KYRC24_FT_Spending_per_Student.csv` and `KYRC25_FT_Spending_per_Student.csv` are school rows only. District and state totals for 2024 and 2025 come from the ten long files, registered on `url: kyrc25` in `config/kde_sources.yaml` at that commit. `etl/spending_per_student.py` stores them with the 2020-2023 labels: Fayette school code `165` and `---District Total---`, and the state row school code `999`, district `State`, `---State Total---`. The 6-digit codes `165000` and `999000` are not written. [#117](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/117) fixed comma parsing for the school file.
 
 The ID width is [0053](0053-spending-2024-25-three-digit-ids.md). Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/119#issuecomment-6399994227 ("Decision (Scott, 2026-10-25 12:12 PM ET): #119 keeps 3-digit district/state IDs (165, 999) on the 2024-25 spending rows under the #114 precedent, until #61 converts them to 6-digit."). Moon's note is context: https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/119#issuecomment-6399959209. Issue #118 had asked for 6-digit IDs.
 
@@ -76,7 +76,6 @@ The pipeline is a separate fact. `notes/105--kyrc26-completeness-audit.md` says 
 
 - CRDC out-of-school suspension (`notes/104--kyrc26-file-to-etl-mapping.md`)
 - KYRC26 student-teacher ratio (`etl/student_teacher_ratio.py`: school rows only)
-- spending per student for 2024 and 2025 (issue #118)
 
 Report drafts stay out of scope under [0002](0002-report-scripts-out-of-scope.md). Scott later approved the pull request #115 state-row lookup (`State` or `All Districts`) as a narrow exception. This pass did not run the script.
 

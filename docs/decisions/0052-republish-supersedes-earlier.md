@@ -32,7 +32,7 @@ Background, source type chat answer. The option he selected: "Use the latest pub
 
 History, same day, superseded by that option. At 12:02 PM ET his typed words were: "Several issues arose during the work showing that a republish had better information, so it seems a republish should always supercede an earlier publish. But, I want that from the KDE if available." The spelling "supercede" is his. That provisional "always" rule is not the rule. The 12:11 option is.
 
-A visibly broken copy, the example already in the repo: the live-site KYRC24 ineffective-teachers file is 39 rows with percents above 100. Scott chose the test-site copy (1,589 rows) on 18 October 2026. Pull request #63 and issue #64. [0025](0025-ineffective-teachers-copy-and-zeros.md). The broken live copy is not taken just because it is later.
+The option he selected, and Decision comment 6400284741, do not name pull request #63 or issue #64. A note in this log, not those two texts: the live-site KYRC24 ineffective-teachers file is 39 rows with percents above 100, and on 18 October 2026 Scott chose the test-site copy (1,589 rows) in pull request #63 and issue #64. [0025](0025-ineffective-teachers-copy-and-zeros.md). Applying the visibly-broken exception so that test-site copy wins is a reading of this rule that Scott hasn't confirmed.
 
 Pull request #113 and pull request #116 adopted the May 2026 KYRC24 CTE file. Checked against this rule: `config/kde_sources.yaml` records that datasets copy as Last-Modified 14 May 2026, after the May 2025 historical copy. This pass did not re-fetch a KDE date for the close of the 2023-24 review window. 14 May 2026 is after the fall 2024 release and after the May 2025 historical file. The yaml comment and `notes/116` say no published number changed. Stars became 0.0, blank, `--`, or `N/A`. That is not the 39-row pattern. If those two points hold, the May 2026 adoption complies. The separate 0.0 warnings stay in [0009](0009-cte-zero-rate-beside-blank-count.md) and [0051](0051-cte-zero-rate-on-positive-count.md). A later public republish of 2022-23 or 2023-24 would be read under this rule, and the differences would be recorded in [kde-republishes.md](kde-republishes.md).
 
@@ -63,10 +63,12 @@ The 12:11 option is the rule. The 12:02 typed words give the reason he had reach
 
 No shared "take the latest public file" step was added. Registrations stay explicit. The May 2026 CTE registration matches the rule on the facts above (kde-republishes R1), if the review-window point holds.
 
-These rows are not yet conformed to the rule. They are not treated as exempt.
+R15, R19, and R20 are not yet conformed to the rule. They are not treated as exempt. R6, R7, and R9 are not marked as conflicts.
 
-- R15. Many KYRC24 files still use the older Open House copy while later same-name datasets copies exist. Config comments say "not swapped." [kde-republishes.md](kde-republishes.md).
-- R9. KYRC25 out-of-field stays on the datasets copy because Content-MD5 is missing. This pass did not assess that copy as visibly broken.
+- R15. Many KYRC24 files still use the older Open House copy while later same-name datasets copies exist. Config comments say "not swapped." [Row R15](kde-republishes.md#r15). Issue #123 covers the novice, ineffective, and out-of-field files in that row (#58, #64, and #66). It does not cover the other files in the row.
+- R6. 0052 picks the latest public copy, the live datasets file (39 rows). Config registers the older Open House file. #64 chose the test-site copy. Neither the option nor Decision comment 6400284741 names #63 or #64. Applying the visibly-broken exception to that test-site copy is a reading of 0052 that Scott hasn't confirmed. Not marked as a conflict.
+- R7. 0052 picks the latest public copy, the live datasets file, which is what config registers. #64 item 2 chose the test-site copy. Applying the visibly-broken exception so that copy wins is a reading Scott hasn't confirmed. Not marked as a conflict.
+- R9. Not covered by #63 or #64. 0052 picks the latest public copy, the live datasets file, which is what config registers. The test-site copy is not the public file. Not marked as a conflict.
 - R19. KYRC25 Kentucky Summative Assessment is registered as `url: kyrc25`. The research diff of the rewritten 2024-25 file was not re-run.
 - R20. Postsecondary readiness and 4-year graduation are registered on `url: kyrc25` and have not been compared with the historical copies.
 

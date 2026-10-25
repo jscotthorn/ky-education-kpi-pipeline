@@ -18,7 +18,7 @@ Write `165000` and `999000` now, as #118 asks, or keep `165` and `999` until the
 
 25 October 2026, 12:12 PM ET. Yes. Keep 3-digit `165` and `999` for pull request #119 under the #114 precedent until #61. Issue #61 will convert these to 6-digit.
 
-Scott's words: "Yes, keep 3-digit 165/999 for #119 under the #114 precedent until #61."
+The option he selected: "Yes, keep 3-digit 165/999 for #119 under the #114 precedent until #61."
 
 [0010](0010-cte-2023-mixed-ids.md) is #114 item A. That choice covered mixed 2023 CTE IDs. Extending it to these finance rows is a new application. Scott confirmed that extension in the sentence above.
 
@@ -49,7 +49,7 @@ The Decision comment is the choice. Scott's chat sentence the same minute matche
 
 ## Code check
 
-Pull request #119 is open. It is not on this branch. This branch still has no 2024 or 2025 district or state spending rows. The ID width is a choice about the pull request that would add them. Not resolved here.
+Matches the 3-digit choice. Pull request #119 merged on 2026-10-25 as `22f588ea0d34ebcc9431b2cdea1f14562fc8d0aa`. Issue #118 is closed. Checked against `feature/2025-26-kyrc26` at that commit. `etl/spending_per_student.py` reads the ten long files and stores the 2024 and 2025 district and state totals with the 2020-2023 labels. Fayette is school code `165`, school `---District Total---`. The state row is school code `999`, district `State`, school `---State Total---`. `select_district_state_spending` says `165000` and `999000` are not written. `config/kde_sources.yaml` registers those ten files on `url: kyrc25`. The wide KYRC24 and KYRC25 spending files are still school rows only.
 
 ## KDE guidance check
 

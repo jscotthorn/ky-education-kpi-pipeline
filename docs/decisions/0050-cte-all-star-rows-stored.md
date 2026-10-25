@@ -22,7 +22,7 @@ Skip all-`*` rows, which is what [0005](0005-cte-skip-all-star-padding.md) said 
 
 Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/46#issuecomment-6400284456 "Decision (Scott, 2026-10-25 11:59 AM ET): Record 0050. Keep storing all-star CTE rows as suppressed, matching #87; this updates the earlier #46 decision to skip them, and record 0005 is superseded."
 
-Background, source type chat answer. His words in the ECC manager bot's chat: "Keep storing all-star CTE rows as suppressed, matching #87; update the #46 decision."
+Background, source type chat answer. The option he selected in the ECC manager bot's chat: "Keep storing all-star CTE rows as suppressed, matching #87; update the #46 decision."
 
 ## Who decided and how we know
 

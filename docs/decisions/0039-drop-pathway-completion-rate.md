@@ -16,7 +16,7 @@ Keep the calculated rate under an existing-practice exception, or drop it and ad
 
 ## Decision
 
-20 October 2026. Drop `cte_pathway_completion_rate`. The 19 October 2026 existing-practice exception is withdrawn. Do not restore the metric and do not add an alias. Completer counts, concentrator counts, enrollment, and `num_cte_pathways` stay.
+20 October 2026. Drop `cte_pathway_completion_rate`. The 19 October 2026 existing-practice exception is dropped. Do not restore the metric and do not add an alias. Completer counts, concentrator counts, enrollment, and `num_cte_pathways` stay.
 
 ## Who decided and how we know
 
@@ -31,7 +31,7 @@ The run before the removal wrote 17,892 rows, of which 3,300 were the rate (188 
 ## Links
 
 - `notes/104--kyrc26-file-to-etl-mapping.md` (pathway section, including the line cited above)
-- The 19 October rule, and this withdrawal of its existing-calculation exception: [0054](0054-store-values-as-kde-publishes.md)
+- The 19 October rule, and this drop of its existing-calculation exception: [0054](0054-store-values-as-kde-publishes.md)
 - Related, not this decision: issue #86, state pathway cells are not the sum of districts, labeled `kde-recheck`. That issue does not change storage.
 
 ## Code check

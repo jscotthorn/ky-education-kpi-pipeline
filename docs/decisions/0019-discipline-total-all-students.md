@@ -24,11 +24,12 @@ https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/87#issuecomment-627
 
 ## Why
 
-The comment gives the reason: "Subgroup Totals are skipped because they repeat the sum of the event columns." The same sentence is in `notes/104--kyrc26-file-to-etl-mapping.md` line 2367: "On a subgroup row Total repeats the sum of the event columns, so it is not stored." The All Students Total is the unduplicated count.
+The comment gives the reason: "Subgroup Totals are skipped because they repeat the sum of the event columns." The same sentence is in `KPIS.md` line 193: "On a subgroup row Total repeats the sum of the event columns, so it is not stored." The All Students Total is the unduplicated count.
 
 ## Links
 
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/87
+- `KPIS.md` line 193
 - `notes/104--kyrc26-file-to-etl-mapping.md`
 
 ## Code check
