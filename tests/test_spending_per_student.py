@@ -338,6 +338,152 @@ class TestSpendingPerStudentETL:
             metrics = year_df['metric'].unique()
             assert len(metrics) == 7, f"Expected 7 metrics for year {year}, got {len(metrics)}"
 
+    def test_comma_formatted_values_on_string_and_object(self):
+        """Thousands separators survive both dtypes.
+
+        pandas 3 ``read_csv(..., dtype=str)`` is StringDtype. pandas 2.3.3
+        is object. ``20,164`` has to stay 20164 on both. A published 0
+        stays 0. A ``*`` and a blank become NA.
+        """
+        for dtype in ("string", "object"):
+            frame = pd.DataFrame({
+                "total_spending_all_funds": pd.Series(
+                    ["20,164", "0", "*", ""], dtype=dtype
+                ),
+                "personnel_spending_federal": pd.Series(
+                    ["287", "0", "100", ""], dtype=dtype
+                ),
+            })
+            cleaned = clean_spending_values(frame)
+            assert cleaned.loc[0, "total_spending_all_funds"] == 20164
+            assert cleaned.loc[1, "total_spending_all_funds"] == 0
+            assert pd.isna(cleaned.loc[2, "total_spending_all_funds"])
+            assert pd.isna(cleaned.loc[3, "total_spending_all_funds"])
+            assert cleaned.loc[0, "personnel_spending_federal"] == 287
+            assert cleaned.loc[1, "personnel_spending_federal"] == 0
+
+    def test_comma_formatted_fixture(self):
+        """A comma-formatted KYRC row keeps published dollars, stars, blanks, and zeros.
+
+        Henry Clay, Raceland-Worthington, Hopkins County Career and
+        Technology Center, and UK Early Childhood Lab are copied
+        byte-for-byte from ``KYRC24_FT_Spending_per_Student.csv``.
+        Henry Clay's total is the quoted ``20,164``. Raceland's
+        non-personnel federal cell is the published 0. Hopkins publishes
+        0 in every spending column. UK Early Childhood Lab's spending
+        cells are blank and are not stored.
+
+        No registered spending file has a ``*``. That case is a labelled
+        synthetic row, school code ``SYNSTAR``. A ``*`` is value NA with
+        suppressed Y. The other cells on that row stay as written. Keys
+        are unique.
+        """
+        fixture = Path("tests/fixtures/spending_per_student/comma_formatted_kyrc.csv")
+        fixture_lines = fixture.read_text(encoding="utf-8").splitlines()
+        verbatim_rows = {
+            "Henry Clay High School": (
+                '20232024,034,FAYETTE,165,Fayette County,039,Henry Clay High School,'
+                '165039,034165039,210186000364,CKEC,901,A1,"14,081","2,972",287,955,'
+                '"17,053","1,242","20,164"'
+            ),
+            "Raceland-Worthington Middle School": (
+                "20232024,045,GREENUP,502,Raceland-Worthington Independent,030,"
+                "Raceland-Worthington Middle School,502030,045502030,210498001241,"
+                'KEDC,903,A1,"7,604","2,768",428,0,"10,357",381,"15,894"'
+            ),
+            "Hopkins Co Career & Technology Center": (
+                "20232024,054,HOPKINS,265,Hopkins County,105,"
+                "Hopkins Co Career & Technology Center,265105,054265105,"
+                "210286002425,WKEC,908,A2,0,0,0,0,0,0,0"
+            ),
+            "UK Early Childhood Lab": (
+                "20232024,034,FAYETTE,165,Fayette County,009,UK Early Childhood Lab,"
+                "165009,034165009,210186002385,CKEC,901,A4,,,,,,,"
+            ),
+        }
+        source = Path("data/raw/spending_per_student/KYRC24_FT_Spending_per_Student.csv")
+        source_lines = (
+            source.read_text(encoding="utf-8-sig").splitlines() if source.exists() else []
+        )
+        for label, source_row in verbatim_rows.items():
+            fixture_row = next(line for line in fixture_lines if f",{label}," in line)
+            assert fixture_row == source_row
+            if source_lines:
+                assert source_row in source_lines
+
+        shutil.copy(fixture, self.sample_dir / fixture.name)
+
+        transform(self.raw_dir, self.proc_dir, {"derive": {"processing_date": "2025-11-24"}})
+        df = pd.read_csv(
+            self.proc_dir / "spending_per_student.csv",
+            dtype={
+                "school_id": str,
+                "school_code": str,
+                "district_number": str,
+                "county_number": str,
+                "co_op_code": str,
+            },
+        )
+
+        assert not df.duplicated(["year", "school_id", "metric", "student_group"]).any()
+        assert (df["student_group"] == "All Students").all()
+        assert set(df["year"].unique()) == {2024}
+        assert not (df["school_id"].astype(str) == "165009").any()
+
+        def cell(school_id: str, metric: str) -> pd.Series:
+            match = df[(df["school_id"].astype(str) == school_id) & (df["metric"] == metric)]
+            assert len(match) == 1, f"{school_id} {metric} rows={len(match)}"
+            return match.iloc[0]
+
+        henry = cell("165039", "total_spending_per_student_all_funds")
+        assert henry["value"] == 20164
+        assert henry["suppressed"] == "N"
+        assert henry["district"] == "Fayette County"
+        assert henry["school_name"] == "Henry Clay High School"
+        assert henry["county_number"] == "034"
+        assert henry["co_op"] == "CKEC"
+        assert henry["co_op_code"] == "901"
+        assert cell("165039", "personnel_spending_per_student_state_local")["value"] == 14081
+        assert cell("165039", "non_personnel_spending_per_student_state_local")["value"] == 2972
+        assert cell("165039", "personnel_spending_per_student_federal")["value"] == 287
+        assert cell("165039", "non_personnel_spending_per_student_federal")["value"] == 955
+        assert cell("165039", "total_spending_per_student_state_local")["value"] == 17053
+        assert cell("165039", "total_spending_per_student_federal")["value"] == 1242
+
+        raceland_zero = cell("502030", "non_personnel_spending_per_student_federal")
+        assert raceland_zero["value"] == 0
+        assert raceland_zero["suppressed"] == "N"
+        assert raceland_zero["district"] == "Raceland-Worthington Independent"
+        assert cell("502030", "total_spending_per_student_all_funds")["value"] == 15894
+        assert cell("502030", "personnel_spending_per_student_state_local")["value"] == 7604
+
+        for metric in (
+            "personnel_spending_per_student_federal",
+            "non_personnel_spending_per_student_federal",
+            "total_spending_per_student_federal",
+            "personnel_spending_per_student_state_local",
+            "non_personnel_spending_per_student_state_local",
+            "total_spending_per_student_state_local",
+            "total_spending_per_student_all_funds",
+        ):
+            zero_row = cell("265105", metric)
+            assert zero_row["district"] == "Hopkins County"
+            assert zero_row["school_name"] == "Hopkins Co Career & Technology Center"
+            assert zero_row["value"] == 0
+            assert zero_row["suppressed"] == "N"
+
+        starred = cell("SYNSTAR", "personnel_spending_per_student_state_local")
+        assert starred["district"] == "Synthetic Star"
+        assert starred["suppressed"] == "Y"
+        assert pd.isna(starred["value"])
+        assert cell("SYNSTAR", "non_personnel_spending_per_student_state_local")["value"] == 0
+        assert cell("SYNSTAR", "non_personnel_spending_per_student_state_local")["suppressed"] == "N"
+        blank_federal = df[
+            (df["school_id"].astype(str) == "SYNSTAR")
+            & (df["metric"] == "non_personnel_spending_per_student_federal")
+        ]
+        assert len(blank_federal) == 0
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

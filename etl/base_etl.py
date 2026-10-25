@@ -307,20 +307,32 @@ class BaseETL(ABC):
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Convert various missing value representations to pandas NA.
-        
+
+        ``read_csv(..., dtype=str)`` is StringDtype on pandas 3 and object
+        on pandas 2.3.3. A check for ``dtype == "object"`` skips the
+        StringDtype columns, so ``*``, a blank, and ``N/A`` stay in the
+        cell there. Both dtypes are rewritten. A column whose name starts
+        with ``_`` is left alone: modules copy the source text there
+        before this method runs. pandas is unpinned.
+
         Args:
             df: Input DataFrame
-            
+
         Returns:
             DataFrame with standardized missing values
         """
-        # Replace missing indicators with pandas NA
+        # Replace missing indicators with pandas NA.
+        # Columns that start with "_" are copies a module took before this
+        # call (`_raw_` / `__raw_`). Those copies are StringDtype so a
+        # published `*`, `N/A`, or `<10` stays available to that module.
         pd.set_option("future.no_silent_downcasting", True)
         for col in df.columns:
-            if df[col].dtype == "object":
+            if str(col).startswith("_"):
+                continue
+            if df[col].dtype == "object" or bool(pd.api.types.is_string_dtype(df[col])):
                 result = df[col].replace(self.MISSING_VALUE_INDICATORS, pd.NA)
                 df[col] = result.infer_objects(copy=False)
-        
+
         return df
     
     def add_derived_fields(self, df: pd.DataFrame, derive_config: Dict[str, Any], source_file: str) -> pd.DataFrame:

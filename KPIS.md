@@ -447,9 +447,9 @@ Per-pupil spending metrics broken down by funding source. All spending values ar
 ### Combined Funding Metrics
 - `total_spending_per_student_all_funds` - Total spending per student from all funding sources (federal + state/local)
 
-**Data Sources**: KYRC25_FT_Spending_per_Student.csv, KYRC24_FT_Spending_per_Student.csv, spending_per_student_{year}.csv
-**Years Available**: 2020-2024
-**Unit**: US dollars per student (non-negative, typically $0-$200,000)
+**Data Sources**: KYRC25_FT_Spending_per_Student.csv, KYRC24_FT_Spending_per_Student.csv, spending_per_student_{year}.csv, SPENDING_PER_STUDENT_18-19.xlsx
+**Years Available**: 2019-2025
+**Unit**: US dollars per student (published amount, including a thousands separator such as `20,164`). A `*` is value NA with suppressed Y. A blank is not stored. A published 0 is kept. No registered file publishes a `*`.
 **Demographics**: School-level only (All Students)
 
 ---
