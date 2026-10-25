@@ -2,6 +2,10 @@
 
 Status: accepted
 
+Source type for the 25 October end condition: chat answer. Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
+
+Repo comment: pending
+
 ## Question
 
 KDE prints a 0.0 CTE rate next to a blank count. Should that cell be stored as a real zero (`suppressed` N) or treated as suppression?
@@ -29,25 +33,37 @@ A different set, 208 KYRC24 and 491 KYRC23 participation rates of 0.0 on a posit
 
 ## Options considered
 
-The review name "option A" is keep as published. Other options are not written in the decision comment.
+The review name "option A" is keep as published. Other options are not written in the 24 October comment.
+
+25 October 2026, 12:36 PM ET, the card in the ECC manager bot's chat asked: "After the Oct 27 recheck, should the prior-year CTE cells (the 699 and the 5,407) stay as published until KDE republishes those years? I recommend yes, since the recheck won't touch earlier years." He selected yes.
 
 ## Decision
 
 24 October 2026. Keep KDE's published 0.0 CTE rates that sit next to a blank paired count as published (`suppressed` N, value 0.0), with a warning in `KPIS.md` and the notes. Pull request #116 calls this option A.
 
-25 October 2026, 12:04 PM ET. The end condition is no longer "until the 27 October 2026 KDE recheck." Scott said the recheck is likely to cover only the most recent year's data. That year is 2025-26, not these 2022-23 and 2023-24 cells. The cells stay as published with a warning until KDE republishes those years (2022-23 / 2023-24).
+History. That comment's end condition was "until the Oct 27 KDE recheck" and "Revisit after the recheck." https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6388875367
 
-The phrase "until KDE republishes those years (2022-23 / 2023-24)" is Moon's summary of that remark. It is not Scott's own words. His words are quoted on [0051](0051-cte-zero-rate-on-positive-count.md). A later public file for these years is read under [0052](0052-republish-supersedes-earlier.md): latest public file after the review window, unless it is visibly broken, with the differences recorded in [kde-republishes.md](kde-republishes.md).
+25 October 2026, 12:36 PM ET. The option he selected extends that decision past the recheck. Both these 5,407 cells and the 699 cells in [0051](0051-cte-zero-rate-on-positive-count.md) stay as published with a warning until KDE republishes those years.
+
+The option he selected: "Yes: both the 699 and 5,407 prior-year CTE cells stay as published with a warning until KDE republishes those years."
+
+Source type: chat answer.
+
+A later public file for these years is read under [0052](0052-republish-supersedes-earlier.md): latest public file after the review window, unless it is visibly broken, with the differences recorded in [kde-republishes.md](kde-republishes.md). His 12:04 PM typed words about the recheck are on [0051](0051-cte-zero-rate-on-positive-count.md).
 
 ## Who decided and how we know
 
-https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6388875367
+24 October keep rule: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6388875367 posted on the `jscotthorn` account through the Cursor GitHub App.
 
 The pull request #116 approval says this matches option A and does not convert the cells to NA: https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/116#issuecomment-6388993945
 
+12:36 PM ET end condition: Scott, in the ECC manager bot's chat. The quote above is the option he selected. Archivist checked it verbatim against the transcript.
+
+Repo comment: pending
+
 ## Why
 
-The 24 October comment gives evidence the cells may be suppressed, and at that time said keep them as published until a recheck. The 25 October end condition, above, replaces that date:
+The 24 October comment gives evidence the cells may be suppressed, and at that time said keep them as published until the Oct 27 recheck. The 12:36 option extends that decision past the recheck: the cells stay as published with a warning until KDE republishes those years.
 
 - All 1,376 such 2024 cells were `*` in the May 2025 copy.
 - All 2,542 such 2023 completion cells are `*` in the 2023 annual file.

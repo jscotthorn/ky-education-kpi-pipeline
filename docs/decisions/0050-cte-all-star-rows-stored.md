@@ -26,7 +26,7 @@ Scott's words: "Keep storing all-star CTE rows as suppressed, matching #87; upda
 
 Scott, direct, 2026-10-25 11:59 AM ET, his answer on a question card in the ECC manager bot's chat.
 
-Source type: Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
+Source type: chat answer. Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
 
 Repo comment: pending
 

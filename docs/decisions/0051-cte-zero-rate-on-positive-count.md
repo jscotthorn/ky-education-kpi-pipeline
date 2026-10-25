@@ -2,7 +2,7 @@
 
 Status: accepted
 
-Source type: Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
+Source type: chat answer. Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
 
 Repo comment: pending
 
@@ -22,27 +22,39 @@ No KDE definition of a 0.0 rate beside a positive count was found.
 
 ## Options considered
 
-Option A, named in the pull request #116 review: keep the published 0.0 with a warning, the same rule as the 5,407 cells. Scott chose A. The other options were not restated in his answer.
+Option A, named in the pull request #116 review: keep the published 0.0 with a warning, the same rule as the 5,407 cells. Scott chose A at 12:04 PM ET. The other options on that card were not restated in his answer.
+
+25 October 2026, 12:36 PM ET, the card asked: "After the Oct 27 recheck, should the prior-year CTE cells (the 699 and the 5,407) stay as published until KDE republishes those years? I recommend yes, since the recheck won't touch earlier years." He selected yes.
 
 ## Decision
 
 25 October 2026, 12:04 PM ET. Option A. Keep the 699 cells as published (`suppressed` N, value 0.0), with a warning, the same way as the 5,407 cells in [0009](0009-cte-zero-rate-beside-blank-count.md).
 
-Scott's words: "A, but the recheck is likely to only cover the most recent year's data."
+His typed words: "A, but the recheck is likely to only cover the most recent year's data."
 
-The 27 October 2026 recheck is likely to cover only the most recent year, 2025-26, not these 2022-23 and 2023-24 cells. The cells stay as published with a warning until KDE republishes those years (2022-23 / 2023-24).
+History. The 24 October comment kept the 5,407 blank-count cells "until the Oct 27 KDE recheck" and said "Revisit after the recheck." It left these 699 cells as a separate question. https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6388875367
 
-The phrase "until KDE republishes those years (2022-23 / 2023-24)" is Moon's summary of Scott's remark. It is not his own words. The same end condition is recorded on [0009](0009-cte-zero-rate-beside-blank-count.md). A later public file for these years is read under [0052](0052-republish-supersedes-earlier.md): latest public file after the review window, unless it is visibly broken, with the differences recorded in [kde-republishes.md](kde-republishes.md).
+25 October 2026, 12:36 PM ET. The option he selected extends that decision past the recheck, and it covers both sets. The 699 cells and the 5,407 cells stay as published with a warning until KDE republishes those years.
+
+The option he selected: "Yes: both the 699 and 5,407 prior-year CTE cells stay as published with a warning until KDE republishes those years."
+
+Source type: chat answer.
+
+The same end condition is recorded on [0009](0009-cte-zero-rate-beside-blank-count.md). A later public file for these years is read under [0052](0052-republish-supersedes-earlier.md): latest public file after the review window, unless it is visibly broken, with the differences recorded in [kde-republishes.md](kde-republishes.md).
 
 ## Who decided and how we know
 
-Scott, direct, 2026-10-25 12:04 PM ET, in the ECC manager bot's chat; transcript checked by Archivist.
+12:04 PM ET typed answer: Scott, in the ECC manager bot's chat. Archivist checked those typed words verbatim against the transcript.
+
+12:36 PM ET end condition: Scott, in the same chat. The quote above is the option he selected. Archivist checked it verbatim against the transcript.
 
 Option A is the rule already used for the blank-count cells: https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/116#issuecomment-6388993945 and https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6388875367
 
+Repo comment: pending
+
 ## Why
 
-Scott chose A. That is the #116 option A rule: keep the published number, with a warning, and do not convert it to NA. His second clause is why the end condition is not the 27 October recheck. The "until KDE republishes" wording is Moon's summary, marked above.
+Scott chose A. That is the #116 option A rule: keep the published number, with a warning, and do not convert it to NA. His 12:04 typed words say the recheck is likely to cover only the most recent year's data. The 12:36 option is the end condition, and it extends the 24 October decision past the recheck.
 
 ## Links
 

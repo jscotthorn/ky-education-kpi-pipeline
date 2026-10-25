@@ -30,7 +30,7 @@ Per Moon, 2026-10-25; not in Scott's answer: the NaN guard and extending the ana
 
 25 October exception: Scott, direct, 2026-10-25 12:00 PM ET, his answer on a question card in the ECC manager bot's chat.
 
-Source type for the 25 October exception: Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
+Source type for the 25 October exception: chat answer. Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
 
 Repo comment: pending
 
