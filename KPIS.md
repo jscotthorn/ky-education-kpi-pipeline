@@ -432,7 +432,7 @@ KDE defines an ineffective teacher as one whose local evaluation system, meeting
 
 Per-pupil spending metrics broken down by funding source. All spending values are in US dollars per student.
 
-**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+**Note**: All records have `student_group='All Students'`. There are no demographic breakdowns. 2019 is schools only. 2020-2025 include district totals and a state total. The wide KYRC24 and KYRC25 school files are schools only. District and state totals for 2024 and 2025 come from the five `FT_Total` and `FT_Personnel` files. Labels match the 2020-2023 spending rows: Fayette County is school code `165`, district `Fayette County`, and school `---District Total---`. The state is school code `999`, district `State`, and school `---State Total---`. There is no `165000` or `999000` row. Other KYRC modules store 2024 and later district and state rows as `xxx000` / `999000` / `All Districts`. Spending keeps `xxx` / `999` / `State` for 2020–2025 until #61's shared normalization. Fayette all-funds is 22,322 in 2024 and 22,974 in 2025. The state is 19,020 and 19,973. Each amount is the figure KDE published. Federal plus state/local is not substituted for the all-funds cell.
 
 ### Federal Funding Metrics
 - `personnel_spending_per_student_federal` - Federal spending on personnel (teachers, staff, etc.) per student
@@ -445,12 +445,12 @@ Per-pupil spending metrics broken down by funding source. All spending values ar
 - `total_spending_per_student_state_local` - Total state and local spending per student
 
 ### Combined Funding Metrics
-- `total_spending_per_student_all_funds` - Total spending per student from all funding sources (federal + state/local)
+- `total_spending_per_student_all_funds` - Total spending per student from all funding sources, the figure KDE published. Federal plus state/local is not substituted for this cell
 
-**Data Sources**: KYRC25_FT_Spending_per_Student.csv, KYRC24_FT_Spending_per_Student.csv, spending_per_student_{year}.csv, SPENDING_PER_STUDENT_18-19.xlsx
+**Data Sources**: KYRC25_FT_Spending_per_Student.csv, KYRC24_FT_Spending_per_Student.csv, KYRC24 and KYRC25 `FT_Total_Spending_per_Student_{All_Fund_Sources,Federal_Funds,State_Local_Funds}.csv`, KYRC24 and KYRC25 `FT_Personnel_Spending_per_Student_{Federal_Funds,State_Local_Funds}.csv`, spending_per_student_{year}.csv, SPENDING_PER_STUDENT_18-19.xlsx
 **Years Available**: 2019-2025
 **Unit**: US dollars per student (published amount, including a thousands separator such as `20,164`). A `*` is value NA with suppressed Y. A blank is not stored. A published 0 is kept. No registered file publishes a `*`.
-**Demographics**: School-level only (All Students)
+**Demographics**: All Students only. District totals and the state total are included for 2020-2025
 
 ---
 

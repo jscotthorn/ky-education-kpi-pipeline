@@ -10,12 +10,17 @@ Data includes spending metrics for:
 - State/local funds (personnel, non-personnel, total)
 - All funds combined (total)
 
-Note: This dataset contains school-level spending only, with no demographic breakdowns.
-All records are assigned "All Students" as the student group for consistency with KPI format.
+School rows for 2024 and 2025 come from the wide spending file. District and
+state totals for those years come from the five long School / District / State
+files. Those totals are stored under the same labels as the 2020-2023 spending
+rows: district number as the school id (Fayette ``165``), ``---District Total---``,
+and the district name. The state row is ``999``, district ``State``, and
+``---State Total---``. There is no demographic breakdown. Every record uses
+"All Students".
 """
 from pathlib import Path
 import pandas as pd
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import logging
 import sys
 
@@ -145,6 +150,157 @@ def _normalize_numeric_text(series: pd.Series) -> pd.Series:
     return text
 
 
+# Long files. The wide KYRC24/KYRC25 spending files are schools only.
+# A row named "All Schools" whose code ends in 000 is a district or the
+# state. The amount for that row is the District column, or the State /
+# Statewide column on district number 999. The School column on those
+# rows is 0. That 0 is not the district or state amount.
+_LEVEL_FILENAME_MARKERS = (
+    "FT_TOTAL_SPENDING_PER_STUDENT_",
+    "FT_PERSONNEL_SPENDING_PER_STUDENT_",
+)
+
+# Category / Metric text to the wide column the rest of this module already
+# maps. The published total is not the sum of the other columns.
+_LEVEL_MEASURE_COLUMNS = {
+    "Personnel Spending per Student - Federal Funds Personnel":
+        "Personnel Spending per Student - Federal Funds",
+    "Personnel Spending per Student - Federal Funds Non Personnel":
+        "Non-Personnel Spending per Student - Federal Funds",
+    "Personnel Expenditures State Local Per Student":
+        "Personnel Expenditures State Local Per Student",
+    "Non-Personnel Expenditures State Local Per Student":
+        "Non-Personnel Expenditures State Local Per Student",
+    "Total Expenditures Federal Per Student":
+        "Total Expenditures Federal Per Student",
+    "Total Spending per Student - State/Local Funds":
+        "Total Spending per Student - State/Local Funds",
+    "Total Expenditures Per Student":
+        "Total Expenditures Per Student",
+}
+
+_LEVEL_IDENTITY_COLUMNS = (
+    "School Year",
+    "County Number",
+    "County Name",
+    "District Number",
+    "District Name",
+    "School Number",
+    "School Name",
+    "School Code",
+    "State School Id",
+    "NCES ID",
+    "CO-OP",
+    "CO-OP Code",
+    "CO-OP CODE",
+    "School Type",
+)
+
+
+def is_level_spending_file(filename: str) -> bool:
+    """True for a district/state total file, false for the wide school file."""
+    upper = filename.upper()
+    return any(marker in upper for marker in _LEVEL_FILENAME_MARKERS)
+
+
+def _text_series(series: pd.Series) -> pd.Series:
+    """Strip cell text. A missing cell becomes an empty string.
+
+    ``astype("string")`` covers object and pandas StringDtype. A published
+    0 stays ``"0"``. A ``*`` stays ``"*"``. A comma in ``22,322`` stays.
+    """
+    text = series.astype("string").str.strip()
+    return text.fillna("")
+
+
+def select_district_state_spending(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep published district and state amounts from a long spending file.
+
+    School rows are left out. Their per-pupil amounts are already on the
+    wide file, and the District column on a school row repeats the district
+    total. A blank level cell is left out. A ``*`` and a published 0 are
+    kept for the usual suppressed / zero rules.
+
+    Identifiers match the 2020-2023 spending rows. Fayette stays district
+    ``Fayette County``, school ``---District Total---``, school code ``165``.
+    The state stays district ``State``, school ``---State Total---``, school
+    code ``999``. The 6-digit codes ``165000`` and ``999000`` are not written.
+    """
+    if df.empty:
+        return df
+    if "School Name" not in df.columns or "School Code" not in df.columns or "District" not in df.columns:
+        logger.error("Level spending file is missing School Name, School Code, or District")
+        return pd.DataFrame()
+    if "Category" in df.columns:
+        label_column = "Category"
+    elif "Metric" in df.columns:
+        label_column = "Metric"
+    else:
+        logger.error("Level spending file is missing Category and Metric")
+        return pd.DataFrame()
+    if "Statewide" in df.columns:
+        state_column = "Statewide"
+    elif "State" in df.columns:
+        state_column = "State"
+    else:
+        logger.error("Level spending file is missing State and Statewide")
+        return pd.DataFrame()
+
+    school_name = _text_series(df["School Name"])
+    school_code = _text_series(df["School Code"])
+    district_number = _text_series(df["District Number"]) if "District Number" in df.columns else pd.Series("", index=df.index)
+    is_aggregate = school_name.eq("All Schools") & school_code.str.endswith("000").fillna(False)
+    is_state = (
+        district_number.eq("999") | school_code.eq("999000")
+    ).fillna(False).astype(bool)
+    district_value = _text_series(df["District"])
+    state_value = _text_series(df[state_column])
+    chosen = state_value.where(is_state, district_value)
+    labels = _text_series(df[label_column])
+    identity = {
+        column: _text_series(df[column])
+        for column in _LEVEL_IDENTITY_COLUMNS
+        if column in df.columns
+    }
+
+    records = []
+    unknown_labels = set()
+    for idx in df.index[is_aggregate.fillna(False).to_numpy()]:
+        label = labels.at[idx]
+        measure = _LEVEL_MEASURE_COLUMNS.get(label)
+        if measure is None:
+            if label not in unknown_labels:
+                logger.warning("Unmapped spending category %r", label)
+                unknown_labels.add(label)
+            continue
+        value = chosen.at[idx]
+        if value == "":
+            continue
+        number = district_number.at[idx]
+        if number == "":
+            logger.warning("District aggregate spending row has no district number")
+            continue
+        record = {column: text.at[idx] for column, text in identity.items()}
+        record["District Number"] = number
+        record["School Code"] = number
+        if bool(is_state.at[idx]):
+            record["District Name"] = "State"
+            record["School Name"] = "---State Total---"
+        else:
+            record["School Name"] = "---District Total---"
+        record[measure] = value
+        records.append(record)
+
+    if not records:
+        return pd.DataFrame()
+    # StringDtype keeps a district number such as ``001``. A plain
+    # DataFrame would read that as the integer 1.
+    result = pd.DataFrame(records)
+    for column in result.columns:
+        result[column] = result[column].astype("string")
+    return result
+
+
 def clean_spending_values(df: pd.DataFrame) -> pd.DataFrame:
     """
     Clean and validate spending values.
@@ -251,6 +407,20 @@ class SpendingPerStudentETL(BaseETL):
             'TOTAL_PER_STU_STATELOCAL': 'total_spending_state_local',
             'TOTAL_PER_STU_ALLFUNDS': 'total_spending_all_funds',
         }
+
+    def _read_data_file(self, file_path: Path, sheet: Optional[str] = None) -> pd.DataFrame:
+        """Read a wide school file, or the district and state rows of a long file.
+
+        ``KYRC2{4,5}_FT_Spending_per_Student.csv`` is schools only. The
+        Total and Personnel files publish district and state amounts in
+        School / District / State columns. Those rows are reshaped onto
+        the same measure columns as the wide file before the usual
+        comma and suppression handling.
+        """
+        frame = super()._read_data_file(file_path, sheet)
+        if is_level_spending_file(file_path.name):
+            return select_district_state_spending(frame)
+        return frame
 
     def should_skip_row(self, row: pd.Series) -> bool:
         """
