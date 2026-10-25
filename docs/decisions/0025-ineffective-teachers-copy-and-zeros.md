@@ -29,12 +29,13 @@ Those four comments were posted on the `jscotthorn` account through the Cursor G
 
 ## Why
 
-The comments choose the UAT copy and say a published 0 stays. Reason the 39-row datasets object is wrong, beyond the row count and the percents above 100: not documented.
+The comments choose the UAT copy and say a published 0 stays. The later confirmation that the live 39-row KYRC24 file is visibly broken, and the recheck counts, are [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md).
 
 ## Links
 
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/64 (still open)
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123 (open). The yaml still registers the Open House copies, so the 18 October copy choices on #58, #64, and #66 are not applied.
+- [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md). #64 item 1 falls under [0052](0052-republish-supersedes-earlier.md). The config change stays on #123.
 - `config/kde_sources.yaml` `students_taught_by_ineffective_teachers`
 - Signed-gap follow-up: [0027](0027-signed-title-i-equity-gap.md)
 
@@ -45,7 +46,7 @@ Does not match items 1 and 2. Re-read on this branch.
 - Item 1: `students_taught_by_ineffective_teachers` still registers the bare historical name `KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv`. The comment says the datasets object is 39 rows with percents above 100 and "It is not swapped." The 1,589-row UAT copy is not the registered file.
 - Item 2: KYRC25 is registered as `url: kyrc25`, the datasets container. The yaml header says the downloader keeps datasets when Content-MD5 is missing. That is not "load the UAT copy."
 
-A title search of pull requests found no follow-up that performs either switch. Issue #64 is still open. Issue #123 tracks that the yaml still has the Open House copies. Items 3 and 4 (keep published zeros; repoint the catalog) were not re-checked as implemented. Not fixed here. The 39-row datasets file is the visibly broken example in [0052](0052-republish-supersedes-earlier.md). This conflict stays open as follow-up (a).
+A title search of pull requests found no follow-up that performs either switch. Issue #64 is still open. Issue #123 tracks that the yaml still has the Open House copies. Items 3 and 4 (keep published zeros; repoint the catalog) were not re-checked as implemented. Not fixed here. The 39-row datasets file is the visibly broken copy under [0052](0052-republish-supersedes-earlier.md), confirmed by [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md). This conflict stays open as follow-up (a).
 
 ## KDE guidance check
 
