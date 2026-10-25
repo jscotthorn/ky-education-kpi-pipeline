@@ -1,6 +1,6 @@
 # 0024 Point 2024 novice-teacher equity at the datasets copy
 
-Status: accepted
+Status: conflicts-with-code
 
 ## Question
 
@@ -8,7 +8,7 @@ The historical KYRC24 inexperienced-teacher file and the datasets copy disagree 
 
 ## What KDE changed
 
-Two public copies of the same KYRC24 object do not match. The historical file's state Title I rate is 66.0. The datasets copy's state Title I rate is 11.3.
+Two public copies of the same KYRC24 object do not match. `config/kde_sources.yaml` says the datasets copy's state Title I All Students rate is 66.0 and the registered historical file's rate is 11.3 ("11.3 here").
 
 ## Options considered
 
@@ -33,7 +33,7 @@ The comment chooses the datasets copy. Reason that copy is the right Title I fig
 
 ## Code check
 
-Does not match. `config/kde_sources.yaml` still says the historical KYRC24 equity file is not swapped, and it cites state Title I 66.0 versus 11.3. Issue #58 is still open. Not resolved here. Status stays `accepted` because no merged change did the opposite on purpose. The registered file is still the one the decision said to leave.
+Does not match. Re-read on this branch: `novice_teachers` still registers the bare historical name `KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv` and says the datasets copy "is not swapped." A title search of pull requests found no follow-up that performs the switch. Issue #58 is still open. Not fixed here. The standing file rule is [0052](0052-republish-supersedes-earlier.md). This conflict stays open as follow-up (a).
 
 ## KDE guidance check
 

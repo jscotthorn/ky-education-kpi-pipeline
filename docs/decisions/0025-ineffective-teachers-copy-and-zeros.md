@@ -1,6 +1,6 @@
 # 0025 Ineffective-teacher copies, KYRC25 comparison, and published zeros
 
-Status: accepted
+Status: conflicts-with-code
 
 ## Question
 
@@ -39,7 +39,12 @@ The comments choose the UAT copy and say a published 0 stays. Reason the 39-row 
 
 ## Code check
 
-Does not match the copy switch. `config/kde_sources.yaml` says the datasets KYRC24 object is 39 rows and is not swapped, and that the historical 1,562-row extract stays registered. Issue #64 is still open. Not resolved here.
+Does not match items 1 and 2. Re-read on this branch.
+
+- Item 1: `students_taught_by_ineffective_teachers` still registers the bare historical name `KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv`. The comment says the datasets object is 39 rows with percents above 100 and "It is not swapped." The 1,589-row UAT copy is not the registered file.
+- Item 2: KYRC25 is registered as `url: kyrc25`, the datasets container. The yaml header says the downloader keeps datasets when Content-MD5 is missing. That is not "load the UAT copy."
+
+A title search of pull requests found no follow-up that performs either switch. Issue #64 is still open. Items 3 and 4 (keep published zeros; repoint the catalog) were not re-checked as implemented. Not fixed here. The 39-row datasets file is the visibly broken example in [0052](0052-republish-supersedes-earlier.md). This conflict stays open as follow-up (a).
 
 ## KDE guidance check
 

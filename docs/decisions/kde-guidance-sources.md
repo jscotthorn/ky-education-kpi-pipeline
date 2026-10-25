@@ -44,6 +44,8 @@ Other KDE quotations below are from that research attachment and were not re-fet
 
 ECS (https://reports.ecs.org/comparisons/states-school-accountability-systems-2024) is not a KDE source. The research cites it only as a secondary note that Kentucky uses N=30 for accountability and N=10 for reporting. It is not used as KDE guidance.
 
+Republish triggers, hosts, and the 26-row case list are in [kde-republishes.md](kde-republishes.md). Those KDE pages were not re-fetched in this pass. The rule that uses them is [0052](0052-republish-supersedes-earlier.md).
+
 ## What was not found
 
 The research looked for these and did not find a KDE statement. This pass did not repeat that search.

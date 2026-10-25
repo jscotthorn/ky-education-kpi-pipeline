@@ -28,7 +28,7 @@ Scott's words: "A, but the recheck is likely to only cover the most recent year'
 
 The 27 October 2026 recheck is likely to cover only the most recent year, 2025-26, not these 2022-23 and 2023-24 cells. The cells stay as published with a warning until KDE republishes those years (2022-23 / 2023-24).
 
-The phrase "until KDE republishes those years (2022-23 / 2023-24)" is Moon's summary of Scott's remark. It is not his own words. This end condition will be revisited under the republish standing rule being added next. The same end condition is recorded on [0009](0009-cte-zero-rate-beside-blank-count.md).
+The phrase "until KDE republishes those years (2022-23 / 2023-24)" is Moon's summary of Scott's remark. It is not his own words. The same end condition is recorded on [0009](0009-cte-zero-rate-beside-blank-count.md). A later public file for these years is read under [0052](0052-republish-supersedes-earlier.md): latest public file after the review window, unless it is visibly broken, with the differences recorded in [kde-republishes.md](kde-republishes.md).
 
 ## Who decided and how we know
 
@@ -47,6 +47,7 @@ Scott chose A. That is the #116 option A rule: keep the published number, with a
 - `notes/114--cte-2023-published-rates.md`
 - `notes/116--cte-kyrc24-republish.md`
 - [0009](0009-cte-zero-rate-beside-blank-count.md)
+- [0052](0052-republish-supersedes-earlier.md)
 
 ## Code check
 

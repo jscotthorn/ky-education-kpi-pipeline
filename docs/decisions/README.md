@@ -2,7 +2,7 @@
 
 This folder records choices about Kentucky Department of Education (KDE) sources and how this pipeline treats them. It does not change pipeline code. A later edit to a choice is a new record. The old record stays, keeps its number, and links to the new one.
 
-Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0052`. A number is never reused.
+Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0054`. A number is never reused.
 
 ## When a record is needed
 
@@ -65,6 +65,7 @@ Two note numbers are used twice. They were not renamed.
 - [kde-reporting-changes.md](kde-reporting-changes.md) — what KDE changed, by series and year, and how the pipeline handled it
 - [coverage-gaps.md](coverage-gaps.md) — series the equity dashboard is missing, classified from this repo
 - [kde-guidance-sources.md](kde-guidance-sources.md) — KDE URLs and statements that were not found
+- [kde-republishes.md](kde-republishes.md) — republish and alternate-copy cases, and where each difference is recorded
 
 ## Records
 
@@ -93,9 +94,9 @@ Two note numbers are used twice. They were not renamed.
 | [0021](0021-pandas-unpinned-comma-fixes.md) | accepted | no KDE guidance found |
 | [0022](0022-teacher-experience-zero-averages.md) | accepted | no KDE guidance found |
 | [0023](0023-student-teacher-ratio-outliers.md) | accepted | no KDE guidance found |
-| [0024](0024-novice-kyrc24-equity-copy.md) | accepted | no KDE guidance found |
-| [0025](0025-ineffective-teachers-copy-and-zeros.md) | accepted | no KDE guidance found |
-| [0026](0026-out-of-field-file-and-copy.md) | accepted | no KDE guidance found |
+| [0024](0024-novice-kyrc24-equity-copy.md) | conflicts-with-code | no KDE guidance found |
+| [0025](0025-ineffective-teachers-copy-and-zeros.md) | conflicts-with-code | no KDE guidance found |
+| [0026](0026-out-of-field-file-and-copy.md) | conflicts-with-code | no KDE guidance found |
 | [0027](0027-signed-title-i-equity-gap.md) | accepted | no KDE guidance found |
 | [0028](0028-turnover-2026-metric-names.md) | accepted | no KDE guidance found |
 | [0029](0029-emergency-provisional-2026.md) | accepted | no KDE guidance found |
@@ -121,3 +122,5 @@ Two note numbers are used twice. They were not renamed.
 | [0049](0049-kyrc26-files-loaded-15-oct-2026.md) | unconfirmed | possible conflict |
 | [0050](0050-cte-all-star-rows-stored.md) | accepted | consistent |
 | [0051](0051-cte-zero-rate-on-positive-count.md) | accepted | possible conflict |
+| [0052](0052-republish-supersedes-earlier.md) | accepted | no KDE statement on supersession |
+| [0053](0053-spending-2024-25-three-digit-ids.md) | accepted | no KDE guidance found |

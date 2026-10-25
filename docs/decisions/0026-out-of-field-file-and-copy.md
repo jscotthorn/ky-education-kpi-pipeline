@@ -1,6 +1,6 @@
 # 0026 Out-of-field file for 2019-20, and the KYRC24 copy
 
-Status: accepted
+Status: conflicts-with-code
 
 ## Question
 
@@ -37,7 +37,7 @@ The 2019-20 comment cites the zero-filled equity rows and the jump from 1.41 to 
 
 ## Code check
 
-The unregistered 2019-20 file matches the yaml comment: the file is not registered and the parser skips that filename. The 2024 copy switch does not match. The yaml says issue #66 holds that copy and "Do not swap it here." Issue #66 is still open. Not resolved here.
+The unregistered 2019-20 file matches the yaml comment: the file is not registered and the parser skips that filename. The 2024 copy switch does not match. Re-read on this branch: the bare historical name `KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv` is still registered, and the comment says "Do not swap it here." A title search of pull requests found no follow-up that performs the switch. Issue #66 is still open. Not fixed here. The standing file rule is [0052](0052-republish-supersedes-earlier.md). This conflict stays open as follow-up (a).
 
 ## KDE guidance check
 

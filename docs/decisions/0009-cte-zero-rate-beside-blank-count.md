@@ -37,7 +37,7 @@ The review name "option A" is keep as published. Other options are not written i
 
 25 October 2026, 12:04 PM ET. The end condition is no longer "until the 27 October 2026 KDE recheck." Scott said the recheck is likely to cover only the most recent year's data. That year is 2025-26, not these 2022-23 and 2023-24 cells. The cells stay as published with a warning until KDE republishes those years (2022-23 / 2023-24).
 
-The phrase "until KDE republishes those years (2022-23 / 2023-24)" is Moon's summary of that remark. It is not Scott's own words. His words are quoted on [0051](0051-cte-zero-rate-on-positive-count.md). This end condition will be revisited under the republish standing rule being added next.
+The phrase "until KDE republishes those years (2022-23 / 2023-24)" is Moon's summary of that remark. It is not Scott's own words. His words are quoted on [0051](0051-cte-zero-rate-on-positive-count.md). A later public file for these years is read under [0052](0052-republish-supersedes-earlier.md): latest public file after the review window, unless it is visibly broken, with the differences recorded in [kde-republishes.md](kde-republishes.md).
 
 ## Who decided and how we know
 
@@ -62,6 +62,8 @@ The 24 October comment gives evidence the cells may be suppressed, and at that t
 - `notes/116--cte-kyrc24-republish.md`
 - `KPIS.md` (`cte_participation_rate`, `cte_completion_rate_grade_12`)
 - [0008](0008-kyrc24-cte-may-2026-republish.md)
+- [0051](0051-cte-zero-rate-on-positive-count.md)
+- [0052](0052-republish-supersedes-earlier.md)
 
 ## Code check
 

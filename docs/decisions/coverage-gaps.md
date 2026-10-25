@@ -2,7 +2,7 @@
 
 These are series a consumer of this pipeline can be missing. The FCPS equity dashboard repository (`jscotthorn/fcps-equity-dashboard`) returned HTTP 404 to this pass, so the dashboard's own wording was not read. Classifications use this repository, its issues, and the KDE sources in [kde-guidance-sources.md](kde-guidance-sources.md).
 
-Classes: `deliberate`, `dashboard scope, deliberate filter`, `planned or deferred`, `KDE publication gap`, `bug`, `unconfirmed`.
+Classes: `deliberate`, `dashboard scope, deliberate filter`, `planned or deferred`, `KDE publication gap`, `bug, fix in progress`, `unconfirmed`.
 
 ## AP participation for 2023 onward
 
@@ -54,21 +54,17 @@ Classification: **KDE publication gap**.
 
 ## District per-pupil spending for 2024-25
 
-Classification: **unconfirmed**. The missing rows and the in-review fix match the report. The ID width does not, so this is not reclassified as a bug with a fix in progress.
+Classification: **bug, fix in progress** ([#118](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/118), [#119](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/119)).
 
-What matches issue [#118](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/118) and pull request [#119](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/119) (open, base `feature/2025-26-kyrc26`):
+`KYRC24_FT_Spending_per_Student.csv` and `KYRC25_FT_Spending_per_Student.csv` are school rows only, so 2024 and 2025 have no district or state per-pupil rows. District `165` and state `999` rows exist for 2020-2023. KDE publishes the 2024 and 2025 totals in five long files per year (`FT_Total` for all funds, federal, and state/local; `FT_Personnel` for federal and state/local). Pull request #119, open, reads those ten files and adds the rows. It is not merged. [#117](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/117) fixed comma parsing for the school file only.
 
-- `KYRC24_FT_Spending_per_Student.csv` and `KYRC25_FT_Spending_per_Student.csv` are school rows only, so 2024 and 2025 have no district or state per-pupil rows.
-- District and state rows exist for 2020-2023 (issue #118: district `165` and state `999`; the 2019 rows are also absent).
-- KDE publishes the 2024 and 2025 totals in five long files per year: `FT_Total_Spending_per_Student` for all funds, federal, and state/local, and `FT_Personnel_Spending_per_Student` for federal and state/local.
-- Pull request #119 reads those ten files and adds the district and state rows. It is not merged.
+The ID width is [0053](0053-spending-2024-25-three-digit-ids.md). Scott, 2026-10-25 12:12 PM ET: keep 3-digit `165` and `999` under the #114 precedent until #61 converts them to 6-digit. Moon's note is https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/119#issuecomment-6399959209. Issue #118 had asked for 6-digit IDs. Scott's sentence is the choice.
 
-What does not match the report that #119 keeps 3-digit `165` / `999` under the [#114](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/114) mixed-ID precedent until [#61](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/61) ([0010](0010-cte-2023-mixed-ids.md), [0003](0003-shared-id-normalization.md)):
+## KYRC25 assessment files rewritten after the February 2026 final copy
 
-- Issue #118 says to register the rows as 6-digit IDs from 2024, "consistent with #61."
-- Pull request #119 writes school id `165` and `999`, does not write `165000` or `999000`, and says issue #61 is not attempted. Its body does not cite #114.
+Classification: **unconfirmed**.
 
-[#117](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/117) fixed comma parsing for the school file. It did not add the total files.
+`config/kde_sources.yaml` registers `KYRC25_ACCT_Kentucky_Summative_Assessment.csv` on `url: kyrc25`, the live datasets container. The 25 October 2026 research says that live object is Last-Modified 14 May 2026 and differs from the Open House copy dated 10 February 2026 (the post-review "final" copy in that research): 342 rows and 868 cells, including state high-school math All Students 57.7 versus 57.6. This pass did not re-download or diff those files. The same research says other 2024-25 files were rewritten and not compared, including postsecondary readiness (9 October 2026) and 4-year graduation (6 August 2026). Both of those names are also registered on `url: kyrc25`. No issue was found. Follow-up (b). See [kde-republishes.md](kde-republishes.md).
 
 ## No state comparison rows
 
