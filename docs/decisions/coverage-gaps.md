@@ -2,7 +2,7 @@
 
 These are series a consumer of this pipeline can be missing. The FCPS equity dashboard repository (`jscotthorn/fcps-equity-dashboard`) returned HTTP 404 to this pass, so the dashboard's own wording was not read. Classifications use this repository, its issues, and the KDE sources in [kde-guidance-sources.md](kde-guidance-sources.md).
 
-Classes: `deliberate`, `dashboard scope, deliberate filter`, `planned or deferred`, `KDE publication gap`, `bug, fix in progress`, `fixed`, `unconfirmed`.
+Classes: `deliberate`, `dashboard scope, deliberate filter`, `planned or deferred`, `KDE publication gap`, `bug, fix in progress`, `fixed`, `comparison recorded`, `unconfirmed`.
 
 ## AP participation for 2023 onward
 
@@ -62,9 +62,9 @@ The ID width is [0053](0053-spending-2024-25-three-digit-ids.md). Primary source
 
 ## KYRC25 assessment files rewritten after the February 2026 final copy
 
-Classification: **unconfirmed**.
+Classification: comparison recorded. This is not a remaining gap.
 
-`config/kde_sources.yaml` registers `KYRC25_ACCT_Kentucky_Summative_Assessment.csv` on `url: kyrc25`, the live datasets container. The 25 October 2026 research says that live object is Last-Modified 14 May 2026 and differs from the Open House copy dated 10 February 2026 (the post-review "final" copy in that research): 342 rows and 868 cells, including state high-school math All Students 57.7 versus 57.6. This pass did not re-download or diff those files. The same research says other 2024-25 files were rewritten and not compared, including postsecondary readiness (9 October 2026) and 4-year graduation (6 August 2026). Both of those names are also registered on `url: kyrc25`. No issue was found. Follow-up (b). A separate docs pull request for that comparison is in progress. See [kde-republishes.md](kde-republishes.md) R19 and R20, and [0052](0052-republish-supersedes-earlier.md).
+The comparison is [republish-diffs/kyrc25-2026-rewrites.md](republish-diffs/kyrc25-2026-rewrites.md) (pull request [#124](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/124)). `config/kde_sources.yaml` already registers the later `datasets` copies on `url: kyrc25`. [kde-republishes.md](kde-republishes.md) R19 complies with [0052](0052-republish-supersedes-earlier.md). R20 complies for postsecondary readiness, 4-year graduation, and 5-year graduation. The 5-year copies are byte-identical, md5 `ddcd0df0de09e52291c98a78353b03ac`. R6 and issue #64 are a different case: [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md) and [0025](0025-ineffective-teachers-copy-and-zeros.md).
 
 ## No state comparison rows
 

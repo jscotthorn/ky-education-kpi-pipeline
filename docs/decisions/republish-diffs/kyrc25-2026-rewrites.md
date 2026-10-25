@@ -1,6 +1,6 @@
 # KYRC25 files rewritten after the February 2026 post-review copy
 
-This note pairs with record 0052 in pull request [#120](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/120) (branch `cursor/decision-log-bbca`). Record 0052 is Scott's rule, 25 October 2026, 12:11 p.m. Eastern: use the latest public KDE file after the review window closes, unless it is visibly broken, and record the differences on each republish.
+This note pairs with [0052](../0052-republish-supersedes-earlier.md). Record 0052 is Scott's rule, 25 October 2026, 12:11 p.m. Eastern: use the latest public KDE file after the review window closes, unless it is visibly broken, and record the differences on each republish. The differences for these files are also in [kde-republishes.md](../kde-republishes.md), rows R19 and R20.
 
 The comparison was run on 25 October 2026. It reads public file headers and the downloaded bytes. It does not change pipeline code, config, or data. The cause of a rewrite is stated only when the file itself shows it. Where the file does not say why it changed, this note says so.
 
@@ -35,7 +35,7 @@ UAT is `datasetsuat6051276`. For all three files its MD5 matches `datasets`. Las
 
 ## Kentucky Summative Assessment
 
-File: `KYRC25_ACCT_Kentucky_Summative_Assessment.csv`. This is the accountability file (level and subject), not the by-grade `KYRC25_ASMT_` file. The by-grade file is under "Not compared."
+File: `KYRC25_ACCT_Kentucky_Summative_Assessment.csv`. This is the accountability file (level and subject), not the by-grade `KYRC25_ASMT_` file. The by-grade file is under "Related files."
 
 Natural key: `School Year`, `School Code`, `Level`, `Subject`, `Demographic`. Both copies have 278,464 keys and no duplicate keys. The 23 column names match, in the same order.
 
@@ -263,7 +263,7 @@ The pattern that supports that label:
 The pattern that argues against the other labels:
 
 - A file-wide method change, such as a new rounding rule or a new suppression rule, would show up across subjects or across schools. Science and social studies are unchanged, and the suppression flag changes on one row.
-- Breakage of the kind named in the request (truncation, impossible values, missing columns) is not what these bytes show. The row count, the columns, and the 0–100 percents are intact. This is not the 39-row file with percents above 100 that record 0052 uses as the broken-file example.
+- Breakage of the kind named in the request (truncation, impossible values, missing columns) is not what these bytes show. The row count, the columns, and the 0–100 percents are intact. This is not the 39-row file with percents above 100 that [0055](../0055-kyrc24-ineffective-teachers-visibly-broken.md) records as visibly broken under [0052](../0052-republish-supersedes-earlier.md).
 
 The file does not say what was corrected. There is no change-log column and no version note in the header or the cells. This comparison did not contact KDE. The cause is not established.
 
@@ -271,11 +271,11 @@ The file does not say what was corrected. There is no change-log column and no v
 
 `config/kde_sources.yaml` registers this file with `url: kyrc25`, which `data/prepare_kde_data.py` resolves to `base_url_kyrc25`, the `datasets` host. The downloader also HEADs UAT for a `KYRC25_` name. When `Content-MD5` is missing or the hashes match, it keeps the `datasets` URL. Both HEADs here omitted `Content-MD5`, so the downloader keeps `datasets`. UAT is the same bytes, so the later UAT timestamp does not change a value.
 
-Record 0052 points to the latest public file after the review window, unless that copy is visibly broken. The review in the 2 February email had already closed, and the May file is after 3 February. On the checks in this note the May file is not the broken-file pattern in 0052. The rule points to the May `datasets` file. That is the file the config already registers. This note records the differences. The config was not changed.
+[0052](../0052-republish-supersedes-earlier.md) points to the latest public file after the review window, unless that copy is visibly broken. The review in the 2 February email had already closed, and the May file is after 3 February. On the checks in this note the May file is not the broken-file pattern in 0052. The rule points to the May `datasets` file. That is the file the config already registers. This note records the differences. The config was not changed.
 
 Current pipeline outputs do not change, because the registered copy is already the May `datasets` file.
 
-Whether any shipped output used the February summative copy cannot be determined from this repository. `*.csv` and `data/raw/` are gitignored. `config/kde_sources.yaml` registers the `datasets` URL for this file and stores no MD5. No other committed file records the February MD5 `c0e98f580274b04a381ec51ac83d20b1`.
+This file was first registered in a0ab9d7 (19 October 2026) on the `datasets` host, five months after the 14 May republish, and was never registered on HistoricalDatasets. A config-driven run could not have loaded the February copy. A manual copy outside the downloader cannot be ruled out from the repository. `*.csv` and `data/raw/` are gitignored. `config/kde_sources.yaml` registers the `datasets` URL for this file and stores no MD5. No other committed file records the February MD5 `c0e98f580274b04a381ec51ac83d20b1`.
 
 Those registrations are separate from the copy conflicts in issue [#123](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123), which tracks the 18 October choices for novice equity (#58), ineffective teachers (#64), and out-of-field teachers (#66).
 
@@ -431,7 +431,7 @@ Current pipeline outputs do not change, because the registered copy is already t
 
 ## 4-year graduation
 
-File: `KYRC25_ACCT_4_Year_High_School_Graduation.csv`. This is the file whose `datasets` Last-Modified is 6 August 2026. The 5-year file is under "Not compared."
+File: `KYRC25_ACCT_4_Year_High_School_Graduation.csv`. This is the file whose `datasets` Last-Modified is 6 August 2026. The 5-year file is in the related-files section below. Its three copies are byte-identical.
 
 Natural key: `School Year`, `School Code`, `Demographic`. All three copies have 9,528 keys and no duplicate keys. The 16 column names match.
 
@@ -471,17 +471,15 @@ Current pipeline outputs do not change, because the registered copy is already t
 
 ## kde-republishes
 
-`kde-republishes.md` is not updated in this pull request. Pull request [#120](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/120) is frozen and under re-review.
+[kde-republishes.md](../kde-republishes.md) records these rows against [0052](../0052-republish-supersedes-earlier.md). Pull request [#124](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/124) is this note.
 
 R19 (`KYRC25_ACCT_Kentucky_Summative_Assessment.csv`) complies with 0052. The 14 May `datasets` copy is the latest public copy, and it is not the broken-file pattern in 0052.
 
-R20 splits three ways. Postsecondary readiness complies. 4-year graduation complies. 5-year graduation was not compared.
+R20 complies for all three files. Postsecondary readiness complies. 4-year graduation complies. 5-year graduation complies: the Data Engineer found the Historical, `datasets`, and UAT copies byte-identical, md5 `ddcd0df0de09e52291c98a78353b03ac` (issue [#125](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/125), from the review of pull request #124).
 
-The table update in `kde-republishes.md` and the link to 0052 by path will come after #120 merges.
+## Related files
 
-## Not compared
-
-Two related objects were HEADed on 25 October 2026 and were not downloaded or cell-diffed. The same length on two hosts is not evidence that the bytes match. The 4-year graduation file is the same length and the same bytes. The accountability assessment file is 15 bytes apart and 868 cells apart.
+Two related objects were HEADed on 25 October 2026. This note's script did not download them. The same length on two hosts is not evidence that the bytes match. The 4-year graduation file is the same length and the same bytes. The accountability assessment file is 15 bytes apart and 868 cells apart. The 5-year file's bytes were later matched by md5, in the paragraph under its header. The by-grade file was not.
 
 `KYRC25_ACCT_5_Year_High_School_Graduation.csv`:
 
@@ -491,7 +489,7 @@ Two related objects were HEADed on 25 October 2026 and were not downloaded or ce
 | `datasets` | Thu, 14 May 2026 19:11:31 GMT | 1,174,850 |
 | UAT | Tue, 06 Oct 2026 20:27:28 GMT | 1,174,850 |
 
-The datasets HEAD did not return `Content-MD5`. The UAT HEAD returned `Content-MD5: 3c0N8N4J5SKRyYp4NTsDrA==`. OAA `Graduation_Rate_2025.CSV` is 404, as above.
+The datasets HEAD did not return `Content-MD5`. The UAT HEAD returned `Content-MD5: 3c0N8N4J5SKRyYp4NTsDrA==`, which is md5 `ddcd0df0de09e52291c98a78353b03ac`. The Data Engineer downloaded the Historical copy and found that same md5 on Historical, `datasets`, and UAT, so the three copies are byte-identical. That finding is in the review of pull request [#124](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/124) and in issue [#125](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/125). This note's script did not download the 5-year file. OAA `Graduation_Rate_2025.CSV` is 404, as above.
 
 `KYRC25_ASMT_Kentucky_Summative_Assessment.csv` (by grade):
 
@@ -512,7 +510,7 @@ These are open. This note does not answer them.
 3. Postsecondary rates are unchanged. The difference is a leading space on `*`. Is any action wanted beyond this record?
 4. The 4-year graduation timestamps differ and the bytes do not. Is any action wanted beyond this record?
 5. The February baseline used here is the Open House file dated 10 February 2026. No 3 February object was found. Is that the baseline to keep using?
-6. Should the 5-year graduation file and the by-grade assessment file be cell-diffed the same way? Their headers are above. Their cells were not compared.
+6. The 5-year graduation copies are byte-identical, md5 `ddcd0df0de09e52291c98a78353b03ac`, so there is no cell difference. The by-grade assessment file is still not cell-diffed. Its headers are above.
 7. Config changes for the other copy conflicts stay on issue [#123](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123). This note does not change `config/kde_sources.yaml`.
 
 ## Re-run
