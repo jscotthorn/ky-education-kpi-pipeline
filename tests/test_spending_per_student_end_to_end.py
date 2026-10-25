@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from etl.constants import KPI_COLUMNS
 from pathlib import Path
-from etl.spending_per_student import transform, SpendingPerStudentETL
+from etl.spending_per_student import transform, SpendingPerStudentETL, is_level_spending_file
 
 
 class TestSpendingPerStudentEndToEnd:
@@ -32,6 +32,10 @@ class TestSpendingPerStudentEndToEnd:
 
         # Test each source file
         for source_file in raw_data_dir.glob("*.csv"):
+            # District and state totals are long files. The wide-file
+            # sampler does not apply to them.
+            if is_level_spending_file(source_file.name):
+                continue
             # Skip KYRC25 file if it has no data
             if source_file.name == "KYRC25_FT_Spending_per_Student.csv":
                 df_check = pd.read_csv(source_file)
@@ -222,6 +226,61 @@ class TestSpendingPerStudentEndToEnd:
             assert required_col in kpi_df.columns, f"Missing required KPI column: {required_col}"
 
         print(f"✓ All {len(KPI_COLUMNS)} required KPI columns present")
+
+    def test_2024_2025_district_and_state_totals(self):
+        """Fayette and the state have published 2024 and 2025 per-pupil totals.
+
+        School ids stay 165 and 999, matching the 2021-2023 spending rows.
+        """
+        processed_file = Path("data/processed/spending_per_student.csv")
+        if not processed_file.exists():
+            pytest.skip("Processed spending_per_student.csv not found. Run ETL pipeline first.")
+
+        kpi_df = pd.read_csv(
+            processed_file,
+            dtype={"year": str, "school_id": str, "school_code": str, "district_number": str},
+        )
+
+        def cell(year: str, school_id: str, metric: str) -> pd.Series:
+            match = kpi_df[
+                (kpi_df["year"] == year)
+                & (kpi_df["school_id"] == school_id)
+                & (kpi_df["metric"] == metric)
+            ]
+            assert len(match) == 1, f"{year} {school_id} {metric} rows={len(match)}"
+            return match.iloc[0]
+
+        fayette_2024 = cell("2024", "165", "total_spending_per_student_all_funds")
+        assert fayette_2024["value"] == 22322
+        assert fayette_2024["suppressed"] == "N"
+        assert fayette_2024["district"] == "Fayette County"
+        assert fayette_2024["school_name"] == "---District Total---"
+        assert fayette_2024["school_code"] == "165"
+
+        fayette_2025 = cell("2025", "165", "total_spending_per_student_all_funds")
+        assert fayette_2025["value"] == 22974
+        assert fayette_2025["suppressed"] == "N"
+        assert fayette_2025["district"] == "Fayette County"
+        assert fayette_2025["school_name"] == "---District Total---"
+
+        state_2024 = cell("2024", "999", "total_spending_per_student_all_funds")
+        assert state_2024["value"] == 19020
+        assert state_2024["suppressed"] == "N"
+        assert state_2024["district"] == "State"
+        assert state_2024["school_name"] == "---State Total---"
+        assert state_2024["school_code"] == "999"
+
+        state_2025 = cell("2025", "999", "total_spending_per_student_all_funds")
+        assert state_2025["value"] == 19973
+        assert state_2025["suppressed"] == "N"
+        assert state_2025["district"] == "State"
+        assert state_2025["school_name"] == "---State Total---"
+
+        for year in ("2024", "2025"):
+            assert not (kpi_df.loc[kpi_df["year"] == year, "school_id"] == "165000").any()
+            assert not (kpi_df.loc[kpi_df["year"] == year, "school_id"] == "999000").any()
+            assert cell(year, "165", "total_spending_per_student_federal")["suppressed"] == "N"
+            assert cell(year, "999", "personnel_spending_per_student_state_local")["suppressed"] == "N"
 
 
 if __name__ == "__main__":

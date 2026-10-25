@@ -7,7 +7,12 @@ import pandas as pd
 import tempfile
 from etl.constants import KPI_COLUMNS
 import shutil
-from etl.spending_per_student import transform, clean_spending_values, SpendingPerStudentETL
+from etl.spending_per_student import (
+    transform,
+    clean_spending_values,
+    select_district_state_spending,
+    SpendingPerStudentETL,
+)
 
 
 class TestSpendingPerStudentETL:
@@ -483,6 +488,186 @@ class TestSpendingPerStudentETL:
             & (df["metric"] == "non_personnel_spending_per_student_federal")
         ]
         assert len(blank_federal) == 0
+
+    def test_level_values_on_string_and_object(self):
+        """A comma in the District column survives object and StringDtype.
+
+        The School column on a district row is the published 0. That 0 is
+        not the district amount. The state row's District column is 0.
+        The state amount is the State column.
+        """
+        frame = pd.DataFrame({
+            "School Year": ["20232024", "20232024", "20232024"],
+            "District Number": ["999", "165", "165"],
+            "District Name": ["All Districts", "Fayette County", "Fayette County"],
+            "School Name": ["All Schools", "All Schools", "Arlington Elementary School"],
+            "School Code": ["999000", "165000", "165005"],
+            "Metric": [
+                "Total Expenditures Per Student",
+                "Total Expenditures Per Student",
+                "Total Expenditures Per Student",
+            ],
+            "School": ["0", "0", ""],
+            "District": ["0", "22,322", "22,322"],
+            "State": ["19,020", "19,020", "19,020"],
+        })
+        for dtype in ("string", "object"):
+            selected = select_district_state_spending(frame.astype(dtype))
+            assert set(selected["School Code"].astype(str)) == {"165", "999"}
+            fayette = selected[selected["School Code"].astype(str) == "165"].iloc[0]
+            assert fayette["District Name"] == "Fayette County"
+            assert fayette["School Name"] == "---District Total---"
+            assert fayette["Total Expenditures Per Student"] == "22,322"
+            state = selected[selected["School Code"].astype(str) == "999"].iloc[0]
+            assert state["District Name"] == "State"
+            assert state["School Name"] == "---State Total---"
+            assert state["Total Expenditures Per Student"] == "19,020"
+            normalized = self.etl.normalize_column_names(selected)
+            cleaned = self.etl.standardize_missing_values(normalized)
+            fayette_clean = cleaned[cleaned["school_code"].astype(str) == "165"].iloc[0]
+            state_clean = cleaned[cleaned["school_code"].astype(str) == "999"].iloc[0]
+            assert fayette_clean["total_spending_all_funds"] == 22322
+            assert state_clean["total_spending_all_funds"] == 19020
+
+    def test_district_and_state_rows_2024_2025(self):
+        """Long KYRC24/KYRC25 files add district and state rows.
+
+        Fayette all-funds is the published 22,322 in 2024 and 22,974 in
+        2025. The state is 19,020 and 19,973. Labels match the 2021-2023
+        spending rows: school 165, district Fayette County, school name
+        ---District Total---, and state 999 / State / ---State Total---.
+        A school row and a blank district cell are not stored. A synthetic
+        star is NA with suppressed Y. A synthetic published 0 is 0 with
+        suppressed N. The all-funds figure is the published cell.
+        """
+        fixture_dir = Path("tests/fixtures/spending_per_student/district_state")
+        raw_dir = Path("data/raw/spending_per_student")
+        for fixture in fixture_dir.glob("*.csv"):
+            shutil.copy(fixture, self.sample_dir / fixture.name)
+            if not raw_dir.exists():
+                continue
+            source_lines = set((raw_dir / fixture.name).read_text(encoding="utf-8-sig").splitlines())
+            for line in fixture.read_text(encoding="utf-8").splitlines()[1:]:
+                if "Synthetic" in line:
+                    assert line not in source_lines
+                else:
+                    assert line in source_lines
+
+        transform(self.raw_dir, self.proc_dir, {"derive": {"processing_date": "2025-11-24"}})
+        df = pd.read_csv(
+            self.proc_dir / "spending_per_student.csv",
+            dtype={
+                "school_id": str,
+                "school_code": str,
+                "district_number": str,
+                "county_number": str,
+                "co_op_code": str,
+                "year": str,
+            },
+        )
+        assert not df.duplicated(["year", "school_id", "metric", "student_group"]).any()
+        assert (df["student_group"] == "All Students").all()
+        assert set(df["school_id"]) & {"165000", "999000", "165005", "602", "602000"} == set()
+
+        expected = {
+            ("2024", "165"): {
+                "personnel_spending_per_student_federal": 666,
+                "non_personnel_spending_per_student_federal": 989,
+                "total_spending_per_student_federal": 1655,
+                "personnel_spending_per_student_state_local": 14881,
+                "non_personnel_spending_per_student_state_local": 2907,
+                "total_spending_per_student_state_local": 17788,
+                "total_spending_per_student_all_funds": 22322,
+            },
+            ("2024", "999"): {
+                "personnel_spending_per_student_federal": 1153,
+                "non_personnel_spending_per_student_federal": 795,
+                "total_spending_per_student_federal": 1948,
+                "personnel_spending_per_student_state_local": 10930,
+                "non_personnel_spending_per_student_state_local": 2612,
+                "total_spending_per_student_state_local": 13542,
+                "total_spending_per_student_all_funds": 19020,
+            },
+            ("2025", "165"): {
+                "personnel_spending_per_student_federal": 623,
+                "non_personnel_spending_per_student_federal": 290,
+                "total_spending_per_student_federal": 913,
+                "personnel_spending_per_student_state_local": 15550,
+                "non_personnel_spending_per_student_state_local": 2652,
+                "total_spending_per_student_state_local": 18202,
+                "total_spending_per_student_all_funds": 22974,
+            },
+            ("2025", "999"): {
+                "personnel_spending_per_student_federal": 935,
+                "non_personnel_spending_per_student_federal": 480,
+                "total_spending_per_student_federal": 1415,
+                "personnel_spending_per_student_state_local": 11787,
+                "non_personnel_spending_per_student_state_local": 2843,
+                "total_spending_per_student_state_local": 14630,
+                "total_spending_per_student_all_funds": 19973,
+            },
+        }
+        sources = {
+            "personnel_spending_per_student_federal": "FT_Personnel_Spending_per_Student_Federal_Funds.csv",
+            "non_personnel_spending_per_student_federal": "FT_Personnel_Spending_per_Student_Federal_Funds.csv",
+            "total_spending_per_student_federal": "FT_Total_Spending_per_Student_Federal_Funds.csv",
+            "personnel_spending_per_student_state_local": "FT_Personnel_Spending_per_Student_State_Local_Funds.csv",
+            "non_personnel_spending_per_student_state_local": "FT_Personnel_Spending_per_Student_State_Local_Funds.csv",
+            "total_spending_per_student_state_local": "FT_Total_Spending_per_Student_State_Local_Funds.csv",
+            "total_spending_per_student_all_funds": "FT_Total_Spending_per_Student_All_Fund_Sources.csv",
+        }
+
+        def cell(year: str, school_id: str, metric: str) -> pd.Series:
+            match = df[
+                (df["year"] == year)
+                & (df["school_id"] == school_id)
+                & (df["metric"] == metric)
+            ]
+            assert len(match) == 1, f"{year} {school_id} {metric} rows={len(match)}"
+            return match.iloc[0]
+
+        for (year, school_id), metrics in expected.items():
+            for metric, amount in metrics.items():
+                row = cell(year, school_id, metric)
+                assert row["value"] == amount
+                assert row["suppressed"] == "N"
+                assert row["district_number"] == school_id
+                assert row["school_code"] == school_id
+                assert row["source_file"].endswith(sources[metric])
+                release = "KYRC24" if year == "2024" else "KYRC25"
+                assert row["source_file"].startswith(release)
+            if school_id == "165":
+                sample = cell(year, school_id, "total_spending_per_student_all_funds")
+                assert sample["district"] == "Fayette County"
+                assert sample["school_name"] == "---District Total---"
+                assert sample["county_number"] == "034"
+                assert sample["county_name"] == "FAYETTE"
+                assert sample["co_op"] == "CKEC"
+                assert sample["co_op_code"] == "901"
+            else:
+                sample = cell(year, school_id, "total_spending_per_student_all_funds")
+                assert sample["district"] == "State"
+                assert sample["school_name"] == "---State Total---"
+                assert pd.isna(sample["county_number"])
+                assert pd.isna(sample["co_op"])
+
+        # 1,655 + 17,788 is 19,443. KDE published 22,322. Store 22,322.
+        assert cell("2024", "165", "total_spending_per_student_federal")["value"] == 1655
+        assert cell("2024", "165", "total_spending_per_student_state_local")["value"] == 17788
+        assert cell("2024", "165", "total_spending_per_student_all_funds")["value"] == 22322
+
+        starred = cell("2024", "998", "total_spending_per_student_all_funds")
+        assert starred["district"] == "Synthetic Star"
+        assert starred["school_name"] == "---District Total---"
+        assert starred["suppressed"] == "Y"
+        assert pd.isna(starred["value"])
+        zero = cell("2024", "997", "total_spending_per_student_all_funds")
+        assert zero["district"] == "Synthetic Zero"
+        assert zero["school_name"] == "---District Total---"
+        assert zero["value"] == 0
+        assert zero["suppressed"] == "N"
+        assert not (df["school_id"] == "602").any()
+        assert not (df["school_id"] == "602000").any()
 
 
 if __name__ == "__main__":

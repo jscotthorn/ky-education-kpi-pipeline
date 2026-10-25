@@ -497,6 +497,33 @@ raw_directories:
     - "KYRC24_FT_Spending_per_Student.csv"
     - url: "kyrc25"
       file: "KYRC25_FT_Spending_per_Student.csv"
+    # District and state per-pupil totals. The wide KYRC24 and KYRC25
+    # spending files are schools only. These five files per year are the
+    # long School / District / State (Statewide on the personnel files)
+    # layout. The historical host is 404. The datasets host is the
+    # kyrc25 key. KYRC24 Last-Modified Thu, 14 May 2026 19:11:29 GMT.
+    # KYRC25 Last-Modified Sat, 18 Jul 2026 21:29:46 GMT. UAT Content-MD5
+    # matches the datasets bytes.
+    - url: "kyrc25"
+      file: "KYRC24_FT_Total_Spending_per_Student_All_Fund_Sources.csv"
+    - url: "kyrc25"
+      file: "KYRC24_FT_Total_Spending_per_Student_Federal_Funds.csv"
+    - url: "kyrc25"
+      file: "KYRC24_FT_Total_Spending_per_Student_State_Local_Funds.csv"
+    - url: "kyrc25"
+      file: "KYRC24_FT_Personnel_Spending_per_Student_Federal_Funds.csv"
+    - url: "kyrc25"
+      file: "KYRC24_FT_Personnel_Spending_per_Student_State_Local_Funds.csv"
+    - url: "kyrc25"
+      file: "KYRC25_FT_Total_Spending_per_Student_All_Fund_Sources.csv"
+    - url: "kyrc25"
+      file: "KYRC25_FT_Total_Spending_per_Student_Federal_Funds.csv"
+    - url: "kyrc25"
+      file: "KYRC25_FT_Total_Spending_per_Student_State_Local_Funds.csv"
+    - url: "kyrc25"
+      file: "KYRC25_FT_Personnel_Spending_per_Student_Federal_Funds.csv"
+    - url: "kyrc25"
+      file: "KYRC25_FT_Personnel_Spending_per_Student_State_Local_Funds.csv"
     - "spending_per_student_2023.csv"
     - "spending_per_student_2022.csv"
     - "spending_per_student_2021.csv"

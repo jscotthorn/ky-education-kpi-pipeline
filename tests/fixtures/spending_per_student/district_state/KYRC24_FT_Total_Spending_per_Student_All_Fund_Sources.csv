@@ -1,0 +1,7 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Metric,School,District,State
+20232024,,,999,All Districts,,All Schools,999000,,,,,,Total Expenditures Per Student,0,0,"19,020"
+20232024,034,FAYETTE,165,Fayette County,,All Schools,165000,,,CKEC,901,,Total Expenditures Per Student,0,"22,322","19,020"
+20232024,034,FAYETTE,165,Fayette County,005,Arlington Elementary School,165005,034165005,210186000350,CKEC,901,A1,Total Expenditures Per Student,,"22,322","19,020"
+20232024,056,JEFFERSON,602,Kentucky School for the Blind District,,All Schools,602000,,,GREC,909,,Total Expenditures Per Student,,,"19,020"
+20232024,998,SYNTH,998,Synthetic Star,,All Schools,998000,,,,,,Total Expenditures Per Student,,*,
+20232024,997,SYNTH,997,Synthetic Zero,,All Schools,997000,,,,,,Total Expenditures Per Student,0,0,"19,020"
