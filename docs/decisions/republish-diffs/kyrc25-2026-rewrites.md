@@ -78,7 +78,7 @@ Of the 861 number-to-number cells, the absolute change is:
 | more than 1 and at most 5 | 186 |
 | more than 5 | 129 |
 
-774 of the 861 numeric cells change by more than 0.15. The median absolute change is 1. The largest absolute change is 63.7 (a content index). The signed mean across the 861 cells is about −1.39 (May minus February).
+774 of the 861 numeric cells change by more than 0.15. The median absolute change is 1. The largest absolute change is 63.7 (a content index), on Johnson Central High School `285115`, high school, mathematics, Students with Disabilities (IEP): content index 107.6 to 43.9, and proficient/distinguished 91 to 36. The signed mean across the 861 cells is about −1.39 (May minus February).
 
 Direction of the numeric cells:
 
@@ -242,7 +242,7 @@ On 337 changed rows, all four of novice, apprentice, proficient, and distinguish
 
 99 and 101 already occur as February sums on these rows (59 rows sum to 99 in February, 65 sum to 101). The May file does not introduce a new sum on these rows.
 
-On those same 337 rows, the absolute gap between proficient + distinguished and the published proficient/distinguished cell has a maximum of 1.0 in the February copy and 1.0 in the May copy. No row has a gap above 1.5.
+On those same 337 rows, the absolute gap between proficient + distinguished and the published proficient/distinguished cell has a maximum of 1.0 in the February copy and 1.0 in the May copy.
 
 No novice, apprentice, proficient, distinguished, or proficient/distinguished cell on a changed row is outside 0–100 in either copy.
 
@@ -257,7 +257,7 @@ The pattern that supports that label:
 - 342 of 278,464 rows change. The key set and the columns stay the same. Science and social studies do not change.
 - The changed rows cluster in 15 schools and their district totals, plus the state. Johnson County holds 61 of the 342 rows and 125 of the 129 cells that move by more than 5 points.
 - The numeric moves have a direction. Novice only increases. Proficient, distinguished, proficient/distinguished, and content index only decrease. A 0.1 rounding pass would move indexes up and down. These content-index cells only move down, and 129 cells move by more than 5 points.
-- The four performance levels still sum to 99, 100, or 101. Proficient + distinguished stays within 1 point of the published combined cell. The state changes are 0.1 on a content index or 1 point on a percent. Fayette does not change.
+- The four performance levels still sum to 99, 100, or 101. Proficient + distinguished stays within 1 point of the published combined cell. The state changes are 0.1 to 0.6 on a content index (12 cells at 0.1; 0.2, 0.4, 0.4, 0.6 on HS students-with-disabilities rows) or 1 point on a percent (6 cells). Fayette does not change.
 - One row leaves suppression (Henderson, middle school mathematics, Gifted and Talented). Its new percents sum to 100. A published 1 is already common in the February file. Four other rows stay suppressed and only move the content index.
 
 The pattern that argues against the other labels:
@@ -272,6 +272,10 @@ The file does not say what was corrected. There is no change-log column and no v
 `config/kde_sources.yaml` registers this file with `url: kyrc25`, which `data/prepare_kde_data.py` resolves to `base_url_kyrc25`, the `datasets` host. The downloader also HEADs UAT for a `KYRC25_` name. When `Content-MD5` is missing or the hashes match, it keeps the `datasets` URL. Both HEADs here omitted `Content-MD5`, so the downloader keeps `datasets`. UAT is the same bytes, so the later UAT timestamp does not change a value.
 
 Record 0052 points to the latest public file after the review window, unless that copy is visibly broken. The review in the 2 February email had already closed, and the May file is after 3 February. On the checks in this note the May file is not the broken-file pattern in 0052. The rule points to the May `datasets` file. That is the file the config already registers. This note records the differences. The config was not changed.
+
+Current pipeline outputs do not change, because the registered copy is already the May `datasets` file.
+
+Whether any shipped output used the February summative copy cannot be determined from this repository. `*.csv` and `data/raw/` are gitignored. `config/kde_sources.yaml` registers the `datasets` URL for this file and stores no MD5. No other committed file records the February MD5 `c0e98f580274b04a381ec51ac83d20b1`.
 
 Those registrations are separate from the copy conflicts in issue [#123](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123), which tracks the 18 October choices for novice equity (#58), ineffective teachers (#64), and out-of-field teachers (#66).
 
@@ -413,7 +417,7 @@ What the bytes show is one character: a leading space removed from `*`, on both 
 
 That is not a new suppression rule. The same rows stay suppressed. It is not truncation or a missing column. Calling it a rounding change does not fit, because no rate numeral changed.
 
-`BaseETL.MISSING_VALUE_INDICATORS` lists `*` and does not list ` *`. The copy the pipeline loads is the October `datasets` file, whose token is `*`. This comparison did not re-run the parser on the February file.
+`BaseETL.MISSING_VALUE_INDICATORS` lists `*` and does not list ` *`. The copy the pipeline loads is the October `datasets` file, whose token is `*`. The Data Engineer ran `etl/postsecondary_readiness.py` on each copy alone. The output is identical (16,130 rows; the 6,218 star cells are `suppressed` Y in both; pandas 3.0.6 and 2.3.3), because `to_numeric(errors='coerce')` plus the published flag make the space irrelevant.
 
 The file does not say why it was rewritten on 9 October. The cause of the new Last-Modified is not established.
 
@@ -422,6 +426,8 @@ The file does not say why it was rewritten on 9 October. The cause of the new La
 The config registers `url: kyrc25` for `KYRC25_ACCT_Postsecondary_Readiness.csv`, the `datasets` host. Datasets and UAT have the same `Content-MD5`, so the downloader keeps `datasets`.
 
 The October file is after the review window. It is not the broken-file pattern in record 0052. The rule points to that October `datasets` file, which is the file already registered. The numeric rates match the February file. The recorded difference is the leading space on `*`. The config was not changed. Issue [#123](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123) is the tracker for the other copy conflicts, not this file.
+
+Current pipeline outputs do not change, because the registered copy is already the October `datasets` file.
 
 ## 4-year graduation
 
@@ -460,6 +466,18 @@ The `datasets` Last-Modified is 6 August 2026 and the UAT Last-Modified is 6 Oct
 The config registers `url: kyrc25` for this file, the `datasets` host. The `Content-MD5` values match, so the downloader keeps `datasets`. That object is the same bytes as the February historical file and as UAT.
 
 Record 0052 points to the latest public file after the review window. For this file the later public object does not change a value. The config was not changed. Issue [#123](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123) does not cover this file.
+
+Current pipeline outputs do not change, because the registered copy is already the August `datasets` file.
+
+## kde-republishes
+
+`kde-republishes.md` is not updated in this pull request. Pull request [#120](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/120) is frozen and under re-review.
+
+R19 (`KYRC25_ACCT_Kentucky_Summative_Assessment.csv`) complies with 0052. The 14 May `datasets` copy is the latest public copy, and it is not the broken-file pattern in 0052.
+
+R20 splits three ways. Postsecondary readiness complies. 4-year graduation complies. 5-year graduation was not compared.
+
+The table update in `kde-republishes.md` and the link to 0052 by path will come after #120 merges.
 
 ## Not compared
 

@@ -140,7 +140,7 @@ def as_number(value: str) -> float:
 
 
 def is_fayette(row: Row) -> bool:
-    """District number 165, or a 165xxx school code (including 165000)."""
+    """Fayette rows are district number 165. That column is 3 digits. The district total is school code 165000. Other Fayette schools are school codes 165xxx."""
     district = row.get("District Number", "").strip()
     school = row.get("School Code", "").strip()
     return district == "165" or school.startswith("165")
