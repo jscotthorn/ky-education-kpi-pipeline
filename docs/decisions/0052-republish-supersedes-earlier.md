@@ -2,9 +2,9 @@
 
 Status: accepted
 
-Source type: chat answer. Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
+Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/120#issuecomment-6400284741
 
-Repo comment: pending
+Background, source type chat answer: the 12:11 PM ET option he selected, and his 12:02 PM ET typed words, both quoted below. Bot: ECC manager bot. Archivist checked both verbatim against the transcript.
 
 ## Question
 
@@ -26,7 +26,9 @@ No KDE page found in the 25 October 2026 research says a later file always repla
 
 25 October 2026, 12:11 PM ET. Use the latest public KDE file after the review window closes, unless it is visibly broken. Record the differences on each republish.
 
-The option he selected: "Use the latest public KDE file after the review window closes, unless it's visibly broken; record differences on each republish."
+Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/120#issuecomment-6400284741 "Decision (Scott, 2026-10-25 12:11 PM ET): Record 0052. Use the latest public KDE file after the review window closes, unless it's visibly broken; record differences on each republish."
+
+Background, source type chat answer. The option he selected: "Use the latest public KDE file after the review window closes, unless it's visibly broken; record differences on each republish."
 
 History, same day, superseded by that option. At 12:02 PM ET his typed words were: "Several issues arose during the work showing that a republish had better information, so it seems a republish should always supercede an earlier publish. But, I want that from the KDE if available." The spelling "supercede" is his. That provisional "always" rule is not the rule. The 12:11 option is.
 
@@ -36,7 +38,9 @@ Pull request #113 and pull request #116 adopted the May 2026 KYRC24 CTE file. Ch
 
 ## Who decided and how we know
 
-Scott, direct, 2026-10-25 12:11 PM ET. The sentence above is the option he selected on a question card in the ECC manager bot's chat. It is not text he typed. The 12:02 sentence is his typed words, nine minutes earlier, and is the history above. Archivist checked both against the transcript.
+Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/120#issuecomment-6400284741 posted on the `jscotthorn` account through the Cursor GitHub App. The comment is quoted in the decision.
+
+Background, source type chat answer. The 12:11 PM ET sentence is the option he selected on a question card in the ECC manager bot's chat. It is not text he typed. The 12:02 sentence is his typed words, nine minutes earlier, and is the history above. Archivist checked both against the transcript.
 
 ## Why
 
@@ -44,6 +48,7 @@ The 12:11 option is the rule. The 12:02 typed words give the reason he had reach
 
 ## Links
 
+- Primary source https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/120#issuecomment-6400284741
 - [kde-republishes.md](kde-republishes.md)
 - [0008](0008-kyrc24-cte-may-2026-republish.md)
 - [0009](0009-cte-zero-rate-beside-blank-count.md)

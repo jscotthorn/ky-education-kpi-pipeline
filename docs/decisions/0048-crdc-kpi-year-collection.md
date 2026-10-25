@@ -16,9 +16,11 @@ Keep the split the two modules already had, or use the collection year in every 
 
 ## Decision
 
-25 October 2026, 12:05 PM ET. Use the CRDC collection year as the KPI year everywhere. Move suspensions over in a later pull request.
+25 October 2026. Use the CRDC collection year as the KPI year everywhere. Move suspensions over in a later pull request. Scott confirmed this choice on 2026-10-25 at 12:38 PM ET.
 
-Scott's words: "Use the CRDC collection year as the KPI year everywhere; move suspensions over in a later PR."
+Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/122#issuecomment-6400284053 "Decision (Scott, 2026-10-25 12:05 PM ET): Record 0048. Use the CRDC collection year as the KPI year everywhere; move suspensions over in a later PR (this issue)."
+
+Background, source type chat answer: "Use the CRDC collection year as the KPI year everywhere; move suspensions over in a later PR."
 
 - Advanced coursework, pull request #79, already uses the collection year. KPI year 2021 is the 2020-21 collection, from the KYRC23 overview. KPI year 2022 is the 2021-22 collection, from the KYRC26 overview. `etl/advanced_coursework.py` and `README.md`.
 - Out-of-school suspension, pull request #51, still uses the report-card school year. KPI year 2026 is the 2021-22 collection. KPI year 2024 is the 2020-21 collection. There is no state row. `etl/out_of_school_suspension.py` and `README.md`. That move is tracked on issue #122. It is not done on this branch.
@@ -27,9 +29,11 @@ The #51 rule "KPI year = report-card year (2026 = CRDC 2021-22)" is superseded b
 
 ## Who decided and how we know
 
-Scott, direct, 2026-10-25 12:05 PM ET, his answer on a question card in the ECC manager bot's chat; transcript checked by Archivist.
+Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/122#issuecomment-6400284053 posted on the `jscotthorn` account through the Cursor GitHub App. Scott confirmed the choice on 2026-10-25 at 12:38 PM ET. The comment is quoted in the decision.
 
-Issue #122 records the same choice: "Decision (Scott, 2026-10-25): every module uses the CRDC collection year as the KPI year." https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/122
+Background, source type chat answer: the sentence quoted above, from the ECC manager bot's chat. The comment dates that choice 12:05 PM ET.
+
+Issue #122 tracks the suspension follow-up. Its body states the same rule: "Decision (Scott, 2026-10-25): every module uses the CRDC collection year as the KPI year." https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/122
 
 ## Why
 
@@ -40,6 +44,7 @@ Scott's sentence is the choice. It does not say why the collection year is the K
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/51
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/79
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/122
+- Confirming comment https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/122#issuecomment-6400284053
 - `README.md` (CRDC year sentences)
 - `etl/out_of_school_suspension.py`
 - `etl/advanced_coursework.py`

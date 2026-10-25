@@ -20,17 +20,17 @@ Skip all-`*` rows, which is what [0005](0005-cte-skip-all-star-padding.md) said 
 
 25 October 2026, 11:59 AM ET. Keep storing all-star CTE rows as suppressed, the same way as any other star: value NA, `suppressed` Y. This matches #87. The #46 decision is updated by this record. [0005](0005-cte-skip-all-star-padding.md) is superseded.
 
-Scott's words: "Keep storing all-star CTE rows as suppressed, matching #87; update the #46 decision."
+Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/46#issuecomment-6400284456 "Decision (Scott, 2026-10-25 11:59 AM ET): Record 0050. Keep storing all-star CTE rows as suppressed, matching #87; this updates the earlier #46 decision to skip them, and record 0005 is superseded."
+
+Background, source type chat answer. His words in the ECC manager bot's chat: "Keep storing all-star CTE rows as suppressed, matching #87; update the #46 decision."
 
 ## Who decided and how we know
 
-Scott, direct, 2026-10-25 11:59 AM ET, his answer on a question card in the ECC manager bot's chat.
+Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/46#issuecomment-6400284456 posted on the `jscotthorn` account through the Cursor GitHub App. The comment is quoted in the decision.
 
-Source type: chat answer. Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
+Background, source type chat answer: Scott, 2026-10-25 11:59 AM ET, in the ECC manager bot's chat. Archivist checked that quote verbatim against the transcript.
 
-Repo comment: pending
-
-The behavior he confirmed was already merged in pull request #106 and was the discipline rule in pull request #87.
+The behavior the comment confirms was already merged in pull request #106 and was the discipline rule in pull request #87.
 
 ## Why
 
@@ -39,6 +39,7 @@ Scott's sentence is the reason recorded here. It points at the #87 rule: an all-
 ## Links
 
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/46
+- 25 October comment https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/46#issuecomment-6400284456
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/87
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/106
 - [0005](0005-cte-skip-all-star-padding.md)

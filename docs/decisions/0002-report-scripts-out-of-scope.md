@@ -20,7 +20,7 @@ The issue asks for a fix. The decision leaves the issue open.
 
 25 October 2026, 12:00 PM ET. That scope stands. Scott approved one narrow exception: the state-row lookup already merged in pull request #115. `scripts/generate_report_drafts.py` may treat a state district as `State` or `All Districts`. The same change accepts school code `999` or `999000`, and school name `---District Total---` or `---State Total---`. That exception does not open the rest of the report-script work.
 
-Scott's words: "Keep report scripts out of scope for KYRC26; record #115's state-row fix as a narrow exception."
+Background, source type chat answer. His words in the ECC manager bot's chat, checked verbatim against the transcript by Archivist: "Keep report scripts out of scope for KYRC26; record #115's state-row fix as a narrow exception."
 
 Per Moon, 2026-10-25; not in Scott's answer: the NaN guard and extending the analysis past 2025 stay out of scope. Those two items are an open confirmation. Scott's answer does not mention them.
 
@@ -28,11 +28,9 @@ Per Moon, 2026-10-25; not in Scott's answer: the NaN guard and extending the ana
 
 18 October scope: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/42#issuecomment-6251982959 (Cursor GitHub App, account `jscotthorn`).
 
-25 October exception: Scott, direct, 2026-10-25 12:00 PM ET, his answer on a question card in the ECC manager bot's chat.
+25 October exception, primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/42#issuecomment-6400283415 posted on the `jscotthorn` account through the Cursor GitHub App. "Decision (Scott, 2026-10-25 12:00 PM ET): Record 0002. Keep report scripts out of scope for KYRC26, and record #115's state-row fix as a narrow exception."
 
-Source type for the 25 October exception: chat answer. Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
-
-Repo comment: pending
+Background, source type chat answer: the same sentence in the ECC manager bot's chat at 12:00 PM ET. Archivist checked that quote verbatim against the transcript.
 
 ## Why
 
@@ -41,7 +39,8 @@ Reason not documented. The comment states the scope and the consequences. It doe
 ## Links
 
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/42
-- Comment above
+- 25 October comment https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/42#issuecomment-6400283415
+- 18 October comment https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/42#issuecomment-6251982959
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/115
 - `notes/115--cleanup-batch1.md`
 - `scripts/generate_report_drafts.py`

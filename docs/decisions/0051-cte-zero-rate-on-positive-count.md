@@ -2,9 +2,9 @@
 
 Status: accepted
 
-Source type: chat answer. Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
+Primary source for the 12:36 PM ET end condition: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6400283769
 
-Repo comment: pending
+Background, source type chat answer: his 12:04 PM ET typed words, and the 12:36 PM ET option he selected, both quoted below. Bot: ECC manager bot. Archivist checked both verbatim against the transcript.
 
 ## Question
 
@@ -34,23 +34,21 @@ His typed words: "A, but the recheck is likely to only cover the most recent yea
 
 History. The 24 October comment kept the 5,407 blank-count cells "until the Oct 27 KDE recheck" and said "Revisit after the recheck." It left these 699 cells as a separate question. https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6388875367
 
-25 October 2026, 12:36 PM ET. The option he selected extends that decision past the recheck, and it covers both sets. The 699 cells and the 5,407 cells stay as published with a warning until KDE republishes those years.
+25 October 2026, 12:36 PM ET. The 699 cells and the 5,407 cells stay as published with a warning until KDE republishes those years. This extends the 24 October decision past the Oct 27 recheck.
 
-The option he selected: "Yes: both the 699 and 5,407 prior-year CTE cells stay as published with a warning until KDE republishes those years."
+Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6400283769 "Decision (Scott, 2026-10-25 12:36 PM ET): Records 0009 and 0051. Both prior-year CTE cell sets, the 5,407 cells (#116) and the 699 cells with a 0.0 rate next to a positive count (208 KYRC24, 491 KYRC23), stay as published with a warning until KDE republishes those years. This extends the Oct 24 decision past the Oct 27 recheck."
 
-Source type: chat answer.
+Background, source type chat answer. The option he selected: "Yes: both the 699 and 5,407 prior-year CTE cells stay as published with a warning until KDE republishes those years."
 
 The same end condition is recorded on [0009](0009-cte-zero-rate-beside-blank-count.md). A later public file for these years is read under [0052](0052-republish-supersedes-earlier.md): latest public file after the review window, unless it is visibly broken, with the differences recorded in [kde-republishes.md](kde-republishes.md).
 
 ## Who decided and how we know
 
-12:04 PM ET typed answer: Scott, in the ECC manager bot's chat. Archivist checked those typed words verbatim against the transcript.
+12:36 PM ET end condition, primary source: the comment cited in the decision, posted on the `jscotthorn` account through the Cursor GitHub App.
 
-12:36 PM ET end condition: Scott, in the same chat. The quote above is the option he selected. Archivist checked it verbatim against the transcript.
+Background, source type chat answer. 12:04 PM ET typed words, and the 12:36 PM ET option he selected, both in the ECC manager bot's chat. Archivist checked both verbatim against the transcript.
 
 Option A is the rule already used for the blank-count cells: https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/116#issuecomment-6388993945 and https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6388875367
-
-Repo comment: pending
 
 ## Why
 
@@ -59,6 +57,7 @@ Scott chose A. That is the #116 option A rule: keep the published number, with a
 ## Links
 
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112
+- 25 October comment https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6400283769
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/116
 - `notes/114--cte-2023-published-rates.md`
 - `notes/116--cte-kyrc24-republish.md`

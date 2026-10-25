@@ -19,7 +19,7 @@ Write a record for any choice about:
 
 | Status | Meaning |
 | --- | --- |
-| `accepted` | A cited issue comment, pull request, note, or commit records the choice as Scott's. `accepted` also covers Scott's own answer in an agent chat, quoted with date and time (ET), with the bot named and the quote checked verbatim against the transcript by Archivist. That source type is labeled `chat answer`. Those records keep a `Repo comment: pending` line until a repo Decision comment is added. |
+| `accepted` | A cited issue comment, pull request, note, or commit records the choice as Scott's. `accepted` also covers Scott's own answer in an agent chat, quoted with date and time (ET), with the bot named and the quote checked verbatim against the transcript by Archivist. That source type is labeled `chat answer`. Every current record that uses it also has a repo Decision comment: 0002 (the 25 October exception), the 0009 amendment, 0048, 0050, 0051, and 0052. That comment is the primary source, and the chat quote stays as background. A later record whose only source is a chat answer keeps a `Repo comment: pending` line until a repo Decision comment is added. |
 | `accepted, code differs (follow-up open)` | The choice is accepted. Current code or config on `feature/2025-26-kyrc26` does not match it, and a follow-up is still open. The difference is described and not fixed here. |
 | `relayed-unconfirmed` | The only source is another agent's relay. Scott has not stated it in the repo. |
 | `superseded` | A later record replaces this one. This file stays and links forward. A record replaced only in part is `superseded (in part)`. The file names the part that still stands. |

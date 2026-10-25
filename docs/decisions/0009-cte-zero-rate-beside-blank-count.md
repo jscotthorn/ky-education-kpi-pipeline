@@ -2,9 +2,9 @@
 
 Status: accepted
 
-Source type for the 25 October end condition: chat answer. Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
+Primary source for the 25 October end condition: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6400283769
 
-Repo comment: pending
+Background, source type chat answer: the option he selected in the ECC manager bot's chat, quoted below. Archivist checked that quote verbatim against the transcript.
 
 ## Question
 
@@ -43,11 +43,11 @@ The review name "option A" is keep as published. Other options are not written i
 
 History. That comment's end condition was "until the Oct 27 KDE recheck" and "Revisit after the recheck." https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6388875367
 
-25 October 2026, 12:36 PM ET. The option he selected extends that decision past the recheck. Both these 5,407 cells and the 699 cells in [0051](0051-cte-zero-rate-on-positive-count.md) stay as published with a warning until KDE republishes those years.
+25 October 2026, 12:36 PM ET. Both these 5,407 cells and the 699 cells in [0051](0051-cte-zero-rate-on-positive-count.md) stay as published with a warning until KDE republishes those years. This extends the 24 October decision past the Oct 27 recheck.
 
-The option he selected: "Yes: both the 699 and 5,407 prior-year CTE cells stay as published with a warning until KDE republishes those years."
+Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6400283769 "Decision (Scott, 2026-10-25 12:36 PM ET): Records 0009 and 0051. Both prior-year CTE cell sets, the 5,407 cells (#116) and the 699 cells with a 0.0 rate next to a positive count (208 KYRC24, 491 KYRC23), stay as published with a warning until KDE republishes those years. This extends the Oct 24 decision past the Oct 27 recheck."
 
-Source type: chat answer.
+Background, source type chat answer. The option he selected: "Yes: both the 699 and 5,407 prior-year CTE cells stay as published with a warning until KDE republishes those years."
 
 A later public file for these years is read under [0052](0052-republish-supersedes-earlier.md): latest public file after the review window, unless it is visibly broken, with the differences recorded in [kde-republishes.md](kde-republishes.md). His 12:04 PM typed words about the recheck are on [0051](0051-cte-zero-rate-on-positive-count.md).
 
@@ -57,9 +57,9 @@ A later public file for these years is read under [0052](0052-republish-supersed
 
 The pull request #116 approval says this matches option A and does not convert the cells to NA: https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/116#issuecomment-6388993945
 
-12:36 PM ET end condition: Scott, in the ECC manager bot's chat. The quote above is the option he selected. Archivist checked it verbatim against the transcript.
+12:36 PM ET end condition, primary source: the comment cited in the decision, posted on the `jscotthorn` account through the Cursor GitHub App.
 
-Repo comment: pending
+Background, source type chat answer: Scott, in the ECC manager bot's chat. The option he selected is quoted in the decision. Archivist checked it verbatim against the transcript.
 
 ## Why
 
@@ -73,6 +73,7 @@ The 24 October comment gives evidence the cells may be suppressed, and at that t
 ## Links
 
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112
+- 25 October comment https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/112#issuecomment-6400283769
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/116
 - `notes/114--cte-2023-published-rates.md`
 - `notes/116--cte-kyrc24-republish.md`
