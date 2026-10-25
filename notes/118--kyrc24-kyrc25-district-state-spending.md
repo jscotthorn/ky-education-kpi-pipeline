@@ -1,6 +1,6 @@
 # 118 - KYRC24 and KYRC25 district and state spending totals
 
-Refs #118. Refs #117. The base is `feature/2025-26-kyrc26` at `1c48f448`. `develop` and `master` are not touched.
+Refs #118. Refs #117. Refs #61. The base is `feature/2025-26-kyrc26` at `1c48f448`. `develop` and `master` are not touched.
 
 ## Sources
 
@@ -22,11 +22,11 @@ A row is a district or the state when School Name is `All Schools` and School Co
 
 School rows in the long files are not stored. The wide file already has them. A blank level cell is omitted (91 cells). These ten files do not publish a `*` or a real `0` on the district or state amount. A `*` would be value NA with `suppressed` Y. A published 0 would be 0 with `suppressed` N.
 
-Identifiers match the 2020-2023 spending rows. Fayette is school id `165`, district `Fayette County`, school `---District Total---`. The state is school id `999`, district `State`, school `---State Total---`. `165000` and `999000` are not written. Issue #61 is not attempted. Other district names stay as KDE published them for that year.
+2024 and 2025 district and state spending rows keep the 3-digit school ids `165` and `999`, the same codes this module already uses for its 2020-2023 rows. Fayette is district `Fayette County` and school `---District Total---`. The state is district `State` and school `---State Total---`. Other KYRC modules store those years as `165000` and `999000`. Scott accepted that kind of split for CTE on 24 October 2026 (notes/114, PR #114): 2023 rates stay on `xxx000` and `999000` while 2023 counts stay on `xxx` and `999`, until #61's shared normalization. This module follows that precedent and accepts the mixed ids until #61's shared normalization. Refs #61. Other district names stay as KDE published them for that year.
 
 The personnel files publish the non-personnel category, so all seven metrics are published cells. Nothing is summed. For Fayette in 2024, federal 1,655 plus state/local 17,788 is 19,443. The published all-funds cell is 22,322, and that is what is stored.
 
-Commas are removed on object and on StringDtype. pandas 2.3.3 and pandas 3.1.0 write the same 64,015 rows apart from `last_updated`.
+Commas are removed on object and on StringDtype. pandas 2.3.3 and pandas 3.0.6 write the same 64,015 rows apart from `last_updated`.
 
 ## Row counts
 
