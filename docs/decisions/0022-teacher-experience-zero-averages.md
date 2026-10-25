@@ -1,6 +1,6 @@
 # 0022 Emit the 20 published teacher-experience averages of 0.00
 
-Status: accepted
+Status: accepted, code differs (follow-up open)
 
 ## Question
 
@@ -8,7 +8,7 @@ Status: accepted
 
 ## What KDE changed
 
-Nothing in this record is a KDE layout change. KDE published the 0.00 averages. Some of those schools have a single educator and 0 total years.
+Nothing in this record is a KDE layout change. KDE published the 0.00 averages. Every one of the 20 is a single-educator school with 0 total years.
 
 ## Options considered
 
@@ -33,7 +33,7 @@ The comment says the 0.00 figures are published, so the filter should not drop t
 
 ## Code check
 
-Does not match. `etl/teacher_experience.py` still requires `avg_years > 0` (around line 146). Issue #54 is still open. Not resolved here. This is an open decision the merged code has not implemented. It is not a merged pull request that did the opposite, so the status stays `accepted`.
+Does not match. `etl/teacher_experience.py` still requires `avg_years > 0` (around line 146). Issue #54 is still open. Not resolved here. The choice is accepted and the follow-up has not landed, so the status is `accepted, code differs (follow-up open)`.
 
 ## KDE guidance check
 

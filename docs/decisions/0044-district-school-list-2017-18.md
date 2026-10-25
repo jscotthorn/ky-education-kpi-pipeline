@@ -1,6 +1,6 @@
 # 0044 Add the 2017-18 district and school list
 
-Status: accepted
+Status: accepted, code differs (follow-up open)
 
 ## Question
 
@@ -16,7 +16,9 @@ Leave 2017-18 unmatched, add the list and invent the missing email values, or ad
 
 ## Decision
 
-19 October 2026. Add the 2017-18 district and school list after pull request #97. Do not invent EMAIL values. https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/98#issuecomment-6281029233
+19 October 2026. Add the 2017-18 district and school list after pull request #97. That sentence is the issue #98 body.
+
+"Do not invent EMAIL values" is a reviewer instruction, not Scott's decision. It is the Data Engineer's #97 re-check: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/98#issuecomment-6281029233 ("the 2017-18 list is missing the EMAIL field. Handle it the way the module handles other missing fields (don't invent values).").
 
 ## Who decided and how we know
 
@@ -26,7 +28,7 @@ The issue was opened on the `jscotthorn` account through the Cursor GitHub App.
 
 ## Why
 
-The issue body: kindergarten already loads 2017-18, so those rows have no school-list match. The follow-up comment: the list is missing EMAIL, and those values are not invented.
+The issue body: kindergarten already loads 2017-18, so those rows have no school-list match. The EMAIL sentence is the Data Engineer's re-check instruction cited above, not a second decision by Scott.
 
 ## Links
 

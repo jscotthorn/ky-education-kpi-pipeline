@@ -16,7 +16,13 @@ Skip a rate when the teacher count is 0 or blank, cap the rate at 100, or keep t
 
 ## Decision
 
-18 October 2026, on issues #69 and #72. Keep the rates as published, including 0% and values from 100% through 400% where the teacher count is 0 or blank. No skip rule. Label them `kde-recheck`.
+18 October 2026. The two comments are quoted separately. Both say no skip rule, and both are labelled `kde-recheck` for the October 27 review. Each says the same decision applies to the other issue.
+
+Issue #69, https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/69#issuecomment-6251837033: "keep the rates as published, including the 0% and 100-400% rows where the teacher count is 0."
+
+Issue #72, https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/72#issuecomment-6251837203: "keep the rates as published, including the 0% rates on a 0 or blank teacher count."
+
+#69 names the 100-400% rows and a teacher count of 0. #72 names 0% rates on a 0 or blank teacher count. This record does not blend those two sentences into one.
 
 ## Who decided and how we know
 

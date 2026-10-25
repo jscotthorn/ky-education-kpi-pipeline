@@ -1,6 +1,6 @@
 # 0004 Postsecondary enrollment stars
 
-Status: accepted
+Status: accepted, code differs (follow-up open)
 
 ## Question
 

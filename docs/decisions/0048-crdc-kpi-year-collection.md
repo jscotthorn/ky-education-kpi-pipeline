@@ -1,6 +1,6 @@
 # 0048 CRDC KPI year is the collection year
 
-Status: accepted, not yet implemented
+Status: accepted, code differs (follow-up open)
 
 ## Question
 

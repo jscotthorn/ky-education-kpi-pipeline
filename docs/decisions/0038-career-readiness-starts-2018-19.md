@@ -24,7 +24,7 @@ https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/92#issuecomment-627
 
 ## Why
 
-The comment leaves the workbook out. Reason it is not comparable: not documented in this pass beyond that choice. Reason not documented.
+The comment leaves the workbook out. Reason it is not comparable: not documented in this pass beyond that choice.
 
 ## Links
 

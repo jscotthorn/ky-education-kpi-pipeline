@@ -8,7 +8,7 @@ Status: accepted
 
 ## What KDE changed
 
-Type files never publish 1, 2, or 3. Location, context, and grade files publish 3 and do not publish counts below 3. The 801 starred type-file totals (769 in KYRC25, 775 in KYRC24, 759 in KYRC23) are exactly 3 in the location and context files.
+Type files never publish 1, 2, or 3. Location, context, and grade files publish 3 and do not publish counts below 3. 801 is the KYRC26 count of type-file Total stars whose location and context Totals are exactly 3. KYRC25 has 769 of that same pattern, KYRC24 has 775, and the KYRC23 republish has 759. Those three counts are other years. They are not parts of the 801. 769 + 775 + 759 = 2,303. The parenthetical that reads as if they were parts of 801 is inherited from https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/101#issuecomment-6281188290. `notes/104--kyrc26-file-to-etl-mapping.md` line 2439 states the four counts as separate years.
 
 ## Options considered
 

@@ -1,6 +1,6 @@
 # 0043 Load only the groups that exist solely in the KYRC23 kindergarten republish
 
-Status: accepted
+Status: accepted, code differs (follow-up open)
 
 ## Question
 

@@ -20,7 +20,7 @@ CHG-2022 widened suppression: a NAPD performance level with fewer than three stu
 
 ## Who decided and how we know
 
-The journal does not name Scott. It presents the rule as the implemented design. Later decisions cite it. https://github.com/jscotthorn/ky-education-kpi-pipeline/blob/feature/2025-26-kyrc26/notes/8--suppression-handling-enhancement.md
+The journal does not name Scott. It presents the rule as the implemented design. Later decisions cite it. https://github.com/jscotthorn/ky-education-kpi-pipeline/blob/1c48f448df371191bd428e17767e27003ccc552c/notes/8--suppression-handling-enhancement.md
 
 ## Why
 

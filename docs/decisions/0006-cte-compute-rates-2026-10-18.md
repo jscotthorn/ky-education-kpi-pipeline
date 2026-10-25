@@ -1,6 +1,6 @@
 # 0006 CTE definitions and computed rates, 18 October 2026
 
-Status: superseded
+Status: superseded (in part)
 
 Superseded, for the instruction to compute a rate every year, by [0007](0007-drop-calculated-cte-rates.md) (20 October 2026). The column map below was carried into pull request #106. This record stays.
 

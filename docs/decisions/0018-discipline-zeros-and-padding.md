@@ -1,6 +1,6 @@
 # 0018 Keep published discipline zeros; skip all-star padding
 
-Status: superseded
+Status: superseded (in part)
 
 The skip-all-star clause is replaced by [0017](0017-discipline-all-star-rows.md). The keep-zeros clause is still in effect.
 

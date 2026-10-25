@@ -32,6 +32,7 @@ The note: the survey average ignored school level and kept the elementary file, 
 - `notes/104--kyrc26-file-to-etl-mapping.md` (climate section)
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/103
 - 2021-22 registration is a separate choice: [0042](0042-do-not-register-2021-22-climate-index.md)
+- Published-values rule: [0054](0054-store-values-as-kde-publishes.md)
 
 ## Code check
 

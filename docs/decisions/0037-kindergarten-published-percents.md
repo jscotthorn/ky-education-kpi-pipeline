@@ -36,6 +36,7 @@ The comment stores what KDE published in the years the cell is already a percent
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/88
 - `etl/kindergarten_readiness.py` lines 8-22 and the count formula near line 410
 - `notes/104--kyrc26-file-to-etl-mapping.md`
+- Published-values rule: [0054](0054-store-values-as-kde-publishes.md)
 
 ## Code check
 

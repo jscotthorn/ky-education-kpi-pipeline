@@ -29,6 +29,7 @@ Quoted from that note: the pipeline set the flag to 1 when unduplicated enrollme
 ## Links
 
 - `notes/104--kyrc26-file-to-etl-mapping.md` (dual-credit removal entry)
+- Published-values rule: [0054](0054-store-values-as-kde-publishes.md)
 - Pull request history for the removal is the KYRC26 dual-credit work recorded in that note
 
 ## Code check

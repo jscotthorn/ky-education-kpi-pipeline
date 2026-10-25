@@ -1,6 +1,6 @@
 # 0047 Read 2018-19 workbook demographic labels from the workbook
 
-Status: accepted
+Status: accepted, code differs (follow-up open)
 
 ## Question
 

@@ -2,6 +2,10 @@
 
 Status: accepted
 
+Source type: Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
+
+Repo comment: pending
+
 ## Question
 
 699 CTE participation cells publish a 0.0 rate next to a positive participant count: 208 in KYRC24 and 491 in KYRC23. Keep that 0.0, or treat it as something else?

@@ -22,6 +22,8 @@ The 18 October comment said to resolve the duplicates so no duplicate keys remai
 
 https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/62#issuecomment-6300574763
 
+That comment says the two values are recorded in `notes/104`. The values are in `notes/105.md`, lines 26-39. The comment's pointer is wrong. This record uses `notes/105.md`.
+
 ## Why
 
 The comment states the storage rule. It does not say why NA/Y was chosen instead of one of the two numbers. Reason not documented beyond the duplicate key.

@@ -32,6 +32,7 @@ The comment says the published gap is a difference, so a negative is a real dire
 - `etl/novice_teachers.py`
 - `etl/students_taught_by_ineffective_teachers.py`
 - `etl/students_taught_by_out_of_field_teachers.py`
+- Published-values rule: [0054](0054-store-values-as-kde-publishes.md)
 
 ## Code check
 

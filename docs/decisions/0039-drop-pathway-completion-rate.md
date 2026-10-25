@@ -31,6 +31,7 @@ The run before the removal wrote 17,892 rows, of which 3,300 were the rate (188 
 ## Links
 
 - `notes/104--kyrc26-file-to-etl-mapping.md` (pathway section, including the line cited above)
+- The 19 October rule, and this withdrawal of its existing-calculation exception: [0054](0054-store-values-as-kde-publishes.md)
 - Related, not this decision: issue #86, state pathway cells are not the sum of districts, labeled `kde-recheck`. That issue does not change storage.
 
 ## Code check

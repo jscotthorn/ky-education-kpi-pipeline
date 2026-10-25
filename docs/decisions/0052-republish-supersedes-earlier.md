@@ -2,6 +2,10 @@
 
 Status: accepted
 
+Source type: Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
+
+Repo comment: pending
+
 ## Question
 
 When KDE publishes the same school year more than once, which file should the pipeline keep?
@@ -22,23 +26,21 @@ No KDE page found in the 25 October 2026 research says a later file always repla
 
 25 October 2026, 12:11 PM ET. Use the latest public KDE file after the review window closes, unless it is visibly broken. Record the differences on each republish.
 
-Scott's words: "Use the latest public KDE file after the review window closes, unless it's visibly broken; record differences on each republish."
+The option he selected: "Use the latest public KDE file after the review window closes, unless it's visibly broken; record differences on each republish."
 
-History, same day, superseded by that sentence. At 12:02 PM ET Scott had said: "Several issues arose during the work showing that a republish had better information, so it seems a republish should always supercede an earlier publish. But, I want that from the KDE if available." The spelling "supercede" is his. That provisional "always" rule is not the rule. The 12:11 sentence is.
+History, same day, superseded by that option. At 12:02 PM ET his typed words were: "Several issues arose during the work showing that a republish had better information, so it seems a republish should always supercede an earlier publish. But, I want that from the KDE if available." The spelling "supercede" is his. That provisional "always" rule is not the rule. The 12:11 option is.
 
-A visibly broken copy, the example already in the repo: the live-site KYRC24 ineffective-teachers file is 39 rows with percents above 100. Scott chose the test-site copy (1,589 rows) on 18 October 2026. Issues #63 and #64. [0025](0025-ineffective-teachers-copy-and-zeros.md). The broken live copy is not taken just because it is later.
+A visibly broken copy, the example already in the repo: the live-site KYRC24 ineffective-teachers file is 39 rows with percents above 100. Scott chose the test-site copy (1,589 rows) on 18 October 2026. Pull request #63 and issue #64. [0025](0025-ineffective-teachers-copy-and-zeros.md). The broken live copy is not taken just because it is later.
 
 Pull request #113 and pull request #116 adopted the May 2026 KYRC24 CTE file. Checked against this rule: `config/kde_sources.yaml` records that datasets copy as Last-Modified 14 May 2026, after the May 2025 historical copy. This pass did not re-fetch a KDE date for the close of the 2023-24 review window. 14 May 2026 is after the fall 2024 release and after the May 2025 historical file. The yaml comment and `notes/116` say no published number changed. Stars became 0.0, blank, `--`, or `N/A`. That is not the 39-row pattern. If those two points hold, the May 2026 adoption complies. The separate 0.0 warnings stay in [0009](0009-cte-zero-rate-beside-blank-count.md) and [0051](0051-cte-zero-rate-on-positive-count.md). A later public republish of 2022-23 or 2023-24 would be read under this rule, and the differences would be recorded in [kde-republishes.md](kde-republishes.md).
 
 ## Who decided and how we know
 
-Scott, direct, 2026-10-25 12:11 PM ET, his answer on a question card in the ECC manager bot's chat; transcript checked by Archivist.
-
-The 12:02 sentence is the same kind of source, nine minutes earlier, and is the history above.
+Scott, direct, 2026-10-25 12:11 PM ET. The sentence above is the option he selected on a question card in the ECC manager bot's chat. It is not text he typed. The 12:02 sentence is his typed words, nine minutes earlier, and is the history above. Archivist checked both against the transcript.
 
 ## Why
 
-Scott's 12:11 sentence is the rule. The 12:02 sentence gives the reason he had reached for an "always" rule: republishes met during the work had better information. He also said he wanted that from KDE if available. The adopted rule is the narrower one. KDE has not stated it. See the guidance check.
+The 12:11 option is the rule. The 12:02 typed words give the reason he had reached for an "always" rule: republishes met during the work had better information. He also said he wanted that from KDE if available. The adopted rule is the narrower one. KDE has not stated it. See the guidance check.
 
 ## Links
 
@@ -48,12 +50,22 @@ Scott's 12:11 sentence is the rule. The 12:02 sentence gives the reason he had r
 - [0051](0051-cte-zero-rate-on-positive-count.md)
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/113
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/116
-- Issues https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/63 and https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/64
+- Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/63 and issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/64
+- Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123
 - [0024](0024-novice-kyrc24-equity-copy.md), [0025](0025-ineffective-teachers-copy-and-zeros.md), [0026](0026-out-of-field-file-and-copy.md)
 
 ## Code check
 
-No shared "take the latest public file" step was added. Registrations stay explicit. The May 2026 CTE registration matches the rule on the facts above. The 18 October copy choices in #58, #64, and #66 still do not match `config/kde_sources.yaml`. Those conflicts are on those records. This record does not swap a file and does not resolve those issues.
+No shared "take the latest public file" step was added. Registrations stay explicit. The May 2026 CTE registration matches the rule on the facts above (kde-republishes R1), if the review-window point holds.
+
+These rows are not yet conformed to the rule. They are not treated as exempt.
+
+- R15. Many KYRC24 files still use the older Open House copy while later same-name datasets copies exist. Config comments say "not swapped." [kde-republishes.md](kde-republishes.md).
+- R9. KYRC25 out-of-field stays on the datasets copy because Content-MD5 is missing. This pass did not assess that copy as visibly broken.
+- R19. KYRC25 Kentucky Summative Assessment is registered as `url: kyrc25`. The research diff of the rewritten 2024-25 file was not re-run.
+- R20. Postsecondary readiness and 4-year graduation are registered on `url: kyrc25` and have not been compared with the historical copies.
+
+The comparison of those rewritten 2024-25 files is a separate docs pull request, in progress. This record does not run it. Issue #123 tracks the Open House registrations that still do not apply the 18 October copy choices on #58, #64, and #66: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123. Those three conflicts stay on [0024](0024-novice-kyrc24-equity-copy.md), [0025](0025-ineffective-teachers-copy-and-zeros.md), and [0026](0026-out-of-field-file-and-copy.md). This record does not swap a file.
 
 ## KDE guidance check
 

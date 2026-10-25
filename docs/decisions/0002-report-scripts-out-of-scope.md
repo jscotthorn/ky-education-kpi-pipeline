@@ -28,7 +28,11 @@ Per Moon, 2026-10-25; not in Scott's answer: the NaN guard and extending the ana
 
 18 October scope: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/42#issuecomment-6251982959 (Cursor GitHub App, account `jscotthorn`).
 
-25 October exception: Scott, direct, 2026-10-25 12:00 PM ET, his answer on a question card in the ECC manager bot's chat; transcript checked by Archivist.
+25 October exception: Scott, direct, 2026-10-25 12:00 PM ET, his answer on a question card in the ECC manager bot's chat.
+
+Source type for the 25 October exception: Scott's own answer in an agent chat, quoted with date and time (ET). Bot: ECC manager bot. Archivist checked the quote verbatim against the transcript.
+
+Repo comment: pending
 
 ## Why
 

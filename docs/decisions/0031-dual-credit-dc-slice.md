@@ -1,6 +1,6 @@
 # 0031 Dual credit for 2021 and 2022, and the KYRC23 EDOP files
 
-Status: accepted
+Status: accepted, code differs (follow-up open)
 
 ## Question
 
@@ -37,7 +37,7 @@ The comments choose the DC slice for the two missing years and keep the EDOP fil
 
 ## Code check
 
-Does not match part (b). `etl/advanced_coursework.py` still says the 2020-2022 dual-credit counts are not in `dual_credit`, and that issue #74 (b) holds that gap. Part (c) matches the current registration: KYRC23 EDOP files are the 2022-23 source. Issue #74 is still open. Not resolved here.
+Does not match part (b). `etl/advanced_coursework.py` still says the 2020-2022 dual-credit counts are not in `dual_credit`, and that issue #74 (b) holds that gap. Part (c) matches the current registration: KYRC23 EDOP files are the 2022-23 source. Issue #74 is still open. Not resolved here. The status is `accepted, code differs (follow-up open)` because part (b) does not match and the follow-up is open. Part (c) does match.
 
 ## KDE guidance check
 

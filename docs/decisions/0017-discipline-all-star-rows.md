@@ -26,6 +26,8 @@ https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/87#issuecomment-627
 
 The comment: of 10,321 matched all-star rows in the KYRC23 republish of 2023, 9,057 became all zeros, 434 became positive counts, and 971 stayed starred. Skipping the row would drop cells a later file fills in.
 
+9,057 + 434 + 971 = 10,462, not 10,321. The mismatch is inherited from `notes/104--kyrc26-file-to-etl-mapping.md` line 2363 and from `KPIS.md` line 193. This record does not replace the cited 10,321.
+
 ## Links
 
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/87 merged at `3b6d597`

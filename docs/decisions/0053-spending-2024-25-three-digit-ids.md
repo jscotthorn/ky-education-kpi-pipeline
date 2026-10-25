@@ -24,15 +24,19 @@ Scott's words: "Yes, keep 3-digit 165/999 for #119 under the #114 precedent unti
 
 ## Who decided and how we know
 
-Scott, direct, 2026-10-25 12:12 PM ET, his answer on a question card in the ECC manager bot's chat; transcript checked by Archivist.
+Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/119#issuecomment-6399994227
 
-Moon's earlier note, which this confirms: https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/119#issuecomment-6399959209
+That comment was posted on the `jscotthorn` account through the Cursor GitHub App. Its text: "Decision (Scott, 2026-10-25 12:12 PM ET): #119 keeps 3-digit district/state IDs (165, 999) on the 2024-25 spending rows under the #114 precedent, until #61 converts them to 6-digit. This confirms the note above."
 
-That comment is on the `jscotthorn` account. Its text says it was applied by Moon, the project manager, from the #114 precedent, and that it was not itself a new decision. Scott's 12:12 sentence is the decision.
+Scott's chat answer the same minute, checked verbatim against the transcript by Archivist: "Yes, keep 3-digit 165/999 for #119 under the #114 precedent until #61."
+
+Moon's earlier note, context for the comment above: https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/119#issuecomment-6399959209
+
+That note says it was applied by Moon, the project manager, from the #114 precedent, and that it was not itself a new decision. The Decision comment is the repo record. Moon's note stays as context.
 
 ## Why
 
-Scott's sentence is the choice. Moon's comment gives the reason Moon had used: widening the IDs before #61 would put these rows out of step with the existing spending rows and with how the dashboard matches districts. That reason is in the comment. Scott's answer does not restate it.
+The Decision comment is the choice. Scott's chat sentence the same minute matches it. Moon's note gives the reason Moon had used: widening the IDs before #61 would put these rows out of step with the existing spending rows and with how the dashboard matches districts. That reason is in Moon's note. Scott's answer does not restate it.
 
 ## Links
 

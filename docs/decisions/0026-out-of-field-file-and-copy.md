@@ -27,17 +27,18 @@ Both comments were posted on the `jscotthorn` account through the Cursor GitHub 
 
 ## Why
 
-The 2019-20 comment cites the zero-filled equity rows and the jump from 1.41 to 8.88. The copy comment chooses the datasets file. Reason that copy is preferred: not documented beyond the cell disagreement described in `config/kde_sources.yaml`.
+The 2019-20 comment's reason is "first year of KDE's Equity tab, incomplete coverage." The 1.41 and 8.88 figures are in the "What KDE changed" section above. They come from `config/kde_sources.yaml`, not from that comment. The copy comment chooses the datasets file. Reason that copy is preferred: not documented beyond the cell disagreement described in the yaml.
 
 ## Links
 
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/66 (still open)
+- Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123 (open). The yaml still registers the Open House copies, so the 18 October copy choices on #58, #64, and #66 are not applied.
 - `config/kde_sources.yaml` `students_taught_by_out_of_field_teachers`
 - [0027](0027-signed-title-i-equity-gap.md)
 
 ## Code check
 
-The unregistered 2019-20 file matches the yaml comment: the file is not registered and the parser skips that filename. The 2024 copy switch does not match. Re-read on this branch: the bare historical name `KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv` is still registered, and the comment says "Do not swap it here." A title search of pull requests found no follow-up that performs the switch. Issue #66 is still open. Not fixed here. The standing file rule is [0052](0052-republish-supersedes-earlier.md). This conflict stays open as follow-up (a).
+The unregistered 2019-20 file matches the yaml comment: the file is not registered and the parser skips that filename. The 2024 copy switch does not match. Re-read on this branch: the bare historical name `KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv` is still registered, and the comment says "Do not swap it here." A title search of pull requests found no follow-up that performs the switch. Issue #66 is still open. Issue #123 tracks that the yaml still has the Open House copies. Not fixed here. The standing file rule is [0052](0052-republish-supersedes-earlier.md). This conflict stays open as follow-up (a).
 
 ## KDE guidance check
 

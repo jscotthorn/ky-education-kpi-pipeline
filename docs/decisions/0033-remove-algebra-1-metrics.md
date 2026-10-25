@@ -1,6 +1,6 @@
 # 0033 Remove the two Algebra I grade-8 metrics
 
-Status: accepted
+Status: accepted, code differs (follow-up open)
 
 ## Question
 

@@ -1,6 +1,6 @@
 # 0005 Skip all-star CTE padding rows
 
-Status: superseded
+Status: superseded (in part)
 
 Superseded by Scott on 2026-10-25. The skip-all-star clause is replaced by [0050](0050-cte-all-star-rows-stored.md). This record stays.
 

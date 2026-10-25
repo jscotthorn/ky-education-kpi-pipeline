@@ -49,6 +49,7 @@ Scott's 25 October sentence, quoted above, is a second statement of why the 2025
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/106
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/47
 - [0006](0006-cte-compute-rates-2026-10-18.md)
+- Published-values rule: [0054](0054-store-values-as-kde-publishes.md)
 
 ## Code check
 

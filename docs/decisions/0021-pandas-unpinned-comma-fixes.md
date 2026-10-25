@@ -16,7 +16,7 @@ Pin pandas below 3, or keep pandas unpinned and strip commas in each reader that
 
 ## Decision
 
-18 October 2026. Do not pin pandas. Fix each module that fails. Make `BaseETL.standardize_missing_values` dtype-agnostic. Fix CTE in the #46 follow-up. Fix finance when that work is unblocked.
+18 October 2026. Do not pin pandas. Each module's KYRC26 pull request keeps fixing its own object-only checks. One follow-up pull request into `feature/2025-26-kyrc26` will fix `cte_participation.py` (merged in #45 before this was caught), make `BaseETL.standardize_missing_values` dtype-agnostic, and add a test that runs the comma and missing-value handling on both pandas 2.3.3 and pandas 3. Financial summary and spending per student get fixed when the finance work is unblocked.
 
 ## Who decided and how we know
 
