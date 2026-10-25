@@ -32,7 +32,7 @@ The comment: of 10,321 matched all-star rows in the KYRC23 republish of 2023, 9,
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/52 close comment https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/52#issuecomment-6399043058
 - `notes/104--kyrc26-file-to-etl-mapping.md` (discipline all-star section)
 - Supersedes the skip clause of [0018](0018-discipline-zeros-and-padding.md)
-- Contrast with CTE: [0005](0005-cte-skip-all-star-padding.md)
+- Same rule for CTE, decided 25 October 2026: [0050](0050-cte-all-star-rows-stored.md). [0005](0005-cte-skip-all-star-padding.md) is superseded.
 
 ## Code check
 

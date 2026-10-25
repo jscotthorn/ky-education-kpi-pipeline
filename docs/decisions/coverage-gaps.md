@@ -2,7 +2,7 @@
 
 These are series a consumer of this pipeline can be missing. The FCPS equity dashboard repository (`jscotthorn/fcps-equity-dashboard`) returned HTTP 404 to this pass, so the dashboard's own wording was not read. Classifications use this repository, its issues, and the KDE sources in [kde-guidance-sources.md](kde-guidance-sources.md).
 
-Classes: `deliberate`, `KDE publication gap`, `bug`, `unconfirmed`.
+Classes: `deliberate`, `dashboard scope, deliberate filter`, `planned or deferred`, `KDE publication gap`, `bug`, `unconfirmed`.
 
 ## AP participation for 2023 onward
 
@@ -16,7 +16,9 @@ Classification: **deliberate**. The same choice also leaves 2024-25 rates unstor
 
 `notes/104--kyrc26-file-to-etl-mapping.md` (20 October 2026) records Scott's decision not to store participants divided by enrollment, and not to store the calculated grade-12 completion rate, after that rate could not be checked against KDE's published 2024 percent. `notes/106--cte-participation.md` shows zero `cte_participation_rate` and zero `cte_completion_rate_grade_12` rows for 2025 and 2026. KYRC25 and KYRC26 files are count columns only. See [0007](0007-drop-calculated-cte-rates.md). KDE guidance flag: possible conflict, because this pass did not confirm whether the report-card site still displays a rate.
 
-A 25 October 2026 relay said the rates were omitted because they could not be regenerated with fidelity to older years. That sentence is not in the repo. The notes give the reasons quoted in [0007](0007-drop-calculated-cte-rates.md).
+Second source, same choice. Scott, direct, 2026-10-25 11:24 AM ET, in his chat with the ECC manager bot (Moon); transcript checked by Archivist:
+
+"I believe some of those gaps, like CTE participation/completion rates in 25-26, was due to changes in how KDE reported and our inability to generate them reliably and with fidelity to older years with the data at hand."
 
 ## High school CTE enrollment for 2024
 
@@ -36,7 +38,13 @@ Classification: **deliberate**.
 
 Impact Kentucky is stored once per administration, under 2020, 2022, 2024, and 2026. Odd-year files repeat the prior survey and are skipped. `notes/105.md` cites KDE advisory 20-151, impactky.org, Kentucky Teacher, and a KSBA briefing that lists administrations in 2019-20, 2021-22, and 2023-24 with no survey in the years between. The research cites the same cycle from Kentucky Teacher (IKY-2022, IKY-2024, IKY-2026: "administered every two years"). Those three articles were not re-fetched here. See [0014](0014-impact-kentucky-one-wave.md).
 
-Separate gap, **unconfirmed**: `KYRC26_OVW_Teacher_Working_Conditions.csv` has no districts 001-095. Issue [#111](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/111) asks whether the source is truncated. The live datasets copy and the UAT copy match each other and both omit those districts. The issue is labeled `kde-recheck`. The file is stored as published.
+Separate gap, **unconfirmed** until the 27 October 2026 recheck: `KYRC26_OVW_Teacher_Working_Conditions.csv` has no districts 001-095. Issue [#111](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/111) asks whether the source is truncated. The live datasets copy and the UAT copy match each other and both omit those districts. The issue is labeled `kde-recheck`. The file is stored as published. The recheck schedule is on [0049](0049-kyrc26-files-loaded-15-oct-2026.md).
+
+## 2021-22 climate and safety index
+
+Classification: **planned or deferred** ([#121](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/121)).
+
+The published file `quality_of_school_climate_and_safety_survey_index_scores_2022.csv` is not registered. Losing 2021-22 was accepted on 24 October 2026. On 25 October 2026 Scott said there was no specific reason, and issue #121 tracks a low-priority load of that file into the same per-level metrics. See [0042](0042-do-not-register-2021-22-climate-index.md). The series from 2022-23 on is loaded. This is not a choice to leave the year out for good.
 
 ## District staffing and finance figures for 2026
 
@@ -46,24 +54,38 @@ Classification: **KDE publication gap**.
 
 ## District per-pupil spending for 2024-25
 
-Classification: **unconfirmed**.
+Classification: **unconfirmed**. The missing rows and the in-review fix match the report. The ID width does not, so this is not reclassified as a bug with a fix in progress.
 
-Issue [#118](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/118) does not call this a bug. `KYRC24_FT_Spending_per_Student.csv` and `KYRC25_FT_Spending_per_Student.csv` contain school rows only, so 2024 and 2025 have no district `165000` or state `999000` rows. District and state totals are in five other files per year that are not registered. That is not a KDE publication gap: the issue says KDE publishes the totals. It is not documented as a deliberate exclusion. [#117](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/117) fixed comma parsing for the school file. It did not add the total files.
+What matches issue [#118](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/118) and pull request [#119](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/119) (open, base `feature/2025-26-kyrc26`):
+
+- `KYRC24_FT_Spending_per_Student.csv` and `KYRC25_FT_Spending_per_Student.csv` are school rows only, so 2024 and 2025 have no district or state per-pupil rows.
+- District and state rows exist for 2020-2023 (issue #118: district `165` and state `999`; the 2019 rows are also absent).
+- KDE publishes the 2024 and 2025 totals in five long files per year: `FT_Total_Spending_per_Student` for all funds, federal, and state/local, and `FT_Personnel_Spending_per_Student` for federal and state/local.
+- Pull request #119 reads those ten files and adds the district and state rows. It is not merged.
+
+What does not match the report that #119 keeps 3-digit `165` / `999` under the [#114](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/114) mixed-ID precedent until [#61](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/61) ([0010](0010-cte-2023-mixed-ids.md), [0003](0003-shared-id-normalization.md)):
+
+- Issue #118 says to register the rows as 6-digit IDs from 2024, "consistent with #61."
+- Pull request #119 writes school id `165` and `999`, does not write `165000` or `999000`, and says issue #61 is not attempted. Its body does not cite #114.
+
+[#117](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/117) fixed comma parsing for the school file. It did not add the total files.
 
 ## No state comparison rows
 
-Classification: **unconfirmed** as a pipeline-wide gap.
+Classification: **dashboard scope, deliberate filter**.
 
-`notes/105--kyrc26-completeness-audit.md` says many KYRC26 files still have a `999000` state row, including both graduation files, chronic absenteeism, readiness, kindergarten, and CTE participation. Documented exceptions with no state row:
+Per Moon's audit of `fcps-equity-dashboard` `develop` `ce0c5a9`, the dashboard's preprocess step keeps only `district == 'Fayette County'` rows, so state rows are dropped there. Not verified by Archivist because that repo isn't readable from here. This pass got HTTP 404 for `jscotthorn/fcps-equity-dashboard`.
+
+The pipeline is a separate fact. `notes/105--kyrc26-completeness-audit.md` says many KYRC26 files still have a `999000` state row, including both graduation files, chronic absenteeism, readiness, kindergarten, and CTE participation. Documented exceptions with no state row:
 
 - CRDC out-of-school suspension (`notes/104--kyrc26-file-to-etl-mapping.md`)
 - KYRC26 student-teacher ratio (`etl/student_teacher_ratio.py`: school rows only)
 - spending per student for 2024 and 2025 (issue #118)
 
-Report drafts were a separate gap. Issue #42 said they stay out of scope. Pull request #115 later changed `scripts/generate_report_drafts.py` so a state row can be `State` or `All Districts`. See [0002](0002-report-scripts-out-of-scope.md). This pass did not run the script.
+Report drafts stay out of scope under [0002](0002-report-scripts-out-of-scope.md). Scott later approved the pull request #115 state-row lookup (`State` or `All Districts`) as a narrow exception. This pass did not run the script.
 
 ## KYRC26 files from 15 October 2026
 
 Classification: **unconfirmed** as a decision to treat those bytes as final.
 
-`notes/103--2025-26-kyrc26-data-update-plan.md` says the datasets objects were last modified 15 October 2026 at 10:00 UTC, and that both containers should be re-HEAD'd after the review window that runs through 26 October 2026. See [0049](0049-kyrc26-files-loaded-15-oct-2026.md).
+`notes/103--2025-26-kyrc26-data-update-plan.md` says the datasets objects were last modified 15 October 2026 at 10:00 UTC, and that both containers should be re-HEAD'd after the review window that runs through 26 October 2026. A KDE recheck routine is scheduled for 27 October 2026 at 9 AM ET (per Moon). See [0049](0049-kyrc26-files-loaded-15-oct-2026.md).

@@ -1,6 +1,8 @@
 # 0005 Skip all-star CTE padding rows
 
-Status: conflicts-with-code
+Status: superseded
+
+Superseded by Scott on 2026-10-25. The skip-all-star clause is replaced by [0050](0050-cte-all-star-rows-stored.md). This record stays.
 
 ## Question
 
@@ -38,13 +40,11 @@ The comment names the 1,230 rows as padding. It does not quote KDE. Reason KDE w
 - Pull request https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/106
 - `notes/106--cte-participation.md` line 9
 - `etl/cte_participation.py` `convert_to_kpi_format`
-- Contrast: [0017](0017-discipline-all-star-rows.md) stores discipline all-star rows
+- Contrast, now the same rule: [0017](0017-discipline-all-star-rows.md) and [0050](0050-cte-all-star-rows-stored.md)
 
 ## Code check
 
-Does not match. Pull request #106 stored stars, including a fully starred demographic, as Y. The pull request body says: "Source stars with a demographic still land on a Y row with an empty value: … KYRC26 completers 4,949 and enrollment 1,869." `notes/106--cte-participation.md` says the same rule, "including a fully starred demographic." `etl/cte_participation.py` writes each star cell as `suppressed` Y and does not skip an all-star row. Issue #46 is still open. Not resolved here.
-
-The "store real stars as Y" clause does match #106. The "skip all-star padding" clause does not.
+The skip clause does not match the code, and that clause is what [0050](0050-cte-all-star-rows-stored.md) replaces. Pull request #106 stored stars, including a fully starred demographic, as Y. The current rule's code check is on 0050.
 
 ## KDE guidance check
 

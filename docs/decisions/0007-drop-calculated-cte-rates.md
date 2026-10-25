@@ -28,15 +28,19 @@ Completion: the gate failed. Do not store completers divided by grade-12 partici
 
 ## Who decided and how we know
 
-`notes/104--kyrc26-file-to-etl-mapping.md`, sections "Follow-up, 20 October 2026 — drop the calculated 2025 and 2026 participation rate" and the completion-rate section under it. Both say "Scott's decision." No GitHub comment in Scott's own words, outside the Cursor app, was found.
+`notes/104--kyrc26-file-to-etl-mapping.md`, sections "Follow-up, 20 October 2026 — drop the calculated 2025 and 2026 participation rate" and the completion-rate section under it. Both say "Scott's decision."
 
-A 25 October 2026 relay said the rates are absent because KDE changed how it reports them and they could not be regenerated reliably and with fidelity to older years. That sentence was not found in the repo, in a pull request, or in an issue. It is not the recorded reason.
+Second source, same choice. Scott, direct, 2026-10-25 11:24 AM ET, in his chat with the ECC manager bot (Moon); transcript checked by Archivist:
+
+"I believe some of those gaps, like CTE participation/completion rates in 25-26, was due to changes in how KDE reported and our inability to generate them reliably and with fidelity to older years with the data at hand."
 
 ## Why
 
 Participation, quoted from notes/104: "Participants are counted where the course is taught. Enrollment is counted where the student is enrolled. The quotient is not a participation rate, 90 of the stored values are above 100 (40 in 2025, 50 in 2026), and the 2024 base is KDE's published percent."
 
 Completion: the gate treated `Grade 12 CTE Eligible Completer` as eligible completers. The cells are the completer count, so KYRC24 has no eligible-completer denominator. The notes list comparisons that do not match the published 42.3 percent. KYRC25 and KYRC26 have no eligible-completer column. The calculated completers / grade-12 participants rate was removed.
+
+Scott's 25 October sentence, quoted above, is a second statement of why the 2025-26 rates are absent. The word "believe" is his. The 20 October notes give the file-level reasons. Both stand. Status stays accepted.
 
 ## Links
 

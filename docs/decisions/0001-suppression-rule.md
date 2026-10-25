@@ -30,11 +30,11 @@ The journal's problem statement: dropped rows look like a group that is not in t
 
 - `notes/8--suppression-handling-enhancement.md`
 - `KPIS.md` (CTE cell rules, around the participation metrics)
-- Later records [0004](0004-postsecondary-star-cells.md), [0005](0005-cte-skip-all-star-padding.md), [0017](0017-discipline-all-star-rows.md)
+- Later records [0004](0004-postsecondary-star-cells.md), [0005](0005-cte-skip-all-star-padding.md), [0050](0050-cte-all-star-rows-stored.md), [0017](0017-discipline-all-star-rows.md)
 
 ## Code check
 
-Modules do not all follow it. CTE participation stores a `*` as Y ([0005](0005-cte-skip-all-star-padding.md)). Postsecondary enrollment still drops `*` ([0004](0004-postsecondary-star-cells.md)). This record does not pick one of those later choices.
+Modules do not all follow it. CTE participation stores a `*` as Y ([0050](0050-cte-all-star-rows-stored.md)). Postsecondary enrollment still drops `*` ([0004](0004-postsecondary-star-cells.md)). This record does not pick one of those later choices.
 
 ## KDE guidance check
 

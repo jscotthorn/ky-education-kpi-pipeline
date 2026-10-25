@@ -2,7 +2,7 @@
 
 This folder records choices about Kentucky Department of Education (KDE) sources and how this pipeline treats them. It does not change pipeline code. A later edit to a choice is a new record. The old record stays, keeps its number, and links to the new one.
 
-Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0050`. A number is never reused.
+Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0051`. A number is never reused.
 
 ## When a record is needed
 
@@ -71,10 +71,10 @@ Two note numbers are used twice. They were not renamed.
 | Record | Status | KDE guidance check |
 | --- | --- | --- |
 | [0001](0001-suppression-rule.md) | accepted | consistent, with one gap |
-| [0002](0002-report-scripts-out-of-scope.md) | conflicts-with-code | no KDE guidance found |
+| [0002](0002-report-scripts-out-of-scope.md) | accepted | no KDE guidance found |
 | [0003](0003-shared-id-normalization.md) | accepted | consistent |
 | [0004](0004-postsecondary-star-cells.md) | accepted | possible conflict |
-| [0005](0005-cte-skip-all-star-padding.md) | conflicts-with-code | possible conflict |
+| [0005](0005-cte-skip-all-star-padding.md) | superseded | possible conflict |
 | [0006](0006-cte-compute-rates-2026-10-18.md) | superseded | possible conflict |
 | [0007](0007-drop-calculated-cte-rates.md) | accepted | possible conflict |
 | [0008](0008-kyrc24-cte-may-2026-republish.md) | accepted | consistent |
@@ -119,3 +119,4 @@ Two note numbers are used twice. They were not renamed.
 | [0047](0047-workbook-demographic-labels-2018-19.md) | accepted | no KDE guidance found |
 | [0048](0048-crdc-kpi-year-split.md) | unconfirmed | no KDE guidance found |
 | [0049](0049-kyrc26-files-loaded-15-oct-2026.md) | unconfirmed | possible conflict |
+| [0050](0050-cte-all-star-rows-stored.md) | accepted | consistent |

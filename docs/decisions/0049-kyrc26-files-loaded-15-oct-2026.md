@@ -20,6 +20,8 @@ Treat the 15 October bytes as final, or re-HEAD the registered KYRC26 files afte
 
 No decision found that treats the 15 October download as final. The note's instruction is to re-HEAD both containers after 26 October 2026.
 
+A KDE recheck routine is scheduled for 27 October 2026 at 9 AM ET (per Moon). That schedule is not a decision to keep or replace the 15 October bytes. Status stays unconfirmed.
+
 ## Who decided and how we know
 
 The load date and the re-HEAD instruction are in `notes/103--2025-26-kyrc26-data-update-plan.md`. They are a record of what was downloaded and what to do next. They are not a choice to keep those bytes if KDE replaces them.
@@ -35,6 +37,7 @@ Reason not documented, because there is no choice to freeze the file. The note a
 - SRC13 https://www.education.ky.gov/districts/tech/sis/Documents/SRC13_SRC2025-2026EmbargoRelease.pdf (not re-fetched)
 - SRC14 https://www.education.ky.gov/districts/tech/sis/Documents/SRC14_SRC2025-2026DataSharing.pdf (not re-fetched)
 - [coverage-gaps.md](coverage-gaps.md)
+- Recheck schedule: per Moon, 27 October 2026 at 9 AM ET. Not a Scott decision in the repo.
 
 ## Code check
 
