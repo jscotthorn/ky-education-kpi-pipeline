@@ -23,6 +23,7 @@ import sys
 import argparse
 from etl.constants import KPI_COLUMNS
 from pathlib import Path
+from types import ModuleType
 from typing import Optional
 from ruamel.yaml import YAML
 import importlib.util
@@ -153,9 +154,46 @@ def combine_kpi_files(
     print(f"  Master KPI file: {total_rows:,} rows")
 
 
-def run_etl_module(module_name: str, raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
+def _load_etl_module(module_name: str, module_path: Path) -> ModuleType:
+    """Load ``module_path`` as ``module_name`` and register it first.
+
+    ``spec_from_file_location`` does not add the module to ``sys.modules``.
+    Pydantic resolves postponed annotations (``from __future__ import
+    annotations``) by looking up the class's module there. Without that
+    entry, a model such as ``Config`` stays unfinished and the first
+    ``Config(**cfg)`` raises ``PydanticUserError`` because ``Dict`` is
+    undefined. Inserting the module before execution matches the import
+    system, so the class body can resolve names from this module's globals.
+    """
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load ETL module {module_name} from {module_path}")
+
+    module = importlib.util.module_from_spec(spec)
+    previous = sys.modules.get(module_name)
+    sys.modules[module_name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        if previous is None:
+            sys.modules.pop(module_name, None)
+        else:
+            sys.modules[module_name] = previous
+        raise
+    return module
+
+
+def run_etl_module(
+    module_name: str,
+    raw_dir: Path,
+    proc_dir: Path,
+    cfg: dict,
+    *,
+    module_path: Optional[Path] = None,
+) -> None:
     """Dynamically import and run an ETL module's transform function."""
-    module_path = Path(__file__).parent / "etl" / f"{module_name}.py"
+    if module_path is None:
+        module_path = Path(__file__).parent / "etl" / f"{module_name}.py"
 
     if not module_path.exists():
         print(f"Warning: ETL module {module_name} not found at {module_path}")
@@ -166,12 +204,7 @@ def run_etl_module(module_name: str, raw_dir: Path, proc_dir: Path, cfg: dict) -
     print(f"   Output: {proc_dir}")
     
     try:
-        # Dynamic import
-        spec = importlib.util.spec_from_file_location(module_name, module_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        # Run transform function
+        module = _load_etl_module(module_name, module_path)
         module.transform(raw_dir, proc_dir, cfg)
         print(f"✅ Completed {module_name} pipeline")
         
