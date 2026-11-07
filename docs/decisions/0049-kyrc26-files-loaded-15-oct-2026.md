@@ -39,6 +39,10 @@ Reason not documented, because there is no choice to freeze the file. The note a
 - [coverage-gaps.md](coverage-gaps.md)
 - Recheck schedule: per Moon, 27 October 2026 at 9 AM ET. Not a Scott decision in the repo.
 
+## Later observation
+
+A 7 November 2026 metadata recheck is recorded in [republish-diffs/kyrc26-2026-11-07-metadata-recheck.md](republish-diffs/kyrc26-2026-11-07-metadata-recheck.md) and as row R27 in [kde-republishes.md](kde-republishes.md). It is an observation of saved blob headers. It does not decide whether the 15 October bytes stay. Status stays unconfirmed. No file was adopted.
+
 ## Code check
 
 The registered KYRC26 files are the ones the note describes. This pass did not re-HEAD them. Not a code conflict.

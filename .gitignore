@@ -9,6 +9,7 @@ __pycache__/
 *.xlsx
 *.json
 !notes/kyrc26-schema-diff-report.json
+!docs/decisions/republish-diffs/kyrc26-2026-11-07-metadata-recheck/results.json
 data/raw/
 html/data/
 mlruns

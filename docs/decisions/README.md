@@ -67,6 +67,7 @@ Two note numbers are used twice. They were not renamed.
 - [coverage-gaps.md](coverage-gaps.md) — series the equity dashboard is missing, classified from this repo
 - [kde-guidance-sources.md](kde-guidance-sources.md) — KDE URLs and statements that were not found
 - [kde-republishes.md](kde-republishes.md) — republish and alternate-copy cases, and where each difference is recorded
+- [republish-diffs/kyrc26-2026-11-07-metadata-recheck.md](republish-diffs/kyrc26-2026-11-07-metadata-recheck.md) — observation of saved 7 November 2026 blob metadata for KYRC26. Not a numbered decision. No file was adopted.
 
 ## Records
 
