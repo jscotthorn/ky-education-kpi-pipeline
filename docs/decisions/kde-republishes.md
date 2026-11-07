@@ -6,7 +6,7 @@ This is the place [0052](0052-republish-supersedes-earlier.md) requires for diff
 
 The 26 rows R1–R26 are from the 25 October 2026 research attachment. Cell counts, hashes, and Last-Modified times in the "What differs" column were not re-counted in this pass, except where the "Checked here" column says the config was re-read. KDE quotations in that research were not re-fetched. Sources for the KDE side are listed under the table.
 
-R27 is later. It is an observation of saved 7 November 2026 blob metadata, recorded in [republish-diffs/kyrc26-2026-11-07-metadata-recheck.md](republish-diffs/kyrc26-2026-11-07-metadata-recheck.md). R27 adopts no file.
+R27 is later. It is an observation of saved 7 November 2026 blob metadata, recorded in [republish-diffs/kyrc26-2026-11-07-metadata-recheck.md](republish-diffs/kyrc26-2026-11-07-metadata-recheck.md) (pull request [#129](https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/129)). R27 adopts no file.
 
 Hosts: Hist is Open House HistoricalDatasets (`base_url`). DS is the live blob `datasets` container (`base_url_kyrc25` / `base_url_kyrc26`). UAT is `datasetsuat6051276`.
 

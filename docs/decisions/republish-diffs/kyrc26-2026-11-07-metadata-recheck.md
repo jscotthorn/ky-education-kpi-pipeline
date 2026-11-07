@@ -19,7 +19,7 @@ Gremlin reported a metadata recheck on 7 November 2026. The report supplied for 
 
 ## Who approved this page
 
-Scott approved a docs-only pull request recording the recheck, in the words supplied with this task: "Open a docs-only PR recording this metadata recheck, without adopting files or regenerating outputs." That sentence authorizes this page. It leaves the registered files in place. Scott is the only decision-maker.
+Scott approved a docs-only pull request recording the recheck, in the words supplied with this task: "Open a docs-only PR recording this metadata recheck, without adopting files or regenerating outputs." That sentence authorizes this page. It leaves the registered files in place. Scott is the only decision-maker. The pull request is https://github.com/jscotthorn/ky-education-kpi-pipeline/pull/129.
 
 ## Saved recheck metadata
 
