@@ -197,6 +197,8 @@ Pilot result, checked 17 October 2026 against the public `datasets` container. `
 
 KYRC26 has 430,848 data rows. The MD5s are of those downloaded bytes.
 
+7 November 2026. A later datasets copy of `KYRC26_OVW_Chronic_Absenteeism.csv` has md5 `2c317303f3f136bc102deee832c3cc95`. The 15 October stamp in the table above matches the UAT copy. Both copies have 430,848 data rows and 19 columns. Sorted on every column except District Name, the rows match. The only cell change is District Name on district 602 (576 rows, school codes `602000` and `602176`): `Kentucky School for the Blind` on 15 October, `Kentucky School for the Deaf District` on the later copy. The district-school list names 602 `Kentucky School for the Blind District` and 603 `Kentucky School for the Deaf District`. The later copy is the registered file and is stored as published. The parser still keys on school code. `docs/decisions/0056-kyrc26-chronic-absenteeism-district-602-name.md`. `notes/119--kyrc26-chronic-absenteeism-district-602-name.md`.
+
 All Students, All Grades, KPI `year` `2026` (source `School Year` `20252026`). `All Schools` is stored as `---District Total---`.
 
 | Row | School code | Rate | Count | Enrollment | Suppressed |

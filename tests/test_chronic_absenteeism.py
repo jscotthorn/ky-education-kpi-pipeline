@@ -468,3 +468,111 @@ class TestChronicAbsenteeismETL:
             "KYRC25_OVW_Chronic_Absenteeism.csv",
             "KYRC26_OVW_Chronic_Absenteeism.csv",
         ]
+
+
+# Labeled example, not a KDE excerpt and not the published 602 or 603 counts.
+# The identifiers are the codes in the 7 November 2026 file comparison and in
+# notes/104: district 602, school codes 602000 and 602176, and district 603,
+# school code 603390. The district string on every row is the refreshed
+# overview's published name for district 602. The 602176 school name is the
+# name on the KYRC26 teacher-experience and postsecondary-enrollment fixtures
+# for that school code. Measure cells are markers so the test can see that a
+# shared district string does not move 602's numbers onto 603.
+_DISTRICT_602_PUBLISHED_NAME = "Kentucky School for the Deaf District"
+_LABELED_602_HEADER = (
+    "School Year,County Number,County Name,District Number,District Name,"
+    "School Number,School Name,School Code,State School Id,NCES ID,CO-OP,"
+    "CO-OP Code,School Type,Grade,Demographic,Suppressed,"
+    "Chronically Absent Students,Students Enrolled 10 or More Days,"
+    "Chronic Absenteeism Rate"
+)
+_LABELED_602_ROWS = "\n".join(
+    [
+        _LABELED_602_HEADER,
+        "20252026,,,602,"
+        + _DISTRICT_602_PUBLISHED_NAME
+        + ",,All Schools,602000,,,,,,All Grades,All Students,No,11,110,11.0",
+        "20252026,,,602,"
+        + _DISTRICT_602_PUBLISHED_NAME
+        + ",176,Kentucky School for the Blind,602176,,,,,,All Grades,All Students,No,22,220,22.0",
+        "20252026,,,603,"
+        + _DISTRICT_602_PUBLISHED_NAME
+        + ",390,Kentucky School for the Deaf,603390,,,,,,All Grades,All Students,No,33,330,33.0",
+        "",
+    ]
+)
+
+
+def test_published_district_602_name_stays_on_school_code(tmp_path):
+    """A shared Deaf district label does not move 602's markers onto 603.
+
+    The file name is the real overview name so the year parser and the
+    KYRC26 opt-in run. The three rows are a labeled example. They are not
+    the refreshed KDE file, and 11 / 22 / 33 are not its published counts.
+    """
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "chronic_absenteeism"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    (source_dir / "KYRC26_OVW_Chronic_Absenteeism.csv").write_text(_LABELED_602_ROWS)
+
+    transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-11-07"}})
+    output = pd.read_csv(proc_dir / "chronic_absenteeism.csv", dtype=str)
+
+    def markers(school_id: str) -> dict:
+        rows = output[
+            (output["year"] == "2026")
+            & (output["school_id"] == school_id)
+            & (output["student_group"] == "All Students")
+        ]
+        return {row.metric: row for _, row in rows.iterrows()}
+
+    district_total = markers("602000")
+    blind_school = markers("602176")
+    deaf_school = markers("603390")
+
+    assert set(district_total) == {
+        "chronic_absenteeism_rate_all_grades",
+        "chronic_absenteeism_count_all_grades",
+        "chronic_absenteeism_enrollment_all_grades",
+    }
+    assert set(blind_school) == set(district_total)
+    assert set(deaf_school) == set(district_total)
+
+    for row in list(district_total.values()) + list(blind_school.values()):
+        assert row["district"] == _DISTRICT_602_PUBLISHED_NAME
+        assert row["district_number"] == "602"
+        assert row["district"] != "Kentucky School for the Blind"
+        assert row["district"] != "Kentucky School for the Blind District"
+
+    assert district_total["chronic_absenteeism_count_all_grades"]["value"] == "11.0"
+    assert district_total["chronic_absenteeism_enrollment_all_grades"]["value"] == "110.0"
+    assert district_total["chronic_absenteeism_rate_all_grades"]["value"] == "11.0"
+    assert district_total["chronic_absenteeism_count_all_grades"]["school_name"] == "---District Total---"
+    assert district_total["chronic_absenteeism_count_all_grades"]["school_code"] == "602000"
+
+    assert blind_school["chronic_absenteeism_count_all_grades"]["value"] == "22.0"
+    assert blind_school["chronic_absenteeism_enrollment_all_grades"]["value"] == "220.0"
+    assert blind_school["chronic_absenteeism_rate_all_grades"]["value"] == "22.0"
+    assert blind_school["chronic_absenteeism_count_all_grades"]["school_name"] == "Kentucky School for the Blind"
+    assert blind_school["chronic_absenteeism_count_all_grades"]["school_code"] == "602176"
+
+    for row in deaf_school.values():
+        assert row["district"] == _DISTRICT_602_PUBLISHED_NAME
+        assert row["district_number"] == "603"
+        assert row["school_code"] == "603390"
+    assert deaf_school["chronic_absenteeism_count_all_grades"]["value"] == "33.0"
+    assert deaf_school["chronic_absenteeism_enrollment_all_grades"]["value"] == "330.0"
+    assert deaf_school["chronic_absenteeism_rate_all_grades"]["value"] == "33.0"
+
+    assert set(output["school_id"]) == {"602000", "602176", "603390"}
+    swapped = output[
+        (output["school_id"].isin(["602000", "602176"]))
+        & (output["district_number"] != "602")
+    ]
+    assert swapped.empty
+    swapped = output[
+        (output["school_id"] == "603390") & (output["district_number"] != "603")
+    ]
+    assert swapped.empty

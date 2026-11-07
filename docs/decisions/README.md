@@ -2,7 +2,7 @@
 
 This folder records choices about Kentucky Department of Education (KDE) sources and how this pipeline treats them. It does not change pipeline code. A later edit to a choice is a new record. The old record stays, keeps its number, and links to the new one.
 
-Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0056`. A number is never reused.
+Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0057`. A number is never reused.
 
 ## When a record is needed
 
@@ -70,7 +70,7 @@ Two note numbers are used twice. They were not renamed.
 
 ## Records
 
-55 records. 39 accepted. 9 accepted, code differs (follow-up open). 3 conflicts-with-code. 3 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed.
+56 records. 40 accepted. 9 accepted, code differs (follow-up open). 3 conflicts-with-code. 3 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed.
 
 | Record | Status | KDE guidance check |
 | --- | --- | --- |
@@ -129,3 +129,4 @@ Two note numbers are used twice. They were not renamed.
 | [0053](0053-spending-2024-25-three-digit-ids.md) | accepted | no KDE guidance found |
 | [0054](0054-store-values-as-kde-publishes.md) | accepted | no KDE guidance found |
 | [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md) | accepted | no KDE guidance found |
+| [0056](0056-kyrc26-chronic-absenteeism-district-602-name.md) | accepted | no KDE guidance found |

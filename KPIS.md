@@ -54,6 +54,7 @@ A `*` or `<10` is value NA with `suppressed` Y. A blank, `--`, or `N/A` is not s
 - `chronic_absenteeism_enrollment_grade_2` - Grade 2 enrollment count used as denominator
 - (continues through grade_12)
 
+The refreshed `KYRC26_OVW_Chronic_Absenteeism.csv` (md5 `2c317303f3f136bc102deee832c3cc95`) is stored as published. Compared with the 15 October copy (md5 `07d218e589daaac167e0faacabecfe8e`, the same bytes as UAT), both files have 430,848 rows and 19 columns, and the measure cells match. District Name on district 602 (576 rows, school codes `602000` and `602176`) is `Kentucky School for the Deaf District`. The district-school list names 602 `Kentucky School for the Blind District` and 603 `Kentucky School for the Deaf District`. The 15 October copy said `Kentucky School for the Blind` on those 602 rows. The parser copies the published name into `district` and sets `school_id` from the school code, so those rows stay on `602000` and `602176` with `district_number` 602. It does not assign them to district 603. Fayette (`165`, 19,296 rows) and the state rows are unchanged. [0056](docs/decisions/0056-kyrc26-chronic-absenteeism-district-602-name.md).
 
 ## English Learner Progress
 **Source**: `etl/english_learner_progress.py`

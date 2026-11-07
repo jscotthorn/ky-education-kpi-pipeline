@@ -86,6 +86,13 @@ class ChronicAbsenteeismETL(BaseETL):
     """ETL module for processing chronic absenteeism data.
 
     KYRC26 overview headers match the KYRC25 file this parser already reads.
+
+    The refreshed KYRC26 overview is stored as published. On that file,
+    district 602's District Name is ``Kentucky School for the Deaf District``.
+    District 602 is the School for the Blind, and district 603 is the School
+    for the Deaf. ``school_id`` stays the school code. This module does not
+    rewrite the name. See
+    ``docs/decisions/0056-kyrc26-chronic-absenteeism-district-602-name.md``.
     """
 
     # Opt in here, in the same change that accepts the file. BaseETL skips
