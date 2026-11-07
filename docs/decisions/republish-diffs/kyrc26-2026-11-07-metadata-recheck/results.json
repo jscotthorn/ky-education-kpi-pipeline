@@ -1,0 +1,7509 @@
+[
+ {
+  "path": "datasetsuat6051276/2022/KYRC22_ACCT_Datasets.zip",
+  "status": 200,
+  "size": 62740,
+  "md5": "bb0ab8c6116db2e2c5ab31e3a1347151",
+  "lm": "Thu, 15 Oct 2026 01:48:14 GMT",
+  "cached": {
+   "size": 62740,
+   "md5": "bb0ab8c6116db2e2c5ab31e3a1347151",
+   "lm": "Thu, 15 Oct 2026 01:48:14 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2022/KYRC22_ACCT_Profile.csv",
+  "status": 200,
+  "size": 380745,
+  "md5": "9e88cdabb30f4bdeb34e1b0e86b4de7a",
+  "lm": "Tue, 06 Oct 2026 20:27:19 GMT",
+  "cached": {
+   "size": 380745,
+   "md5": "9e88cdabb30f4bdeb34e1b0e86b4de7a",
+   "lm": "Tue, 06 Oct 2026 20:27:19 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2022/KYRC22_EDOP_Datasets.zip",
+  "status": 200,
+  "size": 42514,
+  "md5": "fff8e2bf223552ff17fef3fd125c6cb8",
+  "lm": "Thu, 15 Oct 2026 01:48:14 GMT",
+  "cached": {
+   "size": 42514,
+   "md5": "fff8e2bf223552ff17fef3fd125c6cb8",
+   "lm": "Thu, 15 Oct 2026 01:48:14 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_4_Year_High_School_Graduation.csv",
+  "status": 200,
+  "size": 1164269,
+  "md5": "55b9dc9a9df04d6ee84606319d604098",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 1164269,
+   "md5": "55b9dc9a9df04d6ee84606319d604098",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_5_Year_High_School_Graduation.csv",
+  "status": 200,
+  "size": 1164354,
+  "md5": "fed68323877c987563ec4bb539dae0e9",
+  "lm": "Tue, 06 Oct 2026 20:27:22 GMT",
+  "cached": {
+   "size": 1164354,
+   "md5": "fed68323877c987563ec4bb539dae0e9",
+   "lm": "Tue, 06 Oct 2026 20:27:22 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Assessment_Participation.csv",
+  "status": 200,
+  "size": 57358141,
+  "md5": "6bf5ca42ae0f38ebf30d1b6fea95815e",
+  "lm": "Tue, 06 Oct 2026 20:27:24 GMT",
+  "cached": {
+   "size": 57358141,
+   "md5": "6bf5ca42ae0f38ebf30d1b6fea95815e",
+   "lm": "Tue, 06 Oct 2026 20:27:24 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Crosstab_Cohort_4_Year.csv",
+  "status": 200,
+  "size": 13426710,
+  "md5": "62657210ddd82b960657937caab08986",
+  "lm": "Tue, 06 Oct 2026 20:27:22 GMT",
+  "cached": {
+   "size": 13426710,
+   "md5": "62657210ddd82b960657937caab08986",
+   "lm": "Tue, 06 Oct 2026 20:27:22 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Crosstab_Cohort_5_Year.csv",
+  "status": 200,
+  "size": 12904948,
+  "md5": "1541da42fe87fd5eabdf410f4dab7ced",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 12904948,
+   "md5": "1541da42fe87fd5eabdf410f4dab7ced",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Crosstab_EditingMechanics.csv",
+  "status": 200,
+  "size": 56604569,
+  "md5": "b4db85cacae538e3dc0fcce43bf1c61c",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 56604569,
+   "md5": "b4db85cacae538e3dc0fcce43bf1c61c",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Crosstab_Mathematics.csv",
+  "status": 200,
+  "size": 71651959,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:17 GMT",
+  "cached": {
+   "size": 71651959,
+   "md5": "482bbde7f39d96bf78ed44ee65eacebc",
+   "lm": "Tue, 06 Oct 2026 20:27:17 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Crosstab_OnDemandWriting.csv",
+  "status": 200,
+  "size": 56313996,
+  "md5": "1715a5f66c44a719296ba1d7794f7a51",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 56313996,
+   "md5": "1715a5f66c44a719296ba1d7794f7a51",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Crosstab_Reading.csv",
+  "status": 200,
+  "size": 74344497,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 74344497,
+   "md5": "3507111610a1135fb623c1dbf39e7a95",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Crosstab_Science.csv",
+  "status": 200,
+  "size": 56414205,
+  "md5": "6a02e8f0a2ed0441d69a284fbf1d8f86",
+  "lm": "Tue, 06 Oct 2026 20:27:17 GMT",
+  "cached": {
+   "size": 56414205,
+   "md5": "6a02e8f0a2ed0441d69a284fbf1d8f86",
+   "lm": "Tue, 06 Oct 2026 20:27:17 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Crosstab_SocialStudies.csv",
+  "status": 200,
+  "size": 56253621,
+  "md5": "3a9523f771ccb843f674368699801965",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 56253621,
+   "md5": "3a9523f771ccb843f674368699801965",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Datasets.zip",
+  "status": 200,
+  "size": 19327161,
+  "md5": "c9d8d6958918dbc97a62e6ae4dd82d77",
+  "lm": "Thu, 15 Oct 2026 01:48:24 GMT",
+  "cached": {
+   "size": 19327161,
+   "md5": "c9d8d6958918dbc97a62e6ae4dd82d77",
+   "lm": "Thu, 15 Oct 2026 01:48:24 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+  "status": 200,
+  "size": 2980730,
+  "md5": "37bbcd166c980507799387b1b2036bc4",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 2980730,
+   "md5": "37bbcd166c980507799387b1b2036bc4",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Index_Scores.csv",
+  "status": 200,
+  "size": 7110206,
+  "md5": "3f19c5069ab9bb9458f6adf5a3dd7e9a",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 7110206,
+   "md5": "3f19c5069ab9bb9458f6adf5a3dd7e9a",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Kentucky_Summative_Assessment.csv",
+  "status": 200,
+  "size": 47926483,
+  "md5": "c90a58f70c5e1c251ba81c7d4ff9de09",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 47926483,
+   "md5": "c90a58f70c5e1c251ba81c7d4ff9de09",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Postsecondary_Readiness.csv",
+  "status": 200,
+  "size": 1355289,
+  "md5": "45715e257d11b424665cda9bfd2e56b8",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 1355289,
+   "md5": "45715e257d11b424665cda9bfd2e56b8",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Profile.csv",
+  "status": 200,
+  "size": 427148,
+  "md5": "77a3f05824d2eb9556e9a4d4c4ad2f31",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 427148,
+   "md5": "77a3f05824d2eb9556e9a4d4c4ad2f31",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_School_Improvement.csv",
+  "status": 200,
+  "size": 40993,
+  "md5": "5b2121f41391310b31486f3589072bfa",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 40993,
+   "md5": "5b2121f41391310b31486f3589072bfa",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ACCT_Summary.csv",
+  "status": 200,
+  "size": 3721167,
+  "md5": "0f76fd1c39a99360f4cad1e1153d98ea",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 3721167,
+   "md5": "0f76fd1c39a99360f4cad1e1153d98ea",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ADLF_Current_Year_Graduates.csv",
+  "status": 200,
+  "size": 1154822,
+  "md5": "24770f4ca4d3030d0b15e74896762d2b",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 1154822,
+   "md5": "24770f4ca4d3030d0b15e74896762d2b",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ADLF_Datasets.zip",
+  "status": 200,
+  "size": 145491,
+  "md5": "5ed93568d665a6aaa592f2fce8d44203",
+  "lm": "Thu, 15 Oct 2026 01:48:25 GMT",
+  "cached": {
+   "size": 145491,
+   "md5": "5ed93568d665a6aaa592f2fce8d44203",
+   "lm": "Thu, 15 Oct 2026 01:48:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ADLF_Graduate_Outcomes.csv",
+  "status": 200,
+  "size": 74750,
+  "md5": "3c8e81bd312cdfc8a664495adacbbdd3",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 74750,
+   "md5": "3c8e81bd312cdfc8a664495adacbbdd3",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ADLF_Transition_to_In_State_Postsecondary_Education.csv",
+  "status": 200,
+  "size": 836832,
+  "md5": "65cf42483d3b83aa9c8fc5db3eff0b81",
+  "lm": "Tue, 06 Oct 2026 20:27:18 GMT",
+  "cached": {
+   "size": 836832,
+   "md5": "65cf42483d3b83aa9c8fc5db3eff0b81",
+   "lm": "Tue, 06 Oct 2026 20:27:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_Alternate_Assessment_Participation.csv",
+  "status": 200,
+  "size": 2394818,
+  "md5": "b08b316fe8b2da5d91ee35ca7d39f97a",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 2394818,
+   "md5": "b08b316fe8b2da5d91ee35ca7d39f97a",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_Benchmark.csv",
+  "status": 200,
+  "size": 1654500,
+  "md5": "a1d50c953ed9f20d1081eb9e415b8820",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 1654500,
+   "md5": "a1d50c953ed9f20d1081eb9e415b8820",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_CAE.csv",
+  "status": 200,
+  "size": 1780148,
+  "md5": "ede7c157349ceade1154ae750fd8b00a",
+  "lm": "Thu, 08 Oct 2026 12:39:30 GMT",
+  "cached": {
+   "size": 1780148,
+   "md5": "ede7c157349ceade1154ae750fd8b00a",
+   "lm": "Thu, 08 Oct 2026 12:39:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_Datasets.zip",
+  "status": 200,
+  "size": 8692547,
+  "md5": "4e3bbe269a2d3f5360f9fa94b0f408ed",
+  "lm": "Thu, 15 Oct 2026 01:48:28 GMT",
+  "cached": {
+   "size": 8692547,
+   "md5": "4e3bbe269a2d3f5360f9fa94b0f408ed",
+   "lm": "Thu, 15 Oct 2026 01:48:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_English_Language_Proficiency.csv",
+  "status": 200,
+  "size": 796035,
+  "md5": "d71bb505346428f2c1d2aa27fa8704cc",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 796035,
+   "md5": "d71bb505346428f2c1d2aa27fa8704cc",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_Kentucky_Summative_Assessment.csv",
+  "status": 200,
+  "size": 93205215,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 93205215,
+   "md5": "5ed039814372926f96dea829bd301339",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_Kindergarten_Screen_Composite.csv",
+  "status": 200,
+  "size": 12186049,
+  "md5": "144fd82afecea7722472d8205142db6d",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 12186049,
+   "md5": "144fd82afecea7722472d8205142db6d",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_Kindergarten_Screen_Developmental_Domains.csv",
+  "status": 200,
+  "size": 14668407,
+  "md5": "e8f111953ff44df29e25eba73796822b",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 14668407,
+   "md5": "e8f111953ff44df29e25eba73796822b",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_Measurements_of_Interim_Progress_English_Language_Proficiency.csv",
+  "status": 200,
+  "size": 343798,
+  "md5": "8a5f500b001b94b25cb0e9d467b790b8",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 343798,
+   "md5": "8a5f500b001b94b25cb0e9d467b790b8",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_Measurements_of_Interim_Progress_Graduation_Rate.csv",
+  "status": 200,
+  "size": 2962383,
+  "md5": "438709c7300fe3e7073a4d1a43741e79",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 2962383,
+   "md5": "438709c7300fe3e7073a4d1a43741e79",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_Measurements_of_Interim_Progress_Proficiency.csv",
+  "status": 200,
+  "size": 36237131,
+  "md5": "551ff901f594e1c692233acdf8f9deb0",
+  "lm": "Tue, 06 Oct 2026 20:27:21 GMT",
+  "cached": {
+   "size": 36237131,
+   "md5": "551ff901f594e1c692233acdf8f9deb0",
+   "lm": "Tue, 06 Oct 2026 20:27:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_National_Assessment_of_Educational_Progress.csv",
+  "status": 200,
+  "size": 9119,
+  "md5": "fcaa25efff2472767ace168536c71a84",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 9119,
+   "md5": "fcaa25efff2472767ace168536c71a84",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_ASMT_The_ACT.csv",
+  "status": 200,
+  "size": 1780148,
+  "md5": "ede7c157349ceade1154ae750fd8b00a",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 1780148,
+   "md5": "ede7c157349ceade1154ae750fd8b00a",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_CTE_Career_Pathways.csv",
+  "status": 200,
+  "size": 889993,
+  "md5": "3f32af7c887b0051392654af171fb111",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 889993,
+   "md5": "3f32af7c887b0051392654af171fb111",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_CTE_Career_Readiness_Indicators.csv",
+  "status": 200,
+  "size": 46284,
+  "md5": "445b117888f07117ff8c771cca521430",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 46284,
+   "md5": "445b117888f07117ff8c771cca521430",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_CTE_Datasets.zip",
+  "status": 200,
+  "size": 293749,
+  "md5": "34cad1b5895097105efa8070479c4eb4",
+  "lm": "Thu, 15 Oct 2026 01:48:29 GMT",
+  "cached": {
+   "size": 293749,
+   "md5": "34cad1b5895097105efa8070479c4eb4",
+   "lm": "Thu, 15 Oct 2026 01:48:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_CTE_Participation.csv",
+  "status": 200,
+  "size": 1045066,
+  "md5": "9ac6152de241e6ec5e68f65dc871b13f",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 1045066,
+   "md5": "9ac6152de241e6ec5e68f65dc871b13f",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_CTE_Perkins_Report.csv",
+  "status": 200,
+  "size": 460191,
+  "md5": "293b11db10d60c687864801a7f5468b1",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 460191,
+   "md5": "293b11db10d60c687864801a7f5468b1",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_CTE_Postsecondary_Opportunities.csv",
+  "status": 200,
+  "size": 1683046,
+  "md5": "5612da1cebe9e1a95829b5a3790098ba",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 1683046,
+   "md5": "5612da1cebe9e1a95829b5a3790098ba",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_CTE_Student_Objectives.csv",
+  "status": 200,
+  "size": 54425,
+  "md5": "68616af02a7fbc1bdeed7830195a3536",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 54425,
+   "md5": "68616af02a7fbc1bdeed7830195a3536",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_EDOP_Advanced_Courses_Offered.csv",
+  "status": 200,
+  "size": 863452,
+  "md5": "9ec53529907856aca4f024436c9f9173",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 863452,
+   "md5": "9ec53529907856aca4f024436c9f9173",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_EDOP_Advanced_Courses_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 940485,
+  "md5": "a7655bda94b03fd1781678fe24558ced",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 940485,
+   "md5": "a7655bda94b03fd1781678fe24558ced",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_EDOP_Datasets.zip",
+  "status": 200,
+  "size": 1751837,
+  "md5": "37df400595c131cb5b75ebbcfbb91b9c",
+  "lm": "Thu, 15 Oct 2026 01:48:29 GMT",
+  "cached": {
+   "size": 1751837,
+   "md5": "37df400595c131cb5b75ebbcfbb91b9c",
+   "lm": "Thu, 15 Oct 2026 01:48:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_EDOP_Dual_Credit_Courses_Offered.csv",
+  "status": 200,
+  "size": 828966,
+  "md5": "55480f40f10acbcb7ed666251bbcd5ef",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 828966,
+   "md5": "55480f40f10acbcb7ed666251bbcd5ef",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_EDOP_Dual_Credit_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 1175252,
+  "md5": "5537304e3815ddad718a2ac556032335",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 1175252,
+   "md5": "5537304e3815ddad718a2ac556032335",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_EDOP_Gifted_Participation_by_Category.csv",
+  "status": 200,
+  "size": 3167258,
+  "md5": "63934711ed302972daab3ba56811d327",
+  "lm": "Tue, 06 Oct 2026 20:27:21 GMT",
+  "cached": {
+   "size": 3167258,
+   "md5": "63934711ed302972daab3ba56811d327",
+   "lm": "Tue, 06 Oct 2026 20:27:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_EDOP_Gifted_Participation_by_Grade_Level.csv",
+  "status": 200,
+  "size": 2028075,
+  "md5": "0b0c3812522916bafb972156bf3f91e1",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 2028075,
+   "md5": "0b0c3812522916bafb972156bf3f91e1",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_EDOP_School_Courses_Summary.csv",
+  "status": 200,
+  "size": 5273720,
+  "md5": "cb2b27d605047d676c4bc253b0b31ca3",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 5273720,
+   "md5": "cb2b27d605047d676c4bc253b0b31ca3",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Datasets.zip",
+  "status": 200,
+  "size": 295535,
+  "md5": "59dd3440089ef6aa08e3a065c181b4b0",
+  "lm": "Thu, 15 Oct 2026 01:48:29 GMT",
+  "cached": {
+   "size": 295535,
+   "md5": "59dd3440089ef6aa08e3a065c181b4b0",
+   "lm": "Thu, 15 Oct 2026 01:48:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Facilities_Debt_Services.csv",
+  "status": 200,
+  "size": 21166,
+  "md5": "e19e659f34194de4e276222710f0fb20",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 21166,
+   "md5": "e19e659f34194de4e276222710f0fb20",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Financial_Summary.csv",
+  "status": 200,
+  "size": 18938,
+  "md5": "09a0a0bf4cc5fb3714e1799efbf6cffb",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 18938,
+   "md5": "09a0a0bf4cc5fb3714e1799efbf6cffb",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Grants.csv",
+  "status": 200,
+  "size": 20324,
+  "md5": "77d1f5dfb9fc98d258916e2ddbe29d3e",
+  "lm": "Tue, 06 Oct 2026 20:27:17 GMT",
+  "cached": {
+   "size": 20324,
+   "md5": "77d1f5dfb9fc98d258916e2ddbe29d3e",
+   "lm": "Tue, 06 Oct 2026 20:27:17 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Learning_Environment.csv",
+  "status": 200,
+  "size": 36038,
+  "md5": "2c8ba9ad5b44801d74b646e490dd64b5",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 36038,
+   "md5": "2c8ba9ad5b44801d74b646e490dd64b5",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Operations.csv",
+  "status": 200,
+  "size": 27019,
+  "md5": "5c202155959d320a0d230abaa362e928",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 27019,
+   "md5": "5c202155959d320a0d230abaa362e928",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Personnel_Spending_per_Student_Federal_Funds.csv",
+  "status": 200,
+  "size": 626488,
+  "md5": "59377931e6c669ff95e18dd835b6afbf",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 626488,
+   "md5": "59377931e6c669ff95e18dd835b6afbf",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Personnel_Spending_per_Student_State_Local_Funds.csv",
+  "status": 200,
+  "size": 614491,
+  "md5": "9b640e001f797bfff247e7973b762749",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 614491,
+   "md5": "9b640e001f797bfff247e7973b762749",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_State_Funding_SEEK.csv",
+  "status": 200,
+  "size": 23315,
+  "md5": "703f50c172f398cf5d36bb40e47d4f22",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 23315,
+   "md5": "703f50c172f398cf5d36bb40e47d4f22",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Statewide_Funding_Sources.csv",
+  "status": 200,
+  "size": 23147,
+  "md5": "236dd2f40eca35f561bb2e8f44d232e5",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 23147,
+   "md5": "236dd2f40eca35f561bb2e8f44d232e5",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Taxes.csv",
+  "status": 200,
+  "size": 20018,
+  "md5": "30ff9c647cf2d07a6efa62c7ef8bedb3",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 20018,
+   "md5": "30ff9c647cf2d07a6efa62c7ef8bedb3",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Total_Spending_per_Student_All_Fund_Sources.csv",
+  "status": 200,
+  "size": 280137,
+  "md5": "04b99a4b069a8c0df0aace82d6ed148c",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 280137,
+   "md5": "04b99a4b069a8c0df0aace82d6ed148c",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Total_Spending_per_Student_Federal_Funds.csv",
+  "status": 200,
+  "size": 288041,
+  "md5": "4055cb4183368fb4e8f998c5b29eb39c",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 288041,
+   "md5": "4055cb4183368fb4e8f998c5b29eb39c",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_FT_Total_Spending_per_Student_State_Local_Funds.csv",
+  "status": 200,
+  "size": 306664,
+  "md5": "d84b1efe1c4ae443118b50ad64dbee28",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 306664,
+   "md5": "d84b1efe1c4ae443118b50ad64dbee28",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Adjusted_Average_Daily_Attendance_AADA.csv",
+  "status": 200,
+  "size": 198126,
+  "md5": "0944a56b0f208067d925a1700fb12557",
+  "lm": "Tue, 06 Oct 2026 20:27:24 GMT",
+  "cached": {
+   "size": 198126,
+   "md5": "0944a56b0f208067d925a1700fb12557",
+   "lm": "Tue, 06 Oct 2026 20:27:24 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Advanced_Coursework.csv",
+  "status": 200,
+  "size": 6716443,
+  "md5": "d071b3a93ee34068d5a488554cda28d0",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 6716443,
+   "md5": "d071b3a93ee34068d5a488554cda28d0",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Arrests_and_Referrals_to_Law_Enforcement.csv",
+  "status": 200,
+  "size": 2227898,
+  "md5": "1912b2b493d42b4ab7a422a8db45bbd2",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 2227898,
+   "md5": "1912b2b493d42b4ab7a422a8db45bbd2",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Attendance_Rate.csv",
+  "status": 200,
+  "size": 196001,
+  "md5": "443ca8f0feb45da7507e8303dd373884",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 196001,
+   "md5": "443ca8f0feb45da7507e8303dd373884",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Average_Years_School_Experience.csv",
+  "status": 200,
+  "size": 193010,
+  "md5": "fc037ef5cbc3dcf052eb52506cde5d7e",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 193010,
+   "md5": "fc037ef5cbc3dcf052eb52506cde5d7e",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Board_Members_SBDM.csv",
+  "status": 200,
+  "size": 1380223,
+  "md5": "1e329ac0c5eb7434ee9f7f2021917905",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 1380223,
+   "md5": "1e329ac0c5eb7434ee9f7f2021917905",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Chronic_Absenteeism.csv",
+  "status": 200,
+  "size": 15071557,
+  "md5": "1412f2d230e24806d6feacdbdaec6520",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 15071557,
+   "md5": "1412f2d230e24806d6feacdbdaec6520",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Chronic_Absenteeism_CRDC.csv",
+  "status": 200,
+  "size": 1168029,
+  "md5": "131a496d18d16e5ca6a91fed48565330",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 1168029,
+   "md5": "131a496d18d16e5ca6a91fed48565330",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Datasets.zip",
+  "status": 200,
+  "size": 4608738,
+  "md5": "99c34a7c116543c7186a69f9ee3f932f",
+  "lm": "Thu, 15 Oct 2026 01:48:31 GMT",
+  "cached": {
+   "size": 4608738,
+   "md5": "99c34a7c116543c7186a69f9ee3f932f",
+   "lm": "Thu, 15 Oct 2026 01:48:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_District_School_List.csv",
+  "status": 200,
+  "size": 429732,
+  "md5": "eb4b3d386eb2c51d2e37cf85c053b34d",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 429732,
+   "md5": "eb4b3d386eb2c51d2e37cf85c053b34d",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Dropout_Rate.csv",
+  "status": 200,
+  "size": 1609873,
+  "md5": "c57327a2529accef9b4b71bbb6802d59",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 1609873,
+   "md5": "c57327a2529accef9b4b71bbb6802d59",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Economically_Disadvantaged.csv",
+  "status": 200,
+  "size": 3821107,
+  "md5": "8e5811fd95fb5c9a899d7dfb15bf4531",
+  "lm": "Tue, 06 Oct 2026 20:27:20 GMT",
+  "cached": {
+   "size": 3821107,
+   "md5": "8e5811fd95fb5c9a899d7dfb15bf4531",
+   "lm": "Tue, 06 Oct 2026 20:27:20 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Educator_Qualifications.csv",
+  "status": 200,
+  "size": 1249475,
+  "md5": "52457e929f83db5eeb0f85cb9be469d9",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 1249475,
+   "md5": "52457e929f83db5eeb0f85cb9be469d9",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_English_Learners.csv",
+  "status": 200,
+  "size": 3842256,
+  "md5": "731140cf048268e8e455e7ab7acd02a7",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 3842256,
+   "md5": "731140cf048268e8e455e7ab7acd02a7",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Harassment_and_Bullying.csv",
+  "status": 200,
+  "size": 182134,
+  "md5": "b8f370a9633e5a6c079d31caba9bebd5",
+  "lm": "Tue, 06 Oct 2026 20:27:21 GMT",
+  "cached": {
+   "size": 182134,
+   "md5": "b8f370a9633e5a6c079d31caba9bebd5",
+   "lm": "Tue, 06 Oct 2026 20:27:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Homeless.csv",
+  "status": 200,
+  "size": 3895908,
+  "md5": "b3eaefb5025733fa5c0f7d417a6237a8",
+  "lm": "Tue, 06 Oct 2026 20:27:18 GMT",
+  "cached": {
+   "size": 3895908,
+   "md5": "b3eaefb5025733fa5c0f7d417a6237a8",
+   "lm": "Tue, 06 Oct 2026 20:27:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Inexperienced_Staff.csv",
+  "status": 200,
+  "size": 124302,
+  "md5": "8b9ef1524ef6c2b9ac55488fa4ce7b86",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 124302,
+   "md5": "8b9ef1524ef6c2b9ac55488fa4ce7b86",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Inexperienced_Teachers.csv",
+  "status": 200,
+  "size": 203978,
+  "md5": "d9c878fcb3385551993be226f215fba9",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 203978,
+   "md5": "d9c878fcb3385551993be226f215fba9",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Migrant.csv",
+  "status": 200,
+  "size": 3926799,
+  "md5": "e548689d361900bdd196697dc81618ce",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 3926799,
+   "md5": "e548689d361900bdd196697dc81618ce",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Preschool_Enrollment.csv",
+  "status": 200,
+  "size": 2110917,
+  "md5": "0f09a1d089b4b18998a978af9c43bf69",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 2110917,
+   "md5": "0f09a1d089b4b18998a978af9c43bf69",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Preschool_Suspensions_and_Expulsions.csv",
+  "status": 200,
+  "size": 303472,
+  "md5": "ba644b94a925dc1e96f7994fa95cc1ab",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 303472,
+   "md5": "ba644b94a925dc1e96f7994fa95cc1ab",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Secondary_Enrollment.csv",
+  "status": 200,
+  "size": 159663,
+  "md5": "94220c2cd46fbf7bbbb7dfcffe03a5c7",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 159663,
+   "md5": "94220c2cd46fbf7bbbb7dfcffe03a5c7",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Student_Enrollment.csv",
+  "status": 200,
+  "size": 3616378,
+  "md5": "709b8d11c4661f686764a9d443504ee7",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 3616378,
+   "md5": "709b8d11c4661f686764a9d443504ee7",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Student_Expulsions.csv",
+  "status": 200,
+  "size": 2227885,
+  "md5": "ff3bf7bb2cb6a0036a555fd72791f18d",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 2227885,
+   "md5": "ff3bf7bb2cb6a0036a555fd72791f18d",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Student_Membership.csv",
+  "status": 200,
+  "size": 2019787,
+  "md5": "70fd7eee9ff3e525d07998089385f148",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 2019787,
+   "md5": "70fd7eee9ff3e525d07998089385f148",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Student_Retention_Grades_4_12.csv",
+  "status": 200,
+  "size": 4215381,
+  "md5": "42835ceb1edf360dbf52fbf12c7feb9c",
+  "lm": "Tue, 06 Oct 2026 20:27:21 GMT",
+  "cached": {
+   "size": 4215381,
+   "md5": "42835ceb1edf360dbf52fbf12c7feb9c",
+   "lm": "Tue, 06 Oct 2026 20:27:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Student_Suspensions.csv",
+  "status": 200,
+  "size": 2289184,
+  "md5": "65be6fc0d50f34ba492da911f9039621",
+  "lm": "Tue, 06 Oct 2026 20:27:18 GMT",
+  "cached": {
+   "size": 2289184,
+   "md5": "65be6fc0d50f34ba492da911f9039621",
+   "lm": "Tue, 06 Oct 2026 20:27:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Student_to_Teacher_Ratio.csv",
+  "status": 200,
+  "size": 190392,
+  "md5": "ab25d8badc90ae9718280d234c462a41",
+  "lm": "Tue, 06 Oct 2026 20:27:24 GMT",
+  "cached": {
+   "size": 190392,
+   "md5": "ab25d8badc90ae9718280d234c462a41",
+   "lm": "Tue, 06 Oct 2026 20:27:24 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Students_Taught_by_Ineffective_Teachers.csv",
+  "status": 200,
+  "size": 176336,
+  "md5": "cb098406ff2e9cccb8beb8a4d1adf1f1",
+  "lm": "Mon, 12 Oct 2026 19:10:33 GMT",
+  "cached": {
+   "size": 176336,
+   "md5": "cb098406ff2e9cccb8beb8a4d1adf1f1",
+   "lm": "Mon, 12 Oct 2026 19:10:33 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Students_Taught_by_Inexperienced_Teachers.csv",
+  "status": 200,
+  "size": 315398,
+  "md5": "04763e924fb0218f62b10244f1259a83",
+  "lm": "Tue, 06 Oct 2026 20:27:18 GMT",
+  "cached": {
+   "size": 315398,
+   "md5": "04763e924fb0218f62b10244f1259a83",
+   "lm": "Tue, 06 Oct 2026 20:27:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+  "status": 200,
+  "size": 308667,
+  "md5": "16ee00365af5729866a67d644b4d4a4e",
+  "lm": "Mon, 12 Oct 2026 19:09:41 GMT",
+  "cached": {
+   "size": 308667,
+   "md5": "16ee00365af5729866a67d644b4d4a4e",
+   "lm": "Mon, 12 Oct 2026 19:09:41 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Students_with_Disabilities_IEP.csv",
+  "status": 200,
+  "size": 4791166,
+  "md5": "2ffbe03bf0d52f7420076fd017782dd9",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 4791166,
+   "md5": "2ffbe03bf0d52f7420076fd017782dd9",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Teacher_Certification_Data.csv",
+  "status": 200,
+  "size": 206463,
+  "md5": "479e070380f5dcb4d776a2b8ad6795dd",
+  "lm": "Tue, 06 Oct 2026 20:27:19 GMT",
+  "cached": {
+   "size": 206463,
+   "md5": "479e070380f5dcb4d776a2b8ad6795dd",
+   "lm": "Tue, 06 Oct 2026 20:27:19 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Teacher_Turnover.csv",
+  "status": 200,
+  "size": 205241,
+  "md5": "8e6e9564da5d5c62d54cd9416af92c82",
+  "lm": "Tue, 06 Oct 2026 20:27:19 GMT",
+  "cached": {
+   "size": 205241,
+   "md5": "8e6e9564da5d5c62d54cd9416af92c82",
+   "lm": "Tue, 06 Oct 2026 20:27:19 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Teacher_Working_Conditions.csv",
+  "status": 200,
+  "size": 625066,
+  "md5": "aeaacfd3632b3240e09a5adaebe07be2",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 625066,
+   "md5": "aeaacfd3632b3240e09a5adaebe07be2",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Teachers_Full_Time_Equivalent_FTE.csv",
+  "status": 200,
+  "size": 14439,
+  "md5": "69a348edec50bf41f407a9d0389d7cff",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 14439,
+   "md5": "69a348edec50bf41f407a9d0389d7cff",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Teachers_by_Gender.csv",
+  "status": 200,
+  "size": 389388,
+  "md5": "858d182e221aaf930b223f2de24e89f4",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 389388,
+   "md5": "858d182e221aaf930b223f2de24e89f4",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Teachers_by_Race_Ethnicity.csv",
+  "status": 200,
+  "size": 1736270,
+  "md5": "5d16b40ee102927d4dba8d23128726a3",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 1736270,
+   "md5": "5d16b40ee102927d4dba8d23128726a3",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_OVW_Violent_Offenses.csv",
+  "status": 200,
+  "size": 193192,
+  "md5": "af4c8e9d75d1dcfb795dc6ab51c3a1bb",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 193192,
+   "md5": "af4c8e9d75d1dcfb795dc6ab51c3a1bb",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_SAFE_Behavior_Events_by_Context.csv",
+  "status": 200,
+  "size": 4253152,
+  "md5": "4e4e5a8ebd0418619e5d996ad17abc04",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 4253152,
+   "md5": "4e4e5a8ebd0418619e5d996ad17abc04",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_SAFE_Behavior_Events_by_Grade_Level.csv",
+  "status": 200,
+  "size": 4601741,
+  "md5": "6350e7f943192050a43faa9f6787488a",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 4601741,
+   "md5": "6350e7f943192050a43faa9f6787488a",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_SAFE_Behavior_Events_by_Location.csv",
+  "status": 200,
+  "size": 4569780,
+  "md5": "4f980016051c58a76245f9fc997d0bf8",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 4569780,
+   "md5": "4f980016051c58a76245f9fc997d0bf8",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_SAFE_Behavior_Events_by_Type.csv",
+  "status": 200,
+  "size": 4501992,
+  "md5": "e5cc0e08685aa6587ae2db45f5093295",
+  "lm": "Tue, 06 Oct 2026 20:27:24 GMT",
+  "cached": {
+   "size": 4501992,
+   "md5": "e5cc0e08685aa6587ae2db45f5093295",
+   "lm": "Tue, 06 Oct 2026 20:27:24 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_SAFE_Datasets.zip",
+  "status": 200,
+  "size": 1621919,
+  "md5": "b1bb2f7666df85066c6bb924982c1e2a",
+  "lm": "Thu, 15 Oct 2026 01:48:32 GMT",
+  "cached": {
+   "size": 1621919,
+   "md5": "b1bb2f7666df85066c6bb924982c1e2a",
+   "lm": "Thu, 15 Oct 2026 01:48:32 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_SAFE_Discipline_Resolutions.csv",
+  "status": 200,
+  "size": 4474420,
+  "md5": "2b1329c030dc34fb2881cae5cffb7386",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 4474420,
+   "md5": "2b1329c030dc34fb2881cae5cffb7386",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_SAFE_Legal_Sanctions.csv",
+  "status": 200,
+  "size": 4282258,
+  "md5": "2f14be6e2425b2f66fe6588dd72ecd96",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 4282258,
+   "md5": "2f14be6e2425b2f66fe6588dd72ecd96",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2023/KYRC23_SAFE_Precautionary_Measures.csv",
+  "status": 200,
+  "size": 202669,
+  "md5": "ea77f5975c249e6d61a991e929ddb17d",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 202669,
+   "md5": "ea77f5975c249e6d61a991e929ddb17d",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_4_Year_High_School_Graduation.csv",
+  "status": 200,
+  "size": 1148155,
+  "md5": "57a926b137aedabf29343e2cbc4dc5e3",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 1148155,
+   "md5": "57a926b137aedabf29343e2cbc4dc5e3",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_5_Year_High_School_Graduation.csv",
+  "status": 200,
+  "size": 1148527,
+  "md5": "e7a9890825ada247494fbbeee09e759b",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 1148527,
+   "md5": "e7a9890825ada247494fbbeee09e759b",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Assessment_Participation.csv",
+  "status": 200,
+  "size": 56959425,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 56959425,
+   "md5": "4fb66d4212c92cd8b2f81ccc44698121",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Crosstab_Cohort_4_Year.csv",
+  "status": 200,
+  "size": 13628766,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:24 GMT",
+  "cached": {
+   "size": 13628766,
+   "md5": "62dd6d61b3112ea65200f199f42846e7",
+   "lm": "Tue, 06 Oct 2026 20:27:24 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Crosstab_Cohort_5_Year.csv",
+  "status": 200,
+  "size": 13362873,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 13362873,
+   "md5": "bdc27c9f473f16eab8f85d36b9bd1263",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Crosstab_EditingMechanics.csv",
+  "status": 200,
+  "size": 57574887,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:20 GMT",
+  "cached": {
+   "size": 57574887,
+   "md5": "0b6b53c7b2cef0dd9925554b3c6f16f9",
+   "lm": "Tue, 06 Oct 2026 20:27:20 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Crosstab_Mathematics.csv",
+  "status": 200,
+  "size": 71935212,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:22 GMT",
+  "cached": {
+   "size": 71935212,
+   "md5": "c0b729906ca02c5411efe26224ee3796",
+   "lm": "Tue, 06 Oct 2026 20:27:22 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Crosstab_OnDemandWriting.csv",
+  "status": 200,
+  "size": 57354131,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:23 GMT",
+  "cached": {
+   "size": 57354131,
+   "md5": "1cb238023075971e8e26ecd1de640565",
+   "lm": "Tue, 06 Oct 2026 20:27:23 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Crosstab_Reading.csv",
+  "status": 200,
+  "size": 72115977,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:20 GMT",
+  "cached": {
+   "size": 72115977,
+   "md5": "16973ae381d786081950b3229eb57573",
+   "lm": "Tue, 06 Oct 2026 20:27:20 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Crosstab_Science.csv",
+  "status": 200,
+  "size": 57702122,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 57702122,
+   "md5": "47d4cd307d453d357d414d19d869d2a4",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Crosstab_SocialStudies.csv",
+  "status": 200,
+  "size": 57518078,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 57518078,
+   "md5": "80d49c4523b898425d1fbef2f4f89791",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Datasets.zip",
+  "status": 200,
+  "size": 32360330,
+  "md5": "c1f680251bd6facf0e19bae165b912fa",
+  "lm": "Thu, 15 Oct 2026 01:48:47 GMT",
+  "cached": {
+   "size": 32360330,
+   "md5": "c1f680251bd6facf0e19bae165b912fa",
+   "lm": "Thu, 15 Oct 2026 01:48:47 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+  "status": 200,
+  "size": 2935267,
+  "md5": "d38c9d255fdf3b1985359f8a75a59353",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 2935267,
+   "md5": "d38c9d255fdf3b1985359f8a75a59353",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Index_Scores.csv",
+  "status": 200,
+  "size": 6998960,
+  "md5": "a71574a6a75fb43a219ac1cb36ec188a",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 6998960,
+   "md5": "a71574a6a75fb43a219ac1cb36ec188a",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Kentucky_Summative_Assessment.csv",
+  "status": 200,
+  "size": 47219924,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 47219924,
+   "md5": "c751ad02272f0f3c00c917eb9aa15c1d",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Postsecondary_Readiness.csv",
+  "status": 200,
+  "size": 1337876,
+  "md5": "85eb6af528ac3026cb1f7ad9746d93d4",
+  "lm": "Tue, 06 Oct 2026 20:27:21 GMT",
+  "cached": {
+   "size": 1337876,
+   "md5": "85eb6af528ac3026cb1f7ad9746d93d4",
+   "lm": "Tue, 06 Oct 2026 20:27:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Profile.csv",
+  "status": 200,
+  "size": 426573,
+  "md5": "1c5d35e904e26f5b121d17b76d89b96a",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 426573,
+   "md5": "1c5d35e904e26f5b121d17b76d89b96a",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_School_Improvement.csv",
+  "status": 200,
+  "size": 25293,
+  "md5": "e94c3707ce4bb40253efc19c598a78ed",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 25293,
+   "md5": "e94c3707ce4bb40253efc19c598a78ed",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Summary.csv",
+  "status": 200,
+  "size": 3695676,
+  "md5": "7e7a9ff105ee79ff9e9eee40030eb6f8",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 3695676,
+   "md5": "7e7a9ff105ee79ff9e9eee40030eb6f8",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ACCT_Survey_Results.csv",
+  "status": 200,
+  "size": 299954233,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 299954233,
+   "md5": "f8e20d69a06109cc63579f430addf9d1",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ADLF_Current_Year_Graduates.csv",
+  "status": 200,
+  "size": 1161826,
+  "md5": "16f8dec15890e2fd1c2a9ddef8a9ce50",
+  "lm": "Tue, 06 Oct 2026 20:27:22 GMT",
+  "cached": {
+   "size": 1161826,
+   "md5": "16f8dec15890e2fd1c2a9ddef8a9ce50",
+   "lm": "Tue, 06 Oct 2026 20:27:22 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ADLF_Datasets.zip",
+  "status": 200,
+  "size": 149524,
+  "md5": "89598d7782a727e71b2817bb70c83ae7",
+  "lm": "Thu, 15 Oct 2026 01:48:48 GMT",
+  "cached": {
+   "size": 149524,
+   "md5": "89598d7782a727e71b2817bb70c83ae7",
+   "lm": "Thu, 15 Oct 2026 01:48:48 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ADLF_Graduate_Outcomes.csv",
+  "status": 200,
+  "size": 74759,
+  "md5": "d661dfca41b0567b274d59238f6a4b5c",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 74759,
+   "md5": "d661dfca41b0567b274d59238f6a4b5c",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ADLF_Transition_to_In_State_Postsecondary_Education.csv",
+  "status": 200,
+  "size": 849631,
+  "md5": "2280b244ee873abfe7c2554ad076bf41",
+  "lm": "Tue, 06 Oct 2026 20:27:20 GMT",
+  "cached": {
+   "size": 849631,
+   "md5": "2280b244ee873abfe7c2554ad076bf41",
+   "lm": "Tue, 06 Oct 2026 20:27:20 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_Alternate_Assessment_Participation.csv",
+  "status": 200,
+  "size": 2365523,
+  "md5": "7ccf76ac883c956499bd8ff8d9c5a949",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 2365523,
+   "md5": "7ccf76ac883c956499bd8ff8d9c5a949",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_Benchmark.csv",
+  "status": 200,
+  "size": 1635954,
+  "md5": "fad370f1626c3c4043de52d5011007c6",
+  "lm": "Tue, 06 Oct 2026 20:27:17 GMT",
+  "cached": {
+   "size": 1635954,
+   "md5": "fad370f1626c3c4043de52d5011007c6",
+   "lm": "Tue, 06 Oct 2026 20:27:17 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_CAE.csv",
+  "status": 200,
+  "size": 1763961,
+  "md5": "d36f3c125e603553b60a975395a39695",
+  "lm": "Thu, 08 Oct 2026 12:39:31 GMT",
+  "cached": {
+   "size": 1763961,
+   "md5": "d36f3c125e603553b60a975395a39695",
+   "lm": "Thu, 08 Oct 2026 12:39:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_Datasets.zip",
+  "status": 200,
+  "size": 8879703,
+  "md5": "31ec887128ef187484e7445c5a22eecb",
+  "lm": "Thu, 15 Oct 2026 01:48:52 GMT",
+  "cached": {
+   "size": 8879703,
+   "md5": "31ec887128ef187484e7445c5a22eecb",
+   "lm": "Thu, 15 Oct 2026 01:48:52 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_English_Language_Proficiency.csv",
+  "status": 200,
+  "size": 814320,
+  "md5": "b0acd4f239ce1a35c0a97dc0d988a0d1",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 814320,
+   "md5": "b0acd4f239ce1a35c0a97dc0d988a0d1",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_Kentucky_Summative_Assessment.csv",
+  "status": 200,
+  "size": 92584812,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:19 GMT",
+  "cached": {
+   "size": 92584812,
+   "md5": "31808ddfe1f4b69a77c0f0e043fda722",
+   "lm": "Tue, 06 Oct 2026 20:27:19 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_Kindergarten_Screen_Composite.csv",
+  "status": 200,
+  "size": 11736280,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:21 GMT",
+  "cached": {
+   "size": 11736280,
+   "md5": "e1a4fd2afa82f00ccab4ccbc6bcb0577",
+   "lm": "Tue, 06 Oct 2026 20:27:21 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_Kindergarten_Screen_Developmental_Domains.csv",
+  "status": 200,
+  "size": 14161740,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:32 GMT",
+  "cached": {
+   "size": 14161740,
+   "md5": "583bc0ad91e25863072d8e0667de3b35",
+   "lm": "Tue, 06 Oct 2026 20:27:32 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_Measurements_of_Interim_Progress_English_Language_Proficiency.csv",
+  "status": 200,
+  "size": 347838,
+  "md5": "1fc5f2c390fa4ef408b4e16829cdda32",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 347838,
+   "md5": "1fc5f2c390fa4ef408b4e16829cdda32",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_Measurements_of_Interim_Progress_Graduation_Rate.csv",
+  "status": 200,
+  "size": 3013805,
+  "md5": "79dc364510fc52795ab2f2d74de35e28",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 3013805,
+   "md5": "79dc364510fc52795ab2f2d74de35e28",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_Measurements_of_Interim_Progress_Proficiency.csv",
+  "status": 200,
+  "size": 36456362,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 36456362,
+   "md5": "d09e49e528a27ca6e87706dcb8ad6eaa",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_National_Assessment_of_Educational_Progress.csv",
+  "status": 200,
+  "size": 14779,
+  "md5": "769cc29641fa97bca95042280933ae86",
+  "lm": "Tue, 06 Oct 2026 20:27:21 GMT",
+  "cached": {
+   "size": 14779,
+   "md5": "769cc29641fa97bca95042280933ae86",
+   "lm": "Tue, 06 Oct 2026 20:27:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_ASMT_The_ACT.csv",
+  "status": 200,
+  "size": 1763961,
+  "md5": "d36f3c125e603553b60a975395a39695",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 1763961,
+   "md5": "d36f3c125e603553b60a975395a39695",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_CRDC_Chronic_Absenteeism.csv",
+  "status": 200,
+  "size": 1141224,
+  "md5": "d848d772f65fd42fc5f70d9d0a1f653a",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 1141224,
+   "md5": "d848d772f65fd42fc5f70d9d0a1f653a",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_CTE_Career_Pathways.csv",
+  "status": 200,
+  "size": 811160,
+  "md5": "11c85268815699ed01174ab6b1e9ce98",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 811160,
+   "md5": "11c85268815699ed01174ab6b1e9ce98",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_CTE_Career_Readiness_Indicators.csv",
+  "status": 200,
+  "size": 64723,
+  "md5": "812324f962ac4815fecdaa73f20b4bed",
+  "lm": "Tue, 06 Oct 2026 20:27:24 GMT",
+  "cached": {
+   "size": 64723,
+   "md5": "812324f962ac4815fecdaa73f20b4bed",
+   "lm": "Tue, 06 Oct 2026 20:27:24 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_CTE_Datasets.zip",
+  "status": 200,
+  "size": 277355,
+  "md5": "4a4752551005fe9dd0122db2ca78ef7e",
+  "lm": "Thu, 15 Oct 2026 01:48:52 GMT",
+  "cached": {
+   "size": 277355,
+   "md5": "4a4752551005fe9dd0122db2ca78ef7e",
+   "lm": "Thu, 15 Oct 2026 01:48:52 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_CTE_Participation.csv",
+  "status": 200,
+  "size": 847897,
+  "md5": "86677fc9b17a32b62cb533f4352ed63e",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 847897,
+   "md5": "86677fc9b17a32b62cb533f4352ed63e",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_CTE_Perkins_Report.csv",
+  "status": 200,
+  "size": 464803,
+  "md5": "440855ab4477e18b6bebb53f42cce8eb",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 464803,
+   "md5": "440855ab4477e18b6bebb53f42cce8eb",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_CTE_Postsecondary_Opportunities.csv",
+  "status": 200,
+  "size": 1172640,
+  "md5": "3214168ae970b4e9b4ea2d4fddee1d4d",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 1172640,
+   "md5": "3214168ae970b4e9b4ea2d4fddee1d4d",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_CTE_Student_Objectives.csv",
+  "status": 200,
+  "size": 53760,
+  "md5": "d29dd4b89a1ee404028520ef9c7dfbf8",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 53760,
+   "md5": "d29dd4b89a1ee404028520ef9c7dfbf8",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_EDOP_Advanced_Courses_Offered.csv",
+  "status": 200,
+  "size": 780782,
+  "md5": "df5dadb0ed892c0feee3536f2045d83d",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 780782,
+   "md5": "df5dadb0ed892c0feee3536f2045d83d",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_EDOP_Advanced_Courses_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 920272,
+  "md5": "25f707471214ff6c000e6d76bfd0fd57",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 920272,
+   "md5": "25f707471214ff6c000e6d76bfd0fd57",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_EDOP_Career_Studies.csv",
+  "status": 200,
+  "size": 446679,
+  "md5": "525382772305b5df367eda2499d19b1b",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 446679,
+   "md5": "525382772305b5df367eda2499d19b1b",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_EDOP_Datasets.zip",
+  "status": 200,
+  "size": 1817346,
+  "md5": "93a6b435c7181aeac4848d413464ef02",
+  "lm": "Thu, 15 Oct 2026 01:48:53 GMT",
+  "cached": {
+   "size": 1817346,
+   "md5": "93a6b435c7181aeac4848d413464ef02",
+   "lm": "Thu, 15 Oct 2026 01:48:53 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_EDOP_Dual_Credit_Courses_Offered.csv",
+  "status": 200,
+  "size": 873810,
+  "md5": "77b3e71685d2a4f72894b6c26a85942b",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 873810,
+   "md5": "77b3e71685d2a4f72894b6c26a85942b",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_EDOP_Dual_Credit_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 1177701,
+  "md5": "41eaa1a76e151a70556877edd2740ab1",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 1177701,
+   "md5": "41eaa1a76e151a70556877edd2740ab1",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_EDOP_Gifted_Participation_by_Category.csv",
+  "status": 200,
+  "size": 3123060,
+  "md5": "dad773924d5abfad0588085b32bd927e",
+  "lm": "Tue, 06 Oct 2026 20:27:18 GMT",
+  "cached": {
+   "size": 3123060,
+   "md5": "dad773924d5abfad0588085b32bd927e",
+   "lm": "Tue, 06 Oct 2026 20:27:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_EDOP_Gifted_Participation_by_Grade_Level.csv",
+  "status": 200,
+  "size": 2027937,
+  "md5": "1bb1ec2c838150d9576a055401b243ba",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 2027937,
+   "md5": "1bb1ec2c838150d9576a055401b243ba",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_EDOP_Health_Education_and_Physical_Education.csv",
+  "status": 200,
+  "size": 461385,
+  "md5": "73afc4437fda40afd7c4679cb0b54410",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 461385,
+   "md5": "73afc4437fda40afd7c4679cb0b54410",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_EDOP_School_Courses_Summary.csv",
+  "status": 200,
+  "size": 5391926,
+  "md5": "5a70272a36dfc0a2375f1bff34abf21f",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 5391926,
+   "md5": "5a70272a36dfc0a2375f1bff34abf21f",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_EDOP_Visual_and_Performing_Arts.csv",
+  "status": 200,
+  "size": 512038,
+  "md5": "6527e6c980c5a357ca56c1c94d7b10ac",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 512038,
+   "md5": "6527e6c980c5a357ca56c1c94d7b10ac",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_EDOP_World_Languages.csv",
+  "status": 200,
+  "size": 436229,
+  "md5": "5f45893cf8329d6402901dd865e5f500",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 436229,
+   "md5": "5f45893cf8329d6402901dd865e5f500",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Datasets.zip",
+  "status": 200,
+  "size": 348766,
+  "md5": "b3bfa97bee73957361ed6738761ad995",
+  "lm": "Thu, 15 Oct 2026 01:48:53 GMT",
+  "cached": {
+   "size": 348766,
+   "md5": "b3bfa97bee73957361ed6738761ad995",
+   "lm": "Thu, 15 Oct 2026 01:48:53 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Facilities_Debt_Services.csv",
+  "status": 200,
+  "size": 21279,
+  "md5": "9ee17712561646b359191ae9f5bc677f",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 21279,
+   "md5": "9ee17712561646b359191ae9f5bc677f",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Financial_Summary.csv",
+  "status": 200,
+  "size": 18920,
+  "md5": "ee3736bcdfc45af9ea8ba941783fa0b3",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 18920,
+   "md5": "ee3736bcdfc45af9ea8ba941783fa0b3",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Grants.csv",
+  "status": 200,
+  "size": 20306,
+  "md5": "1a58941122423b8ae80f8120b51f5bcb",
+  "lm": "Tue, 06 Oct 2026 20:27:18 GMT",
+  "cached": {
+   "size": 20306,
+   "md5": "1a58941122423b8ae80f8120b51f5bcb",
+   "lm": "Tue, 06 Oct 2026 20:27:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Learning_Environment.csv",
+  "status": 200,
+  "size": 36033,
+  "md5": "26f39c3ea20b7d4c1a5ead9b6106d8fe",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 36033,
+   "md5": "26f39c3ea20b7d4c1a5ead9b6106d8fe",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Operations.csv",
+  "status": 200,
+  "size": 27121,
+  "md5": "8ef0194c9ef97df4b517b30f8f0e63a1",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 27121,
+   "md5": "8ef0194c9ef97df4b517b30f8f0e63a1",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Personnel_Spending_per_Student_Federal_Funds.csv",
+  "status": 200,
+  "size": 607893,
+  "md5": "cfbf0e767816ed6775f42a533c2c4410",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 607893,
+   "md5": "cfbf0e767816ed6775f42a533c2c4410",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Personnel_Spending_per_Student_State_Local_Funds.csv",
+  "status": 200,
+  "size": 591290,
+  "md5": "499a1809f1303c5202a001418801303b",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 591290,
+   "md5": "499a1809f1303c5202a001418801303b",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Spending_per_Student.csv",
+  "status": 200,
+  "size": 236983,
+  "md5": "1454c3f78b53858e559ca83abef44b77",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 236983,
+   "md5": "1454c3f78b53858e559ca83abef44b77",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_State_Funding_SEEK.csv",
+  "status": 200,
+  "size": 23281,
+  "md5": "b63ca112c9c6f2b861648bee3ca43eec",
+  "lm": "Tue, 06 Oct 2026 20:27:18 GMT",
+  "cached": {
+   "size": 23281,
+   "md5": "b63ca112c9c6f2b861648bee3ca43eec",
+   "lm": "Tue, 06 Oct 2026 20:27:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Statewide_Funding_Sources.csv",
+  "status": 200,
+  "size": 23225,
+  "md5": "a7afdfe7dca13e76680596039a0276a8",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 23225,
+   "md5": "a7afdfe7dca13e76680596039a0276a8",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Taxes.csv",
+  "status": 200,
+  "size": 20030,
+  "md5": "38701a4a5fb243806c87383fbe2467ff",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 20030,
+   "md5": "38701a4a5fb243806c87383fbe2467ff",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Total_Spending_per_Student_All_Fund_Sources.csv",
+  "status": 200,
+  "size": 267714,
+  "md5": "ac622606a65aceb19719c95ade7c0ca5",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 267714,
+   "md5": "ac622606a65aceb19719c95ade7c0ca5",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Total_Spending_per_Student_Federal_Funds.csv",
+  "status": 200,
+  "size": 277013,
+  "md5": "1e8bb6c9012a2e21db798b48c4ba70b6",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 277013,
+   "md5": "1e8bb6c9012a2e21db798b48c4ba70b6",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_FT_Total_Spending_per_Student_State_Local_Funds.csv",
+  "status": 200,
+  "size": 294378,
+  "md5": "38ebf4ab13259ece778276089537da9e",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 294378,
+   "md5": "38ebf4ab13259ece778276089537da9e",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Access_to_Technology.csv",
+  "status": 200,
+  "size": 4071,
+  "md5": "1365ded29ed42a95659713f5c7d48bd0",
+  "lm": "Mon, 12 Oct 2026 13:48:18 GMT",
+  "cached": {
+   "size": 4071,
+   "md5": "1365ded29ed42a95659713f5c7d48bd0",
+   "lm": "Mon, 12 Oct 2026 13:48:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Adjusted_Average_Daily_Attendance_AADA.csv",
+  "status": 200,
+  "size": 194526,
+  "md5": "3abcf0edc181766989ea295b0c5119c6",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 194526,
+   "md5": "3abcf0edc181766989ea295b0c5119c6",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Advanced_Coursework.csv",
+  "status": 200,
+  "size": 6552911,
+  "md5": "3fcb6eb8377fe53421d5c7a469003ad5",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 6552911,
+   "md5": "3fcb6eb8377fe53421d5c7a469003ad5",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Arrests_and_Referrals_to_Law_Enforcement.csv",
+  "status": 200,
+  "size": 2227898,
+  "md5": "8c1a1956e681b2fddd7f5bb8b41626cb",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 2227898,
+   "md5": "8c1a1956e681b2fddd7f5bb8b41626cb",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Attendance_Rate.csv",
+  "status": 200,
+  "size": 192409,
+  "md5": "41ffc71c9976d230ae9470b7b213b2d4",
+  "lm": "Tue, 06 Oct 2026 20:27:22 GMT",
+  "cached": {
+   "size": 192409,
+   "md5": "41ffc71c9976d230ae9470b7b213b2d4",
+   "lm": "Tue, 06 Oct 2026 20:27:22 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Average_Years_School_Experience.csv",
+  "status": 200,
+  "size": 189459,
+  "md5": "38ed01f36eec256b258dbb6013d5a16b",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 189459,
+   "md5": "38ed01f36eec256b258dbb6013d5a16b",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Board_Members_SBDM.csv",
+  "status": 200,
+  "size": 1365218,
+  "md5": "0033c45d50d0b7c6dc853e4a60b69a6b",
+  "lm": "Tue, 06 Oct 2026 20:27:20 GMT",
+  "cached": {
+   "size": 1365218,
+   "md5": "0033c45d50d0b7c6dc853e4a60b69a6b",
+   "lm": "Tue, 06 Oct 2026 20:27:20 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Chronic_Absenteeism.csv",
+  "status": 200,
+  "size": 15027499,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 15027499,
+   "md5": "d3b26c0a789f0c21ded6ee44a57d06d4",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Chronic_Absenteeism_CRDC.csv",
+  "status": 200,
+  "size": 1141224,
+  "md5": "d848d772f65fd42fc5f70d9d0a1f653a",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 1141224,
+   "md5": "d848d772f65fd42fc5f70d9d0a1f653a",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Datasets.zip",
+  "status": 200,
+  "size": 4969980,
+  "md5": "30186a1884fdc9b8dfcc1c5cb620a27c",
+  "lm": "Thu, 15 Oct 2026 01:48:55 GMT",
+  "cached": {
+   "size": 4969980,
+   "md5": "30186a1884fdc9b8dfcc1c5cb620a27c",
+   "lm": "Thu, 15 Oct 2026 01:48:55 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_District_School_List.csv",
+  "status": 200,
+  "size": 428203,
+  "md5": "5207ebcaccec3891eab294adcab2adeb",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 428203,
+   "md5": "5207ebcaccec3891eab294adcab2adeb",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Dropout_Rate.csv",
+  "status": 200,
+  "size": 1581988,
+  "md5": "b97ef02dd6cc64fb8dcc21f9883e3993",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 1581988,
+   "md5": "b97ef02dd6cc64fb8dcc21f9883e3993",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Economically_Disadvantaged.csv",
+  "status": 200,
+  "size": 3763285,
+  "md5": "2a54023809845597b66d849c2da3019e",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 3763285,
+   "md5": "2a54023809845597b66d849c2da3019e",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Educator_Qualifications.csv",
+  "status": 200,
+  "size": 1224501,
+  "md5": "7c8fcab2e90cf966aa22edbabf4989f0",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 1224501,
+   "md5": "7c8fcab2e90cf966aa22edbabf4989f0",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_English_Learners.csv",
+  "status": 200,
+  "size": 3861495,
+  "md5": "da50aec38f79d1a817154f6cd678d18c",
+  "lm": "Tue, 06 Oct 2026 20:27:21 GMT",
+  "cached": {
+   "size": 3861495,
+   "md5": "da50aec38f79d1a817154f6cd678d18c",
+   "lm": "Tue, 06 Oct 2026 20:27:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Extra_Year_in_Primary.csv",
+  "status": 200,
+  "size": 2252055,
+  "md5": "1ab44f5e23bafc0b9debceb827f6b3a4",
+  "lm": "Tue, 06 Oct 2026 20:27:24 GMT",
+  "cached": {
+   "size": 2252055,
+   "md5": "1ab44f5e23bafc0b9debceb827f6b3a4",
+   "lm": "Tue, 06 Oct 2026 20:27:24 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Harassment_and_Bullying.csv",
+  "status": 200,
+  "size": 182134,
+  "md5": "354a5d1697aa6c136d55225b168619dc",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 182134,
+   "md5": "354a5d1697aa6c136d55225b168619dc",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Homeless.csv",
+  "status": 200,
+  "size": 3872655,
+  "md5": "d324ae82373b04efd96febcadbaef38d",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 3872655,
+   "md5": "d324ae82373b04efd96febcadbaef38d",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Inexperienced_Staff.csv",
+  "status": 200,
+  "size": 123777,
+  "md5": "ff55f2f536fd89dee1a983efc73a2d71",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 123777,
+   "md5": "ff55f2f536fd89dee1a983efc73a2d71",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Inexperienced_Teachers.csv",
+  "status": 200,
+  "size": 204471,
+  "md5": "1aba31d794bbc5de788b084d5c0ddfaa",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 204471,
+   "md5": "1aba31d794bbc5de788b084d5c0ddfaa",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Migrant.csv",
+  "status": 200,
+  "size": 3867588,
+  "md5": "794fe7c4d9a44a67be60565372b373d0",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 3867588,
+   "md5": "794fe7c4d9a44a67be60565372b373d0",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Parental_Involvement.csv",
+  "status": 200,
+  "size": 3619,
+  "md5": "5cc986646bd5bdf91f52c2f29f81bfe2",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 3619,
+   "md5": "5cc986646bd5bdf91f52c2f29f81bfe2",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Preschool_Enrollment.csv",
+  "status": 200,
+  "size": 2053353,
+  "md5": "88fc2e4dd38b9c2aad9796b9663efd5a",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 2053353,
+   "md5": "88fc2e4dd38b9c2aad9796b9663efd5a",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Preschool_Suspensions_and_Expulsions.csv",
+  "status": 200,
+  "size": 294988,
+  "md5": "f43fa2c65a00a2d4628cf25286004adc",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 294988,
+   "md5": "f43fa2c65a00a2d4628cf25286004adc",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Secondary_Enrollment.csv",
+  "status": 200,
+  "size": 166278,
+  "md5": "b00f668a1ba43ea1a7ae278e79b4b326",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 166278,
+   "md5": "b00f668a1ba43ea1a7ae278e79b4b326",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Student_Enrollment.csv",
+  "status": 200,
+  "size": 3593935,
+  "md5": "12282908c95cd741bd04d6edf0267e64",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 3593935,
+   "md5": "12282908c95cd741bd04d6edf0267e64",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Student_Expulsions.csv",
+  "status": 200,
+  "size": 2227885,
+  "md5": "851ae2a144526014e2e84585adc31d52",
+  "lm": "Tue, 06 Oct 2026 20:27:20 GMT",
+  "cached": {
+   "size": 2227885,
+   "md5": "851ae2a144526014e2e84585adc31d52",
+   "lm": "Tue, 06 Oct 2026 20:27:20 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Student_Membership.csv",
+  "status": 200,
+  "size": 1995435,
+  "md5": "bf4a7460de76ed6def6c1ab0415953c6",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 1995435,
+   "md5": "bf4a7460de76ed6def6c1ab0415953c6",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Student_Retention_Grades_4_12.csv",
+  "status": 200,
+  "size": 3826936,
+  "md5": "9edd292826801807fe63ea22e66432df",
+  "lm": "Tue, 06 Oct 2026 20:27:19 GMT",
+  "cached": {
+   "size": 3826936,
+   "md5": "9edd292826801807fe63ea22e66432df",
+   "lm": "Tue, 06 Oct 2026 20:27:19 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Student_Suspensions.csv",
+  "status": 200,
+  "size": 2289184,
+  "md5": "5532ae6399748f4365358721046954c5",
+  "lm": "Tue, 06 Oct 2026 20:27:21 GMT",
+  "cached": {
+   "size": 2289184,
+   "md5": "5532ae6399748f4365358721046954c5",
+   "lm": "Tue, 06 Oct 2026 20:27:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Student_to_Teacher_Ratio.csv",
+  "status": 200,
+  "size": 186446,
+  "md5": "1e4d9b71ce4a209404dd0bbe248aedc9",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 186446,
+   "md5": "1e4d9b71ce4a209404dd0bbe248aedc9",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv",
+  "status": 200,
+  "size": 243575,
+  "md5": "d26e9d2547bb2c3105d77a3dd55f7458",
+  "lm": "Mon, 12 Oct 2026 19:55:55 GMT",
+  "cached": {
+   "size": 243575,
+   "md5": "d26e9d2547bb2c3105d77a3dd55f7458",
+   "lm": "Mon, 12 Oct 2026 19:55:55 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv",
+  "status": 200,
+  "size": 317938,
+  "md5": "e0cf730225ef7ab3a010ec6142b7b080",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 317938,
+   "md5": "e0cf730225ef7ab3a010ec6142b7b080",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+  "status": 200,
+  "size": 306580,
+  "md5": "ef75d4815d0b7b513ab7d063ca82fec5",
+  "lm": "Mon, 12 Oct 2026 19:09:42 GMT",
+  "cached": {
+   "size": 306580,
+   "md5": "ef75d4815d0b7b513ab7d063ca82fec5",
+   "lm": "Mon, 12 Oct 2026 19:09:42 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Students_with_Disabilities_IEP.csv",
+  "status": 200,
+  "size": 4738900,
+  "md5": "a39082d1e50d03c1e8d1aacf716d69fc",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 4738900,
+   "md5": "a39082d1e50d03c1e8d1aacf716d69fc",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Teacher_Certification_Data.csv",
+  "status": 200,
+  "size": 202804,
+  "md5": "d0f1f00ea2e7e24693eed6034147ae94",
+  "lm": "Tue, 06 Oct 2026 20:27:24 GMT",
+  "cached": {
+   "size": 202804,
+   "md5": "d0f1f00ea2e7e24693eed6034147ae94",
+   "lm": "Tue, 06 Oct 2026 20:27:24 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Teacher_Turnover.csv",
+  "status": 200,
+  "size": 201501,
+  "md5": "8f6c3afccb2ce4c28a14912e05f740e2",
+  "lm": "Tue, 06 Oct 2026 20:27:23 GMT",
+  "cached": {
+   "size": 201501,
+   "md5": "8f6c3afccb2ce4c28a14912e05f740e2",
+   "lm": "Tue, 06 Oct 2026 20:27:23 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Teacher_Working_Conditions.csv",
+  "status": 200,
+  "size": 572341,
+  "md5": "877647e1a9400ac6b6b09b8c823fd119",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 572341,
+   "md5": "877647e1a9400ac6b6b09b8c823fd119",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Teachers_Full_Time_Equivalent_FTE.csv",
+  "status": 200,
+  "size": 14534,
+  "md5": "dfda3fdeb8e2e3ac9920c444a5b47e32",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 14534,
+   "md5": "dfda3fdeb8e2e3ac9920c444a5b47e32",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Teachers_by_Gender.csv",
+  "status": 200,
+  "size": 382486,
+  "md5": "77c97d5df3e688f17580daa58c58be98",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 382486,
+   "md5": "77c97d5df3e688f17580daa58c58be98",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Teachers_by_Race_Ethnicity.csv",
+  "status": 200,
+  "size": 1707239,
+  "md5": "5d1f2c6b0339c833778a59761968a8f7",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 1707239,
+   "md5": "5d1f2c6b0339c833778a59761968a8f7",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_OVW_Violent_Offenses.csv",
+  "status": 200,
+  "size": 193192,
+  "md5": "7edc5ebf794245b16eec41ce7885bdd8",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 193192,
+   "md5": "7edc5ebf794245b16eec41ce7885bdd8",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_SAFE_Approaches_that_are_actively_implemented_school_wide.csv",
+  "status": 200,
+  "size": 17137,
+  "md5": "3dbb6ec84fd89031469f63c85dceed78",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 17137,
+   "md5": "3dbb6ec84fd89031469f63c85dceed78",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_SAFE_Behavior_Events_by_Context.csv",
+  "status": 200,
+  "size": 4408358,
+  "md5": "b67e2785845884c3af03abd2b1f43c69",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 4408358,
+   "md5": "b67e2785845884c3af03abd2b1f43c69",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_SAFE_Behavior_Events_by_Grade_Level.csv",
+  "status": 200,
+  "size": 4863271,
+  "md5": "145daa16a21f1046a012547117e189b1",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 4863271,
+   "md5": "145daa16a21f1046a012547117e189b1",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_SAFE_Behavior_Events_by_Location.csv",
+  "status": 200,
+  "size": 4739540,
+  "md5": "721d205527ca6bb620d7542a8a0a5c86",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 4739540,
+   "md5": "721d205527ca6bb620d7542a8a0a5c86",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_SAFE_Behavior_Events_by_Type.csv",
+  "status": 200,
+  "size": 4668950,
+  "md5": "11cb01b7fb07f8aa1896a9c7f85dcfd7",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 4668950,
+   "md5": "11cb01b7fb07f8aa1896a9c7f85dcfd7",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_SAFE_Datasets.zip",
+  "status": 200,
+  "size": 1679629,
+  "md5": "69835e7a3396816853cd96e46eca2d3f",
+  "lm": "Thu, 15 Oct 2026 01:48:55 GMT",
+  "cached": {
+   "size": 1679629,
+   "md5": "69835e7a3396816853cd96e46eca2d3f",
+   "lm": "Thu, 15 Oct 2026 01:48:55 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_SAFE_Discipline_Resolutions.csv",
+  "status": 200,
+  "size": 4724691,
+  "md5": "94502f43d03e76d2aeaee47d78231aa2",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 4724691,
+   "md5": "94502f43d03e76d2aeaee47d78231aa2",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_SAFE_Legal_Sanctions.csv",
+  "status": 200,
+  "size": 4440365,
+  "md5": "489b036ca816440a6a0870bd25497851",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 4440365,
+   "md5": "489b036ca816440a6a0870bd25497851",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2024/KYRC24_SAFE_Precautionary_Measures.csv",
+  "status": 200,
+  "size": 3637,
+  "md5": "beb09ad3ea86feda3ee40ab32d17af59",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 3637,
+   "md5": "beb09ad3ea86feda3ee40ab32d17af59",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_4_Year_High_School_Graduation.csv",
+  "status": 200,
+  "size": 1175161,
+  "md5": "7e4fb3432624c4a8681a46862418e618",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 1175161,
+   "md5": "7e4fb3432624c4a8681a46862418e618",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_5_Year_High_School_Graduation.csv",
+  "status": 200,
+  "size": 1174850,
+  "md5": "ddcd0df0de09e52291c98a78353b03ac",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 1174850,
+   "md5": "ddcd0df0de09e52291c98a78353b03ac",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Assessment_Participation.csv",
+  "status": 200,
+  "size": 57731300,
+  "md5": "b430114d90ebaba07d7ec7feb0bc69ae",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 57731300,
+   "md5": "b430114d90ebaba07d7ec7feb0bc69ae",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Crosstab_Cohort_4_Year.csv",
+  "status": 200,
+  "size": 14403504,
+  "md5": "74e973eb66d62ce1c47d2a32ba972131",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 14403504,
+   "md5": "74e973eb66d62ce1c47d2a32ba972131",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Crosstab_Cohort_5_Year.csv",
+  "status": 200,
+  "size": 13883637,
+  "md5": "a17de1ea1dbfe84046c1419fb803051a",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 13883637,
+   "md5": "a17de1ea1dbfe84046c1419fb803051a",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Crosstab_EditingMechanics.csv",
+  "status": 200,
+  "size": 59800721,
+  "md5": "8ebf938f8d05d300c4d8b7ec7f87f864",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 59800721,
+   "md5": "8ebf938f8d05d300c4d8b7ec7f87f864",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Crosstab_Mathematics.csv",
+  "status": 200,
+  "size": 75322875,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 75322875,
+   "md5": "2ab527e17d38ae0103a8faf3c9bcbfeb",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Crosstab_OnDemandWriting.csv",
+  "status": 200,
+  "size": 59698779,
+  "md5": "7388cead4ef75872bbb13f2c6d249a2a",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 59698779,
+   "md5": "7388cead4ef75872bbb13f2c6d249a2a",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Crosstab_Reading.csv",
+  "status": 200,
+  "size": 75415459,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 75415459,
+   "md5": "b7eb93340c1fa410dba7b960accce7c0",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Crosstab_Science.csv",
+  "status": 200,
+  "size": 60679279,
+  "md5": "7cd35670a7313163f100c74c8103b40a",
+  "lm": "Tue, 06 Oct 2026 20:27:19 GMT",
+  "cached": {
+   "size": 60679279,
+   "md5": "7cd35670a7313163f100c74c8103b40a",
+   "lm": "Tue, 06 Oct 2026 20:27:19 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Crosstab_SocialStudies.csv",
+  "status": 200,
+  "size": 60367713,
+  "md5": "0d0d9af225c963b576ba2bc7d0753953",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 60367713,
+   "md5": "0d0d9af225c963b576ba2bc7d0753953",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Datasets.zip",
+  "status": 200,
+  "size": 32678912,
+  "md5": "30babf6901da1674f18ab3f761d32b00",
+  "lm": "Thu, 15 Oct 2026 01:49:12 GMT",
+  "cached": {
+   "size": 32678912,
+   "md5": "30babf6901da1674f18ab3f761d32b00",
+   "lm": "Thu, 15 Oct 2026 01:49:12 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+  "status": 200,
+  "size": 2928882,
+  "md5": "4e8d2db903f91dc908d642bc402c19af",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 2928882,
+   "md5": "4e8d2db903f91dc908d642bc402c19af",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Index_Scores.csv",
+  "status": 200,
+  "size": 7092222,
+  "md5": "4ed1db91200993f70df96242b4f081d7",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 7092222,
+   "md5": "4ed1db91200993f70df96242b4f081d7",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Kentucky_Summative_Assessment.csv",
+  "status": 200,
+  "size": 47436758,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:22 GMT",
+  "cached": {
+   "size": 47436758,
+   "md5": "a8498b4d02c2b9c04a1022ab3ee3b844",
+   "lm": "Tue, 06 Oct 2026 20:27:22 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Postsecondary_Readiness.csv",
+  "status": 200,
+  "size": 1365309,
+  "md5": "1ee5f118a10ecd6f9408c85a1c939ded",
+  "lm": "Fri, 09 Oct 2026 19:41:42 GMT",
+  "cached": {
+   "size": 1365309,
+   "md5": "1ee5f118a10ecd6f9408c85a1c939ded",
+   "lm": "Fri, 09 Oct 2026 19:41:42 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Profile.csv",
+  "status": 200,
+  "size": 428493,
+  "md5": "e9df4bc18cfdbc18318bed687a50e368",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 428493,
+   "md5": "e9df4bc18cfdbc18318bed687a50e368",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_School_Improvement.csv",
+  "status": 200,
+  "size": 29471,
+  "md5": "72566eaa62278a9fbaad1c8314f51dd1",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 29471,
+   "md5": "72566eaa62278a9fbaad1c8314f51dd1",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Summary.csv",
+  "status": 200,
+  "size": 3730601,
+  "md5": "12ddb901a0c12e0af59305c83ae2785b",
+  "lm": "Tue, 06 Oct 2026 20:27:24 GMT",
+  "cached": {
+   "size": 3730601,
+   "md5": "12ddb901a0c12e0af59305c83ae2785b",
+   "lm": "Tue, 06 Oct 2026 20:27:24 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ACCT_Survey_Results.csv",
+  "status": 200,
+  "size": 300359424,
+  "md5": null,
+  "lm": "Fri, 09 Oct 2026 19:42:39 GMT",
+  "cached": {
+   "size": 300359424,
+   "md5": "d87d2e6dfea4dba4a26711ed6fb28200",
+   "lm": "Fri, 09 Oct 2026 19:42:39 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ADLF_Current_Year_Graduates.csv",
+  "status": 200,
+  "size": 1197733,
+  "md5": "d96c24ad09c61904d78918de1764450a",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 1197733,
+   "md5": "d96c24ad09c61904d78918de1764450a",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ADLF_Datasets.zip",
+  "status": 200,
+  "size": 163332,
+  "md5": "d8b2ebd37c328c38631f17af4fb4b36e",
+  "lm": "Thu, 15 Oct 2026 01:49:12 GMT",
+  "cached": {
+   "size": 163332,
+   "md5": "d8b2ebd37c328c38631f17af4fb4b36e",
+   "lm": "Thu, 15 Oct 2026 01:49:12 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ADLF_Graduate_Outcomes.csv",
+  "status": 200,
+  "size": 73984,
+  "md5": "f3128fbf261a6abf53d7e102a08adcf0",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 73984,
+   "md5": "f3128fbf261a6abf53d7e102a08adcf0",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ADLF_Transition_to_In_State_Postsecondary_Education.csv",
+  "status": 200,
+  "size": 1311339,
+  "md5": "a0646ff1b21da0d6bb3b8a9f1ec97c0e",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 1311339,
+   "md5": "a0646ff1b21da0d6bb3b8a9f1ec97c0e",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_Alternate_Assessment_Participation.csv",
+  "status": 200,
+  "size": 2399024,
+  "md5": "e0c89975deba073ed3a4c974847a9926",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 2399024,
+   "md5": "e0c89975deba073ed3a4c974847a9926",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_Benchmark.csv",
+  "status": 200,
+  "size": 1693283,
+  "md5": "535cf689f0a9f6d7c4984a860f3ddb4c",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 1693283,
+   "md5": "535cf689f0a9f6d7c4984a860f3ddb4c",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_CAE.csv",
+  "status": 200,
+  "size": 1816293,
+  "md5": "3a471d400b76bb0d441c5d764b188640",
+  "lm": "Thu, 08 Oct 2026 12:39:31 GMT",
+  "cached": {
+   "size": 1816293,
+   "md5": "3a471d400b76bb0d441c5d764b188640",
+   "lm": "Thu, 08 Oct 2026 12:39:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_Datasets.zip",
+  "status": 200,
+  "size": 9144225,
+  "md5": "00c489d9da03df99eb66895627aafa49",
+  "lm": "Thu, 15 Oct 2026 01:49:16 GMT",
+  "cached": {
+   "size": 9144225,
+   "md5": "00c489d9da03df99eb66895627aafa49",
+   "lm": "Thu, 15 Oct 2026 01:49:16 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_English_Language_Proficiency.csv",
+  "status": 200,
+  "size": 828674,
+  "md5": "3da64c4cd6365d0e2275fb6e14dc5d5a",
+  "lm": "Fri, 09 Oct 2026 19:42:40 GMT",
+  "cached": {
+   "size": 828674,
+   "md5": "3da64c4cd6365d0e2275fb6e14dc5d5a",
+   "lm": "Fri, 09 Oct 2026 19:42:40 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_Kentucky_Summative_Assessment.csv",
+  "status": 200,
+  "size": 91151548,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 91151548,
+   "md5": "0f202421e99d9484a0e700b8a4d94657",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_Kindergarten_Screen_Composite.csv",
+  "status": 200,
+  "size": 12354057,
+  "md5": "59c8c7f533b97fdffab1c73b9b38705e",
+  "lm": "Fri, 09 Oct 2026 19:42:48 GMT",
+  "cached": {
+   "size": 12354057,
+   "md5": "59c8c7f533b97fdffab1c73b9b38705e",
+   "lm": "Fri, 09 Oct 2026 19:42:48 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_Kindergarten_Screen_Developmental_Domains.csv",
+  "status": 200,
+  "size": 14611076,
+  "md5": "3299d22009e9625655f332630fe8fb59",
+  "lm": "Fri, 09 Oct 2026 19:42:51 GMT",
+  "cached": {
+   "size": 14611076,
+   "md5": "3299d22009e9625655f332630fe8fb59",
+   "lm": "Fri, 09 Oct 2026 19:42:51 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_Measurements_of_Interim_Progress_English_Language_Proficiency.csv",
+  "status": 200,
+  "size": 358714,
+  "md5": "028c067ac43ccb9cdf60c32de184e698",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 358714,
+   "md5": "028c067ac43ccb9cdf60c32de184e698",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_Measurements_of_Interim_Progress_Graduation_Rate.csv",
+  "status": 200,
+  "size": 3132381,
+  "md5": "978025c1f6fc8d305df02bcbcd09177f",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 3132381,
+   "md5": "978025c1f6fc8d305df02bcbcd09177f",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_Measurements_of_Interim_Progress_Proficiency.csv",
+  "status": 200,
+  "size": 37401068,
+  "md5": null,
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 37401068,
+   "md5": "79c9270647ef89c91f49b5acf7a6d22e",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_National_Assessment_of_Educational_Progress.csv",
+  "status": 200,
+  "size": 14779,
+  "md5": "714303e6028bef69d6a9d5a895496b22",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 14779,
+   "md5": "714303e6028bef69d6a9d5a895496b22",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_ASMT_The_ACT.csv",
+  "status": 200,
+  "size": 1816293,
+  "md5": "3a471d400b76bb0d441c5d764b188640",
+  "lm": "Tue, 06 Oct 2026 20:27:21 GMT",
+  "cached": {
+   "size": 1816293,
+   "md5": "3a471d400b76bb0d441c5d764b188640",
+   "lm": "Tue, 06 Oct 2026 20:27:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_CTE_Career_Pathways.csv",
+  "status": 200,
+  "size": 827367,
+  "md5": "d4ac69690daaff347a63ec2831daf8b3",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 827367,
+   "md5": "d4ac69690daaff347a63ec2831daf8b3",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_CTE_Career_Readiness_Indicators.csv",
+  "status": 200,
+  "size": 49508,
+  "md5": "c5575db6717c22c2ccab360882985695",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 49508,
+   "md5": "c5575db6717c22c2ccab360882985695",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_CTE_Datasets.zip",
+  "status": 200,
+  "size": 274489,
+  "md5": "3468c4c8da43f4256ea461092e0f55df",
+  "lm": "Thu, 15 Oct 2026 01:49:16 GMT",
+  "cached": {
+   "size": 274489,
+   "md5": "3468c4c8da43f4256ea461092e0f55df",
+   "lm": "Thu, 15 Oct 2026 01:49:16 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_CTE_Participation.csv",
+  "status": 200,
+  "size": 859494,
+  "md5": "f357a9620827d8a5cfb711ed97c1f38a",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 859494,
+   "md5": "f357a9620827d8a5cfb711ed97c1f38a",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_CTE_Perkins_Report.csv",
+  "status": 200,
+  "size": 492478,
+  "md5": "7e56d2393f2c9182e9cfd928bbdcb925",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 492478,
+   "md5": "7e56d2393f2c9182e9cfd928bbdcb925",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_CTE_Postsecondary_Opportunities.csv",
+  "status": 200,
+  "size": 1353113,
+  "md5": "8c08a8fc67800ded1df9710b358c0ef0",
+  "lm": "Fri, 09 Oct 2026 19:42:54 GMT",
+  "cached": {
+   "size": 1353113,
+   "md5": "8c08a8fc67800ded1df9710b358c0ef0",
+   "lm": "Fri, 09 Oct 2026 19:42:54 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_CTE_Student_Objectives.csv",
+  "status": 200,
+  "size": 56218,
+  "md5": "85558077a894ba4dda4f95ded1fc8f83",
+  "lm": "Tue, 06 Oct 2026 20:27:22 GMT",
+  "cached": {
+   "size": 56218,
+   "md5": "85558077a894ba4dda4f95ded1fc8f83",
+   "lm": "Tue, 06 Oct 2026 20:27:22 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_EDOP_Advanced_Courses_Offered.csv",
+  "status": 200,
+  "size": 794423,
+  "md5": "ae5cf3cc112f71609fa3f668c1b3580a",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 794423,
+   "md5": "ae5cf3cc112f71609fa3f668c1b3580a",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_EDOP_Advanced_Courses_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 885585,
+  "md5": "fd1725806eb2642fc87c4c78c5bd85d2",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 885585,
+   "md5": "fd1725806eb2642fc87c4c78c5bd85d2",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_EDOP_Career_Studies.csv",
+  "status": 200,
+  "size": 456065,
+  "md5": "fe397ca9b358200b1d32774d37f624a8",
+  "lm": "Fri, 09 Oct 2026 19:42:55 GMT",
+  "cached": {
+   "size": 456065,
+   "md5": "fe397ca9b358200b1d32774d37f624a8",
+   "lm": "Fri, 09 Oct 2026 19:42:55 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_EDOP_Datasets.zip",
+  "status": 200,
+  "size": 1750239,
+  "md5": "f2bec73d246d365685eafabc39c09245",
+  "lm": "Thu, 15 Oct 2026 01:49:17 GMT",
+  "cached": {
+   "size": 1750239,
+   "md5": "f2bec73d246d365685eafabc39c09245",
+   "lm": "Thu, 15 Oct 2026 01:49:17 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_EDOP_Dual_Credit_Courses_Offered.csv",
+  "status": 200,
+  "size": 922471,
+  "md5": "9a3040defa6dabfa863a929941c9303a",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 922471,
+   "md5": "9a3040defa6dabfa863a929941c9303a",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_EDOP_Dual_Credit_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 1226268,
+  "md5": "343a6a53da5cb1ae0d701a9196b235e9",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 1226268,
+   "md5": "343a6a53da5cb1ae0d701a9196b235e9",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_EDOP_Gifted_Participation_by_Category.csv",
+  "status": 200,
+  "size": 3145287,
+  "md5": "bfd6a71daf9ed7e188d8c8f98d90e7e6",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 3145287,
+   "md5": "bfd6a71daf9ed7e188d8c8f98d90e7e6",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_EDOP_Gifted_Participation_by_Grade_Level.csv",
+  "status": 200,
+  "size": 2058123,
+  "md5": "af06607004b6eb098f44c378165a1bbe",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 2058123,
+   "md5": "af06607004b6eb098f44c378165a1bbe",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_EDOP_School_Courses_Summary.csv",
+  "status": 200,
+  "size": 5643720,
+  "md5": "911b88ca17130ca51fedaa266b1e4436",
+  "lm": "Fri, 09 Oct 2026 19:42:57 GMT",
+  "cached": {
+   "size": 5643720,
+   "md5": "911b88ca17130ca51fedaa266b1e4436",
+   "lm": "Fri, 09 Oct 2026 19:42:57 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_EDOP_World_Languages.csv",
+  "status": 200,
+  "size": 328592,
+  "md5": "3964be44b71994c7f7fdb3160ea6f021",
+  "lm": "Fri, 09 Oct 2026 19:42:57 GMT",
+  "cached": {
+   "size": 328592,
+   "md5": "3964be44b71994c7f7fdb3160ea6f021",
+   "lm": "Fri, 09 Oct 2026 19:42:57 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Datasets.zip",
+  "status": 200,
+  "size": 351075,
+  "md5": "576e5c32c1f2926523f2493dd758c58f",
+  "lm": "Thu, 15 Oct 2026 01:49:17 GMT",
+  "cached": {
+   "size": 351075,
+   "md5": "576e5c32c1f2926523f2493dd758c58f",
+   "lm": "Thu, 15 Oct 2026 01:49:17 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Facilities_Debt_Services.csv",
+  "status": 200,
+  "size": 22461,
+  "md5": "3a14d5406d611510e336f49cab363fc8",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 22461,
+   "md5": "3a14d5406d611510e336f49cab363fc8",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Financial_Summary.csv",
+  "status": 200,
+  "size": 20114,
+  "md5": "3ea42d1850692de5fd468d3eb56c58c8",
+  "lm": "Tue, 06 Oct 2026 20:27:20 GMT",
+  "cached": {
+   "size": 20114,
+   "md5": "3ea42d1850692de5fd468d3eb56c58c8",
+   "lm": "Tue, 06 Oct 2026 20:27:20 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Grants.csv",
+  "status": 200,
+  "size": 20436,
+  "md5": "c724301ae0ad5d795743814d78cab612",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 20436,
+   "md5": "c724301ae0ad5d795743814d78cab612",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Learning_Environment.csv",
+  "status": 200,
+  "size": 37391,
+  "md5": "713f2667b7889d98531beb3e8e91f0b1",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 37391,
+   "md5": "713f2667b7889d98531beb3e8e91f0b1",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Operations.csv",
+  "status": 200,
+  "size": 28451,
+  "md5": "79f2b5481bd9a5e0873abbc76a72c5d1",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 28451,
+   "md5": "79f2b5481bd9a5e0873abbc76a72c5d1",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Personnel_Spending_per_Student_Federal_Funds.csv",
+  "status": 200,
+  "size": 611982,
+  "md5": "da52eeb4da64900c959dd1d10fe63731",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 611982,
+   "md5": "da52eeb4da64900c959dd1d10fe63731",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Personnel_Spending_per_Student_State_Local_Funds.csv",
+  "status": 200,
+  "size": 610644,
+  "md5": "ced78a2f3b10a32ecf85efaaa070757a",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 610644,
+   "md5": "ced78a2f3b10a32ecf85efaaa070757a",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Spending_per_Student.csv",
+  "status": 200,
+  "size": 191044,
+  "md5": "74b6b7f8a3f9ae3ce4b973833be376b2",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 191044,
+   "md5": "74b6b7f8a3f9ae3ce4b973833be376b2",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_State_Funding_SEEK.csv",
+  "status": 200,
+  "size": 24531,
+  "md5": "9550060f1a34c0af5d191d6460b1505a",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 24531,
+   "md5": "9550060f1a34c0af5d191d6460b1505a",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Statewide_Funding_Sources.csv",
+  "status": 200,
+  "size": 24377,
+  "md5": "b24c55e4fa44b0fc24bf5c4694255de4",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 24377,
+   "md5": "b24c55e4fa44b0fc24bf5c4694255de4",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Taxes.csv",
+  "status": 200,
+  "size": 21239,
+  "md5": "90acbfb3cd7eddb07018d95d399d17ad",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 21239,
+   "md5": "90acbfb3cd7eddb07018d95d399d17ad",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Total_Spending_per_Student_All_Fund_Sources.csv",
+  "status": 200,
+  "size": 277842,
+  "md5": "18ea58aacc51061be074537fdcae6bf6",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 277842,
+   "md5": "18ea58aacc51061be074537fdcae6bf6",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Total_Spending_per_Student_Federal_Funds.csv",
+  "status": 200,
+  "size": 283461,
+  "md5": "8ec8b501b2601a0b11e44fa8d831afee",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 283461,
+   "md5": "8ec8b501b2601a0b11e44fa8d831afee",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_FT_Total_Spending_per_Student_State_Local_Funds.csv",
+  "status": 200,
+  "size": 304514,
+  "md5": "e3c24e9388ad62e3bfb5eeaf253990d5",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 304514,
+   "md5": "e3c24e9388ad62e3bfb5eeaf253990d5",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Access_to_Technology.csv",
+  "status": 200,
+  "size": 280915,
+  "md5": "5ccc776376ae856b01f0948099634780",
+  "lm": "Fri, 09 Oct 2026 19:42:58 GMT",
+  "cached": {
+   "size": 280915,
+   "md5": "5ccc776376ae856b01f0948099634780",
+   "lm": "Fri, 09 Oct 2026 19:42:58 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Adjusted_Average_Daily_Attendance_AADA.csv",
+  "status": 200,
+  "size": 196007,
+  "md5": "a76af04d4ea470a8667faf963b23000a",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 196007,
+   "md5": "a76af04d4ea470a8667faf963b23000a",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Advanced_Coursework.csv",
+  "status": 200,
+  "size": 6495848,
+  "md5": "5d02ead03aba86f0a5ef2145cd2533f7",
+  "lm": "Fri, 09 Oct 2026 19:42:59 GMT",
+  "cached": {
+   "size": 6495848,
+   "md5": "5d02ead03aba86f0a5ef2145cd2533f7",
+   "lm": "Fri, 09 Oct 2026 19:42:59 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Arrests_and_Referrals_to_Law_Enforcement.csv",
+  "status": 200,
+  "size": 2227898,
+  "md5": "63db17f30b189f6366c2fa008fa63eb7",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 2227898,
+   "md5": "63db17f30b189f6366c2fa008fa63eb7",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Attendance_Rate.csv",
+  "status": 200,
+  "size": 193875,
+  "md5": "f2371506c59a24d1bf05b2559fc28ea4",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 193875,
+   "md5": "f2371506c59a24d1bf05b2559fc28ea4",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Average_Years_School_Experience.csv",
+  "status": 200,
+  "size": 189681,
+  "md5": "58bce64b1cc83943f0f2640985d7ec64",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 189681,
+   "md5": "58bce64b1cc83943f0f2640985d7ec64",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Board_Members_SBDM.csv",
+  "status": 200,
+  "size": 1398823,
+  "md5": "462ce59818224538f29ed1118a69dfac",
+  "lm": "Fri, 09 Oct 2026 19:42:59 GMT",
+  "cached": {
+   "size": 1398823,
+   "md5": "462ce59818224538f29ed1118a69dfac",
+   "lm": "Fri, 09 Oct 2026 19:42:59 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Chronic_Absenteeism.csv",
+  "status": 200,
+  "size": 61818307,
+  "md5": "86a98e257708df11a2bb5824690f76c7",
+  "lm": "Fri, 09 Oct 2026 19:43:10 GMT",
+  "cached": {
+   "size": 61818307,
+   "md5": "86a98e257708df11a2bb5824690f76c7",
+   "lm": "Fri, 09 Oct 2026 19:43:10 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Chronic_Absenteeism_CRDC.csv",
+  "status": 200,
+  "size": 1130740,
+  "md5": "8df35bfe7dbffcd039771fead15c0269",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 1130740,
+   "md5": "8df35bfe7dbffcd039771fead15c0269",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Datasets.zip",
+  "status": 200,
+  "size": 5995709,
+  "md5": "49e16e7708628734e2fc7a28f2cc766a",
+  "lm": "Thu, 15 Oct 2026 01:49:20 GMT",
+  "cached": {
+   "size": 5995709,
+   "md5": "49e16e7708628734e2fc7a28f2cc766a",
+   "lm": "Thu, 15 Oct 2026 01:49:20 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_District_School_List.csv",
+  "status": 200,
+  "size": 426626,
+  "md5": "8fc82663dff3c22e382b7433db53034f",
+  "lm": "Fri, 09 Oct 2026 19:43:10 GMT",
+  "cached": {
+   "size": 426626,
+   "md5": "8fc82663dff3c22e382b7433db53034f",
+   "lm": "Fri, 09 Oct 2026 19:43:10 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Dropout_Rate.csv",
+  "status": 200,
+  "size": 1587359,
+  "md5": "55da3176fb9585544e9d842c5473b9dc",
+  "lm": "Sat, 10 Oct 2026 06:01:36 GMT",
+  "cached": {
+   "size": 1587359,
+   "md5": "55da3176fb9585544e9d842c5473b9dc",
+   "lm": "Sat, 10 Oct 2026 06:01:36 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Economically_Disadvantaged.csv",
+  "status": 200,
+  "size": 3787627,
+  "md5": "d5ea04468c684c8b5497d892b0660add",
+  "lm": "Tue, 06 Oct 2026 20:27:22 GMT",
+  "cached": {
+   "size": 3787627,
+   "md5": "d5ea04468c684c8b5497d892b0660add",
+   "lm": "Tue, 06 Oct 2026 20:27:22 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Educator_Qualifications.csv",
+  "status": 200,
+  "size": 1227277,
+  "md5": "2e7e784ceaf39de3cd262af6f5dc9190",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 1227277,
+   "md5": "2e7e784ceaf39de3cd262af6f5dc9190",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_English_Learners.csv",
+  "status": 200,
+  "size": 3888557,
+  "md5": "b77146d5f82f6db981313e1b43564be0",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 3888557,
+   "md5": "b77146d5f82f6db981313e1b43564be0",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Extra_Year_in_Primary.csv",
+  "status": 200,
+  "size": 2290647,
+  "md5": "96a4f4f9090f15dd14bd116081cc5667",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 2290647,
+   "md5": "96a4f4f9090f15dd14bd116081cc5667",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Harassment_and_Bullying.csv",
+  "status": 200,
+  "size": 182134,
+  "md5": "b7998e80904720c3a5848e2226a07ad3",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 182134,
+   "md5": "b7998e80904720c3a5848e2226a07ad3",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Homeless.csv",
+  "status": 200,
+  "size": 3887885,
+  "md5": "1493395c98a2dd55841ed72b7434bee0",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 3887885,
+   "md5": "1493395c98a2dd55841ed72b7434bee0",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Inexperienced_Staff.csv",
+  "status": 200,
+  "size": 131777,
+  "md5": "f05d41f0e1399ae912dbd50005d4c293",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 131777,
+   "md5": "f05d41f0e1399ae912dbd50005d4c293",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Inexperienced_Teachers.csv",
+  "status": 200,
+  "size": 204643,
+  "md5": "63c43bdeb3402a340eaa55fe7be34019",
+  "lm": "Tue, 06 Oct 2026 20:27:22 GMT",
+  "cached": {
+   "size": 204643,
+   "md5": "63c43bdeb3402a340eaa55fe7be34019",
+   "lm": "Tue, 06 Oct 2026 20:27:22 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Migrant.csv",
+  "status": 200,
+  "size": 3863434,
+  "md5": "9d56d81d6e84f039955e87721716dea0",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 3863434,
+   "md5": "9d56d81d6e84f039955e87721716dea0",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Parental_Involvement.csv",
+  "status": 200,
+  "size": 145931,
+  "md5": "18934701517471f9bbabc8b4be8919d5",
+  "lm": "Tue, 06 Oct 2026 20:27:22 GMT",
+  "cached": {
+   "size": 145931,
+   "md5": "18934701517471f9bbabc8b4be8919d5",
+   "lm": "Tue, 06 Oct 2026 20:27:22 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Preschool_Enrollment.csv",
+  "status": 200,
+  "size": 2046581,
+  "md5": "0466db1c30ad60c99bb03423d436d08a",
+  "lm": "Tue, 06 Oct 2026 20:27:18 GMT",
+  "cached": {
+   "size": 2046581,
+   "md5": "0466db1c30ad60c99bb03423d436d08a",
+   "lm": "Tue, 06 Oct 2026 20:27:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Preschool_Suspensions_and_Expulsions.csv",
+  "status": 200,
+  "size": 294419,
+  "md5": "46fa3afbcc809e5dda6a9d4218bdd12d",
+  "lm": "Tue, 06 Oct 2026 20:27:17 GMT",
+  "cached": {
+   "size": 294419,
+   "md5": "46fa3afbcc809e5dda6a9d4218bdd12d",
+   "lm": "Tue, 06 Oct 2026 20:27:17 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Secondary_Enrollment.csv",
+  "status": 200,
+  "size": 177835,
+  "md5": "5fd17e49485ea4a8eecc70d491b6b163",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 177835,
+   "md5": "5fd17e49485ea4a8eecc70d491b6b163",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Student_Enrollment.csv",
+  "status": 200,
+  "size": 3620384,
+  "md5": "70f5e78cc6b68f7b1161e53562e227ca",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 3620384,
+   "md5": "70f5e78cc6b68f7b1161e53562e227ca",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Student_Expulsions.csv",
+  "status": 200,
+  "size": 2227885,
+  "md5": "6f81ebb943df51f54fe36c6a9409dab0",
+  "lm": "Tue, 06 Oct 2026 20:27:21 GMT",
+  "cached": {
+   "size": 2227885,
+   "md5": "6f81ebb943df51f54fe36c6a9409dab0",
+   "lm": "Tue, 06 Oct 2026 20:27:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Student_Membership.csv",
+  "status": 200,
+  "size": 2014806,
+  "md5": "6942aade819095bf056d6ae1d86e8f51",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 2014806,
+   "md5": "6942aade819095bf056d6ae1d86e8f51",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Student_Retention_Grades_4_12.csv",
+  "status": 200,
+  "size": 3805684,
+  "md5": "f610fe8cfd69e66db0d775ad51eefb61",
+  "lm": "Fri, 09 Oct 2026 19:43:13 GMT",
+  "cached": {
+   "size": 3805684,
+   "md5": "f610fe8cfd69e66db0d775ad51eefb61",
+   "lm": "Fri, 09 Oct 2026 19:43:13 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Student_Suspensions.csv",
+  "status": 200,
+  "size": 2289184,
+  "md5": "d430107ffe28c36d9dff6dea29bcda5b",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 2289184,
+   "md5": "d430107ffe28c36d9dff6dea29bcda5b",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Student_to_Teacher_Ratio.csv",
+  "status": 200,
+  "size": 188244,
+  "md5": "a1b973ff98e6f18991f6793f8e0808ac",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 188244,
+   "md5": "a1b973ff98e6f18991f6793f8e0808ac",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv",
+  "status": 200,
+  "size": 261299,
+  "md5": "20d08d7d8d077163e6fa8e21f473a29d",
+  "lm": "Mon, 12 Oct 2026 19:55:55 GMT",
+  "cached": {
+   "size": 261299,
+   "md5": "20d08d7d8d077163e6fa8e21f473a29d",
+   "lm": "Mon, 12 Oct 2026 19:55:55 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Students_Taught_by_Inexperienced_Teachers.csv",
+  "status": 200,
+  "size": 321878,
+  "md5": "96156f26bf27793be2908ff0dd317e73",
+  "lm": "Tue, 06 Oct 2026 20:27:27 GMT",
+  "cached": {
+   "size": 321878,
+   "md5": "96156f26bf27793be2908ff0dd317e73",
+   "lm": "Tue, 06 Oct 2026 20:27:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+  "status": 200,
+  "size": 310861,
+  "md5": "14a0d088f6b7b945bdb0a69e6b3e99b7",
+  "lm": "Mon, 12 Oct 2026 19:09:42 GMT",
+  "cached": {
+   "size": 310861,
+   "md5": "14a0d088f6b7b945bdb0a69e6b3e99b7",
+   "lm": "Mon, 12 Oct 2026 19:09:42 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Students_with_Disabilities_IEP.csv",
+  "status": 200,
+  "size": 5018810,
+  "md5": "b5ded8ae042efc9f9f07cb861be3acbf",
+  "lm": "Tue, 06 Oct 2026 20:27:25 GMT",
+  "cached": {
+   "size": 5018810,
+   "md5": "b5ded8ae042efc9f9f07cb861be3acbf",
+   "lm": "Tue, 06 Oct 2026 20:27:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Teacher_Certification_Data.csv",
+  "status": 200,
+  "size": 205421,
+  "md5": "37afeeb5b32ca57f4efad8c667fab22e",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 205421,
+   "md5": "37afeeb5b32ca57f4efad8c667fab22e",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Teacher_Turnover.csv",
+  "status": 200,
+  "size": 202943,
+  "md5": "a415ff7b082cbaadf5e3878fd05591f0",
+  "lm": "Tue, 06 Oct 2026 20:27:18 GMT",
+  "cached": {
+   "size": 202943,
+   "md5": "a415ff7b082cbaadf5e3878fd05591f0",
+   "lm": "Tue, 06 Oct 2026 20:27:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Teacher_Working_Conditions.csv",
+  "status": 200,
+  "size": 575006,
+  "md5": "320bef545246fcae80771648859bfb08",
+  "lm": "Tue, 06 Oct 2026 20:27:22 GMT",
+  "cached": {
+   "size": 575006,
+   "md5": "320bef545246fcae80771648859bfb08",
+   "lm": "Tue, 06 Oct 2026 20:27:22 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Teachers_Full_Time_Equivalent_FTE.csv",
+  "status": 200,
+  "size": 15743,
+  "md5": "99df80be30a985f6c0f9d8de9836c386",
+  "lm": "Tue, 06 Oct 2026 20:27:19 GMT",
+  "cached": {
+   "size": 15743,
+   "md5": "99df80be30a985f6c0f9d8de9836c386",
+   "lm": "Tue, 06 Oct 2026 20:27:19 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Teachers_by_Gender.csv",
+  "status": 200,
+  "size": 385659,
+  "md5": "5d399416f663945d5c2f8e56f31387f8",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 385659,
+   "md5": "5d399416f663945d5c2f8e56f31387f8",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Teachers_by_Race_Ethnicity.csv",
+  "status": 200,
+  "size": 1722336,
+  "md5": "599c7d6e17077ce21b836af8b75a5048",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 1722336,
+   "md5": "599c7d6e17077ce21b836af8b75a5048",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_OVW_Violent_Offenses.csv",
+  "status": 200,
+  "size": 193192,
+  "md5": "0d74a68c3bd11079472963e23e61503b",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 193192,
+   "md5": "0d74a68c3bd11079472963e23e61503b",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_SAFE_Approaches_that_are_actively_implemented_school_wide.csv",
+  "status": 200,
+  "size": 1521580,
+  "md5": "491c26ef51581423c7ebeaa45c432953",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 1521580,
+   "md5": "491c26ef51581423c7ebeaa45c432953",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_SAFE_Behavior_Events_by_Context.csv",
+  "status": 200,
+  "size": 4436917,
+  "md5": "9b1e22d84ea423e46e58de658377c0ba",
+  "lm": "Tue, 06 Oct 2026 20:27:31 GMT",
+  "cached": {
+   "size": 4436917,
+   "md5": "9b1e22d84ea423e46e58de658377c0ba",
+   "lm": "Tue, 06 Oct 2026 20:27:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_SAFE_Behavior_Events_by_Grade_Level.csv",
+  "status": 200,
+  "size": 4892765,
+  "md5": "00541d3d9aa760452b0369d6f81c91e1",
+  "lm": "Tue, 06 Oct 2026 20:27:26 GMT",
+  "cached": {
+   "size": 4892765,
+   "md5": "00541d3d9aa760452b0369d6f81c91e1",
+   "lm": "Tue, 06 Oct 2026 20:27:26 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_SAFE_Behavior_Events_by_Location.csv",
+  "status": 200,
+  "size": 4766740,
+  "md5": "8f6801a07195766660eab5f5dfc6b1b7",
+  "lm": "Tue, 06 Oct 2026 20:27:28 GMT",
+  "cached": {
+   "size": 4766740,
+   "md5": "8f6801a07195766660eab5f5dfc6b1b7",
+   "lm": "Tue, 06 Oct 2026 20:27:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_SAFE_Behavior_Events_by_Type.csv",
+  "status": 200,
+  "size": 4696948,
+  "md5": "515fe46af72fcb0bef3304a35002d528",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 4696948,
+   "md5": "515fe46af72fcb0bef3304a35002d528",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_SAFE_Datasets.zip",
+  "status": 200,
+  "size": 1745391,
+  "md5": "869a5d4e45586a5010fc71a27431d5d0",
+  "lm": "Thu, 15 Oct 2026 01:49:21 GMT",
+  "cached": {
+   "size": 1745391,
+   "md5": "869a5d4e45586a5010fc71a27431d5d0",
+   "lm": "Thu, 15 Oct 2026 01:49:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_SAFE_Discipline_Resolutions.csv",
+  "status": 200,
+  "size": 4753005,
+  "md5": "e25b0ae9522ad39113157a442a04b16b",
+  "lm": "Tue, 06 Oct 2026 20:27:29 GMT",
+  "cached": {
+   "size": 4753005,
+   "md5": "e25b0ae9522ad39113157a442a04b16b",
+   "lm": "Tue, 06 Oct 2026 20:27:29 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_SAFE_Legal_Sanctions.csv",
+  "status": 200,
+  "size": 4469840,
+  "md5": "2804ca30082bd29851b59bda02bbbd50",
+  "lm": "Tue, 06 Oct 2026 20:27:30 GMT",
+  "cached": {
+   "size": 4469840,
+   "md5": "2804ca30082bd29851b59bda02bbbd50",
+   "lm": "Tue, 06 Oct 2026 20:27:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2025/KYRC25_SAFE_Precautionary_Measures.csv",
+  "status": 200,
+  "size": 202573,
+  "md5": "446580c8066e3bfb10d8bdffaffe14d0",
+  "lm": "Tue, 06 Oct 2026 20:27:20 GMT",
+  "cached": {
+   "size": 202573,
+   "md5": "446580c8066e3bfb10d8bdffaffe14d0",
+   "lm": "Tue, 06 Oct 2026 20:27:20 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_4_Year_High_School_Graduation.csv",
+  "status": 200,
+  "size": 1175641,
+  "md5": "21244adbcc429ba9158d4e2f790431de",
+  "lm": "Mon, 12 Oct 2026 14:06:04 GMT",
+  "cached": {
+   "size": 1175641,
+   "md5": "21244adbcc429ba9158d4e2f790431de",
+   "lm": "Mon, 12 Oct 2026 14:06:04 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_5_Year_High_School_Graduation.csv",
+  "status": 200,
+  "size": 1175588,
+  "md5": "99fbcad12c03186b5733f609eddcfc97",
+  "lm": "Mon, 12 Oct 2026 14:06:06 GMT",
+  "cached": {
+   "size": 1175588,
+   "md5": "99fbcad12c03186b5733f609eddcfc97",
+   "lm": "Mon, 12 Oct 2026 14:06:06 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Assessment_Participation.csv",
+  "status": 200,
+  "size": 57383730,
+  "md5": "9174eb59f18d9794cf339c4bd99a163e",
+  "lm": "Mon, 12 Oct 2026 14:06:33 GMT",
+  "cached": {
+   "size": 57383730,
+   "md5": "9174eb59f18d9794cf339c4bd99a163e",
+   "lm": "Mon, 12 Oct 2026 14:06:33 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Crosstab_Cohort_4_Year.csv",
+  "status": 200,
+  "size": 14574718,
+  "md5": "1b14867b2193b54d530ef19ae35ecf60",
+  "lm": "Mon, 12 Oct 2026 14:06:42 GMT",
+  "cached": {
+   "size": 14574718,
+   "md5": "1b14867b2193b54d530ef19ae35ecf60",
+   "lm": "Mon, 12 Oct 2026 14:06:42 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Crosstab_Cohort_5_Year.csv",
+  "status": 200,
+  "size": 14402585,
+  "md5": "557e4763fdf7b1c5471ae58e1a739477",
+  "lm": "Mon, 12 Oct 2026 14:06:51 GMT",
+  "cached": {
+   "size": 14402585,
+   "md5": "557e4763fdf7b1c5471ae58e1a739477",
+   "lm": "Mon, 12 Oct 2026 14:06:51 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Crosstab_EditingMechanics.csv",
+  "status": 200,
+  "size": 61088294,
+  "md5": "c372bb210c465ebdeb7065ded771110f",
+  "lm": "Mon, 12 Oct 2026 14:07:39 GMT",
+  "cached": {
+   "size": 61088294,
+   "md5": "c372bb210c465ebdeb7065ded771110f",
+   "lm": "Mon, 12 Oct 2026 14:07:39 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Crosstab_Mathematics.csv",
+  "status": 200,
+  "size": 76190300,
+  "md5": null,
+  "lm": "Mon, 12 Oct 2026 14:08:41 GMT",
+  "cached": {
+   "size": 76190300,
+   "md5": "171d1335af2260591566936ec9a34bd0",
+   "lm": "Mon, 12 Oct 2026 14:08:41 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Crosstab_OnDemandWriting.csv",
+  "status": 200,
+  "size": 60995710,
+  "md5": "08adf032207df17c2baf12ed33c820ee",
+  "lm": "Mon, 12 Oct 2026 13:51:52 GMT",
+  "cached": {
+   "size": 60995710,
+   "md5": "08adf032207df17c2baf12ed33c820ee",
+   "lm": "Mon, 12 Oct 2026 13:51:52 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Crosstab_Reading.csv",
+  "status": 200,
+  "size": 76284784,
+  "md5": null,
+  "lm": "Mon, 12 Oct 2026 13:53:18 GMT",
+  "cached": {
+   "size": 76284784,
+   "md5": "5dcae2d2b8488d554af41b6a42763600",
+   "lm": "Mon, 12 Oct 2026 13:53:18 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Crosstab_Science.csv",
+  "status": 200,
+  "size": 62133953,
+  "md5": "947908a30e81cbfe1e79ec96aba41b2e",
+  "lm": "Mon, 12 Oct 2026 13:54:23 GMT",
+  "cached": {
+   "size": 62133953,
+   "md5": "947908a30e81cbfe1e79ec96aba41b2e",
+   "lm": "Mon, 12 Oct 2026 13:54:23 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Crosstab_SocialStudies.csv",
+  "status": 200,
+  "size": 61082125,
+  "md5": "6c92484b16f1b295a4b2077756d61c71",
+  "lm": "Mon, 12 Oct 2026 13:55:21 GMT",
+  "cached": {
+   "size": 61082125,
+   "md5": "6c92484b16f1b295a4b2077756d61c71",
+   "lm": "Mon, 12 Oct 2026 13:55:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Datasets.zip",
+  "status": 200,
+  "size": 32806282,
+  "md5": "16a97dd5f3fb536ecb253a4e8d753cde",
+  "lm": "Thu, 15 Oct 2026 01:49:37 GMT",
+  "cached": {
+   "size": 32806282,
+   "md5": "16a97dd5f3fb536ecb253a4e8d753cde",
+   "lm": "Thu, 15 Oct 2026 01:49:37 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+  "status": 200,
+  "size": 2928044,
+  "md5": "de16ecb7b399744797e2b122c487c5cb",
+  "lm": "Mon, 12 Oct 2026 13:55:23 GMT",
+  "cached": {
+   "size": 2928044,
+   "md5": "de16ecb7b399744797e2b122c487c5cb",
+   "lm": "Mon, 12 Oct 2026 13:55:23 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Index_Scores.csv",
+  "status": 200,
+  "size": 7085806,
+  "md5": "784f609e32188178b04bbb34f446d96b",
+  "lm": "Mon, 12 Oct 2026 13:55:28 GMT",
+  "cached": {
+   "size": 7085806,
+   "md5": "784f609e32188178b04bbb34f446d96b",
+   "lm": "Mon, 12 Oct 2026 13:55:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Kentucky_Summative_Assessment.csv",
+  "status": 200,
+  "size": 47535950,
+  "md5": "fa8b76c776cc60c2fe58bc1939d4b1ea",
+  "lm": "Mon, 12 Oct 2026 13:56:03 GMT",
+  "cached": {
+   "size": 47535950,
+   "md5": "fa8b76c776cc60c2fe58bc1939d4b1ea",
+   "lm": "Mon, 12 Oct 2026 13:56:03 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Postsecondary_Readiness.csv",
+  "status": 200,
+  "size": 1366274,
+  "md5": "b5893752e1eefeabc05ab37caa40b7ab",
+  "lm": "Mon, 12 Oct 2026 13:56:05 GMT",
+  "cached": {
+   "size": 1366274,
+   "md5": "b5893752e1eefeabc05ab37caa40b7ab",
+   "lm": "Mon, 12 Oct 2026 13:56:05 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Profile.csv",
+  "status": 200,
+  "size": 431151,
+  "md5": "5104b1f7718df2898e3dd1a53e8a4d17",
+  "lm": "Mon, 12 Oct 2026 13:56:07 GMT",
+  "cached": {
+   "size": 431151,
+   "md5": "5104b1f7718df2898e3dd1a53e8a4d17",
+   "lm": "Mon, 12 Oct 2026 13:56:07 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_School_Improvement.csv",
+  "status": 200,
+  "size": 32648,
+  "md5": "db8d6e648fcf6699e8c7f0c82c94b647",
+  "lm": "Mon, 12 Oct 2026 13:56:08 GMT",
+  "cached": {
+   "size": 32648,
+   "md5": "db8d6e648fcf6699e8c7f0c82c94b647",
+   "lm": "Mon, 12 Oct 2026 13:56:08 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Summary.csv",
+  "status": 200,
+  "size": 3743506,
+  "md5": "b9c9ae5ebe0bfff751bde9a44fa40ed8",
+  "lm": "Mon, 12 Oct 2026 13:56:18 GMT",
+  "cached": {
+   "size": 3743506,
+   "md5": "b9c9ae5ebe0bfff751bde9a44fa40ed8",
+   "lm": "Mon, 12 Oct 2026 13:56:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ACCT_Survey_Results.csv",
+  "status": 200,
+  "size": 297011485,
+  "md5": null,
+  "lm": "Sat, 10 Oct 2026 14:59:56 GMT",
+  "cached": {
+   "size": 297011485,
+   "md5": "18e1fcb9bfe0142c80b472c50adbea99",
+   "lm": "Sat, 10 Oct 2026 14:59:56 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ADLF_Current_Year_Graduates.csv",
+  "status": 200,
+  "size": 1177870,
+  "md5": "c2f5f3be7f1cc9103e137d7e3e7171cf",
+  "lm": "Sat, 10 Oct 2026 05:57:06 GMT",
+  "cached": {
+   "size": 1177870,
+   "md5": "c2f5f3be7f1cc9103e137d7e3e7171cf",
+   "lm": "Sat, 10 Oct 2026 05:57:06 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ADLF_Datasets.zip",
+  "status": 200,
+  "size": 152836,
+  "md5": "310d8631d37b0901572a3bcee02f5f53",
+  "lm": "Thu, 15 Oct 2026 01:49:37 GMT",
+  "cached": {
+   "size": 152836,
+   "md5": "310d8631d37b0901572a3bcee02f5f53",
+   "lm": "Thu, 15 Oct 2026 01:49:37 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ADLF_Graduate_Outcomes.csv",
+  "status": 200,
+  "size": 75115,
+  "md5": "e43798db52f4fb5e22c8ad07bdc1d9fe",
+  "lm": "Sat, 10 Oct 2026 05:57:07 GMT",
+  "cached": {
+   "size": 75115,
+   "md5": "e43798db52f4fb5e22c8ad07bdc1d9fe",
+   "lm": "Sat, 10 Oct 2026 05:57:07 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ADLF_Transition_to_In_State_Postsecondary_Education.csv",
+  "status": 200,
+  "size": 887543,
+  "md5": "ba19e9d0c848fbc06715a005727d3318",
+  "lm": "Sat, 10 Oct 2026 05:57:09 GMT",
+  "cached": {
+   "size": 887543,
+   "md5": "ba19e9d0c848fbc06715a005727d3318",
+   "lm": "Sat, 10 Oct 2026 05:57:09 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ASMT_Alternate_Assessment_Participation.csv",
+  "status": 200,
+  "size": 2390274,
+  "md5": "a05a436e003d9075aaaa123cea83f52f",
+  "lm": "Sat, 10 Oct 2026 05:57:10 GMT",
+  "cached": {
+   "size": 2390274,
+   "md5": "a05a436e003d9075aaaa123cea83f52f",
+   "lm": "Sat, 10 Oct 2026 05:57:10 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ASMT_Benchmark.csv",
+  "status": 200,
+  "size": 1690361,
+  "md5": "52421dbb42b5f372193269df8ce2d834",
+  "lm": "Sat, 10 Oct 2026 05:57:12 GMT",
+  "cached": {
+   "size": 1690361,
+   "md5": "52421dbb42b5f372193269df8ce2d834",
+   "lm": "Sat, 10 Oct 2026 05:57:12 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ASMT_CAE.csv",
+  "status": 200,
+  "size": 1822447,
+  "md5": "de0465dbd6a318ec4e5a539180dfd964",
+  "lm": "Sat, 10 Oct 2026 06:00:06 GMT",
+  "cached": {
+   "size": 1822447,
+   "md5": "de0465dbd6a318ec4e5a539180dfd964",
+   "lm": "Sat, 10 Oct 2026 06:00:06 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ASMT_Datasets.zip",
+  "status": 200,
+  "size": 9216886,
+  "md5": "5d5a007356b4b61057477ec3a91aa29c",
+  "lm": "Thu, 15 Oct 2026 01:49:41 GMT",
+  "cached": {
+   "size": 9216886,
+   "md5": "5d5a007356b4b61057477ec3a91aa29c",
+   "lm": "Thu, 15 Oct 2026 01:49:41 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ASMT_English_Language_Proficiency.csv",
+  "status": 200,
+  "size": 835258,
+  "md5": "e6a4f58927cbdefc6c61fcdc64e889b2",
+  "lm": "Sat, 10 Oct 2026 05:57:13 GMT",
+  "cached": {
+   "size": 835258,
+   "md5": "e6a4f58927cbdefc6c61fcdc64e889b2",
+   "lm": "Sat, 10 Oct 2026 05:57:13 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ASMT_Kentucky_Summative_Assessment.csv",
+  "status": 200,
+  "size": 91031722,
+  "md5": null,
+  "lm": "Sat, 10 Oct 2026 05:58:13 GMT",
+  "cached": {
+   "size": 91031722,
+   "md5": "1e0ed96fe1adb837e744ab82f2c94a30",
+   "lm": "Sat, 10 Oct 2026 05:58:13 GMT"
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ASMT_Kindergarten_Screen_Composite.csv",
+  "status": 200,
+  "size": 12217676,
+  "md5": "bd0b049272df6a48149539d18d367449",
+  "lm": "Sat, 10 Oct 2026 05:58:24 GMT",
+  "cached": {
+   "size": 12217676,
+   "md5": "bd0b049272df6a48149539d18d367449",
+   "lm": "Sat, 10 Oct 2026 05:58:24 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ASMT_Kindergarten_Screen_Developmental_Domains.csv",
+  "status": 200,
+  "size": 14442671,
+  "md5": "658329b924b2dc3e94aae8f3da38c1e2",
+  "lm": "Sat, 10 Oct 2026 05:59:01 GMT",
+  "cached": {
+   "size": 14442671,
+   "md5": "658329b924b2dc3e94aae8f3da38c1e2",
+   "lm": "Sat, 10 Oct 2026 05:59:01 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ASMT_Measurements_of_Interim_Progress_English_Language_Proficiency.csv",
+  "status": 200,
+  "size": 365723,
+  "md5": "b44325bf00a39411bfb9b3d0b8ee6e2f",
+  "lm": "Sat, 10 Oct 2026 05:59:02 GMT",
+  "cached": {
+   "size": 365723,
+   "md5": "b44325bf00a39411bfb9b3d0b8ee6e2f",
+   "lm": "Sat, 10 Oct 2026 05:59:02 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ASMT_Measurements_of_Interim_Progress_Graduation_Rate.csv",
+  "status": 200,
+  "size": 3209438,
+  "md5": "fc6067d5f461608b3a4c951190ae7db7",
+  "lm": "Sat, 10 Oct 2026 05:59:07 GMT",
+  "cached": {
+   "size": 3209438,
+   "md5": "fc6067d5f461608b3a4c951190ae7db7",
+   "lm": "Sat, 10 Oct 2026 05:59:07 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ASMT_Measurements_of_Interim_Progress_Proficiency.csv",
+  "status": 200,
+  "size": 38037071,
+  "md5": "95bae183b9d1e33208d020c8480dffdf",
+  "lm": "Sat, 10 Oct 2026 06:00:02 GMT",
+  "cached": {
+   "size": 38037071,
+   "md5": "95bae183b9d1e33208d020c8480dffdf",
+   "lm": "Sat, 10 Oct 2026 06:00:02 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_ASMT_National_Assessment_of_Educational_Progress.csv",
+  "status": 200,
+  "size": 14779,
+  "md5": "c8dea32167637a345295fa4544085b3e",
+  "lm": "Sat, 10 Oct 2026 06:00:03 GMT",
+  "cached": {
+   "size": 14779,
+   "md5": "c8dea32167637a345295fa4544085b3e",
+   "lm": "Sat, 10 Oct 2026 06:00:03 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_CTE_Career_Pathways.csv",
+  "status": 200,
+  "size": 889814,
+  "md5": "f3a754ed64357b9180c8e8969bd3ff82",
+  "lm": "Sat, 10 Oct 2026 06:00:07 GMT",
+  "cached": {
+   "size": 889814,
+   "md5": "f3a754ed64357b9180c8e8969bd3ff82",
+   "lm": "Sat, 10 Oct 2026 06:00:07 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_CTE_Career_Readiness_Indicators.csv",
+  "status": 200,
+  "size": 49452,
+  "md5": "a37d5d86072a7c6739b359c6c3fa54ab",
+  "lm": "Sat, 10 Oct 2026 06:00:08 GMT",
+  "cached": {
+   "size": 49452,
+   "md5": "a37d5d86072a7c6739b359c6c3fa54ab",
+   "lm": "Sat, 10 Oct 2026 06:00:08 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_CTE_Datasets.zip",
+  "status": 200,
+  "size": 283606,
+  "md5": "4e98368298cb4339799b7ebf94f6ef7b",
+  "lm": "Thu, 15 Oct 2026 01:49:41 GMT",
+  "cached": {
+   "size": 283606,
+   "md5": "4e98368298cb4339799b7ebf94f6ef7b",
+   "lm": "Thu, 15 Oct 2026 01:49:41 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_CTE_Participation.csv",
+  "status": 200,
+  "size": 1091622,
+  "md5": "82a36bff5ecbce9321898898ae2c6d22",
+  "lm": "Sat, 10 Oct 2026 06:00:11 GMT",
+  "cached": {
+   "size": 1091622,
+   "md5": "82a36bff5ecbce9321898898ae2c6d22",
+   "lm": "Sat, 10 Oct 2026 06:00:11 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_CTE_Perkins_Report.csv",
+  "status": 200,
+  "size": 482534,
+  "md5": "5cefb41765abb3e28c67d8f3b2cfdf12",
+  "lm": "Sat, 10 Oct 2026 14:59:57 GMT",
+  "cached": {
+   "size": 482534,
+   "md5": "5cefb41765abb3e28c67d8f3b2cfdf12",
+   "lm": "Sat, 10 Oct 2026 14:59:57 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_CTE_Postsecondary_Opportunities.csv",
+  "status": 200,
+  "size": 1311641,
+  "md5": "2011f61e24b1fbeed6d4bfcfb0443e0d",
+  "lm": "Sat, 10 Oct 2026 06:00:13 GMT",
+  "cached": {
+   "size": 1311641,
+   "md5": "2011f61e24b1fbeed6d4bfcfb0443e0d",
+   "lm": "Sat, 10 Oct 2026 06:00:13 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_CTE_Student_Objectives.csv",
+  "status": 200,
+  "size": 56951,
+  "md5": "e8f306503d96bbed000934d32474ab6c",
+  "lm": "Sat, 10 Oct 2026 06:00:14 GMT",
+  "cached": {
+   "size": 56951,
+   "md5": "e8f306503d96bbed000934d32474ab6c",
+   "lm": "Sat, 10 Oct 2026 06:00:14 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_EDOP_Advanced_Courses_Offered.csv",
+  "status": 200,
+  "size": 798765,
+  "md5": "1c1be54c9307422fce3458b1ca6a6e29",
+  "lm": "Sat, 10 Oct 2026 06:00:15 GMT",
+  "cached": {
+   "size": 798765,
+   "md5": "1c1be54c9307422fce3458b1ca6a6e29",
+   "lm": "Sat, 10 Oct 2026 06:00:15 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_EDOP_Advanced_Courses_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 876963,
+  "md5": "499198d7237070bf1733466dd1f8726e",
+  "lm": "Sat, 10 Oct 2026 06:00:16 GMT",
+  "cached": {
+   "size": 876963,
+   "md5": "499198d7237070bf1733466dd1f8726e",
+   "lm": "Sat, 10 Oct 2026 06:00:16 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_EDOP_Career_Studies.csv",
+  "status": 200,
+  "size": 431745,
+  "md5": "a5dc22bf53bedbc0fc156e0cfa097e6a",
+  "lm": "Sat, 10 Oct 2026 12:16:14 GMT",
+  "cached": {
+   "size": 431745,
+   "md5": "a5dc22bf53bedbc0fc156e0cfa097e6a",
+   "lm": "Sat, 10 Oct 2026 12:16:14 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_EDOP_Datasets.zip",
+  "status": 200,
+  "size": 1345447,
+  "md5": "70e557a0e5258ec49fc07ec84a5d74a0",
+  "lm": "Thu, 15 Oct 2026 01:49:42 GMT",
+  "cached": {
+   "size": 1345447,
+   "md5": "70e557a0e5258ec49fc07ec84a5d74a0",
+   "lm": "Thu, 15 Oct 2026 01:49:42 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_EDOP_Dual_Credit_Courses_Offered.csv",
+  "status": 200,
+  "size": 916339,
+  "md5": "ae49f3653bd893f2c482fdbbfd997f23",
+  "lm": "Sat, 10 Oct 2026 06:00:18 GMT",
+  "cached": {
+   "size": 916339,
+   "md5": "ae49f3653bd893f2c482fdbbfd997f23",
+   "lm": "Sat, 10 Oct 2026 06:00:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_EDOP_Dual_Credit_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 1214553,
+  "md5": "152b9f9b9e9069da3d11fd807ad02096",
+  "lm": "Sat, 10 Oct 2026 06:00:20 GMT",
+  "cached": {
+   "size": 1214553,
+   "md5": "152b9f9b9e9069da3d11fd807ad02096",
+   "lm": "Sat, 10 Oct 2026 06:00:20 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_EDOP_Gifted_Participation_by_Category.csv",
+  "status": 200,
+  "size": 3135968,
+  "md5": "c1702aed29d110ba2655a1eab2fff42b",
+  "lm": "Sat, 10 Oct 2026 06:00:22 GMT",
+  "cached": {
+   "size": 3135968,
+   "md5": "c1702aed29d110ba2655a1eab2fff42b",
+   "lm": "Sat, 10 Oct 2026 06:00:22 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_EDOP_Gifted_Participation_by_Grade_Level.csv",
+  "status": 200,
+  "size": 2017415,
+  "md5": "0359bd5a4f0eee8104bf2d7b2832818b",
+  "lm": "Sat, 10 Oct 2026 06:00:25 GMT",
+  "cached": {
+   "size": 2017415,
+   "md5": "0359bd5a4f0eee8104bf2d7b2832818b",
+   "lm": "Sat, 10 Oct 2026 06:00:25 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_EDOP_Health_Education_and_Physical_Education.csv",
+  "status": 200,
+  "size": 402105,
+  "md5": "753a80251e5db6bc726a139c6763b18f",
+  "lm": "Sat, 10 Oct 2026 12:16:15 GMT",
+  "cached": {
+   "size": 402105,
+   "md5": "753a80251e5db6bc726a139c6763b18f",
+   "lm": "Sat, 10 Oct 2026 12:16:15 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_EDOP_School_Courses_Summary.csv",
+  "status": 200,
+  "size": 5908076,
+  "md5": "3561b930ccc20c3042c5fb8832328a86",
+  "lm": "Sat, 10 Oct 2026 06:00:37 GMT",
+  "cached": {
+   "size": 5908076,
+   "md5": "3561b930ccc20c3042c5fb8832328a86",
+   "lm": "Sat, 10 Oct 2026 06:00:37 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_EDOP_Visual_and_Performing_Arts.csv",
+  "status": 200,
+  "size": 457305,
+  "md5": "ec88e67828154b40e382cb5a1ca6d5c3",
+  "lm": "Sat, 10 Oct 2026 12:16:16 GMT",
+  "cached": {
+   "size": 457305,
+   "md5": "ec88e67828154b40e382cb5a1ca6d5c3",
+   "lm": "Sat, 10 Oct 2026 12:16:16 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_EDOP_World_Languages.csv",
+  "status": 200,
+  "size": 397628,
+  "md5": "9855b6e11666274c4ddf405d25dd3fa0",
+  "lm": "Sat, 10 Oct 2026 12:16:17 GMT",
+  "cached": {
+   "size": 397628,
+   "md5": "9855b6e11666274c4ddf405d25dd3fa0",
+   "lm": "Sat, 10 Oct 2026 12:16:17 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Access_to_Technology.csv",
+  "status": 200,
+  "size": 208350,
+  "md5": "d2f91e22fcc1e0b89bfb8cac054a7a37",
+  "lm": "Sat, 10 Oct 2026 12:16:18 GMT",
+  "cached": {
+   "size": 208350,
+   "md5": "d2f91e22fcc1e0b89bfb8cac054a7a37",
+   "lm": "Sat, 10 Oct 2026 12:16:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Adjusted_Average_Daily_Attendance_AADA.csv",
+  "status": 200,
+  "size": 195465,
+  "md5": "447a302bdbe8d0d65e9b0997a185af9a",
+  "lm": "Sat, 10 Oct 2026 06:00:40 GMT",
+  "cached": {
+   "size": 195465,
+   "md5": "447a302bdbe8d0d65e9b0997a185af9a",
+   "lm": "Sat, 10 Oct 2026 06:00:40 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Advanced_Coursework.csv",
+  "status": 200,
+  "size": 725086,
+  "md5": "aec69cf6fe319c59ae139facf31049b4",
+  "lm": "Mon, 12 Oct 2026 14:26:33 GMT",
+  "cached": {
+   "size": 725086,
+   "md5": "aec69cf6fe319c59ae139facf31049b4",
+   "lm": "Mon, 12 Oct 2026 14:26:33 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Arrests_and_Referrals_to_Law_Enforcement.csv",
+  "status": 200,
+  "size": 2226324,
+  "md5": "0ba9fd5c6acb6c9f9f7c0457ed335e44",
+  "lm": "Mon, 12 Oct 2026 14:26:35 GMT",
+  "cached": {
+   "size": 2226324,
+   "md5": "0ba9fd5c6acb6c9f9f7c0457ed335e44",
+   "lm": "Mon, 12 Oct 2026 14:26:35 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Attendance_Rate.csv",
+  "status": 200,
+  "size": 193351,
+  "md5": "fc50fd7e3b071312b5c51defba088cca",
+  "lm": "Sat, 10 Oct 2026 06:00:44 GMT",
+  "cached": {
+   "size": 193351,
+   "md5": "fc50fd7e3b071312b5c51defba088cca",
+   "lm": "Sat, 10 Oct 2026 06:00:44 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Average_Years_School_Experience.csv",
+  "status": 200,
+  "size": 190191,
+  "md5": "5f37a7504b48aa3d32343f1a70bbe031",
+  "lm": "Sat, 10 Oct 2026 06:00:45 GMT",
+  "cached": {
+   "size": 190191,
+   "md5": "5f37a7504b48aa3d32343f1a70bbe031",
+   "lm": "Sat, 10 Oct 2026 06:00:45 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Board_Members_SBDM.csv",
+  "status": 200,
+  "size": 1387595,
+  "md5": "88bdd0abf1d0b8fdb881b1c6b71685b1",
+  "lm": "Sat, 10 Oct 2026 06:00:46 GMT",
+  "cached": {
+   "size": 1387595,
+   "md5": "88bdd0abf1d0b8fdb881b1c6b71685b1",
+   "lm": "Sat, 10 Oct 2026 06:00:46 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Chronic_Absenteeism.csv",
+  "status": 200,
+  "size": 60964965,
+  "md5": "07d218e589daaac167e0faacabecfe8e",
+  "lm": "Sat, 10 Oct 2026 06:01:31 GMT",
+  "cached": {
+   "size": 60964965,
+   "md5": "07d218e589daaac167e0faacabecfe8e",
+   "lm": "Sat, 10 Oct 2026 06:01:31 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Chronic_Absenteeism_CRDC.csv",
+  "status": 200,
+  "size": 1107023,
+  "md5": "915f1052510902a37f231fe0d9c47c8a",
+  "lm": "Tue, 13 Oct 2026 13:59:13 GMT",
+  "cached": {
+   "size": 1107023,
+   "md5": "915f1052510902a37f231fe0d9c47c8a",
+   "lm": "Tue, 13 Oct 2026 13:59:13 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Datasets.zip",
+  "status": 200,
+  "size": 5851445,
+  "md5": "e1d9c4f2f4d9f1eddba41642de9f519a",
+  "lm": "Thu, 15 Oct 2026 01:49:44 GMT",
+  "cached": {
+   "size": 5851445,
+   "md5": "e1d9c4f2f4d9f1eddba41642de9f519a",
+   "lm": "Thu, 15 Oct 2026 01:49:44 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_District_School_List.csv",
+  "status": 200,
+  "size": 426362,
+  "md5": "705d5b0c4b266149f83c5f7355d46dda",
+  "lm": "Sat, 10 Oct 2026 06:01:33 GMT",
+  "cached": {
+   "size": 426362,
+   "md5": "705d5b0c4b266149f83c5f7355d46dda",
+   "lm": "Sat, 10 Oct 2026 06:01:33 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Dropout_Rate.csv",
+  "status": 200,
+  "size": 1587874,
+  "md5": "50299df8bee0809bf5537fb4ecf7d929",
+  "lm": "Sat, 10 Oct 2026 06:01:36 GMT",
+  "cached": {
+   "size": 1587874,
+   "md5": "50299df8bee0809bf5537fb4ecf7d929",
+   "lm": "Sat, 10 Oct 2026 06:01:36 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Economically_Disadvantaged.csv",
+  "status": 200,
+  "size": 3332198,
+  "md5": "19a47e530feb519bcd919b3bdcf5c1f3",
+  "lm": "Sat, 10 Oct 2026 06:01:39 GMT",
+  "cached": {
+   "size": 3332198,
+   "md5": "19a47e530feb519bcd919b3bdcf5c1f3",
+   "lm": "Sat, 10 Oct 2026 06:01:39 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Educator_Qualifications.csv",
+  "status": 200,
+  "size": 1025305,
+  "md5": "57e02126c4a4604c5f163b49213463ca",
+  "lm": "Sat, 10 Oct 2026 06:01:41 GMT",
+  "cached": {
+   "size": 1025305,
+   "md5": "57e02126c4a4604c5f163b49213463ca",
+   "lm": "Sat, 10 Oct 2026 06:01:41 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_English_Learners.csv",
+  "status": 200,
+  "size": 3910584,
+  "md5": "89275b8b6f744159dc58f23affd96d81",
+  "lm": "Sat, 10 Oct 2026 06:01:45 GMT",
+  "cached": {
+   "size": 3910584,
+   "md5": "89275b8b6f744159dc58f23affd96d81",
+   "lm": "Sat, 10 Oct 2026 06:01:45 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Extra_Year_in_Primary.csv",
+  "status": 200,
+  "size": 2213609,
+  "md5": "ed431e7047f292aa3606f2ac34760bc4",
+  "lm": "Sat, 10 Oct 2026 06:01:47 GMT",
+  "cached": {
+   "size": 2213609,
+   "md5": "ed431e7047f292aa3606f2ac34760bc4",
+   "lm": "Sat, 10 Oct 2026 06:01:47 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Harassment_and_Bullying.csv",
+  "status": 200,
+  "size": 182014,
+  "md5": "f4737ae37a47d94a5709c4fe3e819bab",
+  "lm": "Mon, 12 Oct 2026 14:26:36 GMT",
+  "cached": {
+   "size": 182014,
+   "md5": "f4737ae37a47d94a5709c4fe3e819bab",
+   "lm": "Mon, 12 Oct 2026 14:26:36 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Homeless.csv",
+  "status": 200,
+  "size": 3874972,
+  "md5": "c3a398bc3a96cc91b3d82857317f2b0c",
+  "lm": "Sat, 10 Oct 2026 06:01:52 GMT",
+  "cached": {
+   "size": 3874972,
+   "md5": "c3a398bc3a96cc91b3d82857317f2b0c",
+   "lm": "Sat, 10 Oct 2026 06:01:52 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Inexperienced_Staff.csv",
+  "status": 200,
+  "size": 138994,
+  "md5": "7653e598e00a4a9346054c1f54e35fdd",
+  "lm": "Sat, 10 Oct 2026 06:01:53 GMT",
+  "cached": {
+   "size": 138994,
+   "md5": "7653e598e00a4a9346054c1f54e35fdd",
+   "lm": "Sat, 10 Oct 2026 06:01:53 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Inexperienced_Teachers.csv",
+  "status": 200,
+  "size": 205136,
+  "md5": "92528e45b4aa5f29269bd5794be0d328",
+  "lm": "Sat, 10 Oct 2026 06:01:54 GMT",
+  "cached": {
+   "size": 205136,
+   "md5": "92528e45b4aa5f29269bd5794be0d328",
+   "lm": "Sat, 10 Oct 2026 06:01:54 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Migrant.csv",
+  "status": 200,
+  "size": 3851260,
+  "md5": "fa4b801d4ec33a6b7c44a84df438e103",
+  "lm": "Sat, 10 Oct 2026 06:02:05 GMT",
+  "cached": {
+   "size": 3851260,
+   "md5": "fa4b801d4ec33a6b7c44a84df438e103",
+   "lm": "Sat, 10 Oct 2026 06:02:05 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Parental_Involvement.csv",
+  "status": 200,
+  "size": 146043,
+  "md5": "712699f1237c961221102b7c90ea7ad2",
+  "lm": "Sat, 10 Oct 2026 12:16:18 GMT",
+  "cached": {
+   "size": 146043,
+   "md5": "712699f1237c961221102b7c90ea7ad2",
+   "lm": "Sat, 10 Oct 2026 12:16:18 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Preschool_Enrollment.csv",
+  "status": 200,
+  "size": 2052152,
+  "md5": "61af3fbcbef3283be6d4ad4588794f0f",
+  "lm": "Mon, 12 Oct 2026 14:26:38 GMT",
+  "cached": {
+   "size": 2052152,
+   "md5": "61af3fbcbef3283be6d4ad4588794f0f",
+   "lm": "Mon, 12 Oct 2026 14:26:38 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Preschool_Suspensions_and_Expulsions.csv",
+  "status": 200,
+  "size": 154708,
+  "md5": "92911fcd865a1eb9b41650854cb2c3d8",
+  "lm": "Mon, 12 Oct 2026 14:26:38 GMT",
+  "cached": {
+   "size": 154708,
+   "md5": "92911fcd865a1eb9b41650854cb2c3d8",
+   "lm": "Mon, 12 Oct 2026 14:26:38 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Secondary_Enrollment.csv",
+  "status": 200,
+  "size": 184131,
+  "md5": "d7ac78da041f949886704844c2dfe594",
+  "lm": "Sat, 10 Oct 2026 06:02:11 GMT",
+  "cached": {
+   "size": 184131,
+   "md5": "d7ac78da041f949886704844c2dfe594",
+   "lm": "Sat, 10 Oct 2026 06:02:11 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Student_Enrollment.csv",
+  "status": 200,
+  "size": 3586080,
+  "md5": "34fb611ac6c7356089d79681a9748fdd",
+  "lm": "Sat, 10 Oct 2026 06:02:15 GMT",
+  "cached": {
+   "size": 3586080,
+   "md5": "34fb611ac6c7356089d79681a9748fdd",
+   "lm": "Sat, 10 Oct 2026 06:02:15 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Student_Expulsions.csv",
+  "status": 200,
+  "size": 2226384,
+  "md5": "a410c83dcfb32031019c48b1bc963352",
+  "lm": "Mon, 12 Oct 2026 14:26:40 GMT",
+  "cached": {
+   "size": 2226384,
+   "md5": "a410c83dcfb32031019c48b1bc963352",
+   "lm": "Mon, 12 Oct 2026 14:26:40 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Student_Membership.csv",
+  "status": 200,
+  "size": 1929072,
+  "md5": "0266e15e455d34e84443dc701d8a9d4a",
+  "lm": "Sat, 10 Oct 2026 06:02:20 GMT",
+  "cached": {
+   "size": 1929072,
+   "md5": "0266e15e455d34e84443dc701d8a9d4a",
+   "lm": "Sat, 10 Oct 2026 06:02:20 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Student_Retention_Grades_4_12.csv",
+  "status": 200,
+  "size": 3800020,
+  "md5": "6d6c2026da206a07062032f54948920c",
+  "lm": "Sat, 10 Oct 2026 06:02:23 GMT",
+  "cached": {
+   "size": 3800020,
+   "md5": "6d6c2026da206a07062032f54948920c",
+   "lm": "Sat, 10 Oct 2026 06:02:23 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Student_Suspensions.csv",
+  "status": 200,
+  "size": 2292780,
+  "md5": "7b59e410b3453f5ae006fd7e4f91234f",
+  "lm": "Mon, 12 Oct 2026 14:26:42 GMT",
+  "cached": {
+   "size": 2292780,
+   "md5": "7b59e410b3453f5ae006fd7e4f91234f",
+   "lm": "Mon, 12 Oct 2026 14:26:42 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Student_to_Teacher_Ratio.csv",
+  "status": 200,
+  "size": 172746,
+  "md5": "c5dd6d64996e5d06720a3f2283e0d34d",
+  "lm": "Sat, 10 Oct 2026 06:02:27 GMT",
+  "cached": {
+   "size": 172746,
+   "md5": "c5dd6d64996e5d06720a3f2283e0d34d",
+   "lm": "Sat, 10 Oct 2026 06:02:27 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv",
+  "status": 200,
+  "size": 261805,
+  "md5": "44b49be11d418e83c4ff1e7000965bd7",
+  "lm": "Mon, 12 Oct 2026 19:53:57 GMT",
+  "cached": {
+   "size": 261805,
+   "md5": "44b49be11d418e83c4ff1e7000965bd7",
+   "lm": "Mon, 12 Oct 2026 19:53:57 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Students_Taught_by_Inexperienced_Teachers.csv",
+  "status": 200,
+  "size": 321011,
+  "md5": "b3d64712c06852ed7460b9f2b72306f1",
+  "lm": "Sat, 10 Oct 2026 06:02:28 GMT",
+  "cached": {
+   "size": 321011,
+   "md5": "b3d64712c06852ed7460b9f2b72306f1",
+   "lm": "Sat, 10 Oct 2026 06:02:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+  "status": 200,
+  "size": 309282,
+  "md5": "1593c9b739194315846d86097b4ad954",
+  "lm": "Sat, 10 Oct 2026 06:02:30 GMT",
+  "cached": {
+   "size": 309282,
+   "md5": "1593c9b739194315846d86097b4ad954",
+   "lm": "Sat, 10 Oct 2026 06:02:30 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Students_with_Disabilities_IEP.csv",
+  "status": 200,
+  "size": 5000668,
+  "md5": "1b1dc1df9271aabfb2bf6c602b00ea68",
+  "lm": "Sat, 10 Oct 2026 06:02:48 GMT",
+  "cached": {
+   "size": 5000668,
+   "md5": "1b1dc1df9271aabfb2bf6c602b00ea68",
+   "lm": "Sat, 10 Oct 2026 06:02:48 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Teacher_Certification_Data.csv",
+  "status": 200,
+  "size": 227395,
+  "md5": "9d6565d7f00da937eeb1a2c8725ffb17",
+  "lm": "Thu, 15 Oct 2026 01:48:13 GMT",
+  "cached": {
+   "size": 227395,
+   "md5": "9d6565d7f00da937eeb1a2c8725ffb17",
+   "lm": "Thu, 15 Oct 2026 01:48:13 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Teacher_Turnover.csv",
+  "status": 200,
+  "size": 218806,
+  "md5": "4b670fdf37796f68e379046aa98ea63d",
+  "lm": "Sat, 10 Oct 2026 06:02:51 GMT",
+  "cached": {
+   "size": 218806,
+   "md5": "4b670fdf37796f68e379046aa98ea63d",
+   "lm": "Sat, 10 Oct 2026 06:02:51 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Teacher_Working_Conditions.csv",
+  "status": 200,
+  "size": 436507,
+  "md5": "ac5bd3c79bbfeaef42ee5ce015dcb089",
+  "lm": "Sat, 10 Oct 2026 06:02:52 GMT",
+  "cached": {
+   "size": 436507,
+   "md5": "ac5bd3c79bbfeaef42ee5ce015dcb089",
+   "lm": "Sat, 10 Oct 2026 06:02:52 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Teachers_Full_Time_Equivalent_FTE.csv",
+  "status": 200,
+  "size": 15750,
+  "md5": "c2695d59e3ad47f9360d1dbae005907f",
+  "lm": "Sat, 10 Oct 2026 06:02:55 GMT",
+  "cached": {
+   "size": 15750,
+   "md5": "c2695d59e3ad47f9360d1dbae005907f",
+   "lm": "Sat, 10 Oct 2026 06:02:55 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Teachers_by_Gender.csv",
+  "status": 200,
+  "size": 385016,
+  "md5": "a1822735d1b1ecf506ace23e07917180",
+  "lm": "Sat, 10 Oct 2026 06:02:52 GMT",
+  "cached": {
+   "size": 385016,
+   "md5": "a1822735d1b1ecf506ace23e07917180",
+   "lm": "Sat, 10 Oct 2026 06:02:52 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Teachers_by_Race_Ethnicity.csv",
+  "status": 200,
+  "size": 1719464,
+  "md5": "389483fb736b762b0e6e937402f19bd6",
+  "lm": "Sat, 10 Oct 2026 06:02:54 GMT",
+  "cached": {
+   "size": 1719464,
+   "md5": "389483fb736b762b0e6e937402f19bd6",
+   "lm": "Sat, 10 Oct 2026 06:02:54 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_OVW_Violent_Offenses.csv",
+  "status": 200,
+  "size": 193702,
+  "md5": "789062f0fd259d0a85ef1f4e3738b50f",
+  "lm": "Mon, 12 Oct 2026 14:26:43 GMT",
+  "cached": {
+   "size": 193702,
+   "md5": "789062f0fd259d0a85ef1f4e3738b50f",
+   "lm": "Mon, 12 Oct 2026 14:26:43 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_SAFE_Approaches_that_are_actively_implemented_school_wide.csv",
+  "status": 200,
+  "size": 1491441,
+  "md5": "88c04aaf6336605288096cffd0d9ca45",
+  "lm": "Sat, 10 Oct 2026 12:16:20 GMT",
+  "cached": {
+   "size": 1491441,
+   "md5": "88c04aaf6336605288096cffd0d9ca45",
+   "lm": "Sat, 10 Oct 2026 12:16:20 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_SAFE_Behavior_Events_by_Context.csv",
+  "status": 200,
+  "size": 4425549,
+  "md5": "87d0acc49ae8c3c06990c01f6194021d",
+  "lm": "Tue, 13 Oct 2026 19:04:39 GMT",
+  "cached": {
+   "size": 4425549,
+   "md5": "87d0acc49ae8c3c06990c01f6194021d",
+   "lm": "Tue, 13 Oct 2026 19:04:39 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_SAFE_Behavior_Events_by_Grade_Level.csv",
+  "status": 200,
+  "size": 4880364,
+  "md5": "61e1ba61b2cb6527033703c3ec8b02ac",
+  "lm": "Tue, 13 Oct 2026 19:06:28 GMT",
+  "cached": {
+   "size": 4880364,
+   "md5": "61e1ba61b2cb6527033703c3ec8b02ac",
+   "lm": "Tue, 13 Oct 2026 19:06:28 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_SAFE_Behavior_Events_by_Location.csv",
+  "status": 200,
+  "size": 4754376,
+  "md5": "e20b14d8a66b5b34a558be8c7e103d67",
+  "lm": "Tue, 13 Oct 2026 19:08:20 GMT",
+  "cached": {
+   "size": 4754376,
+   "md5": "e20b14d8a66b5b34a558be8c7e103d67",
+   "lm": "Tue, 13 Oct 2026 19:08:20 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_SAFE_Behavior_Events_by_Type.csv",
+  "status": 200,
+  "size": 4684210,
+  "md5": "1104ee42109aaea92fba370065b64490",
+  "lm": "Tue, 13 Oct 2026 19:10:10 GMT",
+  "cached": {
+   "size": 4684210,
+   "md5": "1104ee42109aaea92fba370065b64490",
+   "lm": "Tue, 13 Oct 2026 19:10:10 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_SAFE_Datasets.zip",
+  "status": 200,
+  "size": 1781433,
+  "md5": "775c71008edea9afcae40eadaca4c2d9",
+  "lm": "Thu, 15 Oct 2026 01:49:45 GMT",
+  "cached": {
+   "size": 1781433,
+   "md5": "775c71008edea9afcae40eadaca4c2d9",
+   "lm": "Thu, 15 Oct 2026 01:49:45 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_SAFE_Discipline_Resolutions.csv",
+  "status": 200,
+  "size": 4740790,
+  "md5": "f2b63517a751878c485438b6139aa997",
+  "lm": "Tue, 13 Oct 2026 19:12:05 GMT",
+  "cached": {
+   "size": 4740790,
+   "md5": "f2b63517a751878c485438b6139aa997",
+   "lm": "Tue, 13 Oct 2026 19:12:05 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_SAFE_Legal_Sanctions.csv",
+  "status": 200,
+  "size": 4456730,
+  "md5": "c7970ecb5e4b42ec66f113bd1d174c2c",
+  "lm": "Tue, 13 Oct 2026 19:13:53 GMT",
+  "cached": {
+   "size": 4456730,
+   "md5": "c7970ecb5e4b42ec66f113bd1d174c2c",
+   "lm": "Tue, 13 Oct 2026 19:13:53 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasetsuat6051276/2026/KYRC26_SAFE_Precautionary_Measures.csv",
+  "status": 200,
+  "size": 198110,
+  "md5": "220575cf689e134424fb28e3797b1687",
+  "lm": "Sat, 10 Oct 2026 12:16:21 GMT",
+  "cached": {
+   "size": 198110,
+   "md5": "220575cf689e134424fb28e3797b1687",
+   "lm": "Sat, 10 Oct 2026 12:16:21 GMT"
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2023/KYRC23_ACCT_Index_Scores.csv",
+  "status": 200,
+  "size": 7110206,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:26 GMT",
+  "cached": {
+   "size": 7110206,
+   "md5": "3f19c5069ab9bb9458f6adf5a3dd7e9a",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2023/KYRC23_EDOP_Dual_Credit_Courses_Offered.csv",
+  "status": 200,
+  "size": 828966,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:27 GMT",
+  "cached": {
+   "size": 828966,
+   "md5": "55480f40f10acbcb7ed666251bbcd5ef",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2023/KYRC23_EDOP_Dual_Credit_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 1175252,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:27 GMT",
+  "cached": {
+   "size": 1175252,
+   "md5": "5537304e3815ddad718a2ac556032335",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2023/KYRC23_OVW_Advanced_Coursework.csv",
+  "status": 200,
+  "size": 6716443,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:27 GMT",
+  "cached": {
+   "size": 6716443,
+   "md5": "d071b3a93ee34068d5a488554cda28d0",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2023/KYRC23_SAFE_Legal_Sanctions.csv",
+  "status": 200,
+  "size": 4282258,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:28 GMT",
+  "cached": {
+   "size": 4282258,
+   "md5": "2f14be6e2425b2f66fe6588dd72ecd96",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2024/KYRC24_EDOP_School_Courses_Summary.csv",
+  "status": 200,
+  "size": 5391926,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:29 GMT",
+  "cached": {
+   "size": 5391926,
+   "md5": "5a70272a36dfc0a2375f1bff34abf21f",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2024/KYRC24_OVW_Secondary_Enrollment.csv",
+  "status": 200,
+  "size": 166278,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:30 GMT",
+  "cached": {
+   "size": 166278,
+   "md5": "b00f668a1ba43ea1a7ae278e79b4b326",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2024/KYRC24_OVW_Teacher_Working_Conditions.csv",
+  "status": 200,
+  "size": 572341,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:30 GMT",
+  "cached": {
+   "size": 572341,
+   "md5": "877647e1a9400ac6b6b09b8c823fd119",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_ACCT_4_Year_High_School_Graduation.csv",
+  "status": 200,
+  "size": 1175161,
+  "md5": "7e4fb3432624c4a8681a46862418e618",
+  "lm": "Thu, 06 Aug 2026 17:29:55 GMT",
+  "cached": {
+   "size": 1175161,
+   "md5": "7e4fb3432624c4a8681a46862418e618",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2025/KYRC25_ACCT_5_Year_High_School_Graduation.csv",
+  "status": 200,
+  "size": 1174850,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:31 GMT",
+  "cached": {
+   "size": 1174850,
+   "md5": "ddcd0df0de09e52291c98a78353b03ac",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+  "status": 200,
+  "size": 2928882,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:31 GMT",
+  "cached": {
+   "size": 2928882,
+   "md5": "4e8d2db903f91dc908d642bc402c19af",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_ACCT_Index_Scores.csv",
+  "status": 200,
+  "size": 7092222,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:31 GMT",
+  "cached": {
+   "size": 7092222,
+   "md5": "4ed1db91200993f70df96242b4f081d7",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_ACCT_Kentucky_Summative_Assessment.csv",
+  "status": 200,
+  "size": 47436758,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:31 GMT",
+  "cached": {
+   "size": 47436758,
+   "md5": "a8498b4d02c2b9c04a1022ab3ee3b844",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_ACCT_Postsecondary_Readiness.csv",
+  "status": 200,
+  "size": 1365309,
+  "md5": "1ee5f118a10ecd6f9408c85a1c939ded",
+  "lm": "Fri, 09 Oct 2026 19:39:31 GMT",
+  "cached": {
+   "size": 1365309,
+   "md5": "1ee5f118a10ecd6f9408c85a1c939ded",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2025/KYRC25_ADLF_Transition_to_In_State_Postsecondary_Education.csv",
+  "status": 200,
+  "size": 1311339,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:31 GMT",
+  "cached": {
+   "size": 1311339,
+   "md5": "a0646ff1b21da0d6bb3b8a9f1ec97c0e",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_ASMT_Kentucky_Summative_Assessment.csv",
+  "status": 200,
+  "size": 91151548,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:31 GMT",
+  "cached": {
+   "size": 91151548,
+   "md5": "0f202421e99d9484a0e700b8a4d94657",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_ASMT_Kindergarten_Screen_Composite.csv",
+  "status": 200,
+  "size": 12354057,
+  "md5": "59c8c7f533b97fdffab1c73b9b38705e",
+  "lm": "Fri, 09 Oct 2026 19:40:35 GMT",
+  "cached": {
+   "size": 12354057,
+   "md5": "59c8c7f533b97fdffab1c73b9b38705e",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2025/KYRC25_CTE_Career_Pathways.csv",
+  "status": 200,
+  "size": 827367,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:31 GMT",
+  "cached": {
+   "size": 827367,
+   "md5": "d4ac69690daaff347a63ec2831daf8b3",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_CTE_Career_Readiness_Indicators.csv",
+  "status": 200,
+  "size": 49508,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:31 GMT",
+  "cached": {
+   "size": 49508,
+   "md5": "c5575db6717c22c2ccab360882985695",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_CTE_Participation.csv",
+  "status": 200,
+  "size": 859494,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:31 GMT",
+  "cached": {
+   "size": 859494,
+   "md5": "f357a9620827d8a5cfb711ed97c1f38a",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_EDOP_Advanced_Courses_Offered.csv",
+  "status": 200,
+  "size": 794423,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:32 GMT",
+  "cached": {
+   "size": 794423,
+   "md5": "ae5cf3cc112f71609fa3f668c1b3580a",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_EDOP_Advanced_Courses_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 885585,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:32 GMT",
+  "cached": {
+   "size": 885585,
+   "md5": "fd1725806eb2642fc87c4c78c5bd85d2",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_EDOP_Dual_Credit_Courses_Offered.csv",
+  "status": 200,
+  "size": 922471,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:32 GMT",
+  "cached": {
+   "size": 922471,
+   "md5": "9a3040defa6dabfa863a929941c9303a",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_EDOP_Dual_Credit_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 1226268,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:32 GMT",
+  "cached": {
+   "size": 1226268,
+   "md5": "343a6a53da5cb1ae0d701a9196b235e9",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_EDOP_Gifted_Participation_by_Category.csv",
+  "status": 200,
+  "size": 3145287,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:32 GMT",
+  "cached": {
+   "size": 3145287,
+   "md5": "bfd6a71daf9ed7e188d8c8f98d90e7e6",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_EDOP_Gifted_Participation_by_Grade_Level.csv",
+  "status": 200,
+  "size": 2058123,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:32 GMT",
+  "cached": {
+   "size": 2058123,
+   "md5": "af06607004b6eb098f44c378165a1bbe",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_EDOP_School_Courses_Summary.csv",
+  "status": 200,
+  "size": 5643720,
+  "md5": "911b88ca17130ca51fedaa266b1e4436",
+  "lm": "Fri, 09 Oct 2026 19:40:44 GMT",
+  "cached": {
+   "size": 5643720,
+   "md5": "911b88ca17130ca51fedaa266b1e4436",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2025/KYRC25_FT_Financial_Summary.csv",
+  "status": 200,
+  "size": 20114,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:46 GMT",
+  "cached": {
+   "size": 20114,
+   "md5": "3ea42d1850692de5fd468d3eb56c58c8",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_FT_Spending_per_Student.csv",
+  "status": 200,
+  "size": 191044,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:46 GMT",
+  "cached": {
+   "size": 191044,
+   "md5": "74b6b7f8a3f9ae3ce4b973833be376b2",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Average_Years_School_Experience.csv",
+  "status": 200,
+  "size": 189681,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:32 GMT",
+  "cached": {
+   "size": 189681,
+   "md5": "58bce64b1cc83943f0f2640985d7ec64",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Chronic_Absenteeism.csv",
+  "status": 200,
+  "size": 61818307,
+  "md5": "86a98e257708df11a2bb5824690f76c7",
+  "lm": "Fri, 09 Oct 2026 19:40:56 GMT",
+  "cached": {
+   "size": 61818307,
+   "md5": "86a98e257708df11a2bb5824690f76c7",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_District_School_List.csv",
+  "status": 200,
+  "size": 426626,
+  "md5": "8fc82663dff3c22e382b7433db53034f",
+  "lm": "Fri, 09 Oct 2026 19:40:57 GMT",
+  "cached": {
+   "size": 426626,
+   "md5": "8fc82663dff3c22e382b7433db53034f",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Educator_Qualifications.csv",
+  "status": 200,
+  "size": 1227277,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:46 GMT",
+  "cached": {
+   "size": 1227277,
+   "md5": "2e7e784ceaf39de3cd262af6f5dc9190",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Inexperienced_Teachers.csv",
+  "status": 200,
+  "size": 204643,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:47 GMT",
+  "cached": {
+   "size": 204643,
+   "md5": "63c43bdeb3402a340eaa55fe7be34019",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Secondary_Enrollment.csv",
+  "status": 200,
+  "size": 177835,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:47 GMT",
+  "cached": {
+   "size": 177835,
+   "md5": "5fd17e49485ea4a8eecc70d491b6b163",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Student_Enrollment.csv",
+  "status": 200,
+  "size": 3620384,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:47 GMT",
+  "cached": {
+   "size": 3620384,
+   "md5": "70f5e78cc6b68f7b1161e53562e227ca",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Student_to_Teacher_Ratio.csv",
+  "status": 200,
+  "size": 188244,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:47 GMT",
+  "cached": {
+   "size": 188244,
+   "md5": "a1b973ff98e6f18991f6793f8e0808ac",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv",
+  "status": 200,
+  "size": 261299,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:47 GMT",
+  "cached": {
+   "size": 261299,
+   "md5": "082400fdb181e10b1308615f15d3fb5a",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Students_Taught_by_Inexperienced_Teachers.csv",
+  "status": 200,
+  "size": 321878,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:47 GMT",
+  "cached": {
+   "size": 321878,
+   "md5": "96156f26bf27793be2908ff0dd317e73",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+  "status": 200,
+  "size": 310768,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:47 GMT",
+  "cached": {
+   "size": 310768,
+   "md5": "5ab7eefff403b136adca61b93eee88c8",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Teacher_Certification_Data.csv",
+  "status": 200,
+  "size": 205421,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:47 GMT",
+  "cached": {
+   "size": 205421,
+   "md5": "37afeeb5b32ca57f4efad8c667fab22e",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Teacher_Turnover.csv",
+  "status": 200,
+  "size": 202943,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:47 GMT",
+  "cached": {
+   "size": 202943,
+   "md5": "a415ff7b082cbaadf5e3878fd05591f0",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_OVW_Teacher_Working_Conditions.csv",
+  "status": 200,
+  "size": 575006,
+  "md5": null,
+  "lm": "Sat, 18 Jul 2026 21:29:47 GMT",
+  "cached": {
+   "size": 575006,
+   "md5": "320bef545246fcae80771648859bfb08",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_SAFE_Behavior_Events_by_Context.csv",
+  "status": 200,
+  "size": 4436917,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:33 GMT",
+  "cached": {
+   "size": 4436917,
+   "md5": "9b1e22d84ea423e46e58de658377c0ba",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_SAFE_Behavior_Events_by_Grade_Level.csv",
+  "status": 200,
+  "size": 4892765,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:33 GMT",
+  "cached": {
+   "size": 4892765,
+   "md5": "00541d3d9aa760452b0369d6f81c91e1",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_SAFE_Behavior_Events_by_Location.csv",
+  "status": 200,
+  "size": 4766740,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:33 GMT",
+  "cached": {
+   "size": 4766740,
+   "md5": "8f6801a07195766660eab5f5dfc6b1b7",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_SAFE_Behavior_Events_by_Type.csv",
+  "status": 200,
+  "size": 4696948,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:33 GMT",
+  "cached": {
+   "size": 4696948,
+   "md5": "515fe46af72fcb0bef3304a35002d528",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_SAFE_Discipline_Resolutions.csv",
+  "status": 200,
+  "size": 4753005,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:33 GMT",
+  "cached": {
+   "size": 4753005,
+   "md5": "e25b0ae9522ad39113157a442a04b16b",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_SAFE_Legal_Sanctions.csv",
+  "status": 200,
+  "size": 4469840,
+  "md5": null,
+  "lm": "Thu, 14 May 2026 19:11:33 GMT",
+  "cached": {
+   "size": 4469840,
+   "md5": "2804ca30082bd29851b59bda02bbbd50",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2025/KYRC25_SAFE_Precautionary_Measures.csv",
+  "status": 200,
+  "size": 202573,
+  "md5": "446580c8066e3bfb10d8bdffaffe14d0",
+  "lm": "Thu, 04 Jun 2026 00:07:24 GMT",
+  "cached": {
+   "size": 202573,
+   "md5": "446580c8066e3bfb10d8bdffaffe14d0",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_ACCT_4_Year_High_School_Graduation.csv",
+  "status": 200,
+  "size": 1175641,
+  "md5": "21244adbcc429ba9158d4e2f790431de",
+  "lm": "Wed, 04 Nov 2026 13:11:13 GMT",
+  "cached": {
+   "size": 1175641,
+   "md5": "21244adbcc429ba9158d4e2f790431de",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_ACCT_5_Year_High_School_Graduation.csv",
+  "status": 200,
+  "size": 1175588,
+  "md5": "99fbcad12c03186b5733f609eddcfc97",
+  "lm": "Wed, 04 Nov 2026 13:11:13 GMT",
+  "cached": {
+   "size": 1175588,
+   "md5": "99fbcad12c03186b5733f609eddcfc97",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_ACCT_English_Learners_Progress_Proficiency_Rate.csv",
+  "status": 200,
+  "size": 2928044,
+  "md5": "de16ecb7b399744797e2b122c487c5cb",
+  "lm": "Wed, 04 Nov 2026 13:15:04 GMT",
+  "cached": {
+   "size": 2928044,
+   "md5": "de16ecb7b399744797e2b122c487c5cb",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_ACCT_Index_Scores.csv",
+  "status": 200,
+  "size": 7085806,
+  "md5": "784f609e32188178b04bbb34f446d96b",
+  "lm": "Wed, 04 Nov 2026 13:15:07 GMT",
+  "cached": {
+   "size": 7085806,
+   "md5": "784f609e32188178b04bbb34f446d96b",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_ACCT_Kentucky_Summative_Assessment.csv",
+  "status": 200,
+  "size": 47535950,
+  "md5": "fa8b76c776cc60c2fe58bc1939d4b1ea",
+  "lm": "Wed, 04 Nov 2026 13:15:24 GMT",
+  "cached": {
+   "size": 47535950,
+   "md5": "fa8b76c776cc60c2fe58bc1939d4b1ea",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_ACCT_Postsecondary_Readiness.csv",
+  "status": 200,
+  "size": 1366274,
+  "md5": "b5893752e1eefeabc05ab37caa40b7ab",
+  "lm": "Wed, 04 Nov 2026 13:15:25 GMT",
+  "cached": {
+   "size": 1366274,
+   "md5": "b5893752e1eefeabc05ab37caa40b7ab",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_ADLF_Transition_to_In_State_Postsecondary_Education.csv",
+  "status": 200,
+  "size": 887543,
+  "md5": "ba19e9d0c848fbc06715a005727d3318",
+  "lm": "Wed, 04 Nov 2026 13:17:22 GMT",
+  "cached": {
+   "size": 887543,
+   "md5": "ba19e9d0c848fbc06715a005727d3318",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_ASMT_Benchmark.csv",
+  "status": 200,
+  "size": 1690361,
+  "md5": "f2b3d8c0869d7d41053fa5aade208131",
+  "lm": "Wed, 04 Nov 2026 13:17:24 GMT",
+  "cached": {
+   "size": 1690361,
+   "md5": "52421dbb42b5f372193269df8ce2d834",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_ASMT_Kentucky_Summative_Assessment.csv",
+  "status": 200,
+  "size": 91031722,
+  "md5": null,
+  "lm": "Wed, 04 Nov 2026 13:17:59 GMT",
+  "cached": {
+   "size": 91031722,
+   "md5": "1e0ed96fe1adb837e744ab82f2c94a30",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_ASMT_Kindergarten_Screen_Composite.csv",
+  "status": 200,
+  "size": 12217676,
+  "md5": "bd0b049272df6a48149539d18d367449",
+  "lm": "Wed, 04 Nov 2026 13:18:06 GMT",
+  "cached": {
+   "size": 12217676,
+   "md5": "bd0b049272df6a48149539d18d367449",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_CTE_Career_Pathways.csv",
+  "status": 200,
+  "size": 889814,
+  "md5": "f3a754ed64357b9180c8e8969bd3ff82",
+  "lm": "Wed, 04 Nov 2026 13:19:06 GMT",
+  "cached": {
+   "size": 889814,
+   "md5": "f3a754ed64357b9180c8e8969bd3ff82",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_CTE_Career_Readiness_Indicators.csv",
+  "status": 200,
+  "size": 49452,
+  "md5": "a37d5d86072a7c6739b359c6c3fa54ab",
+  "lm": "Wed, 04 Nov 2026 13:19:07 GMT",
+  "cached": {
+   "size": 49452,
+   "md5": "a37d5d86072a7c6739b359c6c3fa54ab",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_CTE_Participation.csv",
+  "status": 200,
+  "size": 1091622,
+  "md5": "82a36bff5ecbce9321898898ae2c6d22",
+  "lm": "Wed, 04 Nov 2026 13:19:08 GMT",
+  "cached": {
+   "size": 1091622,
+   "md5": "82a36bff5ecbce9321898898ae2c6d22",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_EDOP_Advanced_Courses_Offered.csv",
+  "status": 200,
+  "size": 798765,
+  "md5": "1c1be54c9307422fce3458b1ca6a6e29",
+  "lm": "Wed, 04 Nov 2026 13:19:10 GMT",
+  "cached": {
+   "size": 798765,
+   "md5": "1c1be54c9307422fce3458b1ca6a6e29",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_EDOP_Advanced_Courses_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 876963,
+  "md5": "499198d7237070bf1733466dd1f8726e",
+  "lm": "Wed, 04 Nov 2026 13:19:11 GMT",
+  "cached": {
+   "size": 876963,
+   "md5": "499198d7237070bf1733466dd1f8726e",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_EDOP_Dual_Credit_Courses_Offered.csv",
+  "status": 200,
+  "size": 916339,
+  "md5": "ae49f3653bd893f2c482fdbbfd997f23",
+  "lm": "Wed, 04 Nov 2026 13:19:14 GMT",
+  "cached": {
+   "size": 916339,
+   "md5": "ae49f3653bd893f2c482fdbbfd997f23",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_EDOP_Dual_Credit_Participation_and_Performance.csv",
+  "status": 200,
+  "size": 1214553,
+  "md5": "152b9f9b9e9069da3d11fd807ad02096",
+  "lm": "Wed, 04 Nov 2026 13:19:14 GMT",
+  "cached": {
+   "size": 1214553,
+   "md5": "152b9f9b9e9069da3d11fd807ad02096",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_EDOP_Gifted_Participation_by_Category.csv",
+  "status": 200,
+  "size": 3136202,
+  "md5": "d459170136fdcfbe19ce13a5baf82122",
+  "lm": "Wed, 04 Nov 2026 13:19:17 GMT",
+  "cached": {
+   "size": 3135968,
+   "md5": "c1702aed29d110ba2655a1eab2fff42b",
+   "lm": null
+  },
+  "diffs": [
+   "size",
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_EDOP_Gifted_Participation_by_Grade_Level.csv",
+  "status": 200,
+  "size": 2017559,
+  "md5": "1c22c66c995c2fcdcff0ededd2c8faf6",
+  "lm": "Wed, 04 Nov 2026 13:19:18 GMT",
+  "cached": {
+   "size": 2017415,
+   "md5": "0359bd5a4f0eee8104bf2d7b2832818b",
+   "lm": null
+  },
+  "diffs": [
+   "size",
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_EDOP_School_Courses_Summary.csv",
+  "status": 200,
+  "size": 5908076,
+  "md5": "97caefd06c0d1ec87e0f8af48fe2456c",
+  "lm": "Wed, 04 Nov 2026 13:19:27 GMT",
+  "cached": {
+   "size": 5908076,
+   "md5": "3561b930ccc20c3042c5fb8832328a86",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Advanced_Coursework.csv",
+  "status": 200,
+  "size": 725086,
+  "md5": "aec69cf6fe319c59ae139facf31049b4",
+  "lm": "Wed, 04 Nov 2026 13:20:09 GMT",
+  "cached": {
+   "size": 725086,
+   "md5": "aec69cf6fe319c59ae139facf31049b4",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Average_Years_School_Experience.csv",
+  "status": 200,
+  "size": 190191,
+  "md5": "6f4db2df56077d85a99eeb17f5a88fa9",
+  "lm": "Wed, 04 Nov 2026 13:20:11 GMT",
+  "cached": {
+   "size": 190191,
+   "md5": "5f37a7504b48aa3d32343f1a70bbe031",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Chronic_Absenteeism.csv",
+  "status": 200,
+  "size": 60969573,
+  "md5": "2c317303f3f136bc102deee832c3cc95",
+  "lm": "Wed, 04 Nov 2026 13:20:37 GMT",
+  "cached": {
+   "size": 60964965,
+   "md5": "07d218e589daaac167e0faacabecfe8e",
+   "lm": null
+  },
+  "diffs": [
+   "size",
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_District_School_List.csv",
+  "status": 200,
+  "size": 426339,
+  "md5": "c10799c0c3d21e7f90676654f40cedb1",
+  "lm": "Wed, 04 Nov 2026 13:20:38 GMT",
+  "cached": {
+   "size": 426362,
+   "md5": "705d5b0c4b266149f83c5f7355d46dda",
+   "lm": null
+  },
+  "diffs": [
+   "size",
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Dropout_Rate.csv",
+  "status": 200,
+  "size": 1587874,
+  "md5": "50299df8bee0809bf5537fb4ecf7d929",
+  "lm": "Wed, 04 Nov 2026 13:20:39 GMT",
+  "cached": {
+   "size": 1587874,
+   "md5": "50299df8bee0809bf5537fb4ecf7d929",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Educator_Qualifications.csv",
+  "status": 200,
+  "size": 1025305,
+  "md5": "3a84aa25e9d9b70df7167ebac42f7419",
+  "lm": "Wed, 04 Nov 2026 13:20:42 GMT",
+  "cached": {
+   "size": 1025305,
+   "md5": "57e02126c4a4604c5f163b49213463ca",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Homeless.csv",
+  "status": 200,
+  "size": 3874972,
+  "md5": "292123c5740f12257b323c33515396ae",
+  "lm": "Wed, 04 Nov 2026 13:20:47 GMT",
+  "cached": {
+   "size": 3874972,
+   "md5": "c3a398bc3a96cc91b3d82857317f2b0c",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Inexperienced_Teachers.csv",
+  "status": 200,
+  "size": 205136,
+  "md5": "c9cd546dd4e465fd020ad7864a1654e1",
+  "lm": "Wed, 04 Nov 2026 13:20:49 GMT",
+  "cached": {
+   "size": 205136,
+   "md5": "92528e45b4aa5f29269bd5794be0d328",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Migrant.csv",
+  "status": 200,
+  "size": 3851260,
+  "md5": "1cef1f3b68b410a6e91727ab43ad281a",
+  "lm": "Wed, 04 Nov 2026 13:20:51 GMT",
+  "cached": {
+   "size": 3851260,
+   "md5": "fa4b801d4ec33a6b7c44a84df438e103",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Secondary_Enrollment.csv",
+  "status": 200,
+  "size": 184131,
+  "md5": "d7ac78da041f949886704844c2dfe594",
+  "lm": "Wed, 04 Nov 2026 13:20:54 GMT",
+  "cached": {
+   "size": 184131,
+   "md5": "d7ac78da041f949886704844c2dfe594",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Student_Enrollment.csv",
+  "status": 200,
+  "size": 3586080,
+  "md5": "69f88506236c1eecab9fcfc86f496238",
+  "lm": "Wed, 04 Nov 2026 13:20:57 GMT",
+  "cached": {
+   "size": 3586080,
+   "md5": "34fb611ac6c7356089d79681a9748fdd",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Student_Retention_Grades_4_12.csv",
+  "status": 200,
+  "size": 3800020,
+  "md5": "6d6c2026da206a07062032f54948920c",
+  "lm": "Wed, 04 Nov 2026 13:21:01 GMT",
+  "cached": {
+   "size": 3800020,
+   "md5": "6d6c2026da206a07062032f54948920c",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Student_Suspensions.csv",
+  "status": 200,
+  "size": 2292780,
+  "md5": "7b59e410b3453f5ae006fd7e4f91234f",
+  "lm": "Wed, 04 Nov 2026 13:21:02 GMT",
+  "cached": {
+   "size": 2292780,
+   "md5": "7b59e410b3453f5ae006fd7e4f91234f",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Student_to_Teacher_Ratio.csv",
+  "status": 200,
+  "size": 172746,
+  "md5": "c5dd6d64996e5d06720a3f2283e0d34d",
+  "lm": "Wed, 04 Nov 2026 13:21:03 GMT",
+  "cached": {
+   "size": 172746,
+   "md5": "c5dd6d64996e5d06720a3f2283e0d34d",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv",
+  "status": 200,
+  "size": 261965,
+  "md5": "643c0e828f7ca820a99e06b1a404c798",
+  "lm": "Wed, 04 Nov 2026 13:21:04 GMT",
+  "cached": {
+   "size": 261805,
+   "md5": "44b49be11d418e83c4ff1e7000965bd7",
+   "lm": null
+  },
+  "diffs": [
+   "size",
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Students_Taught_by_Inexperienced_Teachers.csv",
+  "status": 200,
+  "size": 321047,
+  "md5": "2f6144bcbaffa54459bb0c0fa91c4b80",
+  "lm": "Wed, 04 Nov 2026 13:21:04 GMT",
+  "cached": {
+   "size": 321011,
+   "md5": "b3d64712c06852ed7460b9f2b72306f1",
+   "lm": null
+  },
+  "diffs": [
+   "size",
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Students_Taught_by_Out_of_Field_Teachers.csv",
+  "status": 200,
+  "size": 309282,
+  "md5": "58274ef0bef4e0185bd97bf6bfdada36",
+  "lm": "Wed, 04 Nov 2026 13:21:05 GMT",
+  "cached": {
+   "size": 309282,
+   "md5": "1593c9b739194315846d86097b4ad954",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Students_with_Disabilities_IEP.csv",
+  "status": 200,
+  "size": 5000974,
+  "md5": "75a2e2661b73e659db9f3bce538117e2",
+  "lm": "Wed, 04 Nov 2026 13:21:16 GMT",
+  "cached": {
+   "size": 5000668,
+   "md5": "1b1dc1df9271aabfb2bf6c602b00ea68",
+   "lm": null
+  },
+  "diffs": [
+   "size",
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Teacher_Certification_Data.csv",
+  "status": 200,
+  "size": 227395,
+  "md5": "897148d374d01b194e3bac6fa3f802d8",
+  "lm": "Wed, 04 Nov 2026 13:21:17 GMT",
+  "cached": {
+   "size": 227395,
+   "md5": "9d6565d7f00da937eeb1a2c8725ffb17",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Teacher_Turnover.csv",
+  "status": 200,
+  "size": 218806,
+  "md5": "089b48d9627afaa6d50fd9810f9eade2",
+  "lm": "Wed, 04 Nov 2026 13:21:18 GMT",
+  "cached": {
+   "size": 218806,
+   "md5": "4b670fdf37796f68e379046aa98ea63d",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_OVW_Teacher_Working_Conditions.csv",
+  "status": 200,
+  "size": 512257,
+  "md5": "2d813911b205483f422311f8a8e0f5e5",
+  "lm": "Wed, 04 Nov 2026 13:21:19 GMT",
+  "cached": {
+   "size": 436507,
+   "md5": "ac5bd3c79bbfeaef42ee5ce015dcb089",
+   "lm": null
+  },
+  "diffs": [
+   "size",
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_SAFE_Behavior_Events_by_Context.csv",
+  "status": 200,
+  "size": 4425549,
+  "md5": "d23c7521a1b283da1bede41681c64622",
+  "lm": "Wed, 04 Nov 2026 13:21:26 GMT",
+  "cached": {
+   "size": 4425549,
+   "md5": "87d0acc49ae8c3c06990c01f6194021d",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_SAFE_Behavior_Events_by_Grade_Level.csv",
+  "status": 200,
+  "size": 4880364,
+  "md5": "bc4faa364cf7592e2663cf91cf95e895",
+  "lm": "Wed, 04 Nov 2026 13:21:31 GMT",
+  "cached": {
+   "size": 4880364,
+   "md5": "61e1ba61b2cb6527033703c3ec8b02ac",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_SAFE_Behavior_Events_by_Location.csv",
+  "status": 200,
+  "size": 4754376,
+  "md5": "e20b14d8a66b5b34a558be8c7e103d67",
+  "lm": "Wed, 04 Nov 2026 13:21:35 GMT",
+  "cached": {
+   "size": 4754376,
+   "md5": "e20b14d8a66b5b34a558be8c7e103d67",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_SAFE_Behavior_Events_by_Type.csv",
+  "status": 200,
+  "size": 4684210,
+  "md5": "1104ee42109aaea92fba370065b64490",
+  "lm": "Wed, 04 Nov 2026 13:21:41 GMT",
+  "cached": {
+   "size": 4684210,
+   "md5": "1104ee42109aaea92fba370065b64490",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_SAFE_Discipline_Resolutions.csv",
+  "status": 200,
+  "size": 4740790,
+  "md5": "f2b63517a751878c485438b6139aa997",
+  "lm": "Wed, 04 Nov 2026 13:21:48 GMT",
+  "cached": {
+   "size": 4740790,
+   "md5": "f2b63517a751878c485438b6139aa997",
+   "lm": null
+  },
+  "diffs": []
+ },
+ {
+  "path": "datasets/2026/KYRC26_SAFE_Legal_Sanctions.csv",
+  "status": 200,
+  "size": 4456730,
+  "md5": "fd79b9f432b8b0940ce4a815f1b5c21e",
+  "lm": "Wed, 04 Nov 2026 13:21:52 GMT",
+  "cached": {
+   "size": 4456730,
+   "md5": "c7970ecb5e4b42ec66f113bd1d174c2c",
+   "lm": null
+  },
+  "diffs": [
+   "md5"
+  ]
+ },
+ {
+  "path": "datasets/2026/KYRC26_SAFE_Precautionary_Measures.csv",
+  "status": 200,
+  "size": 198254,
+  "md5": "3358d6e56f6e107fc87caa27e0b77e27",
+  "lm": "Wed, 04 Nov 2026 13:21:52 GMT",
+  "cached": {
+   "size": 198110,
+   "md5": "220575cf689e134424fb28e3797b1687",
+   "lm": null
+  },
+  "diffs": [
+   "size",
+   "md5"
+  ]
+ }
+]

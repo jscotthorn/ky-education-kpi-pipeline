@@ -40,6 +40,8 @@ Impact Kentucky is stored once per administration, under 2020, 2022, 2024, and 2
 
 Separate gap, **unconfirmed** until the 27 October 2026 recheck: `KYRC26_OVW_Teacher_Working_Conditions.csv` has no districts 001-095. Issue [#111](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/111) asks whether the source is truncated. The live datasets copy and the UAT copy match each other and both omit those districts. The issue is labeled `kde-recheck`. The file is stored as published. The recheck schedule is on [0049](0049-kyrc26-files-loaded-15-oct-2026.md).
 
+A 7 November 2026 metadata observation records that the public `datasets` object grew from 436,507 bytes to 512,257 bytes (75,750 bytes, about 17.35%), with live Last-Modified Wed, 04 Nov 2026 13:21:19 GMT (8:21:19 a.m. EST). The saved headers do not show whether districts 001–095 were added. That repair is unverified. Source CSV contents were not downloaded or compared. The gap stays unconfirmed, and the file was not adopted. See [republish-diffs/kyrc26-2026-11-07-metadata-recheck.md](republish-diffs/kyrc26-2026-11-07-metadata-recheck.md).
+
 ## 2021-22 climate and safety index
 
 Classification: **planned or deferred** ([#121](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/121)).
@@ -84,3 +86,5 @@ Report drafts stay out of scope under [0002](0002-report-scripts-out-of-scope.md
 Classification: **unconfirmed** as a decision to treat those bytes as final.
 
 `notes/103--2025-26-kyrc26-data-update-plan.md` says the datasets objects were last modified 15 October 2026 at 10:00 UTC, and that both containers should be re-HEAD'd after the review window that runs through 26 October 2026. A KDE recheck routine is scheduled for 27 October 2026 at 9 AM ET (per Moon). See [0049](0049-kyrc26-files-loaded-15-oct-2026.md).
+
+A 7 November 2026 metadata observation, from saved recheck headers, records 23 public `datasets/2026` files whose md5 differs from the cache. Live Last-Modified on those 23 is 4 November 2026, 13:17:24–13:21:52 GMT (8:17:24–8:21:52 a.m. EST). The other 539 cached blob files in that saved recheck match on size and, where both md5s are present, on md5. Open House was not checked. No file was adopted. See [republish-diffs/kyrc26-2026-11-07-metadata-recheck.md](republish-diffs/kyrc26-2026-11-07-metadata-recheck.md).
