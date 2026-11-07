@@ -520,6 +520,13 @@ def test_published_district_602_name_stays_on_school_code(tmp_path):
     transform(raw_dir, proc_dir, {"derive": {"processing_date": "2026-11-07"}})
     output = pd.read_csv(proc_dir / "chronic_absenteeism.csv", dtype=str)
 
+    # Three source rows, three measures each. A duplicate key would be
+    # dropped by the dict below, so the count and the key are checked first.
+    assert len(output) == 9
+    identity = ["year", "school_id", "metric", "student_group"]
+    assert not output.duplicated(identity).any()
+    assert len(output.drop_duplicates(identity)) == len(output)
+
     def markers(school_id: str) -> dict:
         rows = output[
             (output["year"] == "2026")

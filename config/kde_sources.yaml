@@ -29,15 +29,18 @@ raw_directories:
     - "KYRC24_OVW_Chronic_Absenteeism.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Chronic_Absenteeism.csv"
-    # Refreshed datasets copy, adopted as published 7 November 2026.
-    # md5 2c317303f3f136bc102deee832c3cc95. The 15 October copy (md5
+    # Accepted source choice, 7 November 2026. The file to load is the
+    # refreshed datasets copy, md5 2c317303f3f136bc102deee832c3cc95, as
+    # published. This comment does not load those bytes, and it does not
+    # regenerate processed output. That load and the regen are pending
+    # and separate. The 15 October copy (md5
     # 07d218e589daaac167e0faacabecfe8e, same bytes as UAT) has the same
-    # 430,848 rows and the same measure cells. District Name on district
-    # 602 (576 rows, school codes 602000 and 602176) is "Kentucky School
-    # for the Deaf District". District 602 is the School for the Blind.
-    # District 603 is the School for the Deaf. The parser keeps that
-    # published name and keys on the school code. It does not move the
-    # rows onto 603.
+    # 430,848 rows and the same measure cells. On the refreshed copy,
+    # District Name on district 602 (576 rows, school codes 602000 and
+    # 602176) is "Kentucky School for the Deaf District". District 602
+    # is the School for the Blind. District 603 is the School for the
+    # Deaf. When a copy is read, the parser keeps the published name and
+    # keys on the school code. It does not move the rows onto 603.
     # docs/decisions/0056-kyrc26-chronic-absenteeism-district-602-name.md
     - url: "kyrc26"
       file: "KYRC26_OVW_Chronic_Absenteeism.csv"

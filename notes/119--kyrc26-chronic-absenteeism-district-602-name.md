@@ -1,6 +1,6 @@
 # 119 - KYRC26 chronic absenteeism, district 602's published name
 
-The base is `feature/2025-26-kyrc26`. `develop` and `master` are not touched. Teacher working conditions is not touched. The refreshed overview is already staged for the parent's regen. This note does not download it, and it does not regenerate `data/processed/`.
+The base is `feature/2025-26-kyrc26`. `develop` and `master` are not touched. Teacher working conditions is not touched. This note records the accepted source choice. It does not download the refreshed overview, does not replace `data/raw/`, and does not regenerate `data/processed/`. That load and the regen are pending and separate.
 
 ## File comparison
 
@@ -20,9 +20,9 @@ The only cell change is District Name on district 602. That is 576 rows:
 | `602000` | All Schools | `Kentucky School for the Blind` | `Kentucky School for the Deaf District` |
 | `602176` | Kentucky School for the Blind | `Kentucky School for the Blind` | `Kentucky School for the Deaf District` |
 
-The district-school list, old and new the same for these two districts, names 602 `Kentucky School for the Blind District` and 603 `Kentucky School for the Deaf District`. Eighteen other refreshed files still label 602 as the School for the Blind. Fayette (`165`) is 19,296 rows and matches, and the state rows match. No measure cell changes.
+The district-school list, old and new the same for these two districts, names 602 `Kentucky School for the Blind District` and 603 `Kentucky School for the Deaf District`. Other refreshed files still label district 602 as the School for the Blind. This note does not inventory those files and does not state a count. Fayette (`165`) is 19,296 rows and matches, and the state rows match. No measure cell changes.
 
-Scott approved storing the refreshed file as published and keeping this warning. The published name is not replaced with the list's name. `docs/decisions/0056-kyrc26-chronic-absenteeism-district-602-name.md`.
+Scott approved the refreshed copy as the source to load as published, and approved keeping this warning. The published name is not replaced with the list's name. Loading the bytes and regenerating output are pending and separate. `docs/decisions/0056-kyrc26-chronic-absenteeism-district-602-name.md`.
 
 ## How the ETL keys the row
 
@@ -52,4 +52,4 @@ If a later run included 2026 and kept `602176`, the teacher join would miss that
 
 ## What this change does not do
 
-It does not correct the source name, does not add a district crosswalk, does not regenerate processed output, and does not change teacher working conditions.
+It does not load the refreshed bytes, does not correct the source name, does not add a district crosswalk, does not regenerate processed output, and does not change teacher working conditions.

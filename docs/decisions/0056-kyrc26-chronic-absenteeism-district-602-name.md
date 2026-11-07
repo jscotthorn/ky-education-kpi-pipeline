@@ -1,12 +1,12 @@
-# 0056 Keep the refreshed KYRC26 chronic absenteeism file as published, including district 602's name
+# 0056 Accept the refreshed KYRC26 chronic absenteeism file as published, including district 602's name
 
 Status: accepted
 
-Decision source: the 7 November 2026 instruction carried out by this record. That instruction states that Scott approved adopting the refreshed KYRC26 chronic absenteeism file as published and retaining a warning about district 602. No GitHub Decision comment was found when this record was written. Repo comment: pending.
+Decision source: the 7 November 2026 instruction carried out by this record. That instruction states that Scott approved the refreshed KYRC26 chronic absenteeism file as the source to load as published, and that the district 602 warning stays. This record is that choice. It is not a completed load of the refreshed bytes, and it is not a regen. No GitHub Decision comment was found when this record was written. Repo comment: pending.
 
 ## Question
 
-The refreshed KYRC26 chronic absenteeism overview matches the 15 October copy on every measure cell and changes District Name on district 602. Which file is stored, and is the name corrected?
+The refreshed KYRC26 chronic absenteeism overview matches the 15 October copy on every measure cell and changes District Name on district 602. Which copy is the accepted source, and is the name corrected when that copy is loaded?
 
 ## What KDE changed
 
@@ -19,28 +19,30 @@ The 7 November 2026 file comparison, not re-counted in this workspace:
 - Sorted on every column except District Name, every row matches.
 - The only cell change is District Name on district 602. That is 576 rows: school code `602000` (All Schools) and school code `602176` (Kentucky School for the Blind). The 15 October name is `Kentucky School for the Blind`. The refreshed name is `Kentucky School for the Deaf District`.
 - The district-school list, old and new identical for these two districts, names 602 `Kentucky School for the Blind District` and 603 `Kentucky School for the Deaf District`.
-- Eighteen other refreshed files still label 602 as the School for the Blind.
+- Other refreshed files still label district 602 as the School for the Blind. This record does not inventory those files and does not state a count.
 - Row order changed. Fayette (`165`, 19,296 rows) and the state rows match. No measure cell changes.
 
-No KDE notice of this rename was found. The raw file is not in git. `data/raw/` is ignored. The parent's regen reads the staged copy.
+No KDE notice of this rename was found. The raw file is not in git. `data/raw/` is ignored. Replacing the raw file and regenerating processed output are pending and are not part of this record.
 
 ## Options considered
 
-Store the refreshed file and replace district 602's name with the district-school list's Blind name. Store the 15 October copy instead. Store the refreshed file as published and keep a warning on the name.
+Load the refreshed file and replace district 602's name with the district-school list's Blind name. Keep the 15 October copy. Load the refreshed file as published and keep a warning on the name.
 
 ## Decision
 
-7 November 2026. Store the refreshed file as published. Do not rewrite district 602's District Name. Keep the warning that the published name is the Deaf district's name and that 602 is the School for the Blind.
+7 November 2026. The accepted source is the refreshed file, as published. When that copy is loaded, do not rewrite district 602's District Name. Keep the warning that the published name is the Deaf district's name and that 602 is the School for the Blind.
 
 The school code stays the school id. District number 602 stays 602. The measure cells stay the published numbers.
 
+This record is the choice and the warning. The filename `KYRC26_OVW_Chronic_Absenteeism.csv` was already registered. Putting the refreshed bytes in `data/raw/` and regenerating processed output are a later step. They are not done here.
+
 ## Who decided and how we know
 
-The 7 November 2026 instruction for this change states that Scott approved adopting the refreshed file as published and retaining the district 602 warning. This file is the repo record of that instruction. A GitHub Decision comment was not found. Repo comment: pending.
+The 7 November 2026 instruction for this change states that Scott approved the refreshed file as the source to load as published, and that the district 602 warning stays. This file is the repo record of that instruction. A GitHub Decision comment was not found. Repo comment: pending.
 
 ## Why
 
-The instruction says to preserve the published source values and to warn about district 602. [0054](0054-store-values-as-kde-publishes.md) stores what KDE published. Substituting the district-school list's name would make this file disagree with the overview KDE published. The comparison found no measure change, so the name is not a reason to keep the older copy.
+The instruction says to preserve the published source values and to warn about district 602. [0054](0054-store-values-as-kde-publishes.md) keeps what KDE published. Substituting the district-school list's name would make this file disagree with the overview KDE published. The comparison found no measure change, so the name is not a reason to keep the older copy.
 
 ## Links
 
@@ -54,7 +56,7 @@ The instruction says to preserve the published source values and to warn about d
 
 ## Code check
 
-Current code on this branch matches the decision. `ChronicAbsenteeismETL` does not override `extract_school_id` or `create_kpi_template`.
+The parser matches the choice: it will not rewrite the name when a copy is read. This branch does not replace the raw file and does not regenerate processed output. `ChronicAbsenteeismETL` does not override `extract_school_id` or `create_kpi_template`.
 
 `BaseETL.extract_school_id` reads `school_code` only. It does not read District Name or District Number. A missing school code raises. `602000` and `602176` stay those school ids.
 
