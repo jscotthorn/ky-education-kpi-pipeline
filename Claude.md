@@ -48,6 +48,67 @@ Use the KDE data preparation tool to populate raw directories:
 - Add data source tracking for audit trails
 - Fully define typing for all functions and variables
 
+### Bayesian Analysis Pipeline (Full Workflow)
+
+The complete analysis pipeline has 5 stages:
+
+**Stage 1: Generate Analysis Datasets**
+```bash
+# Create datasets with outcome + covariates for each indicator/student group
+python analysis/scripts/graduation_analysis.py --all-groups
+python analysis/scripts/chronic_absenteeism_analysis.py --all-groups
+# ... or run all at once:
+python analysis/run_all_groups.py --datasets-only
+```
+Scripts: `analysis/scripts/*_analysis.py` → Output: `analysis/datasets/{indicator}_analysis_{group}.csv`
+
+**Stage 2: Generate Empirical Priors**
+```bash
+# Analyze historical variance to set model priors
+python analysis/prior_analysis/indicators/graduation_rate/historical_review.py --all-groups
+# ... repeat for each indicator
+python analysis/prior_analysis/aggregate_priors.py  # Combine all priors
+```
+Scripts: `analysis/prior_analysis/indicators/*/historical_review.py` → Output: `analysis/outputs/prior_analysis/`
+
+**Stage 3: Run Bayesian Models (with MLflow tracking)**
+```bash
+python analysis/bayesian_models/run_experiment.py graduation -g all_students -n baseline
+# Sensitivity analysis:
+python run_experiment.py graduation -g all_students -n tighter -s 0.75
+python run_experiment.py graduation -g all_students -n looser -s 1.5
+# Compare and publish:
+python run_experiment.py graduation --compare
+python run_experiment.py graduation --publish <RUN_ID> -g all_students
+python run_experiment.py --list-published
+python run_experiment.py --ui  # MLflow web UI at http://localhost:5000
+```
+Scripts: `analysis/bayesian_models/*_model.py`, `run_experiment.py` → Output: `analysis/outputs/models/`
+
+**Stage 4: Combine Results for Portal**
+```bash
+# From published MLflow runs (recommended):
+python analysis/bayesian_models/combine_results.py --from-mlflow
+# Or from filesystem (legacy):
+python analysis/bayesian_models/combine_results.py
+```
+Output: `data/bayesian/bayesian_results.json`
+
+**Stage 5: Extract Fayette Data (in fcps-equity-dashboard repo)**
+```bash
+cd ../fcps-equity-dashboard
+npm run extract:fayette  # Extracts FCPS-specific KPI data
+npm run preprocess-data  # Prepares data for dashboard
+```
+Script: `scripts/extract-fayette-kpi.js` → Output: `data/fayette-*.json`
+
+**Quick Full Run** (datasets + models + combine):
+```bash
+python analysis/run_all_groups.py --indicators graduation chronic_absenteeism
+```
+
+Key docs: `analysis/bayesian_models/EXPERIMENT_TRACKING.md`, `analysis/PRIOR_SPECIFICATION_GUIDE.md`
+
 ### Documentation Standards
 **AI must maintain:**
 - **Journal entries**: Numbered sequence for investigations, ex "notes/23--safe-schools-events-pipeline-implementation.md"

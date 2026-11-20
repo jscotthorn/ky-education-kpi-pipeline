@@ -280,6 +280,371 @@ All above metrics are also available with `_by_demo` suffix for demographic grou
 **Unit**: Student count (non-negative integers)
 
 ---
+## Teacher Experience
+**Source**: `etl/teacher_experience.py`
+- `teacher_average_years_experience` - Average years of professional experience for teachers at the school
+
+## Student-Teacher Ratio
+**Source**: `etl/student_teacher_ratio.py`
+- `student_teacher_ratio` - Number of students per teacher (e.g., 15.0 means 15:1 ratio)
+
+## Novice Teachers
+**Source**: `etl/novice_teachers.py`
+
+### Institutional Metrics
+- `novice_teacher_rate_less_than_1_year` - Percentage of teachers with less than 1 year of experience
+- `novice_teacher_rate_1_to_3_years` - Percentage of teachers with 1-3 years of experience
+
+### Equity Metrics (Students Taught by Inexperienced Teachers)
+- `students_taught_by_inexperienced_teachers_rate_title_1` - Percentage of students taught by inexperienced teachers in Title I schools
+- `students_taught_by_inexperienced_teachers_rate_not_title_1` - Percentage of students taught by inexperienced teachers in non-Title I schools
+- `students_taught_by_inexperienced_teachers_rate_equity_gap` - Difference in rate between Title I and non-Title I schools
+
+**Demographics (via `student_group` column):**
+- All Students
+- White (non-Hispanic) / Non-White
+- Economically Disadvantaged / Non-Economically Disadvantaged
+- Students with Disabilities (IEP) / Student without Disabilities (IEP)
+- English Learner / Non-English Learner
+
+---
+
+## Teacher Turnover
+**Source**: `etl/teacher_turnover.py`
+
+School-level teacher turnover metrics showing the percentage and count of teachers who left each year.
+
+- `teacher_turnover_rate` - Percentage of teachers who left (Turnover Percent)
+- `teacher_turnover_count` - Number of teachers who left
+- `teacher_count` - Total teacher count (denominator for rate calculation)
+
+**Data Sources**: KYRC25_OVW_Teacher_Turnover.csv, KYRC24_OVW_Teacher_Turnover.csv, teacher_turnover_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Rate (0-100%), Count (non-negative integers)
+**Demographics**: School-level only (All Students)
+
+---
+
+## Teacher Certification
+**Source**: `etl/teacher_certification.py`
+
+Teacher certification status metrics showing emergency/provisional certification and National Board certification rates.
+
+- `emergency_provisional_teacher_rate` - Percentage of teachers on emergency/provisional certification
+- `emergency_provisional_teacher_count` - Number of teachers on emergency/provisional certification
+- `national_board_certified_rate` - Percentage of teachers with National Board certification
+- `national_board_certified_count` - Number of teachers with National Board certification
+
+**Data Sources**: KYRC25_OVW_Teacher_Certification_Data.csv, KYRC24_OVW_Teacher_Certification_Data.csv, teacher_certifications_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Rate (0-100%), Count (non-negative integers)
+**Demographics**: School-level only (All Students)
+
+---
+
+## Students Taught by Ineffective Teachers
+**Source**: `etl/students_taught_by_ineffective_teachers.py`
+
+Equity metrics showing the percentage of students taught by ineffective teachers, broken down by Title I status and demographics.
+
+- `students_taught_by_ineffective_teachers_rate_title_1` - Percentage of students taught by ineffective teachers in Title I schools
+- `students_taught_by_ineffective_teachers_rate_not_title_1` - Percentage of students taught by ineffective teachers in non-Title I schools
+- `students_taught_by_ineffective_teachers_rate_equity_gap` - Difference in rate between Title I and non-Title I schools
+
+**Demographics (via `student_group` column):**
+- All Students
+- White (non-Hispanic) / Non-White
+- Economically Disadvantaged / Non-Economically Disadvantaged
+- Students with Disabilities (IEP) / Student without Disabilities (IEP)
+- English Learner / Non-English Learner
+
+**Data Sources**: KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv, KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv, students_taught_by_ineffective_teachers_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Percentage (0-100%)
+
+---
+
+## Spending Per Student
+**Source**: `etl/spending_per_student.py`
+
+Per-pupil spending metrics broken down by funding source. All spending values are in US dollars per student.
+
+**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+
+### Federal Funding Metrics
+- `personnel_spending_per_student_federal` - Federal spending on personnel (teachers, staff, etc.) per student
+- `non_personnel_spending_per_student_federal` - Federal spending on non-personnel (materials, services, etc.) per student
+- `total_spending_per_student_federal` - Total federal spending per student
+
+### State/Local Funding Metrics
+- `personnel_spending_per_student_state_local` - State and local spending on personnel per student
+- `non_personnel_spending_per_student_state_local` - State and local spending on non-personnel per student
+- `total_spending_per_student_state_local` - Total state and local spending per student
+
+### Combined Funding Metrics
+- `total_spending_per_student_all_funds` - Total spending per student from all funding sources (federal + state/local)
+
+**Data Sources**: KYRC25_FT_Spending_per_Student.csv, KYRC24_FT_Spending_per_Student.csv, spending_per_student_{year}.csv
+**Years Available**: 2020-2024
+**Unit**: US dollars per student (non-negative, typically $0-$200,000)
+**Demographics**: School-level only (All Students)
+
+---
+
+## Students Taught by Out-of-Field Teachers
+**Source**: `etl/students_taught_by_out_of_field_teachers.py`
+
+Equity metrics showing the percentage of students taught by out-of-field teachers (teaching outside their certification area), broken down by Title I status and demographics.
+
+- `students_taught_by_out_of_field_teachers_rate_title_1` - Percentage of students taught by out-of-field teachers in Title I schools
+- `students_taught_by_out_of_field_teachers_rate_not_title_1` - Percentage of students taught by out-of-field teachers in non-Title I schools
+- `students_taught_by_out_of_field_teachers_rate_equity_gap` - Difference in rate between Title I and non-Title I schools
+
+**Demographics (via `student_group` column):**
+- All Students
+- White (non-Hispanic) / Non-White
+- Economically Disadvantaged / Non-Economically Disadvantaged
+- Students with Disabilities (IEP) / Student without Disabilities (IEP)
+- English Learner / Non-English Learner
+
+**Data Sources**: KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv, KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv, students_taught_by_out_of_field_teachers_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Percentage (can be negative for equity gap)
+
+---
+
+## Teacher Working Conditions
+**Source**: `etl/teacher_working_conditions.py`
+
+Survey-based index scores measuring teacher perceptions of working conditions. Each school has scores for different impact measures.
+
+- `teacher_working_conditions_managing_student_behavior` - Index score for managing student behavior (0-100)
+- `teacher_working_conditions_school_climate` - Index score for school climate (0-100)
+- `teacher_working_conditions_school_leadership` - Index score for school leadership (0-100)
+- `teacher_working_conditions_teaching_environment` - Index score for teaching environment (0-100, historical data only)
+
+**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+
+**Data Sources**: KYRC25_OVW_Teacher_Working_Conditions.csv, KYRC24_OVW_Teacher_Working_Conditions.csv, teacher_working_conditions_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Index score (0-100)
+**Demographics**: School-level only (All Students)
+
+---
+
+## Financial Summary
+**Source**: `etl/financial_summary.py`
+
+District-level financial and staffing metrics from KDE Financial Summary reports. Provides end-of-year student membership, fund balance data, and staff FTE counts.
+
+**Note**: This dataset contains district-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns or school-level data.
+
+### Student Membership
+- `eoy_student_membership` - End-of-year student membership count for the district
+
+### Fund Balance
+- `fund_balance` - District fund balance in dollars
+- `fund_balance_pct` - Fund balance as percentage of expenditures
+
+### Staff FTE Counts
+- `certified_staff_fte` - Total certified staff FTE (teachers + other certified personnel)
+- `certified_staff_teachers_fte` - Certified staff FTE for teachers only
+- `certified_staff_non_teachers_fte` - Certified staff FTE for non-teachers (administrators, counselors, etc.) - *derived metric*
+- `classified_staff_fte` - Classified (non-certified) staff FTE
+- `total_staff_fte` - Total staff FTE (certified + classified) - *derived metric*
+
+**Data Sources**: KYRC24_FT_Financial_Summary.csv, financial_summary_{year}.csv
+**Years Available**: 2020-2024
+**Unit**: Counts (FTE or student headcount), dollars (fund balance), percentage (fund balance %)
+**Demographics**: District-level only (All Students)
+
+---
+
+## Advanced Coursework
+**Source**: `etl/advanced_coursework.py`
+
+Participation and performance metrics for advanced courses including AP, IB, and Cambridge programs. Note: Dual credit data is handled in a separate pipeline.
+
+### By Course Type (AP, IB, Cambridge)
+- `{prefix}_course_enrollment` - Number of students enrolled in courses
+- `{prefix}_completion_count` - Number of students completing courses
+- `{prefix}_tested_count` - Number of students tested
+- `{prefix}_qualifying_score_count` - Number of students earning qualifying scores
+- `{prefix}_qualifying_score_rate` - Percentage of tested students with qualifying scores
+- `{prefix}_participation_rate` - Overall participation rate (from overview files)
+- `{prefix}_participation_rate_female` - Participation rate for female students
+- `{prefix}_participation_rate_male` - Participation rate for male students
+- `num_{prefix}_courses_offered` - Count of courses offered (from offered files)
+
+**Prefixes**: `ap`, `ib`, `cambridge`, `advanced` (for unspecified course types)
+
+**Demographics (via `student_group` column):**
+- All Students
+- Female / Male
+- Race/ethnicity groups (African American, Hispanic or Latino, etc.)
+- Economically Disadvantaged
+- Students with Disabilities (IEP)
+- English Learner
+
+**Data Sources**: KYRC25_EDOP_Advanced_Courses_Participation_and_Performance.csv, KYRC24_EDOP_Advanced_Courses_Participation_and_Performance.csv, KYRC25_OVW_Advanced_Coursework.csv, advanced_courses_participation_and_performance_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Count (non-negative integers), Rate (0-100%)
+
+---
+
+## Dual Credit
+**Source**: `etl/dual_credit.py`
+
+Participation and performance metrics specifically for dual credit courses.
+
+- `dual_credit_enrollment` - Number of students enrolled in dual credit courses
+- `dual_credit_completion_count` - Number of students completing dual credit courses
+- `dual_credit_qualifying_score_count` - Number of students earning qualifying scores
+- `dual_credit_completion_rate` - Percentage of enrolled students completing courses
+- `dual_credit_qualifying_score_rate` - Percentage of completers with qualifying scores
+- `has_dual_credit_program` - Boolean indicator (1=yes, 0=no) if school has dual credit program
+
+**Demographics (via `student_group` column):**
+- All Students
+- Female / Male
+- Race/ethnicity groups (African American, Hispanic or Latino, etc.)
+- Economically Disadvantaged
+- Students with Disabilities (IEP)
+- English Learner
+
+**Data Sources**: KYRC25_EDOP_Dual_Credit_Participation_and_Performance.csv, KYRC24_EDOP_Dual_Credit_Participation_and_Performance.csv, KYRC25_EDOP_Dual_Credit_Courses_Offered.csv, KYRC24_EDOP_Dual_Credit_Courses_Offered.csv
+**Years Available**: 2024-2025
+**Unit**: Count (non-negative integers), Rate (0-100%), Boolean (0/1)
+
+---
+
+## Gifted and Talented
+**Source**: `etl/gifted_talented.py`
+
+Participation counts for gifted and talented programs by grade level.
+
+### Grade Level Participation
+- `gifted_participation_count_all_grades` - Total students in gifted programs
+- `gifted_participation_count_preschool` - Students in preschool
+- `gifted_participation_count_kindergarten` - Students in kindergarten
+- `gifted_participation_count_grade_1` through `gifted_participation_count_grade_12` - Students by grade level
+- `gifted_participation_count_grade_14` - Students in post-secondary transition
+
+**Demographics (via `student_group` column):**
+- All Students
+- Female / Male
+- Race/ethnicity groups (African American, Hispanic or Latino, etc.)
+- Economically Disadvantaged
+- Students with Disabilities (IEP)
+- English Learner
+
+**Data Sources**: KYRC25_EDOP_Gifted_Participation_by_Grade_Level.csv, KYRC24_EDOP_Gifted_Participation_by_Grade_Level.csv, gifted_and_talented_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Count (non-negative integers)
+
+---
+
+## CTE Pathways
+**Source**: `etl/cte_pathways.py`
+
+Career and Technical Education (CTE) pathway availability and completion metrics by program area.
+
+### Pathway Metrics
+- `num_cte_pathways` - Number of CTE pathways available at the school
+- `cte_pathway_enrollment` - Total active enrollment in CTE pathways
+- `cte_concentrator_count` - Number of CTE concentrator students
+- `cte_pathway_completer_count` - Number of students completing CTE pathways
+- `cte_pathway_completion_rate` - Percentage of concentrators completing pathways (Completers / Concentrators * 100)
+
+**Note**: This dataset contains school-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+
+**Data Sources**: KYRC25_CTE_Career_Pathways.csv, KYRC24_CTE_Career_Pathways.csv, career_pathways_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Count (non-negative integers), Rate (0-100%)
+**Demographics**: School-level only (All Students)
+
+---
+
+## School Courses
+**Source**: `etl/school_courses.py`
+
+General course offerings including middle school Algebra 1 access.
+
+### Course Metrics
+- `algebra_1_grade_8_count` - Number of 8th grade students enrolled in Algebra 1
+- `has_algebra_1_access` - Boolean indicator (1/0) for whether 8th graders have access to Algebra 1
+- `courses_offered_count` - Count of unique courses offered (aggregated metric)
+
+**Note**: This dataset contains course-level data without demographic breakdowns. All records have `student_group='All Students'`.
+
+**Data Sources**: KYRC25_EDOP_School_Courses_Summary.csv, school_courses_summary_{year}.csv
+**Years Available**: 2021-2025
+**Unit**: Count (non-negative integers), Boolean (0 or 1)
+**Demographics**: School-level only (All Students)
+
+---
+
+## Career Readiness Indicators
+**Source**: `etl/career_readiness_indicators.py`
+
+Career readiness metrics for CTE programs tracking various readiness indicators.
+
+### Readiness Indicators
+- `career_readiness_industry_certification_count` - Students earning industry certifications
+- `career_readiness_apprenticeship_count` - Students participating in apprenticeships
+- `career_readiness_cooperative_education_count` - Students in cooperative education
+- `career_readiness_internship_count` - Students participating in internships
+- `career_readiness_advanced_placement_count` - Students in advanced placement (CTE context)
+- `career_readiness_dual_credit_cte_count` - Students earning dual credit through CTE
+- `career_readiness_transition_readiness_count` - Students meeting transition readiness criteria
+
+**Note**: This dataset contains school/program-level aggregates only. All records have `student_group='All Students'` - there are no demographic breakdowns.
+
+**Data Sources**: KYRC24_CTE_Career_Readiness_Indicators.csv, career_readiness_indicators_{year}.csv
+**Years Available**: 2023-2024
+**Unit**: Count (non-negative integers)
+**Demographics**: School-level only (All Students)
+
+---
+
+## District School List (School Coordinates and Institutional Characteristics)
+**Source**: `etl/district_school_list.py`
+
+Geographic coordinates and institutional classification data for Kentucky schools.
+
+### Geographic Coordinates
+- `school_latitude` - School latitude in decimal degrees (approximately 36-39° for Kentucky)
+- `school_longitude` - School longitude in decimal degrees (approximately -89° to -82° for Kentucky)
+
+### School Type (Dummy-Encoded)
+KDE school classification codes, dummy-encoded for use in Bayesian models. A1 (standard public school) is the reference category (all dummies = 0).
+
+- `school_type_a2` - Career/Technical Education center (1=yes, 0=no)
+- `school_type_a3` - Special education program (1=yes, 0=no)
+- `school_type_a4` - Preschool program (1=yes, 0=no)
+- `school_type_a5` - Alternative program - remediation (1=yes, 0=no)
+- `school_type_a6` - Alternative program - state agency children (1=yes, 0=no)
+- `school_type_a8` - Other classification A8 (1=yes, 0=no)
+- `school_type_b1` - Classification B1 (1=yes, 0=no)
+- `school_type_b2` - Classification B2 (1=yes, 0=no)
+- `school_type_c2` - Classification C2 (1=yes, 0=no)
+- `school_type_d1` - Classification D1 (1=yes, 0=no)
+
+### Title I Status (Dummy-Encoded)
+Title I federal funding status, dummy-encoded for use in Bayesian models. "Not a Title 1 School" is the reference category (all dummies = 0).
+
+- `title_i_schoolwide` - Title I Schoolwide program (1=yes, 0=no) - includes Eligible-Schoolwide, Schoolwide School, and Eligible-Schoolwide Program
+- `title_i_targeted` - Title I Targeted Assistance program (1=yes, 0=no)
+- `title_i_eligible_no_program` - Title I Eligible but no program implemented (1=yes, 0=no)
+
+**Note**: This dataset contains school-level data only. All records have `student_group='All Students'` - there are no demographic breakdowns. Coordinates are validated to fall within Kentucky's geographic boundaries.
+
+**Data Sources**: KYRC25_OVW_District_School_List.csv, KYRC24_OVW_District_School_List.csv, district_school_list_{year}.csv
+**Years Available**: 2020-2025
+**Unit**: Binary indicators (0 or 1), Decimal degrees for coordinates
+**Demographics**: School-level only (All Students)
+
+---
 
 ## Naming Conventions
 

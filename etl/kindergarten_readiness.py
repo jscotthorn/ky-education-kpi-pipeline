@@ -7,7 +7,7 @@ across multiple years.
 """
 from pathlib import Path
 import pandas as pd
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import logging
 
 import sys
@@ -71,18 +71,55 @@ class KindergartenReadinessETL(BaseETL):
     @property
     def module_column_mappings(self) -> Dict[str, str]:
         return {
+            # Readiness metrics (percentage format)
             "TOTAL PERCENT READY": "total_percent_ready",
             "Total Percent Ready": "total_percent_ready",
+
+            # Readiness metrics (count format - older files)
             "Ready With Interventions": "ready_with_interventions_count",
             "Ready": "ready_count",
             "Ready With Enrichments": "ready_with_enrichments_count",
             "Total Ready": "total_ready_count",
+
+            # 2025 file uses "Percent" prefix for these
+            "Percent Ready with Interventions": "ready_with_interventions_percent",
+            "Percent Ready": "ready_percent",
+            "Percent Ready With Enrichments": "ready_with_enrichments_percent",
+
+            # Test counts
             "NUMBER TESTED": "number_tested",
             "Number Tested": "number_tested",
+
+            # Suppression
             "Suppressed": "suppressed",
             "SUPPRESSED": "suppressed",
+
+            # Prior setting (structure changed in 2025)
             "Prior Setting": "prior_setting",
             "PRIOR SETTING": "prior_setting",
+            "PRIOR_SETTING": "prior_setting",  # 2025 uses uppercase with underscore
+
+            # Historical xlsx format (2018-19) - KSCREEN
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_number',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'SCH_CD': 'school_code',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
+            'DEMOGRAPHIC': 'demographic',
+            'ENROLLMENT': 'enrollment',
+            'NUMTESTED': 'number_tested',
+            'PARTICIPATIONRATE': 'participation_rate',
+            'NOTREADY': 'not_ready_percent',  # % not ready
+            'READY': 'ready_percent',  # % ready (plain)
+            'READYWITHENRICHMENTS': 'ready_with_enrichments_percent',
+            'TOTALREADY': 'total_percent_ready',  # % total ready
         }
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
@@ -146,10 +183,16 @@ class KindergartenReadinessETL(BaseETL):
                     ) * 100
             return metrics
 
-        # Percentage formats
+        # Percentage formats (check 2025 format first, then fallback to older formats)
         rate = row.get("total_percent_ready")
         if pd.isna(rate):
             rate = row.get("total_ready_count")  # some 2024 files label rate this way
+
+        # 2025 file has additional percentage columns we can extract
+        rwi_percent = row.get("ready_with_interventions_percent")
+        r_percent = row.get("ready_percent")
+        rwe_percent = row.get("ready_with_enrichments_percent")
+
         total = row.get("number_tested")
         if pd.notna(total):
             total = float(total)
@@ -174,6 +217,14 @@ class KindergartenReadinessETL(BaseETL):
             metrics[f"kindergarten_{prior_slug}_count"] = round(
                 (float(rate) / 100) * total
             )
+
+        # 2025 file breakdown percentages (optional - extract if available)
+        if is_prior_all and pd.notna(rwi_percent):
+            metrics["kindergarten_ready_with_interventions_rate"] = float(rwi_percent)
+        if is_prior_all and pd.notna(r_percent):
+            metrics["kindergarten_ready_rate"] = float(r_percent)
+        if is_prior_all and pd.notna(rwe_percent):
+            metrics["kindergarten_ready_with_enrichments_rate"] = float(rwe_percent)
 
         return metrics
 
@@ -212,28 +263,32 @@ class KindergartenReadinessETL(BaseETL):
             df["suppressed"] = "N"
         return df
 
-    def create_kpi_template(self, row: pd.Series, source_file: str) -> Dict[str, Any]:
+    def create_kpi_template(self, row: pd.Series, source_file: str) -> Optional[Dict[str, Any]]:
         """
         Override to handle kindergarten-specific suppression logic.
-        
+
         For kindergarten readiness, KDE marks records as suppressed even when
         values exist. We override the suppression flag when actual data is present.
         """
         template = super().create_kpi_template(row, source_file)
-        
+
+        # If template is None (e.g., filtered demographic), return None
+        if template is None:
+            return None
+
         # Override suppression if we have actual readiness data
         # Check if total_percent_ready or component readiness values exist
         has_readiness_data = (
             pd.notna(row.get("total_percent_ready")) or
             pd.notna(row.get("total_ready_count")) or
             (pd.notna(row.get("ready_with_interventions_count")) and
-             pd.notna(row.get("ready_count")) and 
+             pd.notna(row.get("ready_count")) and
              pd.notna(row.get("ready_with_enrichments_count")))
         )
-        
+
         if has_readiness_data and template['suppressed'] == 'Y':
             template['suppressed'] = 'N'
-            
+
         return template
 
 

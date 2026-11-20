@@ -1,0 +1,924 @@
+# Covariate Catalog for Bright Spots Bayesian Models
+# ===================================================
+#
+# This catalog defines all available covariates for hierarchical Bayesian models,
+# organized by category with documentation of data sources, theoretical relevance,
+# and literature support.
+#
+# Each indicator can specify which covariates to include based on:
+# 1. Theoretical relevance (does the covariate make sense for this outcome?)
+# 2. Empirical support (does research show a relationship?)
+# 3. Model diagnostics (does the covariate contribute predictive power?)
+#
+# Last updated: November 2025
+# Version: 1.1
+
+# =============================================================================
+# COVARIATE DEFINITIONS
+# =============================================================================
+
+covariates:
+  # ---------------------------------------------------------------------------
+  # Category 1: Student Demographics
+  # ---------------------------------------------------------------------------
+  demographics:
+    pct_economically_disadvantaged:
+      description: "Percentage of students qualifying for free/reduced lunch"
+      source: kde_enrollment
+      unit: percentage
+      expected_direction: negative  # Higher poverty -> lower outcomes
+      literature_support: "Universal predictor of educational outcomes"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+        - postsecondary_readiness
+        - discipline_rate
+        - proficiency_rate
+
+    pct_english_learners:
+      description: "Percentage of English Language Learner students"
+      source: kde_enrollment
+      unit: percentage
+      expected_direction: mixed  # Depends on outcome and support services
+      literature_support: "Mixed effects depending on school resources"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    pct_students_with_disabilities:
+      description: "Percentage of students with IEPs"
+      source: kde_enrollment
+      unit: percentage
+      expected_direction: negative
+      literature_support: "Strong predictor, but effect size varies by disability type"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+        - chronic_absenteeism
+
+    pct_african_american:
+      description: "Percentage of African American students"
+      source: kde_enrollment
+      unit: percentage
+      expected_direction: null  # We use for adjustment, not prediction
+      literature_support: "QuantCrit: use for equity adjustment, not deficit framing"
+      note: "Include to ensure fair comparison; interpret coefficients with care"
+      theoretical_relevance:
+        - graduation_rate
+        - discipline_rate
+        - postsecondary_readiness
+
+    pct_hispanic:
+      description: "Percentage of Hispanic/Latino students"
+      source: kde_enrollment
+      unit: percentage
+      expected_direction: null
+      literature_support: "QuantCrit: use for equity adjustment"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    pct_minority:
+      description: "Percentage of total minority students"
+      source: kde_enrollment
+      unit: percentage
+      expected_direction: null
+      literature_support: "Use as aggregate diversity measure"
+      note: "May be redundant with specific race variables"
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+
+  # ---------------------------------------------------------------------------
+  # Category 2: Teacher Quality
+  # ---------------------------------------------------------------------------
+  teacher_quality:
+    novice_teacher_rate:
+      description: "Combined percentage of teachers with <1yr and 1-3yr experience"
+      source: kde_staff_reports
+      unit: percentage
+      expected_direction: negative  # More novice teachers -> lower outcomes
+      literature_support: "Robust finding: teacher experience matters (Clotfelter et al.)"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    teacher_avg_experience:
+      description: "Average years of teaching experience"
+      source: kde_staff_reports
+      unit: years
+      expected_direction: positive
+      literature_support: "Strong effect in first 5 years, plateaus after"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    student_teacher_ratio:
+      description: "Number of students per teacher"
+      source: kde_staff_reports
+      unit: ratio
+      expected_direction: negative  # More students per teacher -> lower outcomes
+      literature_support: "Mixed evidence; class size reduction shows small effects"
+      theoretical_relevance:
+        - proficiency_rate
+        - chronic_absenteeism
+
+    teacher_turnover_rate:
+      description: "Annual teacher turnover rate"
+      source: kde_staff_reports
+      unit: percentage
+      expected_direction: negative
+      literature_support: "High turnover disrupts school climate and student relationships"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+        - discipline_rate
+
+    emergency_provisional_rate:
+      description: "Percentage of teachers on emergency or provisional certification"
+      source: kde_staff_reports
+      unit: percentage
+      expected_direction: negative
+      literature_support: "Non-certified teachers associated with lower outcomes"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+
+    national_board_certified_rate:
+      description: "Percentage of teachers with National Board certification"
+      source: kde_teacher_certification
+      unit: percentage
+      expected_direction: positive
+      literature_support: |
+        National Board certification represents advanced professional development.
+        Goldhaber & Anthony (2007): NBCT teachers produce higher student achievement,
+        particularly for low-income and minority students.
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    students_taught_by_ineffective_teachers_rate:
+      description: "Percentage of students taught by ineffective teachers"
+      source: kde_teacher_effectiveness
+      unit: percentage
+      expected_direction: negative
+      literature_support: |
+        Direct measure of teacher effectiveness distribution.
+        Chetty et al. (2014): Teacher effectiveness has lasting impacts on
+        student earnings and life outcomes.
+      note: "Available as Title I vs non-Title I comparison; use school-level aggregate"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    students_taught_by_out_of_field_teachers_rate:
+      description: "Percentage of students taught by out-of-field teachers"
+      source: kde_teacher_certification
+      unit: percentage
+      expected_direction: negative
+      literature_support: |
+        Out-of-field teaching (teaching outside certification area) associated
+        with lower student outcomes. Ingersoll (2002): particularly problematic
+        in math and science.
+      note: "Available as Title I vs non-Title I comparison; use school-level aggregate"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+
+  # ---------------------------------------------------------------------------
+  # Category 3: Financial Resources
+  # ---------------------------------------------------------------------------
+  financial:
+    per_pupil_spending:
+      description: "Total district spending per student (all funds)"
+      source: kde_financial_transparency
+      unit: dollars
+      expected_direction: positive  # More spending -> better outcomes
+      literature_support: "Jackson et al. (2016): 10% spending increase -> 7% wage increase"
+      note: "District-level, not school-level"
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    students_per_certified_staff:
+      description: "Number of students per certified staff member"
+      source: kde_financial_summary
+      unit: ratio
+      expected_direction: negative
+      literature_support: "Proxy for overall staffing adequacy"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+
+    students_per_classified_staff:
+      description: "Number of students per classified (non-certified) staff member"
+      source: kde_financial_summary
+      unit: ratio
+      expected_direction: negative
+      literature_support: |
+        Classified staff (aides, counselors, support personnel) provide critical
+        services. Higher ratios indicate fewer support resources per student.
+      note: "Derived from eoy_student_membership / classified_staff_fte"
+      theoretical_relevance:
+        - chronic_absenteeism
+        - graduation_rate
+        - discipline_rate
+
+    students_per_non_teacher_certified_staff:
+      description: "Number of students per certified non-teacher staff (counselors, administrators)"
+      source: kde_financial_summary
+      unit: ratio
+      expected_direction: negative
+      literature_support: |
+        Non-teacher certified staff include counselors, social workers, and administrators.
+        ASCA recommends 250:1 student-to-counselor ratio; many schools exceed this.
+        Counselor availability linked to college enrollment rates (Hurwitz & Howell, 2014).
+      note: "Derived from eoy_student_membership / certified_staff_non_teachers_fte"
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+        - chronic_absenteeism
+
+  # ---------------------------------------------------------------------------
+  # Category 4: Community Context - County Level
+  # ---------------------------------------------------------------------------
+  county_census:
+    county_median_income:
+      description: "Median household income at county level"
+      source: census_saipe
+      unit: dollars
+      expected_direction: positive
+      literature_support: "Strong SES predictor at community level"
+      note: "May be redundant with tract-level income"
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+
+    county_poverty_rate:
+      description: "Poverty rate for all ages at county level"
+      source: census_saipe
+      unit: percentage
+      expected_direction: negative
+      literature_support: "Community poverty affects school resources and peer effects"
+      note: "May be redundant with tract-level poverty"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+        - discipline_rate
+
+    county_child_poverty_rate:
+      description: "Poverty rate for children ages 5-17 at county level"
+      source: census_saipe
+      unit: percentage
+      expected_direction: negative
+      literature_support: "More directly relevant than overall poverty for education"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+        - proficiency_rate
+
+  # ---------------------------------------------------------------------------
+  # Category 5: Neighborhood Context - Census Tract Level
+  # ---------------------------------------------------------------------------
+  tract_census:
+    tract_median_household_income:
+      description: "Median household income at census tract level"
+      source: census_acs_5year
+      unit: dollars
+      expected_direction: positive
+      literature_support: "Captures within-county economic variation"
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+        - chronic_absenteeism
+
+    tract_poverty_rate:
+      description: "Poverty rate at census tract level"
+      source: census_acs_5year
+      unit: percentage
+      expected_direction: negative
+      literature_support: "Neighborhood disadvantage index component"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+        - discipline_rate
+
+    tract_pct_bachelors_plus:
+      description: "Percentage of adults with bachelor's degree or higher"
+      source: census_acs_5year
+      unit: percentage
+      expected_direction: positive
+      literature_support: "Parental education strongest predictor of student achievement"
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+        - proficiency_rate
+
+    tract_unemployment_rate:
+      description: "Local unemployment rate"
+      source: census_acs_5year
+      unit: percentage
+      expected_direction: negative
+      literature_support: "Economic stress affects family stability"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+
+    tract_pct_single_parent:
+      description: "Percentage of single-parent households"
+      source: census_acs_5year
+      unit: percentage
+      expected_direction: negative
+      literature_support: |
+        Standard neighborhood disadvantage measure (McLanahan et al.).
+        Association may be partly spurious - use for adjustment, not causal claims.
+      note: "One of canonical 7 census tract characteristics in neighborhood research"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+
+    tract_pct_owner_occupied:
+      description: "Percentage of owner-occupied housing units"
+      source: census_acs_5year
+      unit: percentage
+      expected_direction: positive
+      literature_support: |
+        Homeownership increases residential stability (Urban Institute).
+        Eviction/moves reduce achievement by up to 1 year of schooling.
+      note: "Proxy for residential stability, distinct from poverty measures"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+
+    # EXCLUDED COVARIATES (documented for transparency)
+    tract_pct_broadband:
+      description: "Percentage of households with broadband internet"
+      source: census_acs_5year
+      unit: percentage
+      status: excluded
+      exclusion_reason: |
+        Removed November 2025 after diagnostic analysis:
+        - HDI includes zero: +0.06 [-0.62, +0.77]
+        - Highly correlated with income (r=0.63) and education (r=0.60)
+        - EdWorkingPapers (2025): heterogeneous effects - benefits high achievers,
+          harms low achievers. May bias bright spot identification.
+      literature_support: "Mixed and potentially problematic"
+
+    tract_pct_housing_cost_burden_30_plus:
+      description: "Percentage of households paying >30% income on housing"
+      source: census_acs_5year
+      unit: percentage
+      status: excluded
+      exclusion_reason: |
+        Removed November 2025 after diagnostic analysis:
+        - HDI includes zero: +0.07 [-0.58, +0.72]
+        - Highly correlated with owner_occupied (r=-0.64) - measures inverse of same construct
+        - Redundant with existing poverty measures
+
+  # ---------------------------------------------------------------------------
+  # Category 6: Institutional Characteristics (Categorical - Dummy Encoded)
+  # ---------------------------------------------------------------------------
+  institutional:
+    title_i_schoolwide:
+      description: "School has Title I Schoolwide program (binary indicator)"
+      source: kde_district_school_list
+      unit: binary
+      expected_direction: negative  # Title I schools typically serve higher-poverty populations
+      literature_support: |
+        Title I funding targets schools with high poverty concentrations.
+        Schoolwide programs allow flexible use of Title I funds for all students.
+        Important control variable to ensure fair comparison across schools.
+      note: "Reference category: Not a Title 1 School (all dummies = 0)"
+      encoding: dummy
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - chronic_absenteeism
+        - postsecondary_readiness
+
+    title_i_targeted:
+      description: "School has Title I Targeted Assistance program (binary indicator)"
+      source: kde_district_school_list
+      unit: binary
+      expected_direction: negative  # Targets specific high-need students
+      literature_support: |
+        Targeted Assistance programs provide services to specific eligible students
+        rather than the whole school. Typically indicates lower poverty concentration
+        than schoolwide programs but still elevated needs.
+      encoding: dummy
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - chronic_absenteeism
+
+    title_i_eligible_no_program:
+      description: "School is Title I eligible but has no program implemented (binary indicator)"
+      source: kde_district_school_list
+      unit: binary
+      expected_direction: null  # Unclear - eligible but not receiving funds
+      literature_support: |
+        Schools that qualify for Title I but don't receive funding may face
+        similar challenges as Title I schools without additional resources.
+      encoding: dummy
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+
+    school_type_a5:
+      description: "School is an alternative program for remediation (binary indicator)"
+      source: kde_district_school_list
+      unit: binary
+      expected_direction: negative  # Alternative schools serve at-risk populations
+      literature_support: |
+        Alternative schools (A5) serve students needing remediation or
+        credit recovery. Typically have lower outcome metrics due to
+        student population characteristics, not necessarily school quality.
+      note: "Reference category: A1 (standard public school)"
+      encoding: dummy
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - chronic_absenteeism
+        - postsecondary_readiness
+
+    school_type_a6:
+      description: "School is an alternative program for state agency children (binary indicator)"
+      source: kde_district_school_list
+      unit: binary
+      expected_direction: negative  # Serves students in state custody
+      literature_support: |
+        A6 schools serve state agency children (foster care, juvenile justice).
+        These students face significant barriers; school effects reflect
+        population characteristics more than instructional quality.
+      encoding: dummy
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+
+    school_type_a2:
+      description: "School is a Career/Technical Education center (binary indicator)"
+      source: kde_district_school_list
+      unit: binary
+      expected_direction: null  # Mixed - CTE centers may have different outcome patterns
+      literature_support: |
+        Career/Technical Education centers focus on workforce preparation.
+        May have different graduation patterns and postsecondary pathways.
+      encoding: dummy
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+
+    school_type_a3:
+      description: "School is a special education program (binary indicator)"
+      source: kde_district_school_list
+      unit: binary
+      expected_direction: negative  # Serves students with significant disabilities
+      literature_support: |
+        A3 schools serve students with significant disabilities requiring
+        specialized instruction. Outcomes reflect population needs.
+      encoding: dummy
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+
+    school_type_a4:
+      description: "School is a preschool program (binary indicator)"
+      source: kde_district_school_list
+      unit: binary
+      expected_direction: null  # Only relevant for kindergarten readiness
+      literature_support: |
+        Preschool programs (A4) primarily serve early childhood education.
+        Only applicable to kindergarten readiness outcomes.
+      encoding: dummy
+      theoretical_relevance:
+        - kindergarten_readiness
+
+  # ---------------------------------------------------------------------------
+  # Category 7: Teacher Working Conditions
+  # ---------------------------------------------------------------------------
+  teacher_working_conditions:
+    twc_managing_student_behavior:
+      description: "Teacher working conditions index for managing student behavior"
+      source: kde_teacher_working_conditions
+      unit: index_score  # 0-100
+      expected_direction: positive
+      literature_support: |
+        Teacher perception of student behavior management correlates with school
+        climate and teacher retention. Johnson et al. (2012): working conditions
+        predict teacher turnover and student achievement.
+      theoretical_relevance:
+        - chronic_absenteeism
+        - discipline_rate
+        - graduation_rate
+
+    twc_school_climate:
+      description: "Teacher working conditions index for school climate"
+      source: kde_teacher_working_conditions
+      unit: index_score  # 0-100
+      expected_direction: positive
+      literature_support: |
+        Teacher-reported school climate is a leading indicator of organizational
+        health. Bryk & Schneider (2002): relational trust in schools predicts
+        student achievement gains.
+      theoretical_relevance:
+        - chronic_absenteeism
+        - graduation_rate
+        - discipline_rate
+        - proficiency_rate
+
+    twc_school_leadership:
+      description: "Teacher working conditions index for school leadership"
+      source: kde_teacher_working_conditions
+      unit: index_score  # 0-100
+      expected_direction: positive
+      literature_support: |
+        Leadership quality is second only to instruction in impact on student
+        outcomes (Leithwood et al., 2008). Effective principals create conditions
+        for teacher effectiveness.
+      theoretical_relevance:
+        - graduation_rate
+        - proficiency_rate
+        - chronic_absenteeism
+
+  # ---------------------------------------------------------------------------
+  # Category 8: School Climate and Safety
+  # ---------------------------------------------------------------------------
+  school_climate:
+    climate_index_score:
+      description: "School climate composite index from accountability system"
+      source: kde_safe_schools_climate
+      unit: index_score  # 0-100
+      expected_direction: positive
+      literature_support: |
+        School climate is a robust predictor of student outcomes. Thapa et al. (2013)
+        meta-analysis: positive climate associated with higher achievement, lower
+        dropout, and reduced behavior problems.
+      note: "Direct from KDE accountability profiles; demographic breakdowns available via calculated version"
+      theoretical_relevance:
+        - graduation_rate
+        - chronic_absenteeism
+        - discipline_rate
+        - proficiency_rate
+        - postsecondary_readiness
+
+    safety_index_score:
+      description: "School safety composite index from accountability system"
+      source: kde_safe_schools_climate
+      unit: index_score  # 0-100
+      expected_direction: positive
+      literature_support: |
+        Students who feel safe at school have better attendance and academic outcomes.
+        Lacoe (2015): perceived safety affects concentration and engagement.
+      note: "Direct from KDE accountability profiles; reflects student perception of safety"
+      theoretical_relevance:
+        - chronic_absenteeism
+        - graduation_rate
+        - discipline_rate
+
+    safety_policy_compliance_rate:
+      description: "Percentage compliance across eight safety policy questions"
+      source: kde_safe_schools_climate
+      unit: percentage
+      expected_direction: positive
+      literature_support: |
+        Policy compliance indicates institutional commitment to safety.
+        May be confounded with resources (wealthier schools can comply more easily).
+      note: "Administrative compliance measure, not student perception"
+      theoretical_relevance:
+        - discipline_rate
+        - chronic_absenteeism
+
+  # ---------------------------------------------------------------------------
+  # Category 9: Educational Opportunity
+  # ---------------------------------------------------------------------------
+  educational_opportunity:
+    ap_participation_rate:
+      description: "Percentage of students participating in Advanced Placement courses"
+      source: kde_advanced_coursework
+      unit: percentage
+      expected_direction: positive
+      literature_support: |
+        AP participation signals course rigor and college preparation opportunity.
+        Klopfenstein & Thomas (2009): AP access predicts college enrollment,
+        particularly for underrepresented students.
+      note: "Reflects opportunity to learn, not just student ability"
+      theoretical_relevance:
+        - postsecondary_readiness
+        - graduation_rate
+
+    num_ap_courses_offered:
+      description: "Number of Advanced Placement courses offered at the school"
+      source: kde_advanced_coursework
+      unit: count
+      expected_direction: positive
+      literature_support: |
+        Course offerings indicate school resources and commitment to rigorous
+        curriculum. Larger schools typically offer more courses.
+      note: "May need to control for school size; consider AP courses per 100 students"
+      theoretical_relevance:
+        - postsecondary_readiness
+        - graduation_rate
+
+    has_dual_credit_program:
+      description: "School offers dual credit courses (binary indicator)"
+      source: kde_dual_credit
+      unit: binary
+      expected_direction: positive
+      literature_support: |
+        Dual credit programs increase college enrollment and persistence.
+        An (2013): dual credit participation predicts college completion,
+        especially for first-generation students.
+      encoding: dummy
+      theoretical_relevance:
+        - postsecondary_readiness
+        - graduation_rate
+
+    has_algebra_1_access_grade_8:
+      description: "8th graders have access to Algebra 1 (binary indicator)"
+      source: kde_school_courses
+      unit: binary
+      expected_direction: positive
+      literature_support: |
+        Early algebra access is a critical gatekeeper for STEM pathways.
+        Spielhagen (2006): 8th grade Algebra 1 predicts college-level math success.
+      note: "Middle school indicator only"
+      encoding: dummy
+      theoretical_relevance:
+        - proficiency_rate
+        - postsecondary_readiness
+
+    num_cte_pathways:
+      description: "Number of CTE career pathways available at the school"
+      source: kde_cte_pathways
+      unit: count
+      expected_direction: positive
+      literature_support: |
+        CTE pathways provide alternative routes to career readiness.
+        Dougherty (2018): CTE participation increases graduation rates
+        and employment outcomes, particularly for at-risk students.
+      note: "May need to control for school size"
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+
+    cte_participation_rate:
+      description: "Percentage of students participating in CTE programs"
+      source: kde_cte_participation
+      unit: percentage
+      expected_direction: mixed
+      literature_support: |
+        CTE participation effects are heterogeneous. High-quality CTE improves
+        outcomes; low-quality may track students away from college. Use as
+        control variable, interpret with care.
+      theoretical_relevance:
+        - graduation_rate
+        - postsecondary_readiness
+
+# =============================================================================
+# INDICATOR-SPECIFIC CONFIGURATIONS
+# =============================================================================
+
+indicators:
+  graduation_rate:
+    description: "4-year cohort graduation rate"
+    outcome_column: graduation_rate_4_year
+    prior_type: normal  # or horseshoe for automatic selection
+
+    # Covariates grouped by inclusion status
+    required_covariates:
+      - pct_economically_disadvantaged
+      - pct_students_with_disabilities
+      - pct_african_american
+      - tract_poverty_rate
+
+    recommended_covariates:
+      - novice_teacher_rate
+      - teacher_avg_experience
+      - per_pupil_spending
+      - tract_pct_bachelors_plus
+      - tract_pct_single_parent
+      - tract_pct_owner_occupied
+      - tract_unemployment_rate
+      # School climate (new November 2025)
+      - climate_index_score
+      - twc_school_climate
+
+    optional_covariates:
+      - pct_english_learners
+      - pct_hispanic
+      - pct_minority
+      - teacher_turnover_rate
+      - emergency_provisional_rate
+      - student_teacher_ratio
+      - students_per_certified_staff
+      - county_median_income
+      - county_poverty_rate
+      - county_child_poverty_rate
+      - tract_median_household_income
+      # Institutional characteristics (categorical - dummy encoded)
+      - title_i_schoolwide
+      - title_i_targeted
+      - title_i_eligible_no_program
+      - school_type_a5  # Alternative programs
+      - school_type_a6  # State agency children
+      # Teacher quality (new November 2025)
+      - national_board_certified_rate
+      - students_taught_by_ineffective_teachers_rate
+      - students_taught_by_out_of_field_teachers_rate
+      # Teacher working conditions (new November 2025)
+      - twc_managing_student_behavior
+      - twc_school_leadership
+      # School climate/safety (new November 2025)
+      - safety_index_score
+      # Educational opportunity (new November 2025)
+      - ap_participation_rate
+      - num_ap_courses_offered
+      - has_dual_credit_program
+      - num_cte_pathways
+      - cte_participation_rate
+      # Staffing ratios (new November 2025)
+      - students_per_classified_staff
+      - students_per_non_teacher_certified_staff
+
+    excluded_covariates:
+      - tract_pct_broadband
+      - tract_pct_housing_cost_burden_30_plus
+
+    notes: |
+      Based on November 2025 model diagnostics:
+      - Per-pupil spending, teacher experience, tract poverty show strong effects (HDI excludes zero)
+      - Demographics important for fair comparison
+      - County-level variables may be redundant with tract-level
+      - Institutional characteristics (Title I, school type) added November 2025
+        as dummy-encoded categorical variables to control for school classification
+      - Version 1.1: Added school climate indices, teacher working conditions,
+        educational opportunity measures, and additional staffing ratios
+
+  chronic_absenteeism:
+    description: "Percentage of students chronically absent (>10% of days)"
+    outcome_column: chronic_absenteeism_rate
+    prior_type: horseshoe  # Recommend shrinkage for exploratory analysis
+
+    required_covariates:
+      - pct_economically_disadvantaged
+      - pct_students_with_disabilities
+
+    recommended_covariates:
+      - tract_pct_owner_occupied  # Housing stability affects attendance
+      - tract_unemployment_rate
+      - teacher_turnover_rate  # School climate
+      # School climate (new November 2025) - strong theoretical relevance
+      - climate_index_score
+      - safety_index_score
+      - twc_managing_student_behavior
+
+    optional_covariates:
+      - tract_pct_single_parent
+      - county_poverty_rate
+      # Institutional characteristics (categorical - dummy encoded)
+      - title_i_schoolwide
+      - title_i_targeted
+      - school_type_a5  # Alternative programs
+      - school_type_a6  # State agency children
+      # Teacher working conditions (new November 2025)
+      - twc_school_climate
+      - twc_school_leadership
+      # Staffing ratios (new November 2025)
+      - students_per_classified_staff
+      - students_per_non_teacher_certified_staff
+
+    excluded_covariates:
+      - tract_pct_broadband
+      - tract_pct_housing_cost_burden_30_plus
+
+    notes: |
+      Absenteeism likely driven by:
+      - Housing instability (frequent moves)
+      - Health access
+      - Transportation
+      - Family economic stress
+      - School climate and safety (students avoid unsafe/unwelcoming schools)
+      Use horseshoe prior to let data determine relevant covariates.
+      Title I and school type added as controls for institutional differences.
+      Version 1.1: Added school climate indices, safety scores, and staffing ratios.
+
+  postsecondary_readiness:
+    description: "College/career readiness indicator"
+    outcome_column: postsecondary_readiness_rate
+    prior_type: normal
+
+    required_covariates:
+      - pct_economically_disadvantaged
+      - pct_students_with_disabilities
+      - tract_pct_bachelors_plus  # Parental education critical
+
+    recommended_covariates:
+      - per_pupil_spending
+      - teacher_avg_experience
+      - tract_median_household_income
+      # Educational opportunity (new November 2025) - critical for readiness
+      - ap_participation_rate
+      - has_dual_credit_program
+      - num_cte_pathways
+
+    optional_covariates:
+      # Teacher quality (new November 2025)
+      - national_board_certified_rate
+      - students_taught_by_ineffective_teachers_rate
+      - novice_teacher_rate
+      # Educational opportunity (new November 2025)
+      - num_ap_courses_offered
+      - cte_participation_rate
+      # School climate (new November 2025)
+      - climate_index_score
+      - twc_school_leadership
+      # Staffing (new November 2025)
+      - students_per_non_teacher_certified_staff  # Counselor access matters
+
+    notes: |
+      Parental education (tract_pct_bachelors_plus) is the strongest predictor
+      of college-going behavior - always include.
+      Version 1.1: Added educational opportunity measures (AP, dual credit, CTE)
+      which directly capture access to college/career preparation pathways.
+      Counselor availability (via staffing ratio) linked to college enrollment.
+
+  discipline_rate:
+    description: "Suspension/expulsion rate"
+    outcome_column: discipline_rate
+    prior_type: horseshoe
+
+    required_covariates:
+      - pct_economically_disadvantaged
+      - pct_african_american  # Racial disparities in discipline
+
+    recommended_covariates:
+      - teacher_turnover_rate  # School climate
+      - tract_unemployment_rate  # Community stress
+      # School climate (new November 2025) - critical for discipline
+      - climate_index_score
+      - safety_index_score
+      - twc_managing_student_behavior
+
+    optional_covariates:
+      # Teacher working conditions (new November 2025)
+      - twc_school_climate
+      - twc_school_leadership
+      # Staffing (new November 2025) - more support staff may reduce discipline
+      - students_per_classified_staff
+      - students_per_non_teacher_certified_staff
+      # Institutional (categorical)
+      - title_i_schoolwide
+      - school_type_a5  # Alternative programs
+
+    notes: |
+      Discipline rates show strong racial disparities - must control for demographics.
+      School climate factors (teacher stability) may matter more than SES.
+      Version 1.1: Added school climate indices and teacher working conditions.
+      Managing student behavior index directly captures school disciplinary climate.
+      Staffing ratios may matter - more counselors/support staff can reduce suspensions.
+
+# =============================================================================
+# MODEL SELECTION SETTINGS
+# =============================================================================
+
+model_selection:
+  # Default prior type when not specified per-indicator
+  default_prior_type: normal
+
+  # Horseshoe prior settings (when used)
+  horseshoe:
+    tau_scale: 1.0  # Global shrinkage
+    slab_scale: 2.0  # For regularized horseshoe
+    slab_df: 4.0
+
+  # MCMC settings
+  mcmc:
+    draws: 2000
+    tune: 1000
+    chains: 4
+    target_accept: 0.95
+
+  # Diagnostic thresholds
+  diagnostics:
+    rhat_threshold: 1.01
+    ess_bulk_threshold: 400
+    ess_tail_threshold: 400
+    max_divergences_pct: 0.5
+    pareto_k_threshold: 0.7
+
+  # Covariate selection criteria
+  selection:
+    # For normal priors: exclude if HDI contains zero
+    hdi_excludes_zero: true
+    # For horseshoe: shrinkage factor threshold
+    shrinkage_threshold: 0.1
+    # Maximum correlation between covariates
+    max_correlation: 0.7

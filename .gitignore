@@ -6,7 +6,12 @@ __pycache__/
 
 # Data
 *.csv
+*.xlsx
+*.json
+data/raw/
 html/data/
+mlruns
+*.db
 
 # Processed an csv files (data should be hosted externally)
 *.csv
@@ -18,6 +23,10 @@ settings.local.json
 
 # Package metadata (auto-generated)
 *.egg-info/
+
+# Analysis outputs
+analysis/bayesian_eda_outputs/**
+analysis/outputs/**
 
 # Misc
 .DS_Store

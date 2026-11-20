@@ -61,13 +61,15 @@ def clean_graduation_rates(df: pd.DataFrame) -> pd.DataFrame:
 
 def handle_suppression_fields(df: pd.DataFrame) -> pd.DataFrame:
     """Handle graduation-specific suppression fields."""
-    # Map suppression fields to standard 'suppressed' field
-    suppressed_4_year = df.get('suppressed_4_year', 'N')
-    suppressed_5_year = df.get('suppressed_5_year', 'N')
-    
-    # For now, use 4-year suppression as default (could be enhanced)
-    df['suppressed'] = suppressed_4_year
-    
+    # Ensure suppression columns exist
+    if 'suppressed_4_year' not in df.columns:
+        df['suppressed_4_year'] = 'N'
+    if 'suppressed_5_year' not in df.columns:
+        df['suppressed_5_year'] = 'N'
+
+    # Use 4-year suppression as default 'suppressed' field
+    df['suppressed'] = df['suppressed_4_year']
+
     return df
 
 
@@ -81,18 +83,45 @@ class GraduationRatesETL(BaseETL):
             'Suppressed': 'suppressed_4_year',
             'SUPPRESSED 4 YEAR': 'suppressed_4_year',
             'Suppressed 4 Year': 'suppressed_4_year',
+            'Suppressed 4-Year': 'suppressed_4_year',  # 2025 format
             'SUPPRESSED 5 YEAR': 'suppressed_5_year',
-            
+            'Suppressed 5-Year': 'suppressed_5_year',  # 2025 format
+
             # Graduation rate metrics
             '4 Year Cohort Graduation Rate': 'graduation_rate_4_year',
             '4-YEAR GRADUATION RATE': 'graduation_rate_4_year',
+            '4-Year Graduation Rate': 'graduation_rate_4_year',  # 2025 format
             '5-YEAR GRADUATION RATE': 'graduation_rate_5_year',
-            
+            '5-Year Graduation Rate': 'graduation_rate_5_year',  # 2025 format
+
             # Count metrics
             'NUMBER OF GRADS IN 4-YEAR COHORT': 'grads_4_year_cohort',
             'NUMBER OF STUDENTS IN 4-YEAR COHORT': 'students_4_year_cohort',
             'NUMBER OF GRADS IN 5-YEAR COHORT': 'grads_5_year_cohort',
             'NUMBER OF STUDENTS IN 5-YEAR COHORT': 'students_5_year_cohort',
+
+            # Historical xlsx format (2018-19)
+            'SCH_YEAR': 'school_year',
+            'CNTYNO': 'county_number',
+            'CNTYNAME': 'county_name',
+            'DIST_NUMBER': 'district_number',
+            'DIST_NAME': 'district_name',
+            'SCH_NUMBER': 'school_number',
+            'SCH_NAME': 'school_name',
+            'SCH_CD': 'school_code',
+            'STATE_SCH_ID': 'state_school_id',
+            'NCESID': 'nces_id',
+            'COOP': 'co_op',
+            'COOP_CODE': 'co_op_code',
+            'DEMOGRAPHIC': 'demographic',
+            'SUPPRESSED4YR': 'suppressed_4_year',
+            'SUPPRESSED5YR': 'suppressed_5_year',
+            'GRADRATE4YR': 'graduation_rate_4_year',
+            'GRADRATE5YR': 'graduation_rate_5_year',
+            'GRADS4YR': 'grads_4_year_cohort',
+            'GRADS5YR': 'grads_5_year_cohort',
+            'COHORT4YR': 'students_4_year_cohort',
+            'COHORT5YR': 'students_5_year_cohort',
         }
     
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:

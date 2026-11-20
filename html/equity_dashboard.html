@@ -197,11 +197,14 @@
     <script>
         let dashboardConfig = null;
         let currentData = null;
-        
+        let allYears = [];
+
         async function loadDashboardConfig() {
             try {
                 const response = await fetch('data/dashboard_config.json');
                 dashboardConfig = await response.json();
+                collectAllYears();
+                populateYearDropdown();
                 populateMetricDropdown();
                 updateLastUpdated();
                 return true;
@@ -211,11 +214,36 @@
                 return false;
             }
         }
-        
+
+        function collectAllYears() {
+            // Collect all unique years from all sources
+            const yearSet = new Set();
+            for (const sourceInfo of Object.values(dashboardConfig.sources)) {
+                if (sourceInfo.data_available && sourceInfo.years) {
+                    sourceInfo.years.forEach(year => yearSet.add(year));
+                }
+            }
+            allYears = Array.from(yearSet).sort().reverse(); // Most recent first
+        }
+
+        function populateYearDropdown() {
+            const yearSelect = document.getElementById('yearSelect');
+            yearSelect.innerHTML = '';
+
+            for (const year of allYears) {
+                yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+            }
+
+            // Select most recent year by default
+            if (allYears.length > 0) {
+                yearSelect.value = allYears[0];
+            }
+        }
+
         function populateMetricDropdown() {
             const metricSelect = document.getElementById('metricSelect');
             metricSelect.innerHTML = '<option value="">Select a metric...</option>';
-            
+
             // Build metric options from config
             for (const [sourceName, sourceInfo] of Object.entries(dashboardConfig.sources)) {
                 if (sourceInfo.data_available) {
@@ -266,20 +294,21 @@
             }
         }
         
-        async function loadMetricData(metricKey) {
+        async function loadMetricData(metricKey, year) {
             try {
-                const response = await fetch(`data/${metricKey}.json`);
+                const filename = year ? `${metricKey}_${year}.json` : `${metricKey}.json`;
+                const response = await fetch(`data/${filename}`);
                 const data = await response.json();
-                
+
                 if (data.error) {
                     showError(`Data error: ${data.error}`);
                     return null;
                 }
-                
+
                 return data;
             } catch (error) {
                 console.error('Error loading metric data:', error);
-                showError(`Failed to load data for ${metricKey}`);
+                showError(`Failed to load data for ${metricKey} (${year})`);
                 return null;
             }
         }
@@ -416,23 +445,30 @@
         
         async function onMetricChange() {
             const metricSelect = document.getElementById('metricSelect');
+            const yearSelect = document.getElementById('yearSelect');
             const selectedMetric = metricSelect.value;
-            
+            const selectedYear = yearSelect.value;
+
             if (!selectedMetric) {
-                document.getElementById('heatmapChart').innerHTML = 
+                document.getElementById('heatmapChart').innerHTML =
                     '<div class="loading">Please select a metric to view the heatmap.</div>';
                 document.getElementById('statsContainer').style.display = 'none';
                 return;
             }
-            
-            document.getElementById('heatmapChart').innerHTML = 
+
+            document.getElementById('heatmapChart').innerHTML =
                 '<div class="loading">Loading heatmap...</div>';
-            
-            currentData = await loadMetricData(selectedMetric);
+
+            currentData = await loadMetricData(selectedMetric, selectedYear);
             if (currentData) {
                 createHeatmap(currentData);
                 showStats(currentData);
             }
+        }
+
+        async function onYearChange() {
+            // Reload the current metric with the new year
+            await onMetricChange();
         }
         
         async function loadDashboard() {
@@ -452,7 +488,8 @@
         
         // Event listeners
         document.getElementById('metricSelect').addEventListener('change', onMetricChange);
-        
+        document.getElementById('yearSelect').addEventListener('change', onYearChange);
+
         // Initialize dashboard on load
         window.addEventListener('load', loadDashboard);
     </script>

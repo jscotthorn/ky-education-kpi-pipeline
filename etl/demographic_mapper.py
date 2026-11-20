@@ -60,22 +60,43 @@ class DemographicMapper:
         except Exception as e:
             logger.error(f"Error loading demographic mappings: {e}")
             raise e
-    def map_demographic(self, demographic: str, year: str, source_file: str = "unknown") -> str:
+    def should_filter_demographic(self, demographic: str) -> bool:
         """
-        Map a demographic label to the standardized format.
-        
+        Check if a demographic should be filtered out entirely.
+
         Args:
             demographic: Original demographic label
-            year: Data year (e.g., "2024") 
-            source_file: Source filename for audit trail
-            
+
         Returns:
-            Standardized demographic label
+            True if demographic should be filtered out
+        """
+        if pd.isna(demographic) or demographic == "":
+            return False
+
+        filter_list = self.mappings.get("data_quality", {}).get("filter_out", [])
+        return str(demographic).strip() in filter_list
+
+    def map_demographic(self, demographic: str, year: str, source_file: str = "unknown") -> Optional[str]:
+        """
+        Map a demographic label to the standardized format.
+
+        Args:
+            demographic: Original demographic label
+            year: Data year (e.g., "2024")
+            source_file: Source filename for audit trail
+
+        Returns:
+            Standardized demographic label, or None if should be filtered out
         """
         if pd.isna(demographic) or demographic == "":
             return "All Students"
-        
+
         original_demographic = str(demographic).strip()
+
+        # Check if demographic should be filtered out
+        if self.should_filter_demographic(original_demographic):
+            self._log_mapping(original_demographic, None, year, source_file, "filtered")
+            return None
         
         # Check if already in standard demographics (no mapping needed)
         standard_demographics = self.mappings.get("standard_demographics", [])

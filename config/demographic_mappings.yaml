@@ -50,9 +50,12 @@ mappings:
   "Non-Gifted and Talented": "Non-Gifted and Talented"
   "Non-Military Dependent": "Non-Military Dependent"
   
-  # Historical format variations 
+  # Historical format variations
   "White (Non Hispanic)": "White (non-Hispanic)"
-  
+
+  # Advanced coursework uses "Total Student Count" for all students
+  "Total Student Count": "All Students"
+
   # Case variations - lowercase to standard
   "all students": "All Students"
   "female": "Female"
@@ -84,7 +87,49 @@ mappings:
   "SWD": "Students with Disabilities (IEP)"
   "FRL": "Economically Disadvantaged"
   "ED": "Economically Disadvantaged"
-  
+
+  # Historical enrollment file demographic names (2018-19 xlsx)
+  "Studw/disab.": "Students with Disabilities (IEP)"
+  "Free/Reduced": "Economically Disadvantaged"
+  "Two or More": "Two or More Races"
+  "Indian/Alaska": "American Indian or Alaska Native"
+  "Hawaiian/PI": "Native Hawaiian or Pacific Islander"
+  "Hispanic": "Hispanic or Latino"
+  "White": "White (non-Hispanic)"
+  "Gifted & Talented": "Gifted and Talented"
+  "MilitaryConnected": "Military Dependent"
+  "Military Connected": "Military Dependent"
+  "Foster": "Foster Care"
+
+  # Historical 3-letter demographic codes (pre-2020 xlsx files)
+  # Note: ACO (Accountability) is filtered out - use TST for true "All Students"
+  "TST": "All Students"
+  "ETW": "White (non-Hispanic)"
+  "ETB": "African American"
+  "ETH": "Hispanic or Latino"
+  "ETA": "Asian"
+  "ETI": "American Indian or Alaska Native"
+  "ETO": "Two or More Races"
+  "ETP": "Native Hawaiian or Pacific Islander"
+  "LUP": "Economically Disadvantaged"
+  "LUN": "Non-Economically Disadvantaged"
+  "CSG": "Students with Disabilities (IEP)"
+  "CSN": "Students without IEP"
+  "ELN": "Non-English Learner"
+  "SXF": "Female"
+  "SXM": "Male"
+  "FOS": "Foster Care"
+  "HOM": "Homeless"
+  "HON": "Non-Homeless"
+  "MIG": "Migrant"
+  "MIL": "Military Dependent"
+  "GTR": "Gifted and Talented"
+  "GTN": "Non-Gifted and Talented"
+  # Additional historical codes (assessment/accountability related)
+  "ALT": "Alternate Assessment"
+  "ELM": "English Learner including Monitored"
+  "LEN": "English Learner"  # LEP/English Learner variant
+
   # Fix common typos in demographic labels
   "Students with Disabilities/IEP without Accomodations": "Students with Disabilities/IEP without Accommodations"
   "Students With Disabilities with No Accommodations": "Students with Disabilities/IEP without Accommodations"
@@ -94,8 +139,45 @@ mappings:
   "Native Hawaiian or Pacific Islan": "Native Hawaiian or Pacific Islander"
   "American Indian or Alaska Nativ": "American Indian or Alaska Native"
 
+  # 2025 format variation
+  "Native Hawaiian or Other Pacific Islander": "Native Hawaiian or Pacific Islander"
+
 # Year-specific configurations
 year_specific:
+  "2019":
+    available_demographics:
+      - "All Students"
+      - "Female"
+      - "Male"
+      - "African American"
+      - "American Indian or Alaska Native"
+      - "Asian"
+      - "Hispanic or Latino"
+      - "Native Hawaiian or Pacific Islander"
+      - "Two or More Races"
+      - "White (non-Hispanic)"
+      - "Economically Disadvantaged"
+      - "English Learner"
+      - "Foster Care"
+      - "Homeless"
+      - "Migrant"
+      - "Students with Disabilities (IEP)"
+      - "Gifted and Talented"
+      - "Military Dependent"
+      - "Consolidated Student Group"
+    mappings:
+      # 2018-19 enrollment file-specific mappings
+      "Studw/disab.": "Students with Disabilities (IEP)"
+      "Free/Reduced": "Economically Disadvantaged"
+      "Two or More": "Two or More Races"
+      "Indian/Alaska": "American Indian or Alaska Native"
+      "Hawaiian/PI": "Native Hawaiian or Pacific Islander"
+      "Hispanic": "Hispanic or Latino"
+      "White": "White (non-Hispanic)"
+      "Gifted & Talented": "Gifted and Talented"
+      "MilitaryConnected": "Military Dependent"
+      "Foster": "Foster Care"
+
   "2020":
     available_demographics:
       - "All Students"
@@ -354,3 +436,11 @@ data_quality:
   # Non-demographic entries to filter out
   filter_out:
     - "Total Events"  # Appears in discipline data but not a demographic
+    # Historical accountability codes (not student demographics)
+    # ACO represents a restricted subset for accountability (excludes first-year LEP, some special ed)
+    # TST is the true "All Students" - everyone who took the test
+    - "ACO"  # Accountability population (use TST for "All Students")
+    - "ACD"  # Accountability aggregate
+    - "ACR"  # Accountability regular
+    - "ACY"  # Accountability year
+    - "MIN"  # Minority aggregate (would duplicate race breakouts)

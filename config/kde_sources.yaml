@@ -2,6 +2,10 @@
 # Maps raw data directories to their corresponding KDE Historical Dataset files
 
 base_url: "https://www.education.ky.gov/Open-House/data/HistoricalDatasets/"
+# 2024-2025 school year files are in a different location
+base_url_2025: "https://www.education.ky.gov/Open-House/data/OAA%20Temporary%20Datasets/"
+# Complete KYRC25 dataset from Azure Blob Storage (comprehensive source)
+base_url_kyrc25: "https://kdeschoolreportcard.blob.core.windows.net/datasetsdev/"
 
 headers:
   Referer: "https://www.education.ky.gov/Open-House/data/Pages/Historical-SRC-Datasets.aspx"
@@ -14,44 +18,67 @@ headers:
 raw_directories:
   chronic_absenteeism:
     - "KYRC24_OVW_Chronic_Absenteeism.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Chronic_Absenteeism.csv"
     - "chronic_absenteeism_2023.csv"
+    # Note: 2020-2022 files don't exist on KDE server (likely due to COVID attendance disruptions)
+    # Historical xlsx files (pre-2020)
+    - "CHRONIC_ABSENTEEISM_18-19.xlsx"
 
   cte_participation:
     - "KYRC24_CTE_Participation.csv"
+    - url: "kyrc25"
+      file: "KYRC25_CTE_Participation.csv"
     - "cte_by_student_group_2023.csv"
     - "cte_by_student_group_2022.csv"
 
   english_learner_progress:
     - "KYRC24_ACCT_English_Learners_Progress_Proficiency_Rate.csv"
+    - url: "2025"
+      file: "English_Language_Proficiency_2025.CSV"
     - "english_language_proficiency_2023.csv"
     - "english_language_proficiency_2022.csv"
     - "english_learner_proficiency_2021.csv"
     - "english_learner_proficiency_2020.csv"
+    # Note: ENGLISH_LEARNERS_18-19.xlsx is EL demographics by language, not proficiency progress scores
 
   graduation_rates:
     - "KYRC24_ACCT_4_Year_High_School_Graduation.csv"
     - "KYRC24_ACCT_5_Year_High_School_Graduation.csv"
+    - url: "2025"
+      file: "Graduation_Rate_2025.CSV"
     - "graduation_rate_2023.csv"
     - "graduation_rate_2022.csv"
     - "graduation_rate_2021.csv"
     - "graduation_rate_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "GRADUATION_RATE_18-19.xlsx"
 
   kentucky_summative_assessment:
     - "KYRC24_ACCT_Kentucky_Summative_Assessment.csv"
     - "KYRC24_ASMT_Kentucky_Summative_Assessment.csv"
+    - url: "2025"
+      file: "Assessment_Performance_by_Grade_2025.CSV"
     - "accountable_assessment_performance_2023.csv"
     - "accountable_assessment_performance_2022.csv"
     - "asmt_performance_by_level_2021.csv"
     - "asmt_performance_by_grade_2023.csv"
     - "asmt_performance_by_grade_2022.csv"
+    # Historical xlsx files (pre-2020)
+    - "ASSESSMENT_PROFICIENCY_GRADE_18-19.xlsx"
+    - "ASSESSMENT_PROFICIENCY_GRADE_17-18.xlsx"
     - "asmt_performance_by_grade_2021.csv"
 
   kindergarten_readiness:
     - "KYRC24_ASMT_Kindergarten_Screen_Composite.csv"
+    - url: "2025"
+      file: "Kindergarten_Screen_2025.CSV"
     - "kindergarten_screen_2023.csv"
     - "kindergarten_screen_2022.csv"
     - "kindergarten_screen_2021.csv"
     - "kindergarten_screen_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "KSCREEN_18-19.xlsx"
 
   out_of_school_suspension:
     - "KYRC24_OVW_Student_Suspensions.csv"
@@ -62,14 +89,21 @@ raw_directories:
 
   postsecondary_enrollment:
     - "KYRC24_ADLF_Transition_to_In_State_Postsecondary_Education.csv"
+    - url: "kyrc25"
+      file: "KYRC25_ADLF_Transition_to_In_State_Postsecondary_Education.csv"
     - "transition_in_state_postsecondary_education_2023.csv"
     - "transition_in_state_postsecondary_education_2022.csv"
     - "transition_in_state_postsecondary_education_2021.csv"
+    # Note: TRANSITION_TO_ADULT_LIFE_18-19.xlsx tracks different metrics (broad adult life outcomes vs in-state college)
 
   postsecondary_readiness:
     - "KYRC24_ACCT_Postsecondary_Readiness.csv"
+    - url: "2025"
+      file: "Postsecondary_Readiness_2025.CSV"
     - "postsecondary_readiness_2023.csv"
     - "postsecondary_readiness_2022.csv"
+    # Historical xlsx files (pre-2020)
+    - "TRANSITION_READINESS_ACCOUNTABILITY_18-19.xlsx"
 
   safe_schools:
     - "KYRC24_SAFE_Behavior_Events_by_Context.csv"
@@ -103,6 +137,8 @@ raw_directories:
     - "precautionary_measures_2022.csv"
     - "precautionary_measures_2021.csv"
     - "precautionary_measures_2020.csv"
+    # Note: SCHOOL_EXPERIENCE_18-19.xlsx is teacher experience years, not climate survey
+    # Note: SAFE_SCHOOLS_18-19.xlsx is behavior events in wide format, incompatible
 
   safe_schools_discipline:
     - "KYRC24_SAFE_Discipline_Resolutions.csv"
@@ -111,6 +147,8 @@ raw_directories:
     - "safe_schools_discipline_2022.csv"
     - "safe_schools_discipline_2021.csv"
     - "safe_schools_discipline_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "SAFE_SCHOOLS_18-19.xlsx"
 
   benchmark_assessment:
     - "KYRC24_ASMT_Benchmark.csv"
@@ -165,18 +203,216 @@ raw_directories:
 
   district_school_list:
     - "KYRC24_OVW_District_School_List.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_District_School_List.csv"
     - "district_school_list_2023.csv"
     - "district_school_list_2022.csv"
     - "district_school_list_2021.csv"
     - "district_school_list_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "DISTRICT_SCHOOL_LIST_18-19.xlsx"
 
   student_enrollment:
+    # Note: Primary enrollment files contain ALL grades (PreK-12).
+    # Secondary enrollment is processed separately as secondary_enrollment KPI.
     - "KYRC24_OVW_Student_Enrollment.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Student_Enrollment.csv"
     - "primary_enrollment_2023.csv"
-    - "secondary_enrollment_2023.csv"
     - "primary_enrollment_2022.csv"
-    - "secondary_enrollment_2022.csv"
     - "primary_enrollment_2021.csv"
-    - "secondary_enrollment_2021.csv"
     - "primary_enrollment_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "STUDENT_PRIMARY_ENROLLMENT_18-19.xlsx"
+
+  secondary_enrollment:
+    # Secondary enrollment (grades 6-12) - separate from primary enrollment
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Secondary_Enrollment.csv"
+    - "secondary_enrollment_2023.csv"
+    - "secondary_enrollment_2022.csv"
+    - "secondary_enrollment_2021.csv"
     - "secondary_enrollment_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "STUDENT_SECONDARY_ENROLLMENT_18-19.xlsx"
+
+  teacher_experience:
+    - "KYRC24_OVW_Average_Years_School_Experience.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Average_Years_School_Experience.csv"
+    - "average_years_school_experience_2023.csv"
+    - "average_years_school_experience_2022.csv"
+    - "average_years_school_experience_2021.csv"
+    - "average_years_school_experience_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "SCHOOL_EXPERIENCE_18-19.xlsx"
+
+  student_teacher_ratio:
+    - "KYRC24_OVW_Student_to_Teacher_Ratio.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Student_to_Teacher_Ratio.csv"
+    - "student_teacher_ratio_2023.csv"
+    - "student_teacher_ratio_2022.csv"
+    - "student_teacher_ratio_2021.csv"
+    - "student_teacher_ratio_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "STUDENT_TEACHER_RATIO_18-19.xlsx"
+
+  novice_teachers:
+    # Institutional novice teacher percentages
+    - "KYRC24_OVW_Inexperienced_Teachers.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Inexperienced_Teachers.csv"
+    - "inexperienced_teachers_2023.csv"
+    - "inexperienced_teachers_2022.csv"
+    - "inexperienced_teachers_2021.csv"
+    - "inexperienced_teachers_2020.csv"
+    # Equity: students taught by inexperienced teachers
+    - "KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
+    - "students_taught_by_inexperienced_teachers_2023.csv"
+    - "students_taught_by_inexperienced_teachers_2022.csv"
+    - "students_taught_by_inexperienced_teachers_2021.csv"
+    - "students_taught_by_inexperienced_teachers_2020.csv"
+
+  spending_per_student:
+    - "KYRC24_FT_Spending_per_Student.csv"
+    - url: "kyrc25"
+      file: "KYRC25_FT_Spending_per_Student.csv"
+    - "spending_per_student_2023.csv"
+    - "spending_per_student_2022.csv"
+    - "spending_per_student_2021.csv"
+    - "spending_per_student_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "SPENDING_PER_STUDENT_18-19.xlsx"
+
+  # Teacher Quality Indicators
+  teacher_turnover:
+    - "KYRC24_OVW_Teacher_Turnover.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Teacher_Turnover.csv"
+    - "teacher_turnover_2023.csv"
+    - "teacher_turnover_2022.csv"
+    - "teacher_turnover_2021.csv"
+    # Historical xlsx files (pre-2020)
+    - "TEACHER_TURNOVER_18-19.xlsx"
+
+  teacher_certification:
+    - "KYRC24_OVW_Teacher_Certification_Data.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Teacher_Certification_Data.csv"
+    - "teacher_certifications_2023.csv"
+    - "teacher_certifications_2022.csv"
+    - "teacher_certifications_2021.csv"
+
+  educator_qualifications:
+    - "KYRC24_OVW_Educator_Qualifications.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Educator_Qualifications.csv"
+    - "educator_qualifications_2023.csv"
+    - "educator_qualifications_2022.csv"
+    - "educator_qualifications_2021.csv"
+
+  students_taught_by_ineffective_teachers:
+    - "KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv"
+    - "students_taught_by_ineffective_teachers_2023.csv"
+    - "students_taught_by_ineffective_teachers_2022.csv"
+    - "students_taught_by_ineffective_teachers_2021.csv"
+
+  students_taught_by_out_of_field_teachers:
+    - "KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"
+    - "students_taught_by_out_of_field_teachers_2023.csv"
+    - "students_taught_by_out_of_field_teachers_2022.csv"
+    - "students_taught_by_out_of_field_teachers_2021.csv"
+
+  teacher_working_conditions:
+    - "KYRC24_OVW_Teacher_Working_Conditions.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Teacher_Working_Conditions.csv"
+    - "teacher_working_conditions_2023.csv"
+    - "teacher_working_conditions_2022.csv"
+    - "teacher_working_conditions_2021.csv"
+
+  # School Programs and Offerings
+  advanced_coursework:
+    - "KYRC24_EDOP_Advanced_Courses_Offered.csv"
+    - "KYRC24_EDOP_Advanced_Courses_Participation_and_Performance.csv"
+    - "KYRC24_OVW_Advanced_Coursework.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_Advanced_Courses_Offered.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_Advanced_Courses_Participation_and_Performance.csv"
+    - url: "kyrc25"
+      file: "KYRC25_OVW_Advanced_Coursework.csv"
+    - "advanced_courses_offered_2023.csv"
+    - "advanced_courses_participation_and_performance_2023.csv"
+    - "advanced_courses_offered_2022.csv"
+    - "advanced_courses_participation_and_performance_2022.csv"
+    - "advanced_courses_offered_2021.csv"
+    - "advanced_courses_participation_and_performance_2021.csv"
+    # Note: ADVANCED_COURSES_EXAMS_*.xlsx have different schema (course type codes, column names)
+
+  dual_credit:
+    # Dual credit is only available in KYRC24/KYRC25 formats
+    - "KYRC24_EDOP_Dual_Credit_Courses_Offered.csv"
+    - "KYRC24_EDOP_Dual_Credit_Participation_and_Performance.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_Dual_Credit_Courses_Offered.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_Dual_Credit_Participation_and_Performance.csv"
+
+  cte_pathways:
+    - "KYRC24_CTE_Career_Pathways.csv"
+    - url: "kyrc25"
+      file: "KYRC25_CTE_Career_Pathways.csv"
+    - "career_pathways_2023.csv"
+    - "career_pathways_2021.csv"
+    # Note: CAREER_PATHWAYS_18-19.xlsx has pathway names not counts, incompatible schema
+
+  career_readiness_indicators:
+    - "KYRC24_CTE_Career_Readiness_Indicators.csv"
+    - url: "kyrc25"
+      file: "KYRC25_CTE_Career_Readiness_Indicators.csv"
+    - "career_readiness_indicators_2023.csv"
+
+  school_courses:
+    - "KYRC24_EDOP_School_Courses_Summary.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_School_Courses_Summary.csv"
+    - "school_courses_summary_2023.csv"
+    - "school_courses_summary_2021.csv"
+    # Historical xlsx files (pre-2020)
+    - "SCHOOL_COURSES_SUMMARY_18-19.xlsx"
+
+  gifted_talented:
+    - "KYRC24_EDOP_Gifted_Participation_by_Category.csv"
+    - "KYRC24_EDOP_Gifted_Participation_by_Grade_Level.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_Gifted_Participation_by_Grade_Level.csv"
+    - url: "kyrc25"
+      file: "KYRC25_EDOP_Gifted_Participation_by_Category.csv"
+    - "gifted_and_talented_2023.csv"
+    - "gifted_and_talented_2022.csv"
+    - "gifted_and_talented_2021.csv"
+    # Historical xlsx files (pre-2020)
+    - "GIFTED_AND_TALENTED_18-19.xlsx"
+
+  # Financial Summary - District-level financial and staffing metrics
+  # KPIs: student membership, fund balance, fund balance %, staff FTE counts,
+  #       students per certified/classified/non-teacher certified staff ratios
+  financial_summary:
+    - "KYRC24_FT_Financial_Summary.csv"
+    - url: "kyrc25"
+      file: "KYRC25_FT_Financial_Summary.csv"
+    - "financial_summary_2023.csv"
+    - "financial_summary_2022.csv"
+    - "financial_summary_2021.csv"
+    - "financial_summary_2020.csv"
+    # Historical xlsx files (pre-2020)
+    - "FINANCE_18-19.xlsx"
+
