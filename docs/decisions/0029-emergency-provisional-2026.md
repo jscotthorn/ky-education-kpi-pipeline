@@ -33,7 +33,7 @@ The comment chooses option 1 and the catalog correction. Reason the 2026 definit
 
 ## Code check
 
-Not fully re-checked. This pass did not confirm whether the covariate catalog now names the KYRC certification files. Issue #70 is still open. Not resolved here.
+The J1 catalog-cleanup pull request into `feature/2025-26-kyrc26` sets `emergency_provisional_rate` source to `kde_teacher_certification` in `analysis/config/covariate_catalog.yaml`. The catalog key is unchanged. The 2026 caveat in this record is unchanged. Status stays `accepted`.
 
 ## KDE guidance check
 

@@ -713,8 +713,6 @@ KDE's school-courses summary is specialized course enrollment, not the full cata
 - `courses_offered_count_vpa` - Course rows whose KDE category is `VPA`.
 - `courses_offered_count_wl` - Course rows whose KDE category is `WL`.
 - `courses_offered_count_other` - Course rows whose category is blank or not one of those labels. It is 0 in every registered year. The state course code is not used, because visual arts and health/PE both use prefix 70.
-- `algebra_1_grade_8_count` - Grade 8 enrollment when the course name contains `Algebra I` or `Algebra 1`. Still one row per such course. No registered file has such a course.
-- `has_algebra_1_access` - 1 when that grade-8 count is above 0, 0 when the published grade-8 count is 0, and NA with `suppressed` Y when the grade-8 cell is `*`. A blank grade-8 cell is not stored.
 
 The category counts use the same rows as `courses_offered_count`, and the four named categories plus `courses_offered_count_other` sum to it. The category is taken from KDE's `Course Category` column. The 2018-19 coversheet is the definition of those four labels.
 
@@ -722,7 +720,7 @@ The category counts use the same rows as `courses_offered_count`, and the four n
 
 **Data Sources**: `KYRC24_EDOP_School_Courses_Summary.csv` (datasets host), `KYRC25_EDOP_School_Courses_Summary.csv`, `KYRC26_EDOP_School_Courses_Summary.csv`, `school_courses_summary_{2020,2021,2022,2023}.csv`, `SCHOOL_COURSES_SUMMARY_18-19.xlsx`
 **Years Available**: 2019-2026
-**Unit**: Count (course rows for the offered-course metrics; the Algebra count is a headcount when a matching course exists)
+**Unit**: Count (course rows for the offered-course metrics)
 **Demographics**: School-level only (All Students)
 
 ---

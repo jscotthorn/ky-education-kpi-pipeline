@@ -38,7 +38,7 @@ The comments say the metrics have not produced data. Reason they were added: not
 
 ## Code check
 
-Does not match. `etl/school_courses.py` still emits both metrics. `KPIS.md` still documents them around lines 715-716. Issue #83 is still open. Not resolved here.
+The J1 catalog-cleanup pull request into `feature/2025-26-kyrc26` removes `algebra_1_grade_8_count` and `has_algebra_1_access` from `etl/school_courses.py` and from `KPIS.md`, and removes `has_algebra_1_access_grade_8` from `analysis/config/covariate_catalog.yaml`. Status stays `accepted, code differs (follow-up open)` until that pull request merges.
 
 ## KDE guidance check
 
