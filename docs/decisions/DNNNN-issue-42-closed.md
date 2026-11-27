@@ -26,11 +26,11 @@ Leave 0002's sentence "Issue #42 stays open" as the current statement. Record th
 
 27 November 2026, 12:34 PM ET.
 
-Item 1, Scott's words: "Close #47, #46 and #42 with notes, and comment on #49, #108 and #111."
+Item 1, Scott's words: "Close #47, #46 and #42 with notes, and comment on #49, #108 and #111".
 
 The closing of #42 rests on that answer. This record does not close #47 or #46, and it does not comment on #49, #108, or #111. Those were already posted. Archivist: comments 7224583801 (#47), 7224583937 (#46), 7224584217 (#42), 7224584462 (#49), 7224584646 (#108), and 7224584930 (#111), all at 12:36 PM ET. This record cites 7224584217. It does not post another comment.
 
-Item 12, Scott's words: "Confirm #42's NaN guard and post-2025 analysis stay out of scope under 0002."
+Item 12, Scott's words: "Confirm #42's NaN guard and post-2025 analysis stay out of scope under 0002".
 
 The NaN guard and extending the analysis past 2025 stay out of scope under [0002](0002-report-scripts-out-of-scope.md). Item 12 does not close the issue. DECISIONS-VERIFIED.md says the option's label said "close #42" and its value did not.
 

@@ -33,7 +33,7 @@ Shared keys: 3,282. Impact Value differs on 0 of them. The only other differing 
 
 The 31 added district numbers, and the name on the district-school list: Adair County 001, Allen County 005, Anchorage Independent 006, Anderson County 011, Ashland Independent 012, Augusta Independent 013, Ballard County 015, Barbourville Independent 016, Bardstown Independent 017, Barren County 021, Bath County 025, Beechwood Independent 026, Bell County 031, Bellevue Independent 032, Berea Independent 034, Boone County 035, Bourbon County 041, Bowling Green Independent 042, Boyd County 045, Boyle County 051, Bracken County 055, Breathitt County 061, Breckinridge County 065, Bullitt County 071, Burgin Independent 072, Butler County 075, Caldwell County 081, Calloway County 085, Campbell County 091, Campbellsville Independent 092, Carlisle County 095.
 
-The list has 178 district rows (school code ending `000`, school name `---District---`), including state 999. UAT is missing 42 of those 178 (178 − 136). Datasets is missing 11 (178 − 167). State 999 is in both teacher working conditions files.
+The list has 177 districts plus the `---State---` row. UAT is missing 42 of those 178 (178 − 136). Datasets is missing 11 (178 − 167). State 999 is in both teacher working conditions files.
 
 Still absent from the datasets file:
 

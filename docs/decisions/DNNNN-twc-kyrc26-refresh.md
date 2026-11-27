@@ -42,7 +42,7 @@ The 31 added district numbers are the districts the district-school list publish
 
 The comparison list is the datasets `KYRC26_OVW_District_School_List.csv` fetched at the same time. URL: `https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC26_OVW_District_School_List.csv`. Last-Modified `Wed, 04 Nov 2026 13:20:38 GMT`. Size 426,339 bytes. md5 `c10799c0c3d21e7f90676654f40cedb1`. sha256 `a92b91ac82dc5b79910cd36134e9447028a408a59426300153432a0f9300034e`. This record does not adopt that file. Scott's words keep other refreshed files in the ongoing review.
 
-That list has 178 rows whose school code ends in `000` and whose school name is `---District---`, including state `999`. The UAT teacher working conditions file contains 136 of those district numbers (178 − 136 = 42 absent). The datasets file contains 167 (178 − 167 = 11 absent). State `999` is in both teacher working conditions files.
+That list has 177 districts plus the `---State---` row. The UAT teacher working conditions file contains 136 of those district numbers (178 − 136 = 42 absent). The datasets file contains 167 (178 − 167 = 11 absent). State `999` is in both teacher working conditions files.
 
 The 11 still absent, with the district name on the list:
 
@@ -72,7 +72,7 @@ Keep the 15 October copy documented as missing districts 001-095. Adopt the 4 No
 
 ## Decision
 
-27 November 2026, 12:30 PM ET. Scott's words: "Add a TWC adoption decision record and fix the missing-districts docs in batch K; keep other refreshed files in the ongoing review."
+27 November 2026, 12:30 PM ET. Scott's words: "Add a TWC adoption decision record and fix the missing-districts docs in batch K; keep other refreshed files in the ongoing review".
 
 The accepted source is the refreshed datasets file, as published. The filename `KYRC26_OVW_Teacher_Working_Conditions.csv` was already registered. This record does not put the refreshed bytes in `data/raw/` and does not regenerate processed output.
 
