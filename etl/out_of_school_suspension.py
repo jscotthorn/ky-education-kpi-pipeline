@@ -145,24 +145,15 @@ class OutOfSchoolSuspensionETL(BaseETL):
         KYRC24 is report-card year 2024 and collection ``20202021``,
         stored as 2021. KYRC26 is report-card year 2026 and collection
         ``20212022``, stored as 2022. A row with no 8-digit collection
-        year falls back to the report-card year. Both registered files
-        have a collection year on every row.
+        year raises. Both registered files have a collection year on
+        every row.
         """
         ending = _collection_ending_year(row.get("collected_school_year", ""))
         if ending:
             return ending
-        warned = getattr(self, "_warned_missing_collection_year", None)
-        if warned is None:
-            warned = set()
-            self._warned_missing_collection_year = warned
-        key = source_file or ""
-        if key not in warned:
-            warned.add(key)
-            logger.warning(
-                "No 8-digit Collected School Year in %s; using the report-card year",
-                source_file or "a suspension row",
-            )
-        return super().extract_year(row, source_file)
+        raise ValueError(
+            f"No 8-digit Collected School Year in {source_file or 'a suspension row'}"
+        )
 
     def accepts_data_file(self, file_path: Path) -> bool:
         """Skip a republished CRDC extract and the annual Safe Schools files.

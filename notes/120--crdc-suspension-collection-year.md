@@ -6,7 +6,9 @@ Base `feature/2025-26-kyrc26` at `1aef27b4a43dffb9757b4651a4dc687945479b52`. The
 
 Record 0048: "Use the CRDC collection year as the KPI year everywhere. Move suspensions over in a later pull request."
 
-Issue #122, Scott, 2026-10-25 12:05 PM ET: "Record 0048. Use the CRDC collection year as the KPI year everywhere; move suspensions over in a later PR (this issue)."
+Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/122#issuecomment-6400284053 "Decision (Scott, 2026-10-25 12:05 PM ET): Record 0048. Use the CRDC collection year as the KPI year everywhere; move suspensions over in a later PR (this issue)."
+
+Scott confirmed that comment on 2026-10-25 at 12:38 PM ET. He approved the #122 Decision comment in Archivist's chat. The 12:05 wording is Moon's relay, not Scott's chat answer.
 
 `etl/out_of_school_suspension.py` now stores the last four digits of `Collected School Year`. Values are unchanged. The output still has no collected-year column. `config/kde_sources.yaml` is unchanged. No new metric.
 

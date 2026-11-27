@@ -240,6 +240,7 @@ class TestTransform:
 
             df = pd.DataFrame({
                 'School Year': ['20232024'],
+                'Collected School Year': ['20202021'],
                 'District Name': ['Test'],
                 'School Code': ['100'],
                 'School Name': ['Test School'],
@@ -257,11 +258,18 @@ class TestTransform:
             audit_file = proc_dir / 'out_of_school_suspension_demographic_report.md'
             assert out_file.exists()
             assert audit_file.exists()
-            # No Collected School Year on this constructed file, so the
-            # year falls back to the report-card year. The registered
-            # files have a collection year on every row.
             written = pd.read_csv(out_file, dtype=str)
-            assert set(written['year']) == {'2024'}
+            assert set(written['year']) == {'2021'}
+
+            # A row with no 8-digit collection year is an error. It is
+            # not filed under the report-card year.
+            etl = OutOfSchoolSuspensionETL('out_of_school_suspension')
+            try:
+                etl.extract_year(pd.Series({'school_year': '20232024'}), 'sample.csv')
+            except ValueError as exc:
+                assert 'Collected School Year' in str(exc)
+            else:
+                raise AssertionError('missing collection year did not raise')
 
 
 class TestKyrc26OutOfSchoolSuspension:
