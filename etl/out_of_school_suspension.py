@@ -7,18 +7,20 @@ This module reads the biennial Civil Rights Data Collection (CRDC) file
 Suspensions (CRDC): in-school and out-of-school suspension counts for
 students with and without disabilities.
 
-The KPI year is the report-card year in ``School Year``. It is not the
-CRDC collection year.
+The KPI year is the CRDC collection year: the last four digits of
+``Collected School Year``. It is not the report-card year in
+``School Year``. Record 0048. The output has no collected-year column.
 
-- Report-card year 2024 (``KYRC24``, ``School Year`` ``20232024``) is the
-  2020-21 collection. ``Collected School Year`` is ``20202021`` on every
-  row. That column is not in the KPI output.
-- Report-card year 2026 (``KYRC26``, ``School Year`` ``20252026``) is the
-  2021-22 collection. ``Collected School Year`` is ``20212022`` on every
-  row. That column is not in the KPI output.
+- ``KYRC24`` is report-card year 2024 (``School Year`` ``20232024``) and
+  the 2020-21 collection. ``Collected School Year`` is ``20202021`` on
+  every row, stored as KPI year 2021.
+- ``KYRC26`` is report-card year 2026 (``School Year`` ``20252026``) and
+  the 2021-22 collection. ``Collected School Year`` is ``20212022`` on
+  every row, stored as KPI year 2022.
 
 ``KYRC25_OVW_Student_Suspensions.csv`` is the same 2020-21 collection
-with ``School Year`` set to ``20242025``. It is not registered, and
+with ``School Year`` set to ``20242025``. Accepting it would write a
+second copy of KPI year 2021. It is not registered, and
 :meth:`accepts_data_file` skips it.
 
 The annual Safe Schools files ``safe_schools_discipline_YYYY.csv`` are
@@ -68,6 +70,34 @@ _CRDC_COUNT_COLUMNS = (
 _KYRC25_REPUBLISH = "KYRC25_OVW_STUDENT_SUSPENSIONS.CSV"
 
 
+def _collection_ending_year(value: Any) -> str:
+    """Return the KPI year from an 8-digit CRDC collection year.
+
+    ``20202021`` is 2021 and ``20212022`` is 2022. A missing value or any
+    other shape returns ``""`` so the caller can fall back. ``pd.NA`` is
+    never evaluated as a boolean. A trailing ``.0`` from a numeric read
+    is stripped. pandas 2 and pandas 3 both reach this with ``dtype=str``.
+    """
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        text = value.strip()
+        if text.lower() in _BLANK_CELL_TOKENS:
+            return ""
+    else:
+        try:
+            if bool(pd.isna(value)):
+                return ""
+        except (TypeError, ValueError):
+            return ""
+        text = str(value).strip()
+    if text.endswith(".0"):
+        text = text[:-2]
+    if len(text) == 8 and text.isdigit():
+        return text[-4:]
+    return ""
+
+
 def _cell_is_blank(value: Any) -> bool:
     """True when a measure cell is empty.
 
@@ -105,8 +135,34 @@ class OutOfSchoolSuspensionETL(BaseETL):
     """ETL module for CRDC out-of-school suspension data."""
 
     # KYRC26 headers match the CRDC extract this module already maps.
-    # The KPI year stays on School Year.
+    # The KPI year is the collection year, not School Year.
     include_kyrc26 = True
+
+    def extract_year(self, row: pd.Series, source_file: str = "") -> str:
+        """Use the CRDC collection year as the KPI year.
+
+        The last four digits of ``Collected School Year`` are the year.
+        KYRC24 is report-card year 2024 and collection ``20202021``,
+        stored as 2021. KYRC26 is report-card year 2026 and collection
+        ``20212022``, stored as 2022. A row with no 8-digit collection
+        year falls back to the report-card year. Both registered files
+        have a collection year on every row.
+        """
+        ending = _collection_ending_year(row.get("collected_school_year", ""))
+        if ending:
+            return ending
+        warned = getattr(self, "_warned_missing_collection_year", None)
+        if warned is None:
+            warned = set()
+            self._warned_missing_collection_year = warned
+        key = source_file or ""
+        if key not in warned:
+            warned.add(key)
+            logger.warning(
+                "No 8-digit Collected School Year in %s; using the report-card year",
+                source_file or "a suspension row",
+            )
+        return super().extract_year(row, source_file)
 
     def accepts_data_file(self, file_path: Path) -> bool:
         """Skip a republished CRDC extract and the annual Safe Schools files.
@@ -114,7 +170,8 @@ class OutOfSchoolSuspensionETL(BaseETL):
         ``KYRC25_OVW_Student_Suspensions.csv`` republishes CRDC 2020-21.
         It matches the datasets copy of KYRC24 apart from ``School Year``
         (collected year stays ``20202021``, and the same cells are starred).
-        Registering it would publish those counts again as 2025.
+        The KPI year is that collection year, so registering it would
+        write those counts again as 2021.
 
         ``safe_schools_discipline_YYYY.csv`` is the annual Safe Schools
         file. ``safe_schools_discipline`` owns ``OUT OF SCHOOL SUSPENSION
@@ -125,7 +182,7 @@ class OutOfSchoolSuspensionETL(BaseETL):
         upper = name.upper()
         if upper == _KYRC25_REPUBLISH:
             logger.info(
-                "Skipping %s; it republishes CRDC 2020-21 under School Year 20242025",
+                "Skipping %s; it republishes CRDC 2020-21 and would duplicate KPI year 2021",
                 name,
             )
             return False
