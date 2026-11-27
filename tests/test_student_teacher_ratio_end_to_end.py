@@ -77,7 +77,7 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert set(combined.loc[combined["source_file"].str.startswith("KYRC26_"), "year"]) == {"2026"}
 
     kyrc26 = combined[combined["year"] == "2026"]
-    assert set(kyrc26["school_id"]) == {"001010", "165170", "275012"}
+    assert set(kyrc26["school_id"]) == {"001010", "132030", "165170", "275012"}
     assert not kyrc26["school_id"].str.endswith("000").any()
     assert "999000" not in set(kyrc26["school_id"])
     assert "---District Total---" not in set(kyrc26["school_name"])
@@ -206,3 +206,40 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert bavel["school_name"] == "BAVEL"
     assert bavel["nces_id"] == "210030001970"
     assert bavel["source_file"] == "student_teacher_ratio_2020.csv"
+
+    # student_teacher_ratio_2023.csv rows 315-318 and 514-517. Corbin's four
+    # district totals are 0:01, 15:01, 3:01, and 412:01. Floyd's are 5249:01,
+    # 14:01, 0:01, and 3:01. 2022 Corbin is 16 and 2024 Corbin is 15, so 2023
+    # keeps 15. 2022 Floyd is 14 and 2024 Floyd is 16, so 2023 keeps 14.
+    # HistoricalDatasets/student_teacher_ratio_2023.csv and the KYRC24 file
+    # on the historical host.
+    corbin_23 = _metric_value(combined, "2023", "133")
+    assert float(corbin_23["value"]) == 15.0
+    assert corbin_23["district"] == "Corbin Independent"
+    assert corbin_23["school_name"] == "---District Total---"
+    assert corbin_23["suppressed"] == "N"
+    floyd_23 = _metric_value(combined, "2023", "175")
+    assert float(floyd_23["value"]) == 14.0
+    assert floyd_23["district"] == "Floyd County"
+    assert floyd_23["suppressed"] == "N"
+    assert float(_metric_value(combined, "2022", "133")["value"]) == 16.0
+    assert float(_metric_value(combined, "2022", "175")["value"]) == 14.0
+    assert float(_metric_value(combined, "2024", "133000")["value"]) == 15.0
+    assert float(_metric_value(combined, "2024", "175000")["value"]) == 16.0
+    # Published outliers stay. KYRC24 row 314 is Cloverport district 86:01.
+    # KYRC25 row 318 is Corbin district 483:01. KYRC26 row 268 is Cloverport
+    # Independent School 115:01. datasets container.
+    clover_24 = _metric_value(combined, "2024", "132000")
+    assert float(clover_24["value"]) == 86.0
+    assert clover_24["district"] == "Cloverport Independent"
+    assert clover_24["suppressed"] == "N"
+    assert float(_metric_value(combined, "2024", "132030")["value"]) == 14.0
+    corbin_25 = _metric_value(combined, "2025", "133000")
+    assert float(corbin_25["value"]) == 483.0
+    assert corbin_25["district"] == "Corbin Independent"
+    assert corbin_25["suppressed"] == "N"
+    clover_26 = _metric_value(combined, "2026", "132030")
+    assert float(clover_26["value"]) == 115.0
+    assert clover_26["district"] == "Cloverport Independent"
+    assert clover_26["school_name"] == "Cloverport Independent School"
+    assert clover_26["suppressed"] == "N"

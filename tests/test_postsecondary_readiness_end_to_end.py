@@ -760,6 +760,43 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     )["value"] == "94.1"
 
 
+def test_2019_coversheet_separates_readiness_learner_codes(tmp_path):
+    """TRANSITION_READINESS_ACCOUNTABILITY_18-19.xlsx coversheet labels.
+
+    LEN is Non-English Learner. ELN is Non-English Learner or monitored.
+    LEP stays English Learner. The excerpt is DATA rows for state 999 and
+    Bryan Station 165170. HistoricalDatasets file.
+    """
+    output = _run_fixtures(tmp_path, ["TRANSITION_READINESS_ACCOUNTABILITY_18-19.xlsx"])
+
+    def rate(school_id: str, student_group: str, metric: str = "postsecondary_readiness_rate") -> str:
+        return _metric_value(output, "2019", school_id, metric, student_group)["value"]
+
+    assert rate("999", "All Students") == "64.8"
+    assert rate("999", "English Learner") == "9.2"
+    assert rate("999", "Non-English Learner") == "67.6"
+    assert rate("999", "Non-English Learner or monitored") == "67.5"
+    assert rate("999", "English Learner", "postsecondary_readiness_rate_with_bonus") == "9.4"
+    assert rate("999", "Non-English Learner", "postsecondary_readiness_rate_with_bonus") == "69.7"
+    assert rate(
+        "999",
+        "Non-English Learner or monitored",
+        "postsecondary_readiness_rate_with_bonus",
+    ) == "69.6"
+    assert rate("165170", "English Learner") == "6.8"
+    assert rate("165170", "Non-English Learner") == "56.2"
+    assert rate("165170", "Non-English Learner or monitored") == "55.6"
+    bryan = _metric_value(
+        output, "2019", "165170", "postsecondary_readiness_rate", "English Learner"
+    )
+    assert bryan["district"] == "Fayette County"
+    assert bryan["school_name"] == "Bryan Station High School"
+    assert bryan["suppressed"] == "N"
+    assert len(_metric_rows(
+        output, "2019", "999", "postsecondary_readiness_rate", "English Learner"
+    )) == 1
+
+
 if __name__ == "__main__":
     # Run specific test
     test = TestPostsecondaryReadinessEndToEnd()

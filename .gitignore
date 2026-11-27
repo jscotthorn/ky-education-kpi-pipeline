@@ -18,6 +18,9 @@ mlruns
 *.csv
 # Real-row excerpts used by tests. Full downloads stay ignored.
 !tests/fixtures/**/*.csv
+!tests/fixtures/**/*.xlsx
+# Committed kde-recheck key list. Generated KPI files stay ignored.
+!notes/flags/*.csv
 data/processed/*.md
 
 # Local AI assistant files

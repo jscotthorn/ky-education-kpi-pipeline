@@ -698,6 +698,38 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
         assert row["suppressed"] == "N"
 
 
+def test_2019_coversheet_separates_english_learner_codes(tmp_path):
+    """GRADUATION_RATE_18-19.xlsx coversheet: LEP is English Learner, LEN is not.
+
+    The excerpt is DATA rows 2323-2325 (Bryan Station), 2442 and 2448-2449
+    (Fayette district), and 8102, 8109, and 8121 (state). HistoricalDatasets
+    file GRADUATION_RATE_18-19.xlsx. The shared demographic map is unchanged.
+    """
+    output = _run_fixtures(tmp_path, ["GRADUATION_RATE_18-19.xlsx"])
+
+    def rate(school_id: str, student_group: str, metric: str = "graduation_rate_4_year") -> str:
+        return _metric_value(output, "2019", school_id, metric, student_group)["value"]
+
+    assert rate("999", "All Students") == "90.6"
+    assert rate("999", "English Learner") == "74.3"
+    assert rate("999", "Non-English Learner") == "91.0"
+    assert rate("165", "English Learner") == "72.3"
+    assert rate("165", "Non-English Learner") == "88.7"
+    assert rate("165170", "English Learner") == "60.0"
+    assert rate("165170", "Non-English Learner") == "89.7"
+    assert rate("165170", "English Learner", "graduation_rate_5_year") == "59.4"
+    assert rate("165170", "Non-English Learner", "graduation_rate_5_year") == "93.4"
+    bryan = _metric_value(
+        output, "2019", "165170", "graduation_rate_4_year", "English Learner"
+    )
+    assert bryan["district"] == "Fayette County"
+    assert bryan["school_name"] == "Bryan Station High School"
+    assert bryan["suppressed"] == "N"
+    assert len(_metric_rows(
+        output, "2019", "999", "graduation_rate_4_year", "English Learner"
+    )) == 1
+
+
 if __name__ == "__main__":
     # Run specific test
     test = TestGraduationRatesEndToEnd()

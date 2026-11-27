@@ -35,6 +35,19 @@ from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
 
+# GRADUATION_RATE_18-19.xlsx coversheet, not the shared demographic map.
+# The coversheet says ``LEN`` is Non-English Learners and ``LEP`` is English
+# Learners. The shared map sends both codes to English Learner, so each
+# school is stored twice on that group. Record 0047: read the workbook label
+# before the shared mapper. ``demographic_mappings.yaml`` stays unchanged.
+# ``ELN`` is not in this file. The coversheet's name for it is kept here so
+# the two 2018-19 accountability workbooks use the same crosswalk.
+_WORKBOOK_2019 = "graduation_rate_18-19.xlsx"
+_COVERSHEET_LABELS_2019 = {
+    "LEN": "Non-English Learner",
+    "ELN": "Non-English Learner or monitored",
+}
+
 
 
 
@@ -222,6 +235,32 @@ class GraduationRatesETL(BaseETL):
         df = handle_suppression_fields(df)
         
         return df
+
+    def _apply_2019_coversheet_labels(
+        self, df: pd.DataFrame, source_file: str
+    ) -> pd.DataFrame:
+        """Replace 2018-19 codes the coversheet names differently from the shared map.
+
+        ``LEP`` already maps to English Learner, which is what the coversheet
+        says. ``LEN`` does not. The standard labels are already in
+        ``standard_demographics``, so the shared mapper keeps them.
+        """
+        if Path(source_file).name.lower() != _WORKBOOK_2019:
+            return df
+        if df.empty or "demographic" not in df.columns:
+            return df
+        labels = df["demographic"].astype("string").str.strip()
+        out = df.copy()
+        for code, label in _COVERSHEET_LABELS_2019.items():
+            matched = (labels == code).fillna(False)
+            if bool(matched.any()):
+                out.loc[matched, "demographic"] = label
+        return out
+
+    def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """Apply the 2018-19 coversheet labels, then the base conversion."""
+        df = self._apply_2019_coversheet_labels(df, source_file)
+        return super().convert_to_kpi_format(df, source_file)
 
     def add_derived_fields(self, df: pd.DataFrame, derive_config: Dict[str, Any], source_file: str) -> pd.DataFrame:
         """Override to add graduation-specific data source identification."""

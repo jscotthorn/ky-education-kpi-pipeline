@@ -12,9 +12,10 @@ experience by teachers" and the count "Total number of teachers contributing
 to the Total Years of Experience". 703 KAR 5:140 defines average years of
 experience as the average professional experience of classroom teachers,
 excluding administrators, guidance counselors, and media specialists. The
-published average is stored as ``teacher_average_years_experience``. The
-educator count is the denominator used to recognize an empty institution. It
-is not a separate KPI.
+published average is stored as ``teacher_average_years_experience``, including
+a published 0.00 (value 0, ``suppressed`` N). The educator count is the
+denominator used to recognize an empty institution. It is not a separate KPI.
+An identical second copy of a source row is not stored again.
 
 KYRC26 uses the same headers as KYRC24 and KYRC25. No temporary OAA extract
 is registered, and the guessed temporary names return 404, so there is no
@@ -136,14 +137,12 @@ class TeacherExperienceETL(BaseETL):
             except (TypeError, ValueError):
                 return pd.NA
 
-        # Average years of experience (primary metric).
-        # An average of 0.00 is omitted by this comparison. All 20 of those
-        # rows have an educator count of 1 and total years of 0, mostly at
-        # area technology centers and alternative schools. They look like
-        # missing experience records and are unexplained (issue #54). The
-        # omission is not a rule to preserve.
+        # Average years of experience (primary metric). A published 0.00 is
+        # stored as 0. Record 0022: the 20 published zeros are single-educator
+        # schools, and the years that publish total years show 0. A negative
+        # cell is not in the registered files and is not stored.
         avg_years = safe_numeric(row.get('average_years_experience', pd.NA))
-        if pd.notna(avg_years) and avg_years > 0:
+        if pd.notna(avg_years) and avg_years >= 0:
             metrics['teacher_average_years_experience'] = avg_years
 
         return metrics
@@ -223,6 +222,39 @@ class TeacherExperienceETL(BaseETL):
                 continue
             df[column] = pd.to_numeric(_strip_thousands(df[column]), errors="coerce")
         return df
+
+    def _drop_identical_source_rows(
+        self, df: pd.DataFrame, source_file: str
+    ) -> pd.DataFrame:
+        """Keep one copy of a source row that is repeated exactly.
+
+        ``average_years_school_experience_2022.csv`` lists the Kentucky Tech
+        district total, school code ``777``, twice. Both copies are count 104
+        and average 10.5. The decision-log rule for identical source rows is
+        to keep one. A row that differs in any column stays.
+        """
+        if df.empty:
+            return df
+        duplicated = df.duplicated(keep="first")
+        if not bool(duplicated.any()):
+            return df
+        dropped = df.loc[duplicated]
+        for _, row in dropped.iterrows():
+            logger.warning(
+                "Dropping identical source row in %s: school_code=%s "
+                "district=%s school=%s average=%s",
+                source_file,
+                row.get("school_code"),
+                row.get("district_name"),
+                row.get("school_name"),
+                row.get("average_years_experience"),
+            )
+        return df.loc[~duplicated].copy()
+
+    def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """Drop an exact repeated source row, then use the base conversion."""
+        df = self._drop_identical_source_rows(df, source_file)
+        return super().convert_to_kpi_format(df, source_file)
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

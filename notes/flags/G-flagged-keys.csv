@@ -1,0 +1,24 @@
+module,year,district,school_id,student_group,metric,value,reason,label
+student_teacher_ratio,2024,Cloverport Independent,132000,All Students,student_teacher_ratio,86.0,published ratio above the rest of the series,kde-recheck
+student_teacher_ratio,2025,Corbin Independent,133000,All Students,student_teacher_ratio,483.0,published ratio above the rest of the series,kde-recheck
+student_teacher_ratio,2026,Cloverport Independent,132030,All Students,student_teacher_ratio,115.0,published ratio above the rest of the series,kde-recheck
+teacher_experience,2019,Kentucky Tech System,777100,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2019,Kentucky Tech System,777117,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2019,Kentucky Tech System,777118,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2019,Kentucky Tech System,777144,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2019,Kentucky Tech System,777151,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2020,Kentucky Tech System,777142,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2021,Fayette County,165009,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2021,McLean County,405100,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2021,Oldham County,465105,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2022,Marion County,375030,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2022,McLean County,405100,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2022,Middlesboro Independent,426023,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2022,Kentucky Tech System,777120,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2023,Middlesboro Independent,426023,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2023,Rowan County,515133,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2023,Kentucky Tech System,777120,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2024,Middlesboro Independent,426023,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2024,Kentucky Tech System,777120,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2025,Kentucky Tech System,777141,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
+teacher_experience,2025,Kentucky Tech System,777142,All Students,teacher_average_years_experience,0.0,published 0.00 average; educator count 1,kde-recheck
