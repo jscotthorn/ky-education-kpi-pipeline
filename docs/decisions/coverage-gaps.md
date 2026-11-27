@@ -44,7 +44,7 @@ Separate gap, source choice recorded 27 November 2026: the refreshed datasets co
 
 Classification: **loaded on this branch** ([0061](0061-register-2021-22-climate-index.md)).
 
-`quality_of_school_climate_and_safety_survey_index_scores_2022.csv` is registered and loaded into `climate_index_score_{level}` and `safety_index_score_{level}`. [0042](0042-do-not-register-2021-22-climate-index.md) left it unregistered. That registration choice is superseded in part. The metric names in 0042 still stand. Data Engineer confirmation that the year loaded exactly as published is pending.
+`quality_of_school_climate_and_safety_survey_index_scores_2022.csv` is registered and loaded into `climate_index_score_{level}` and `safety_index_score_{level}`. [0042](0042-do-not-register-2021-22-climate-index.md) left it unregistered. That registration choice is superseded in part. The metric names in 0042 still stand. Data Engineer confirmed that the year loaded exactly as published. See [0061](0061-register-2021-22-climate-index.md).
 
 ## District staffing and finance figures for 2026
 
