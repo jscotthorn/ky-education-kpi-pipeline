@@ -573,21 +573,16 @@ class TestKyrc26OptIn:
             "students_taught_by_ineffective_teachers_rate_title_1__all_students"
         ] == 0.0
 
-    def test_negative_equity_gap_cell_is_not_stored(self):
-        """A negative cell is omitted. A positive cell on the same row is kept.
+    def test_negative_equity_gap_cell_is_stored(self):
+        """A published negative cell is stored with ``suppressed`` N.
 
-        In 2021-2023 the equity gap is Not Title I minus Title I, so dropping
-        a negative removes the cells where Title I is worse. In 2020 the gap
-        is Title I minus Not Title I on 4 of the 5 rows where the two sides
-        differ, so the same check keeps those worse-Title-I cells and drops
-        the cells where Title I is lower. The 2020 state All Students gap is
-        -1.19 and matches neither difference. Non-White on that row is 0.09,
-        which is Title I minus Not Title I, and it is kept. The parser still
-        requires ``value >= 0``. Issue #59
-        (https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/59)
-        tracks whether the signed gap is stored. This test records the
-        current cells so a later change does not mark them ``suppressed``
-        ``Y``.
+        In 2021-2023 the equity gap is Not Title I minus Title I, so a
+        negative is a cell where Title I is higher. In 2020 the gap is
+        Title I minus Not Title I on 4 of the 5 rows where the two sides
+        differ. The 2020 state All Students gap is -1.19 and matches
+        neither difference. Non-White on that row is 0.09. Shelby Academy
+        Title I Non-White is -19.55 and All Students is 0.91. Record DNNNN
+        stores the published cell. It is not marked ``suppressed`` ``Y``.
         """
         text = (
             "SCHOOL YEAR,DISTRICT NAME,SCHOOL NAME,SCHOOL CODE,TITLE I STATUS,"
@@ -599,13 +594,15 @@ class TestKyrc26OptIn:
         transform(self.raw_dir, self.proc_dir, self._production_config())
         result = pd.read_csv(self.proc_dir / "students_taught_by_ineffective_teachers.csv", dtype=str)
         state = result[result["school_id"] == "999"]
-        assert set(state["student_group"]) == {"Non-White"}
-        assert state["metric"].iloc[0] == "students_taught_by_ineffective_teachers_rate_equity_gap"
-        assert float(state["value"].iloc[0]) == 0.09
-        assert state["suppressed"].iloc[0] == "N"
+        assert set(state["student_group"]) == {"All Students", "Non-White"}
+        all_students = state[state["student_group"] == "All Students"]
+        assert all_students["metric"].iloc[0] == "students_taught_by_ineffective_teachers_rate_equity_gap"
+        assert float(all_students["value"].iloc[0]) == -1.19
+        non_white = state[state["student_group"] == "Non-White"]
+        assert float(non_white["value"].iloc[0]) == 0.09
         shelby = result[result["school_id"] == "275610"]
-        assert set(shelby["student_group"]) == {"All Students"}
-        assert float(shelby["value"].iloc[0]) == 0.91
+        assert float(shelby.loc[shelby["student_group"] == "All Students", "value"].iloc[0]) == 0.91
+        assert float(shelby.loc[shelby["student_group"] == "Non-White", "value"].iloc[0]) == -19.55
         assert set(result["suppressed"]) == {"N"}
 
 

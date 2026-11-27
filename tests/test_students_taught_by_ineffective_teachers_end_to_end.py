@@ -497,12 +497,11 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert float(_one(
         combined, "2023", "999", "students_taught_by_ineffective_teachers_rate_not_title_1",
     )["value"]) == 0.04
-    gap_2023 = combined[
-        (combined["year"] == "2023")
-        & (combined["school_id"] == "999")
-        & (combined["metric"] == "students_taught_by_ineffective_teachers_rate_equity_gap")
-    ]
-    assert gap_2023.empty
+    gap_2023 = _one(
+        combined, "2023", "999", "students_taught_by_ineffective_teachers_rate_equity_gap",
+    )
+    assert float(gap_2023["value"]) == -0.84
+    assert gap_2023["suppressed"] == "N"
     breathitt = _one(
         combined, "2023", "061", "students_taught_by_ineffective_teachers_rate_title_1",
     )
@@ -513,16 +512,33 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
         combined, "2023", "275610", "students_taught_by_ineffective_teachers_rate_title_1",
     )
     assert float(shelby["value"]) == 0.91
-    shelby_rows = combined[combined["school_id"] == "275610"]
-    assert "White (non-Hispanic)" not in set(shelby_rows["student_group"])
     assert float(_one(
         combined, "2023", "275610",
         "students_taught_by_ineffective_teachers_rate_title_1", "Non-White",
     )["value"]) == 20.45
+    assert float(_one(
+        combined, "2023", "275610",
+        "students_taught_by_ineffective_teachers_rate_title_1", "White (non-Hispanic)",
+    )["value"]) == -19.55
 
     assert float(_one(
         combined, "2022", "999", "students_taught_by_ineffective_teachers_rate_title_1",
     )["value"]) == 0.69
+    # Rector A. Jones 035020, 2022 Title I. Source line from
+    # students_taught_by_ineffective_teachers_2022.csv:
+    # Non-White 5.65%, White -5.40%. The stored White cell is -5.4.
+    # https://www.education.ky.gov/Open-House/data/HistoricalDatasets/students_taught_by_ineffective_teachers_2022.csv
+    assert float(_one(
+        combined, "2022", "035020",
+        "students_taught_by_ineffective_teachers_rate_title_1", "Non-White",
+    )["value"]) == 5.65
+    rector_white = _one(
+        combined, "2022", "035020",
+        "students_taught_by_ineffective_teachers_rate_title_1", "White (non-Hispanic)",
+    )
+    assert float(rector_white["value"]) == -5.4
+    assert rector_white["suppressed"] == "N"
+    assert rector_white["school_name"] == "Rector A. Jones Middle School"
     assert float(_one(
         combined, "2022", "999", "students_taught_by_ineffective_teachers_rate_not_title_1",
     )["value"]) == 0.30
@@ -543,13 +559,12 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
         "students_taught_by_ineffective_teachers_rate_equity_gap", "Non-White",
     )
     assert float(gap["value"]) == 0.09
-    gap_all = combined[
-        (combined["year"] == "2020")
-        & (combined["school_id"] == "999")
-        & (combined["metric"] == "students_taught_by_ineffective_teachers_rate_equity_gap")
-        & (combined["student_group"] == "All Students")
-    ]
-    assert gap_all.empty
+    gap_all = _one(
+        combined, "2020", "999",
+        "students_taught_by_ineffective_teachers_rate_equity_gap", "All Students",
+    )
+    assert float(gap_all["value"]) == -1.19
+    assert gap_all["suppressed"] == "N"
     # Sunshine School 236021 is a 2020 placeholder: every percent is N/A
     # except students with disabilities, which is 0.00. All Students is N/A,
     # so that 0 is not a measured rate. The row writes nothing.

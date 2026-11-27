@@ -165,21 +165,26 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert bryan_students["school_name"] == "Bryan Station High School"
     assert float(_one(combined, "2026", "001010", "students_taught_by_inexperienced_teachers_rate_title_1")["value"]) == 59.1
 
-    # Adair County's equity-gap row is negative on every demographic. Those
-    # cells are not rates bounded at zero, and the current parser does not
-    # store them. Bardstown's English-learner gap is the only negative cell
-    # on that row, so the other groups remain.
-    assert _rows(
+    # Adair County's equity-gap row is negative on every demographic.
+    # Source: KYRC26_OVW_Students_Taught_by_Inexperienced_Teachers.csv,
+    # school 001000, Equity Gap, All Students -35.5.
+    # The pre-refresh UAT object is the file this fixture copies.
+    # https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/KYRC26_OVW_Students_Taught_by_Inexperienced_Teachers.csv
+    adair_gap = _one(
         combined, "2026", "001000", "students_taught_by_inexperienced_teachers_rate_equity_gap"
-    ).empty
+    )
+    assert float(adair_gap["value"]) == -35.5
+    assert adair_gap["suppressed"] == "N"
     assert float(_one(
         combined, "2026", "001000", "students_taught_by_inexperienced_teachers_rate_title_1"
     )["value"]) == 57.6
-    assert _rows(
+    bardstown_el = _one(
         combined, "2026", "017000",
         "students_taught_by_inexperienced_teachers_rate_equity_gap",
         "English Learner",
-    ).empty
+    )
+    assert float(bardstown_el["value"]) == -3.6
+    assert bardstown_el["suppressed"] == "N"
     assert float(_one(
         combined, "2026", "017000",
         "students_taught_by_inexperienced_teachers_rate_equity_gap",
@@ -225,6 +230,8 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert float(_one(
         combined, "2024", "999000", "students_taught_by_inexperienced_teachers_rate_not_title_1"
     )["value"]) == 35.4
+    # Absolute-value year. 30.6 is |66.0 - 35.4|. KYRC24 and KYRC25 gap
+    # cells are listed in notes/flags/B-flagged-keys.csv.
     assert float(_one(
         combined, "2024", "999000", "students_taught_by_inexperienced_teachers_rate_equity_gap"
     )["value"]) == 30.6

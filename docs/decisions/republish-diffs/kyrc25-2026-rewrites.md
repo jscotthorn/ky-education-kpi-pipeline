@@ -277,7 +277,7 @@ Current pipeline outputs do not change, because the registered copy is already t
 
 This file was first registered in a0ab9d7 (19 October 2026) on the `datasets` host, five months after the 14 May republish, and was never registered on HistoricalDatasets. A config-driven run could not have loaded the February copy. A manual copy outside the downloader cannot be ruled out from the repository. `*.csv` and `data/raw/` are gitignored. `config/kde_sources.yaml` registers the `datasets` URL for this file and stores no MD5. No other committed file records the February MD5 `c0e98f580274b04a381ec51ac83d20b1`.
 
-Those registrations are separate from the copy conflicts in issue [#123](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123), which tracks the 18 October choices for novice equity (#58), ineffective teachers (#64), and out-of-field teachers (#66).
+Those registrations are separate from the copy conflicts in issue [#123](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123), which tracked the 18 October choices for novice equity (#58), ineffective teachers (#64), and out-of-field teachers (#66).
 
 ## Postsecondary readiness
 
@@ -511,7 +511,7 @@ These are open. This note does not answer them.
 4. The 4-year graduation timestamps differ and the bytes do not. Is any action wanted beyond this record?
 5. The February baseline used here is the Open House file dated 10 February 2026. No 3 February object was found. Is that the baseline to keep using?
 6. The 5-year graduation copies are byte-identical, md5 `ddcd0df0de09e52291c98a78353b03ac`, so there is no cell difference. The by-grade assessment file is still not cell-diffed. Its headers are above.
-7. Config changes for the other copy conflicts stay on issue [#123](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123). This note does not change `config/kde_sources.yaml`.
+7. Pull request #140 made the config changes for the #58/#64/#66 copy conflicts; issue [#123](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123) was not closed there.
 
 ## Re-run
 

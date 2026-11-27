@@ -532,17 +532,16 @@ class TestKyrc26NoviceTeachers:
         assert metrics["novice_teacher_rate_1_to_3_years"] == 15.30
         assert metrics["novice_teacher_rate_less_than_1_year"] == 5.60
 
-    def test_negative_equity_gap_cell_is_not_a_rate(self):
-        """An equity-gap difference below zero is not stored.
+    def test_negative_equity_gap_cell_is_stored(self):
+        """A published equity-gap cell below zero is stored.
 
         KDE publishes the gap as Title I minus Not Title I, so the cell can
-        be negative. The parser still requires ``value >= 0`` for every
-        equity cell. That predates KYRC26 and drops real gap cells. This
-        test records that deviation so a later change does not silently
-        turn the cell into ``suppressed`` ``Y`` or drop the rest of the row.
-        A follow-up should decide whether the negative gap is stored.
+        be negative. Record DNNNN stores that published cell. It is not
+        marked ``suppressed`` ``Y``, and the rest of the row stays.
         Adair County district ``001000`` is negative on every demographic.
         Bardstown Independent ``017000`` is negative only for English learners.
+        The institutional rates still drop a negative. That check is
+        ``test_negative_values_excluded``.
         """
         text = (
             "School Year,District Name,School Name,School Code,Title_I_Status,"
@@ -556,12 +555,15 @@ class TestKyrc26NoviceTeachers:
         transform(self.raw_dir, self.proc_dir, self._production_config())
         result = pd.read_csv(self.proc_dir / "novice_teachers.csv", dtype=str)
         adair = result[result["school_id"] == "001000"]
-        assert adair.empty
+        assert set(adair["metric"]) == {"students_taught_by_inexperienced_teachers_rate_equity_gap"}
+        assert float(adair.loc[adair["student_group"] == "All Students", "value"].iloc[0]) == -35.5
+        assert set(adair["suppressed"]) == {"N"}
         bardstown = result[result["school_id"] == "017000"]
         groups = set(bardstown["student_group"])
         assert "All Students" in groups
-        assert "English Learner" not in groups
+        assert "English Learner" in groups
         assert float(bardstown.loc[bardstown["student_group"] == "All Students", "value"].iloc[0]) == 46.6
+        assert float(bardstown.loc[bardstown["student_group"] == "English Learner", "value"].iloc[0]) == -3.6
         assert set(bardstown["suppressed"]) == {"N"}
         assert set(bardstown["metric"]) == {"students_taught_by_inexperienced_teachers_rate_equity_gap"}
 
