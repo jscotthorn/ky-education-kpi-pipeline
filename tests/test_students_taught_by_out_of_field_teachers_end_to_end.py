@@ -509,6 +509,27 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     )
     assert state_2024["district"] == "All Districts"
     assert state_2024["school_name"] == "---District Total---"
+    # Datasets KYRC24 copy. State Title I is unchanged at 8.7. Fayette
+    # district Title I All Students stays 24.1. Ashland Elementary Non-White
+    # is 11.9 on this copy (17.5 on the replaced historical extract) and
+    # students with disabilities is the published 0.
+    # Row: school 165007, Title 1.
+    # https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv
+    assert float(_one(
+        combined, "2024", "165000", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )["value"]) == 24.1
+    assert float(_one(
+        combined, "2024", "165170", "students_taught_by_out_of_field_teachers_rate_title_1",
+    )["value"]) == 46.4
+    assert float(_one(
+        combined, "2024", "165007",
+        "students_taught_by_out_of_field_teachers_rate_title_1", "Non-White",
+    )["value"]) == 11.9
+    assert float(_one(
+        combined, "2024", "165007",
+        "students_taught_by_out_of_field_teachers_rate_title_1",
+        "Students with Disabilities (IEP)",
+    )["value"]) == 0.0
 
     state_2023 = _one(
         combined, "2023", "999", "students_taught_by_out_of_field_teachers_rate_title_1",

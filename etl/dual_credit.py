@@ -24,6 +24,20 @@ starred. No published enrollment is 0, and a school without a program has
 no row, so the flag was never 0. Scott Horn dropped it on 2026-10-20. Do
 not restore it and do not add an alias. Enrollment, completion,
 qualifying-score rates, and the course-level rates stay.
+
+2020-21 and 2021-22 come from the ``DC`` slice of
+``advanced_courses_participation_and_performance_2021/2022.csv`` and the
+matching courses-offered files. KDE labels that course type ``DC``.
+``AP``, ``IB``, ``CAI``, and ``ALL`` are not dual credit and are not
+stored here. The participation qualifying column on those files is
+``EARNED QUALIFYING SCORE``. ``NUMBER TESTED`` is not a dual-credit
+metric and is not stored. State and district school codes stay as
+published (``999`` and ``165``, not ``999000`` and ``165000``). School
+names ``---State Total---`` and ``---District Total---`` stay as
+published. The 2022-23 source stays the KYRC23 EDOP files. The 2020 and
+2023 advanced-course siblings also contain a ``DC`` slice. They are not
+accepted: 2020 is outside this load, and 2023 school rows would collide
+with the KYRC23 EDOP rows.
 """
 from pathlib import Path
 import re
@@ -65,6 +79,20 @@ _COURSE_METRIC_TEMPLATES = {
     "course_completers": "dual_credit_course_completion_count_{slug}",
     "qualifying_score": "dual_credit_course_qualifying_score_count_{slug}",
 }
+
+# Historical advanced-course files. Only these four are the 2021 and 2022
+# DC slice. The 2020 and 2023 siblings also have DC rows. 2023 school codes
+# match the KYRC23 EDOP school rows, so that file is not accepted here.
+_DC_SLICE_FILENAMES = frozenset({
+    "advanced_courses_participation_and_performance_2021.csv",
+    "advanced_courses_participation_and_performance_2022.csv",
+    "advanced_courses_offered_2021.csv",
+    "advanced_courses_offered_2022.csv",
+})
+
+# Exact published labels. Historical files say ``DC``. KYRC EDOP files say
+# ``Dual Credit``. Anything else (AP, IB, CAI, ALL) is not this module.
+_DUAL_CREDIT_COURSE_TYPES = frozenset({"DC", "Dual Credit"})
 
 
 def _star_column_name(column: str) -> str:
@@ -226,12 +254,31 @@ class DualCreditETL(BaseETL):
     and ``Couse Completers `` (the registered historical KYRC24 file, with
     a trailing space) both map to course completers. KYRC26 spells the
     header ``Course Completers``. No temporary OAA extract is registered
-    for this directory.
+    for this directory. The 2021 and 2022 advanced-course files are the
+    DC slice. A row is kept only when the course type is exactly ``DC``
+    or exactly ``Dual Credit``.
     """
 
     # Opt in here, in the same change that accepts the file. BaseETL skips
     # every KYRC26_* CSV until this is True.
     include_kyrc26 = True
+
+    def accepts_data_file(self, file_path: Path) -> bool:
+        """Accept the KYRC EDOP files and the 2021 and 2022 DC slices.
+
+        ``advanced_courses_*_2020.csv`` would write 2019-20, which this
+        load does not include. ``advanced_courses_*_2023.csv`` would write
+        2022-23 school rows beside the KYRC23 EDOP file. Both siblings
+        produce DC rows, so the filename guard is what keeps them out.
+        """
+        name = file_path.name
+        if name.lower().startswith("advanced_courses_") and name not in _DC_SLICE_FILENAMES:
+            logger.info(
+                "Skipping %s; dual_credit reads only the 2021 and 2022 DC slices",
+                name,
+            )
+            return False
+        return super().accepts_data_file(file_path)
 
     @property
     def module_column_mappings(self) -> Dict[str, str]:
@@ -239,6 +286,9 @@ class DualCreditETL(BaseETL):
             # Course offering fields
             'Advanced Course Type': 'course_type',
             'ADVANCED COURSE TYPE': 'course_type',
+            'Course Type': 'course_type',
+            'COURSE TYPE': 'course_type',
+            'COURSE_TYPE': 'course_type',
             'Subject': 'subject',
             'SUBJECT': 'subject',
 
@@ -256,6 +306,10 @@ class DualCreditETL(BaseETL):
             'Students With Qualifying Score': 'qualifying_score',
             'STUDENTS WITH QUALIFYING SCORE': 'qualifying_score',
             'Students With Qualifying Score ': 'qualifying_score',
+            # 2021 and 2022 participation. The courses-offered files use
+            # Students With Qualifying Score. NUMBER TESTED is not mapped.
+            'Earned Qualifying Score': 'qualifying_score',
+            'EARNED QUALIFYING SCORE': 'qualifying_score',
         }
 
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -300,8 +354,17 @@ class DualCreditETL(BaseETL):
         measure cell is not a star. A row whose enrollment, completers,
         and qualifying cells are all blank is not offered and is skipped
         in every year. These files have no such row. A ``*`` is a measure
-        and is not skipped.
+        and is not skipped. A course type other than ``DC`` or
+        ``Dual Credit`` is not this module and is skipped.
         """
+        # Exact course-type label. Missing column keeps the older EDOP
+        # path. A blank label is not ``DC`` and is not ``Dual Credit``.
+        if "course_type" in row.index:
+            label = row.get("course_type")
+            text = "" if _is_missing(label) else str(label).strip()
+            if text not in _DUAL_CREDIT_COURSE_TYPES:
+                return True
+
         if "demographic" in row.index:
             if _is_missing(row.get("demographic")):
                 return True
@@ -460,6 +523,13 @@ class DualCreditETL(BaseETL):
         participation file, so All Enrollments (143,848 in 2026) is not
         written on top of All Students (55,553 in 2026).
         """
+        # Course type first. The 2021 and 2022 files repeat a school and
+        # demographic once per course type. Collapsing before the filter
+        # would keep the larger ALL enrollment and then drop it, which
+        # deletes the DC row (state All Students 36,641, not 63,321).
+        if "course_type" in df.columns:
+            label = df["course_type"].astype("string").str.strip()
+            df = df.loc[label.isin(list(_DUAL_CREDIT_COURSE_TYPES))].copy()
         df = self._collapse_repeated_keys(df, source_file)
         kpi_rows: List[Dict[str, Any]] = []
         for _, row in df.iterrows():

@@ -30,24 +30,32 @@ that name. ``students_taught_by_out_of_field_teachers_2020.csv`` returns
 200 and is school year 20192020. It is not registered. 1,680 of 1,831 Title I
 and Not Title I rows are all zero, and 122 of 177 districts are entirely
 zero, so state Title I 1.41 against 8.88 in 2021 is not a comparable series.
-``accepts_data_file`` skips that name. Issue #66 holds whether to bring the
-file back. The 2020 file is largely zero-fill. That is a different shape
+``accepts_data_file`` skips that name. It stays unregistered (issue #66
+item 1): first year of KDE's Equity tab, incomplete coverage. The 2020
+file is largely zero-fill. That is a different shape
 from the ineffective-teacher placeholder, where the only number is students
 with disabilities.
 
-The registered KYRC24 file is the historical extract. Its headers are
-``Unnamed: 13`` and ``Inexperienced Value`` through ``Inexperienced Value.8``.
-The datasets copy's Title I and Not Title I cells match the UAT copy, and
-the historical file's gap rows match the datasets gaps rather than the
-historical group cells. This module does not swap that copy. Issue #66
-holds the choice.
+The registered KYRC24 file is the datasets copy (issue #66 item 2, record
+0026). The replaced historical extract has headers ``Unnamed: 13`` and
+``Inexperienced Value`` through ``Inexperienced Value.8``. Those names stay
+mapped so a leftover historical file still parses. The datasets copy
+repairs the headers. Its Title I and Not Title I cells match the UAT copy.
+UAT negates some equity-gap cells, and this registration does not load
+that object. The historical gap rows match the datasets gaps.
 
 There is no count column and no blank measure cell in any registered year.
-A blank percent is missing, not a zero. A published 0 is kept. A negative
-cell is kept. The stored equity gap is signed for 2021-2023 and for KYRC26
-(Title I minus Not Title I; KYRC26 has 32 cells off by 0.1) and is the
-absolute value for 2024 and 2025. Issue #59 tracks the signed gap. This
-module stores the published cell.
+A blank percent is missing, not a zero. A published 0 is kept. KYRC24-26
+zeros stay as published (issue #64 item 3): 2020-23 used whole-row N/A for
+no data while 2024+ publishes none, so a 2024+ zero may include a no-data
+case (471 schools were all N/A in 2023 and all 0 in 2024). A 0 may mean no
+students in the group (issue #66 item 2).
+``students_taught_by_out_of_field_teachers_2020.csv`` stays unregistered.
+It is the first year of KDE's Equity tab and its coverage is incomplete
+(issue #66 item 1). A negative cell is kept. The stored equity gap is
+signed for 2021-2023 and for KYRC26 (Title I minus Not Title I; KYRC26 has
+32 cells off by 0.1) and is the absolute value for 2024 and 2025. Issue
+#59 tracks the signed gap. This module stores the published cell.
 """
 from pathlib import Path
 import pandas as pd
@@ -157,19 +165,20 @@ class StudentsTaughtByOutOfFieldTeachersETL(BaseETL):
 
     KYRC26 uses the same headers as KYRC25. The 2021-2023 files use the
     uppercase percent names, which are already mapped. The registered KYRC24
-    file uses the corrupted ``Inexperienced Value`` headers, which are mapped
-    here. No temporary OAA extract is registered for this directory.
+    file is the datasets copy and uses the repaired headers. A leftover
+    historical file's ``Inexperienced Value`` headers are still mapped here.
+    No temporary OAA extract is registered for this directory.
     """
 
     # Opt in here, in the same change that accepts the file. BaseETL skips
     # every KYRC26_* CSV until this is True.
     include_kyrc26 = True
 
-    # Columns that need to be renamed for the registered KYRC24 file.
-    # The header row literally says Unnamed: 13 and Inexperienced Value.
-    # Position matches the later demographic order: All Students, Non-White,
-    # White, and the six other groups. The datasets KYRC24 object repairs
-    # the headers and changes school cells. It is not the file read here.
+    # The registered KYRC24 file is the datasets copy, whose headers are
+    # Title_I_Status and the demographic names. A leftover historical file
+    # still says Unnamed: 13 and Inexperienced Value. Position matches the
+    # later demographic order: All Students, Non-White, White, and the six
+    # other groups.
     KYRC24_COLUMN_FIXES = {
         'Unnamed: 13': 'title_i_status',
         'Inexperienced Value': 'all_students',
@@ -197,7 +206,8 @@ class StudentsTaughtByOutOfFieldTeachersETL(BaseETL):
         and is school year 20192020. 1,680 of 1,831 Title I and Not Title I
         rows are all zero, and 122 of 177 districts are entirely zero.
         Loading it would show state Title I 1.41 against 8.88 in 2021.
-        Issue #66 holds whether to bring it back. The guessed OAA names are
+        It stays unregistered (issue #66 item 1): first year of KDE's Equity
+        tab, incomplete coverage. The guessed OAA names are
         404 and were never registered, so they are not skipped here.
         """
         upper_name = file_path.name.upper()

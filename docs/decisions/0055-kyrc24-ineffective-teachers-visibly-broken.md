@@ -58,7 +58,7 @@ Scott's instruction was to recheck the live file and, if it was still visibly br
 
 ## Code check
 
-`config/kde_sources.yaml` does not conform yet. `students_taught_by_ineffective_teachers` still registers the bare historical name `KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv`. The yaml comment says the datasets object is 39 rows with percents above 100 and "It is not swapped." The 1,589-row test-site copy is not the registered file. Issue #123 tracks that change. Not fixed here. [0025](0025-ineffective-teachers-copy-and-zeros.md) stays `conflicts-with-code` for that registration.
+`config/kde_sources.yaml` conforms. `students_taught_by_ineffective_teachers` registers `url: kyrc_uat` for `KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv`, the 1,589-row test-site copy (pull request #140). The 39-row live datasets object is not loaded.
 
 ## KDE guidance check
 

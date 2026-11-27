@@ -2,7 +2,7 @@
 
 Part F-1 of brief F. The shared demographic map sends KDE's `Non-Military` label to `Non-Military Dependent`. F-2, loading republish-only groups, is not implemented. The base is `feature/2025-26-kyrc26` at `1aef27b4a43dffb9757b4651a4dc687945479b52`. That branch had not moved, so this work was not rebased. `develop` and `master` are not touched.
 
-Record DNNNN is the alias. It supersedes record 0047 for the Non-Military case only. 0047 stands for every other 2018-19 demographic choice. The 2018-19 code mappings (`MIL`, `MilitaryConnected`, and the 2019 year-specific block) are unchanged. The canonical stored label `Non-Military Dependent` is an implementation detail of brief F-1, not Scott's words.
+Record 0062 is the alias. It supersedes record 0047 for the Non-Military case only. 0047 stands for every other 2018-19 demographic choice. The 2018-19 code mappings (`MIL`, `MilitaryConnected`, and the 2019 year-specific block) are unchanged. The canonical stored label `Non-Military Dependent` is an implementation detail of brief F-1, not Scott's words.
 
 Scott's words (exact), from DECISIONS-VERIFIED.md item 9: "Approve the global Non-Military alias". "For every module" is Gremlin's framing of the question, not Scott's words.
 
@@ -46,7 +46,9 @@ The modules below were run twice, once on the base yaml and once on the alias, t
 | safe_schools_climate | 2025 | 3516 | 0 | 0 | 0 |
 | safe_schools_climate | 2026 | 3512 | 0 | 0 | 0 |
 
-Graduation's 794 rows are 397 `graduation_rate_4_year` and 397 `graduation_rate_5_year`. Postsecondary's 794 rows are 397 `postsecondary_readiness_rate` and 397 `postsecondary_readiness_rate_with_bonus`. KSA 2022 is 51,488 `Non-Military Dependent` rows on both sides (the 2022 KSA accountability file already uses that label). KSA 2023 accountability is 51,550 on both sides. Climate's counts are the per-level climate and safety indexes. `climate_index_score_calculated` and `safety_index_score_calculated` are not emitted.
+Graduation's 794 rows are 397 `graduation_rate_4_year` and 397 `graduation_rate_5_year`. Postsecondary's 794 rows are 397 `postsecondary_readiness_rate` and 397 `postsecondary_readiness_rate_with_bonus`. KSA 2022 is 51,488 `Non-Military Dependent` rows on both sides (the 2022 KSA accountability file already uses that label). KSA 2023 accountability is 51,550 on both sides. Climate's counts in the table are the per-level climate and safety indexes for the files that were loaded when the alias was first run. `climate_index_score_calculated` and `safety_index_score_calculated` are not emitted.
+
+Record 0061 now loads `quality_of_school_climate_and_safety_survey_index_scores_2022.csv` (md5 `aaec467c52a2310176900619881d2ad6`, 6,553,428 bytes, 47,574 source rows). That file publishes `Non-Military Dependent` on 1,762 rows and does not publish `Non-Military`. It also publishes `Military Dependent` on 1,762 rows. Running that file alone on the pre-alias yaml and on this alias writes 95,148 KPI rows both times. `Non-Military Dependent` is 3,524 rows on both sides, and `Non-Military` is 0. The rows match apart from `last_updated`. The alias does not change the 2022 climate load.
 
 Other configured CSV sources with a demographic column had 0 rows labelled `Non-Military`. The yaml diff does not change any other label, so those module-years do not change. `kpi_master.csv` was not regenerated. The processed directory is gitignored and was empty here, and a portal copy would not be the output of `1aef27b`. The base duplicate-key count of 1,813 (1,810 in 2019, 1 in 2022, 2 in 2023) is the figure in brief F. It was not recomputed. The alias adds 0 new duplicate keys. 2019 already has 998 duplicate keys in graduation and 812 in postsecondary readiness, and both counts are unchanged. The four regenerated year ranges had 0 duplicate keys before and after. No scanned file contains both labels, so the rename cannot create a new key inside a file.
 

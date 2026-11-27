@@ -37,7 +37,7 @@ The comments choose the DC slice for the two missing years and keep the EDOP fil
 
 ## Code check
 
-Does not match part (b). `etl/advanced_coursework.py` still says the 2020-2022 dual-credit counts are not in `dual_credit`, and that issue #74 (b) holds that gap. Part (c) matches the current registration: KYRC23 EDOP files are the 2022-23 source. Issue #74 is still open. Not resolved here. The status is `accepted, code differs (follow-up open)` because part (b) does not match and the follow-up is open. Part (c) does match.
+Part (b) is loaded on this branch. `etl/dual_credit.py` reads the `DC` slice of `advanced_courses_participation_and_performance_2021.csv`, `advanced_courses_participation_and_performance_2022.csv`, `advanced_courses_offered_2021.csv`, and `advanced_courses_offered_2022.csv`. Those four names are registered under `dual_credit` in `config/kde_sources.yaml`. `prepare_kde_data.py` downloads that copy into `data/raw/dual_credit/`. State All Students enrollment is 36,641 in 2021 and 38,371 in 2022. School codes stay as published (`999`, `165`). Part (c) still matches: KYRC23 EDOP files are the 2022-23 source. The 2023 advanced-course DC slice is not loaded. Issue #74 is still open. The status stays `accepted, code differs (follow-up open)` until that status is updated after merge. This code check is not that status change.
 
 ## KDE guidance check
 

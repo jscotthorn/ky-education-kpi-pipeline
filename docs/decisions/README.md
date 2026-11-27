@@ -2,7 +2,7 @@
 
 This folder records choices about Kentucky Department of Education (KDE) sources and how this pipeline treats them. It does not change pipeline code. A later edit to a choice is a new record. The old record stays, keeps its number, and links to the new one.
 
-Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0057`. A number is never reused.
+Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0063`. A number is never reused.
 
 ## When a record is needed
 
@@ -19,7 +19,7 @@ Write a record for any choice about:
 
 | Status | Meaning |
 | --- | --- |
-| `accepted` | A cited issue comment, pull request, note, or commit records the choice as Scott's. `accepted` also covers Scott's own answer in an agent chat, quoted with date and time (ET), with the bot named and the quote checked verbatim against the transcript by Archivist. That source type is labeled `chat answer`. Records that use it: 0002 (the 25 October exception), 0007 (the 11:24 AM ET sentence), the 0009 amendment, 0042 (the 12:03 PM ET answer), 0050, 0051, 0052, 0053, and 0055 (Scott's 1:07 PM ET typed instruction in Moon's chat). Where a repo Decision comment exists, that comment is the primary source and the chat quote stays as background: 0002, the 0009 amendment, 0050, 0051, 0052, and 0053. 0055 is not in that list. Its decision source is the 1:07 instruction. Comment 6400597552 is Moon's recheck record, posted under Scott's account at 1:08 PM ET. Scott did not review that comment's text. 0007's record is `notes/104`, and the chat sentence is a second source. 0042's answer is also on issue #121. 0048 is not on this list: the 12:05 wording is Moon's relay, and Scott's 12:38 PM ET confirmation of the #122 comment is the source. A later record whose only source is a chat answer keeps a `Repo comment: pending` line until a repo Decision comment is added. |
+| `accepted` | A cited issue comment, pull request, note, or commit records the choice as Scott's. `accepted` also covers Scott's own answer in an agent chat, quoted with date and time (ET), with the bot named and the quote checked verbatim against the transcript by Archivist. That source type is labeled `chat answer`. Records that use it: 0002 (the 25 October exception), 0007 (the 11:24 AM ET sentence), the 0009 amendment, 0042 (the 12:03 PM ET answer), 0050, 0051, 0052, 0053, 0055 (Scott's 1:07 PM ET typed instruction in Moon's chat), 0058 (Scott's 27 Nov 2026 12:24 PM ET and 12:26 PM ET answers in Gremlin's chat; repo comment none), 0059 (the #42 closure, 27 November 2026 chat answers; Repo comment: none), 0060 (the KYRC26 teacher working conditions refresh, 27 November 2026 chat answers; Repo comment: none), 0061 (Scott's 27 November 2026, 12:29 PM ET answer in Gremlin's chat approving the 2022 climate year; Repo comment: none), and 0062 (Scott's 27 November 2026, 12:29 PM ET answer in Gremlin's chat, "Approve the global Non-Military alias"; Repo comment: none). Where a repo Decision comment exists, that comment is the primary source and the chat quote stays as background: 0002, the 0009 amendment, 0050, 0051, 0052, and 0053. 0055 is not in that list. Its decision source is the 1:07 instruction. Comment 6400597552 is Moon's recheck record, posted under Scott's account at 1:08 PM ET. Scott did not review that comment's text. 0007's record is `notes/104`, and the chat sentence is a second source. 0042's answer is also on issue #121. 0048 is not on this list: the 12:05 wording is Moon's relay, and Scott's 12:38 PM ET confirmation of the #122 comment is the source. A later record whose only source is a chat answer keeps a `Repo comment: pending` line until a repo Decision comment is added. 0059 and 0060 use `Repo comment: none`, which is the line DECISIONS-VERIFIED.md gives for those chat answers. They are not `pending`. 0058 states `Repo comment: none`. 0061 states `Repo comment: none`. 0062 states `Repo comment: none`. |
 | `accepted, code differs (follow-up open)` | The choice is accepted. Current code or config on `feature/2025-26-kyrc26` does not match it, and a follow-up is still open. The difference is described and not fixed here. |
 | `relayed-unconfirmed` | The only source is another agent's relay. Scott has not stated it in the repo. |
 | `superseded` | A later record replaces this one. This file stays and links forward. A record replaced only in part is `superseded (in part)`. The file names the part that still stands. |
@@ -56,10 +56,11 @@ Decisions are labeled `decision` on GitHub. The label exists. Its description is
 
 ## Notes file numbers
 
-Two note numbers are used twice. They were not renamed.
+Some note numbers are used more than once. They were not renamed. Always cite the full filename.
 
-- `notes/105.md` and `notes/105--kyrc26-completeness-audit.md`
 - `notes/88--advanced-coursework-dual-credit-pipeline-updates.md` and `notes/88--school-programs-offerings-pipelines-implementation.md`
+- `notes/105.md` and `notes/105--kyrc26-completeness-audit.md`
+- `notes/120--crdc-suspension-collection-year.md`, `notes/120--dual-credit-dc-slice-and-climate-index-2022.md`, `notes/120--postsecondary-enrollment-star-cells.md`, `notes/120--kyrc26-twc-refresh-and-caveat-check.md`, and `notes/120--non-military-alias-and-kyrc23-republish-audit.md`
 
 ## Other pages
 
@@ -70,12 +71,12 @@ Two note numbers are used twice. They were not renamed.
 
 ## Records
 
-57 records. 41 accepted. 8 accepted, code differs (follow-up open). 3 conflicts-with-code. 4 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed. DNNNN has no number yet. The number is assigned at merge. The next free number is still `0057`.
+62 records. 47 accepted. 8 accepted, code differs (follow-up open). 0 conflicts-with-code. 6 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed. Counted from each record's Status line. The `bdc71c6` index had 61: 46 accepted, 9 code differs, 0 conflicts-with-code, 5 superseded (in part), and 1 unconfirmed. This merge adds [0062](0062-non-military-alias.md) as accepted. [0047](0047-workbook-demographic-labels-2018-19.md) moves from accepted, code differs (follow-up open) to superseded (in part). The next free number is `0063`.
 
 | Record | Status | KDE guidance check |
 | --- | --- | --- |
 | [0001](0001-suppression-rule.md) | accepted | consistent, with one gap |
-| [0002](0002-report-scripts-out-of-scope.md) | accepted | no KDE guidance found |
+| [0002](0002-report-scripts-out-of-scope.md) | superseded (in part) | no KDE guidance found |
 | [0003](0003-shared-id-normalization.md) | accepted | consistent |
 | [0004](0004-postsecondary-star-cells.md) | accepted, code differs (follow-up open) | possible conflict |
 | [0005](0005-cte-skip-all-star-padding.md) | superseded (in part) | possible conflict |
@@ -97,9 +98,9 @@ Two note numbers are used twice. They were not renamed.
 | [0021](0021-pandas-unpinned-comma-fixes.md) | accepted | no KDE guidance found |
 | [0022](0022-teacher-experience-zero-averages.md) | accepted, code differs (follow-up open) | no KDE guidance found |
 | [0023](0023-student-teacher-ratio-outliers.md) | accepted | no KDE guidance found |
-| [0024](0024-novice-kyrc24-equity-copy.md) | conflicts-with-code | no KDE guidance found |
-| [0025](0025-ineffective-teachers-copy-and-zeros.md) | conflicts-with-code | no KDE guidance found |
-| [0026](0026-out-of-field-file-and-copy.md) | conflicts-with-code | no KDE guidance found |
+| [0024](0024-novice-kyrc24-equity-copy.md) | accepted | no KDE guidance found |
+| [0025](0025-ineffective-teachers-copy-and-zeros.md) | accepted | no KDE guidance found |
+| [0026](0026-out-of-field-file-and-copy.md) | accepted | no KDE guidance found |
 | [0027](0027-signed-title-i-equity-gap.md) | accepted | no KDE guidance found |
 | [0028](0028-turnover-2026-metric-names.md) | accepted | no KDE guidance found |
 | [0029](0029-emergency-provisional-2026.md) | accepted | no KDE guidance found |
@@ -115,7 +116,7 @@ Two note numbers are used twice. They were not renamed.
 | [0039](0039-drop-pathway-completion-rate.md) | accepted | consistent |
 | [0040](0040-drop-has-dual-credit-program.md) | accepted | no KDE guidance found |
 | [0041](0041-drop-calculated-climate-indexes.md) | accepted | consistent |
-| [0042](0042-do-not-register-2021-22-climate-index.md) | accepted | no KDE guidance found |
+| [0042](0042-do-not-register-2021-22-climate-index.md) | superseded (in part) | no KDE guidance found |
 | [0043](0043-kyrc23-republish-only-groups.md) | accepted, code differs (follow-up open) | no KDE guidance found |
 | [0044](0044-district-school-list-2017-18.md) | accepted, code differs (follow-up open) | no KDE guidance found |
 | [0045](0045-school-courses-one-row.md) | accepted | no KDE guidance found |
@@ -130,4 +131,9 @@ Two note numbers are used twice. They were not renamed.
 | [0054](0054-store-values-as-kde-publishes.md) | accepted | no KDE guidance found |
 | [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md) | accepted | no KDE guidance found |
 | [0056](0056-kyrc26-chronic-absenteeism-district-602-name.md) | accepted | no KDE guidance found |
-| [DNNNN](DNNNN-non-military-alias.md) | accepted | no KDE guidance found |
+| [0057](0057-postsecondary-in-file-cohort-count.md) | accepted | possible conflict |
+| [0058](0058-kyrc25-uat-and-kyrc26-ineffective-refresh.md) | accepted | no KDE guidance found |
+| [0059](0059-issue-42-closed.md) | accepted | no KDE guidance found |
+| [0060](0060-twc-kyrc26-refresh.md) | accepted | no KDE guidance found |
+| [0061](0061-register-2021-22-climate-index.md) | accepted | no KDE guidance found |
+| [0062](0062-non-military-alias.md) | accepted | no KDE guidance found |

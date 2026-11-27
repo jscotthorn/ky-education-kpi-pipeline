@@ -322,6 +322,7 @@ REAL_FILE_NAMES = (
     "precautionary_measures_2021.csv",
     "precautionary_measures_2022.csv",
     "precautionary_measures_2023.csv",
+    "quality_of_school_climate_and_safety_survey_index_scores_2022.csv",
 )
 
 
@@ -339,7 +340,9 @@ def test_real_kyrc26_file_matches_published_rows(tmp_path):
         processed_dir / "safe_schools_climate.csv",
         dtype={"school_id": "string", "year": "string"},
     )
-    assert len(frame) == 400581
+    # Registered files write 400,581 rows. The 2021-22 index adds
+    # 47,574 source rows times two metrics, 95,148 KPI rows.
+    assert len(frame) == 495729
     assert not frame.duplicated(["year", "school_id", "student_group", "metric"]).any()
 
     index_2023 = frame[
@@ -376,7 +379,27 @@ def test_real_kyrc26_file_matches_published_rows(tmp_path):
     assert indicator_2022.loc[
         indicator_2022["metric"] == "climate_safety_indicator_rate_middle", "value"
     ].iloc[0] == 65.9
-    assert not indicator_2022["metric"].astype("string").str.startswith("climate_index_score").any()
+    # The 2022 accountability profile still owns the indicator rate.
+    # The published index file adds climate_index_score_* on the same
+    # school code. State All Students elementary / middle / high climate
+    # is 79.4 / 69.2 / 64.1.
+    index_2022 = {
+        "climate_index_score_elementary": 79.4,
+        "safety_index_score_elementary": 73.8,
+        "climate_index_score_middle": 69.2,
+        "safety_index_score_middle": 62.6,
+        "climate_index_score_high": 64.1,
+        "safety_index_score_high": 58.6,
+    }
+    for metric, value in index_2022.items():
+        rows = indicator_2022[indicator_2022["metric"] == metric]
+        assert len(rows) == 1
+        assert rows.iloc[0]["value"] == value
+        assert rows.iloc[0]["suppressed"] == "N"
+        assert rows.iloc[0]["district"] == "State"
+        assert rows.iloc[0]["source_file"] == (
+            "quality_of_school_climate_and_safety_survey_index_scores_2022.csv"
+        )
     combined_state = frame[
         (frame["year"] == "2023")
         & (frame["school_id"] == "999")

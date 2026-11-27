@@ -1,4 +1,4 @@
-# DNNNN Alias KDE's "Non-Military" label to "Non-Military Dependent"
+# 0062 Alias KDE's "Non-Military" label to "Non-Military Dependent"
 
 Status: accepted
 
@@ -10,7 +10,7 @@ KDE publishes the negative military group as "Non-Military Dependent" in 2022-23
 
 ## What KDE changed
 
-The 2022 and 2023 KSA accountability files publish `Non-Military Dependent`. The 2022-23 climate and safety index publishes `Non-Military`. The 2024-26 files that include this group publish `Non-Military`. The positive group stays `Military Dependent`. No KDE notice was found that names the two negative labels as one group or as two groups.
+The 2022 and 2023 KSA accountability files publish `Non-Military Dependent`. The 2021-22 climate and safety index publishes `Non-Military Dependent`. The KYRC23 climate and safety index publishes `Non-Military`. The 2024-26 files that include this group publish `Non-Military`. The positive group stays `Military Dependent`. No KDE notice was found that names the two negative labels as one group or as two groups.
 
 ## Options considered
 
@@ -45,7 +45,7 @@ Scott approved the alias. Reason beyond that approval: not documented. The share
 
 ## Code check
 
-Matches this record. `config/demographic_mappings.yaml` maps `Non-Military` and `non-military` to `Non-Military Dependent`, and `Non-Military` is not a separate canonical group. The 2024-26 expected lists and `allow_missing` do not name the raw label. The 2018-19 code mappings, including `MIL`, `MilitaryConnected`, and the 2019 year-specific block, are unchanged. The alias does not add rows and does not change values. F-2 is not implemented.
+Matches this record. `config/demographic_mappings.yaml` maps `Non-Military` and `non-military` to `Non-Military Dependent`, and `Non-Military` is not a separate canonical group. The 2024-26 expected lists and `allow_missing` do not name the raw label. The 2018-19 code mappings, including `MIL`, `MilitaryConnected`, and the 2019 year-specific block, are unchanged. The alias does not add rows and does not change values. The 2021-22 climate index publishes `Non-Military Dependent`, and the alias does not change those rows. F-2 is not implemented.
 
 `etl/advanced_coursework.py` keeps a module-local `"Military Connected": "Military Dependent"`. That label is the positive group. It does not mention `Non-Military`, so the alias does not require a change there.
 

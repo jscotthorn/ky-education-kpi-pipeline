@@ -336,12 +336,12 @@ class TestSafeSchoolsClimateETL:
         assert "555555" not in set(doors["school_id"].astype("string"))
 
     def test_get_files_to_process(self, etl, tmp_path):
-        """Survey item files and the unregistered 2021-22 index are not selected.
+        """Survey item files stay out. The published 2021-22 index is selected.
 
         Scott decided on 2026-10-20 to remove the calculated indexes, so the
         survey item files that fed those averages stay out.
         ``quality_of_school_climate_and_safety_survey_index_scores_2022.csv``
-        is KDE's published 2021-22 index. It exists and is not registered.
+        is KDE's published 2021-22 index and is loaded by its exact name.
         """
         # Create test directory structure
         module_dir = tmp_path / 'safe_schools_climate'
@@ -362,20 +362,18 @@ class TestSafeSchoolsClimateETL:
         files = etl.get_files_to_process(tmp_path)
         file_names = [f.name for f in files]
         
-        # Should only include streamlined file patterns
-        assert len(files) == 4
+        # Should only include streamlined file patterns, plus the 2022 index.
+        assert len(files) == 5
         assert 'KYRC24_ACCT_Index_Scores.csv' in file_names
         assert 'KYRC24_SAFE_Precautionary_Measures.csv' in file_names
         assert 'accountability_profile_2023.csv' in file_names
         assert 'precautionary_measures_2022.csv' in file_names
+        assert 'quality_of_school_climate_and_safety_survey_index_scores_2022.csv' in file_names
         # Should exclude survey files
         assert 'KYRC24_ACCT_Survey_Results.csv' not in file_names
         assert 'quality_of_school_climate_and_safety_survey_elementary_school_2023.csv' not in file_names
         assert 'Quality_of_School_Climate_and_Safety_Survey_Elementary_School_2025.CSV' not in file_names
         assert 'Quality_of_School_Climate_and_Safety_Survey_Questions_2025.CSV' not in file_names
-        # Published 2021-22 index. It exists and is not registered, and this
-        # selector does not load it.
-        assert 'quality_of_school_climate_and_safety_survey_index_scores_2022.csv' not in file_names
 
     def test_survey_files_do_not_emit_calculated_indexes(self, etl, tmp_path):
         """A published index row stays, and survey files add no calculated metric.
@@ -561,9 +559,14 @@ class TestKyrc26ClimateFiles:
         for name in (
             "KYRC23_SAFE_Precautionary_Measures.csv",
             "Quality_of_School_Climate_and_Safety_Survey_Index_Scores_2026.CSV",
-            "quality_of_school_climate_and_safety_survey_index_scores_2022.csv",
         ):
             assert name not in names
+        assert "quality_of_school_climate_and_safety_survey_index_scores_2022.csv" in names
+        assert isinstance(
+            next(entry for entry in config["raw_directories"]["safe_schools_climate"]
+                 if entry == "quality_of_school_climate_and_safety_survey_index_scores_2022.csv"),
+            str,
+        )
 
     def test_real_rows_keep_level_coop_and_outside_doors(self, tmp_path):
         """Real KDE rows: three levels, a star, GREC and GLEC, and outside doors."""
@@ -790,6 +793,119 @@ class TestKyrc26ClimateFiles:
         assert bavel["value"] == 0.0
         assert bavel["suppressed"] == "N"
         assert bavel["co_op"] == "GRREC"
+
+    def test_2022_index_file_keeps_published_levels(self, tmp_path):
+        """The 2021-22 index is stored on the same per-level metric names.
+
+        Verbatim rows from
+        ``quality_of_school_climate_and_safety_survey_index_scores_2022.csv``
+        (https://www.education.ky.gov/Open-House/data/HistoricalDatasets/quality_of_school_climate_and_safety_survey_index_scores_2022.csv):
+
+        - line 47495, state All Students ``ES`` climate ``79.4`` safety ``73.8``
+        - line 47497, state All Students ``MS`` ``69.2`` / ``62.6``
+        - line 47496, state All Students ``HS`` ``64.1`` / ``58.6``
+        - line 14069, Bryan Station High ``165170`` ``63.9`` / ``59.9``
+        - line 12854, Arlington Elementary ``165005`` ``76.7`` / ``69.9``
+        - line 2, Adair County district ``HS`` ``67.1`` / ``60.5``
+        - line 12787, Fayette district American Indian or Alaska Native ``HS`` ``*``
+
+        Level codes ``ES`` / ``MS`` / ``HS`` use the same suffixes as the
+        later files. School code ``999`` is not padded. The 2023 index
+        anchor in the other fixture stays on ``999000``.
+        """
+        module_dir = tmp_path / "raw" / "safe_schools_climate"
+        module_dir.mkdir(parents=True)
+        shutil.copy(
+            FIXTURE_DIR / "quality_of_school_climate_and_safety_survey_index_scores_2022.csv",
+            module_dir / "quality_of_school_climate_and_safety_survey_index_scores_2022.csv",
+        )
+        # Unchanged-year anchor: the KYRC23 state elementary cell.
+        shutil.copy(
+            FIXTURE_DIR / "kyrc23_index_scores.csv",
+            module_dir / "KYRC23_ACCT_Index_Scores.csv",
+        )
+        frame = _run(tmp_path / "raw", tmp_path / "processed")
+        key = ["year", "school_id", "student_group", "metric"]
+        assert not frame.duplicated(key).any()
+
+        state = {
+            "elementary": (79.4, 73.8),
+            "middle": (69.2, 62.6),
+            "high": (64.1, 58.6),
+        }
+        for level, (climate, safety) in state.items():
+            climate_row = _cell(
+                frame, year="2022", school_id="999", student_group="All Students",
+                metric=f"climate_index_score_{level}",
+            )
+            safety_row = _cell(
+                frame, year="2022", school_id="999", student_group="All Students",
+                metric=f"safety_index_score_{level}",
+            )
+            assert climate_row["value"] == climate
+            assert safety_row["value"] == safety
+            assert climate_row["suppressed"] == "N"
+            assert climate_row["district"] == "State"
+            assert climate_row["school_name"] == "---State Total---"
+            assert climate_row["source_file"] == "quality_of_school_climate_and_safety_survey_index_scores_2022.csv"
+
+        fayette = _cell(
+            frame, year="2022", school_id="165", metric="climate_index_score_high",
+            student_group="All Students",
+        )
+        assert fayette["value"] == 64.3
+        assert fayette["district"] == "Fayette County"
+        assert fayette["co_op"] == "CKEC"
+        assert _cell(
+            frame, year="2022", school_id="165", metric="safety_index_score_elementary",
+            student_group="All Students",
+        )["value"] == 74.2
+
+        bryan = _cell(
+            frame, year="2022", school_id="165170", metric="climate_index_score_high",
+            student_group="All Students",
+        )
+        assert bryan["value"] == 63.9
+        assert bryan["school_name"] == "Bryan Station High School"
+        assert str(bryan["nces_id"]).split(".")[0] == "210186000388"
+        assert _cell(
+            frame, year="2022", school_id="165170", metric="safety_index_score_high",
+            student_group="All Students",
+        )["value"] == 59.9
+
+        arlington = _cell(
+            frame, year="2022", school_id="165005", metric="climate_index_score_elementary",
+            student_group="All Students",
+        )
+        assert arlington["value"] == 76.7
+        assert arlington["school_name"] == "Arlington Elementary School"
+
+        adair = _cell(
+            frame, year="2022", school_id="001", metric="climate_index_score_high",
+            student_group="All Students",
+        )
+        assert adair["value"] == 67.1
+        assert adair["district"] == "Adair County"
+        assert adair["co_op"] == "GRREC"
+
+        starred = _cell(
+            frame, year="2022", school_id="165", metric="climate_index_score_high",
+            student_group="American Indian or Alaska Native",
+        )
+        assert pd.isna(starred["value"])
+        assert starred["suppressed"] == "Y"
+        starred_safety = _cell(
+            frame, year="2022", school_id="165", metric="safety_index_score_high",
+            student_group="American Indian or Alaska Native",
+        )
+        assert pd.isna(starred_safety["value"])
+        assert starred_safety["suppressed"] == "Y"
+
+        # Unchanged 2023 anchor from KYRC23.
+        assert _cell(
+            frame, year="2023", school_id="999000", metric="climate_index_score_elementary",
+            student_group="All Students",
+        )["value"] == 79.5
 
 
 def test_kyrc23_non_military_index_is_relabelled(tmp_path):

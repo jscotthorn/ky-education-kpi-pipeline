@@ -1,0 +1,11 @@
+SCHOOL YEAR,COUNTY NUMBER,COUNTY NAME,DISTRICT NUMBER,DISTRICT NAME,SCHOOL NUMBER,SCHOOL NAME,SCHOOL CODE,STATE SCHOOL ID,NCES ID,CO-OP,CO-OP CODE,SCHOOL TYPE,DEMOGRAPHIC,LEVEL,SUPPRESSED,CLIMATE INDEX,SAFETY INDEX
+20212022,"","",999,State,"",---State Total---,999,"","","","","",All Students,ES,N,79.4,73.8
+20212022,"","",999,State,"",---State Total---,999,"","","","","",All Students,MS,N,69.2,62.6
+20212022,"","",999,State,"",---State Total---,999,"","","","","",All Students,HS,N,64.1,58.6
+20212022,034,FAYETTE,165,Fayette County,"",---District Total---,165,"","",CKEC,901,"",All Students,ES,N,79.5,74.2
+20212022,034,FAYETTE,165,Fayette County,"",---District Total---,165,"","",CKEC,901,"",All Students,MS,N,67.6,61.9
+20212022,034,FAYETTE,165,Fayette County,"",---District Total---,165,"","",CKEC,901,"",All Students,HS,N,64.3,60.9
+20212022,034,FAYETTE,165,Fayette County,170,Bryan Station High School,165170,034165170,210186000388,CKEC,901,A1,All Students,HS,N,63.9,59.9
+20212022,034,FAYETTE,165,Fayette County,005,Arlington Elementary School,165005,034165005,210186000350,CKEC,901,A1,All Students,ES,N,76.7,69.9
+20212022,001,ADAIR,001,Adair County,"",---District Total---,001,"","",GRREC,902,"",All Students,HS,N,67.1,60.5
+20212022,034,FAYETTE,165,Fayette County,"",---District Total---,165,"","",CKEC,901,"",American Indian or Alaska Native,HS,Y,*,*

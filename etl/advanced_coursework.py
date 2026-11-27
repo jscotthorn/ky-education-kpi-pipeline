@@ -30,8 +30,9 @@ keeps them on different metric names.
 Dual credit is not loaded here. ``dual_credit`` owns that measure.
 Course type ``DC`` and ``Dual Credit`` are skipped in every file,
 including the 2021-2023 historical files that label it ``DC`` and the
-overview file that labels it ``Dual Credit``. The 2020-2022 dual-credit
-counts are not in ``dual_credit`` either. Issue #74 (b) holds that gap.
+overview file that labels it ``Dual Credit``. ``dual_credit`` loads the
+2021 and 2022 ``DC`` slices on its own metric names. The 2022-23 source
+stays the KYRC23 EDOP files. Issue #74 (b) is that load.
 
 Course type ``CAI`` and ``Cambridge Advanced International`` are
 Cambridge. Course type ``ALL`` is the unduplicated participation total

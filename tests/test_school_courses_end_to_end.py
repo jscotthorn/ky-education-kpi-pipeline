@@ -133,9 +133,12 @@ def _sum(year_rows: pd.DataFrame, metric: str) -> int:
 def test_registered_files_collapse_to_one_row_per_school(tmp_path):
     """Each school-year is seven count rows, and the sums match the files.
 
-    2019, 2021, and 2023 used to store courses_offered_count 1 on every
-    course. Those values are now the school counts. Stars are inside the
-    count and the suppressed count. There is no per-course 1/NA row.
+    Issue #82, fixed in PR #81: one row per school, year, and metric.
+    The key (year, school_id, student_group, metric) is unique, and
+    student_group is All Students on every row. 2019, 2021, and 2023
+    used to store courses_offered_count 1 on every course. Those values
+    are now the school counts. Stars are inside the count and the
+    suppressed count. There is no per-course 1/NA row.
     """
     config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
     proc_dir = tmp_path / "processed"

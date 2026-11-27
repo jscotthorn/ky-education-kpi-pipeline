@@ -2,7 +2,7 @@
 
 Status: superseded (in part)
 
-Superseded in part by [DNNNN](DNNNN-non-military-alias.md). The only part replaced is the Non-Military label. 0047 still stands for every other 2018-19 demographic choice. The 2018-19 code mappings in `demographic_mappings.yaml` are unchanged. The per-workbook label read is still not implemented.
+Superseded in part by [0062](0062-non-military-alias.md). The only part replaced is the Non-Military label. 0047 still stands for every other 2018-19 demographic choice. The 2018-19 code mappings in `demographic_mappings.yaml` are unchanged. The per-workbook label read is still not implemented.
 
 ## Question
 
@@ -35,7 +35,7 @@ The comment says the workbook's own label is the source when it disagrees with t
 
 ## Code check
 
-The per-workbook label read has not landed. Issue #76 is still open. That standing part of this record still differs from the code. The shared yaml now maps the 2024-26 label `Non-Military` to `Non-Military Dependent` under [DNNNN](DNNNN-non-military-alias.md). That alias does not edit the 2018-19 code mappings.
+The per-workbook label read has not landed. Issue #76 is still open. That standing part of this record still differs from the code. The shared yaml now maps the 2024-26 label `Non-Military` to `Non-Military Dependent` under [0062](0062-non-military-alias.md). That alias does not edit the 2018-19 code mappings.
 
 ## KDE guidance check
 
