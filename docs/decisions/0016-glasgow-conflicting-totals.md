@@ -18,6 +18,8 @@ The 18 October comment said to resolve the duplicates so no duplicate keys remai
 
 20 October 2026. Conflicting 2020 and 2022 district totals are stored as NA with `suppressed` Y. Both values are recorded in `notes/105.md`. Agreeing pairs stay the published percent. Tracked for the 27 October 2026 recheck in issue #108.
 
+27 November 2026. Comment https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/108#issuecomment-7224584646 says: "The code is done (Glasgow conflicting totals are stored as NA/Y). This issue remains open only for the KDE recheck." This record does not change that storage. No KDE answer is recorded here. Status stays `accepted`.
+
 ## Who decided and how we know
 
 https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/62#issuecomment-6300574763

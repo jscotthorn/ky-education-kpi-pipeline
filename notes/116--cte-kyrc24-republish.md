@@ -23,7 +23,7 @@ Both copies have 6,486 data rows and the same school-code and demographic keys. 
 
 1,944 + 1,230 + 185 + 146 + 20 + 19 = 3,544.
 
-The 1,376 new 0.0 rates (1,230 completion and 146 participation) are questionable. Each sits next to a blank paired count, and the same cells were `*` in KDE's May 2025 copy. KYRC24 never pairs a 0.0 completion rate with a numeric count, so these rates are not evidence of zero completers or participants. They are kept as published under the existing rule, and they are on the 27 October KDE recheck. Refs #112.
+The 1,376 new 0.0 rates (1,230 completion and 146 participation) are questionable. Each sits next to a blank paired count, and the same cells were `*` in KDE's May 2025 copy. KYRC24 never pairs a 0.0 completion rate with a numeric count, so these rates are not evidence of zero completers or participants. They are kept as published, with a warning, until KDE republishes those years. The 27 October 2026 recheck is not the end condition. Records 0009 and 0051. Refs #112.
 
 Every one of the 1,230 completion 0.0 cells has a completer count that goes from `*` to blank on the same row. The other 714 completer counts that go from `*` to blank keep a `*` completion rate. 1,230 + 714 = 1,944.
 

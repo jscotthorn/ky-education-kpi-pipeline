@@ -687,6 +687,24 @@ raw_directories:
       save_as: "KYRC24_OVW_Teacher_Working_Conditions_historical.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Teacher_Working_Conditions.csv"
+    # Accepted source choice, 27 November 2026. The file to load is the
+    # refreshed datasets copy, md5 2d813911b205483f422311f8a8e0f5e5,
+    # 512,257 bytes, sha256
+    # ffefc54e99835089e999b40aadd854ba493806c55f389242d62737e498295478,
+    # Last-Modified Wed, 04 Nov 2026 13:21:19 GMT, as published. This
+    # comment is Gremlin's plan, not Scott's 12:30 PM ET answer. That
+    # answer adopted the decision record and the missing-districts doc
+    # fix. It did not include a config comment. The comment changes no
+    # values. It does not load those bytes, and it does not regenerate
+    # processed output. The earlier copy (md5
+    # ac5bd3c79bbfeaef42ee5ce015dcb089, 436,507 bytes; the UAT object
+    # fetched 27 Nov 2026 is that hash) has 3,282 rows. The refreshed
+    # copy has 3,852. The 15 columns match. No shared Impact Value
+    # changes. District Name on district 603 (6 rows, school codes
+    # 603000 and 603390) is "Kentucky School for the Deaf District".
+    # Districts 001-095 on the district list are present. Eleven
+    # districts on that list are still absent.
+    # docs/decisions/0060-twc-kyrc26-refresh.md
     - url: "kyrc26"
       file: "KYRC26_OVW_Teacher_Working_Conditions.csv"
     - "teacher_working_conditions_2022.csv"
