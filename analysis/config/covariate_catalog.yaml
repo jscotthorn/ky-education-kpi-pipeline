@@ -172,7 +172,7 @@ covariates:
         Direct measure of teacher effectiveness distribution.
         Chetty et al. (2014): Teacher effectiveness has lasting impacts on
         student earnings and life outcomes.
-      note: "KPI metric the module emits for Title I rows. student_group holds the demographic; All Students is the school-level figure. The module also emits students_taught_by_ineffective_teachers_rate_not_title_1 and students_taught_by_ineffective_teachers_rate_equity_gap."
+      note: "KPI metric the module emits for Title I schools only. Each school is Title I or Not Title I, not both. student_group holds the demographic. A school-level covariate also needs students_taught_by_ineffective_teachers_rate_not_title_1. The module also emits students_taught_by_ineffective_teachers_rate_equity_gap."
       theoretical_relevance:
         - graduation_rate
         - proficiency_rate
@@ -187,7 +187,7 @@ covariates:
         Out-of-field teaching (teaching outside certification area) associated
         with lower student outcomes. Ingersoll (2002): particularly problematic
         in math and science.
-      note: "KPI metric the module emits for Title I rows. student_group holds the demographic; All Students is the school-level figure. The module also emits students_taught_by_out_of_field_teachers_rate_not_title_1 and students_taught_by_out_of_field_teachers_rate_equity_gap."
+      note: "KPI metric the module emits for Title I schools only. Each school is Title I or Not Title I, not both. student_group holds the demographic. A school-level covariate also needs students_taught_by_out_of_field_teachers_rate_not_title_1. The module also emits students_taught_by_out_of_field_teachers_rate_equity_gap."
       theoretical_relevance:
         - graduation_rate
         - proficiency_rate

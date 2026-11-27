@@ -305,6 +305,46 @@ class TestSchoolCoursesETL:
         assert "has_algebra_1_access" not in set(df["metric"])
         _assert_unique_keys(df)
 
+    def test_algebra_i_course_name_emits_no_algebra_metric(self, tmp_path):
+        """A course named Algebra I does not restore the removed metrics.
+
+        The row is Echo Trail Middle ``275255``, Career Choices, from
+        ``tests/fixtures/school_courses/kyrc26_real_rows.csv``. That excerpt
+        is the published KYRC26 row
+        (https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC26_EDOP_School_Courses_Summary.csv):
+        total ``1,254``, Grade 6 ``485``, Grade 7 ``445``, Grade 8 ``324``.
+        Only ``State Course Name`` is changed to ``Algebra I``. No
+        registered file contains that name. The removed parser matched
+        ``ALGEBRA I`` and would have stored ``algebra_1_grade_8_count``
+        and ``has_algebra_1_access`` from the Grade 8 cell.
+        """
+        fixture = FIXTURE_DIR / "kyrc26_echo_trail_algebra_i.csv"
+        text = fixture.read_text(encoding="utf-8")
+        assert "Algebra I" in text
+        assert "Career Choices" not in text
+        source = pd.read_csv(fixture, dtype=str, keep_default_na=False)
+        assert len(source) == 1
+        row = source.iloc[0]
+        assert row["School Code"] == "275255"
+        assert row["School Name"] == "Echo Trail Middle School"
+        assert row["State Course Name"] == "Algebra I"
+        assert row["All Students"] == "1,254"
+        assert row["Grade 8"] == "324"
+        assert row["Course Category"] == "CTE"
+
+        df = _run(tmp_path, [
+            ("KYRC26_EDOP_School_Courses_Summary.csv", fixture.read_bytes()),
+        ])
+        assert set(df["metric"]) == _OFFERED_METRICS
+        assert "algebra_1_grade_8_count" not in set(df["metric"])
+        assert "has_algebra_1_access" not in set(df["metric"])
+        counted = _one(df, "2026", "275255", "courses_offered_count")
+        assert counted["value"] == "1.0"
+        assert counted["suppressed"] == "N"
+        assert counted["student_group"] == "All Students"
+        assert _one(df, "2026", "275255", "courses_offered_count_cte")["value"] == "1.0"
+        _assert_unique_keys(df)
+
     def test_output_has_no_duplicate_keys(self, tmp_path):
         """The collapsed output has one row per school, year, group, and metric."""
         df = _run(tmp_path, [

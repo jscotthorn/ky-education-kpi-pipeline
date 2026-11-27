@@ -501,7 +501,7 @@ class SchoolCoursesETL(BaseETL):
         enrollment total is a number or a ``*``. A blank total is not
         counted. ``courses_offered_suppressed_count`` is how many of those
         totals are ``*``, and is 0 when none are. Category counts use the
-        same rows.         All seven metrics are stored with ``suppressed`` N. These files
+        same rows. All seven metrics are stored with ``suppressed`` N. These files
         have no demographic, so ``student_group`` stays ``All Students``.
         The key is one row per school, year, and metric (issue #82).
         """
