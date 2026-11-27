@@ -5,7 +5,7 @@ The base is `feature/2025-26-kyrc26` at `1aef27b4a43dffb9757b4651a4dc687945479b5
 Two loads:
 
 - 2020-21 and 2021-22 dual credit, the `DC` slice of the advanced-course participation and courses-offered files. Issue #74 (b) and (c). Record [0031](../docs/decisions/0031-dual-credit-dc-slice.md).
-- The published 2021-22 climate and safety index. Issue #121. Record [DNNNN](../docs/decisions/DNNNN-register-2021-22-climate-index.md) replaces the registration choice in [0042](../docs/decisions/0042-do-not-register-2021-22-climate-index.md). The metric names in 0042 still stand.
+- The published 2021-22 climate and safety index. Issue #121. Record [0061](../docs/decisions/0061-register-2021-22-climate-index.md) replaces the registration choice in [0042](../docs/decisions/0042-do-not-register-2021-22-climate-index.md). The metric names in 0042 still stand.
 
 No score is recomputed. School codes are not padded. `NUMBER TESTED` is not stored. `has_dual_credit_program` is not restored.
 

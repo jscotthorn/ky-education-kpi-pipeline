@@ -1,8 +1,6 @@
-# DNNNN Register the 2021-22 climate and safety index file
+# 0061 Register the 2021-22 climate and safety index file
 
 Status: accepted
-
-The number is a placeholder. A number is assigned at merge.
 
 ## Question
 

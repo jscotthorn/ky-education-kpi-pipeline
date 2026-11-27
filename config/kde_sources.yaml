@@ -268,7 +268,7 @@ raw_directories:
     # columns as KYRC23. State All Students climate / safety is elementary
     # 79.4 / 73.8, middle 69.2 / 62.6, high 64.1 / 58.6. Historical host.
     # md5 aaec467c52a2310176900619881d2ad6.
-    # docs/decisions/DNNNN-register-2021-22-climate-index.md
+    # docs/decisions/0061-register-2021-22-climate-index.md
     - "quality_of_school_climate_and_safety_survey_index_scores_2022.csv"
     # Historical KYRC24 precautionary. The datasets copy of this same name
     # is a 3,637-byte stub with a different schema. Keep the historical URL.
