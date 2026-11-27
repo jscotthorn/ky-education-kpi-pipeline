@@ -312,6 +312,15 @@ class TestDualCreditKyrc26:
         assert self.etl.accepts_data_file(Path("KYRC26_EDOP_Dual_Credit_Participation_and_Performance.csv"))
         assert self.etl.accepts_data_file(Path("KYRC23_EDOP_Dual_Credit_Courses_Offered.csv"))
         assert self.etl.accepts_data_file(Path("KYRC24_EDOP_Dual_Credit_Courses_Offered.csv"))
+        assert self.etl.accepts_data_file(Path("advanced_courses_participation_and_performance_2021.csv"))
+        assert self.etl.accepts_data_file(Path("advanced_courses_offered_2022.csv"))
+        # 2020 would add a year this load does not include. 2023 school rows
+        # collide with the KYRC23 EDOP file. Both siblings have a DC slice.
+        assert not self.etl.accepts_data_file(Path("advanced_courses_participation_and_performance_2020.csv"))
+        assert not self.etl.accepts_data_file(Path("advanced_courses_offered_2020.csv"))
+        assert not self.etl.accepts_data_file(Path("advanced_courses_participation_and_performance_2023.csv"))
+        assert not self.etl.accepts_data_file(Path("advanced_courses_offered_2023.csv"))
+        assert self.etl.module_column_mappings["EARNED QUALIFYING SCORE"] == "qualifying_score"
         mappings = self.etl.module_column_mappings
         assert mappings["Course Completers"] == "course_completers"
         assert mappings["Couse Completers"] == "course_completers"
@@ -611,6 +620,145 @@ class TestDualCreditKyrc26:
         assert float(cell("2023", "999000", "All Students", "dual_credit_course_completion_count_all_enrollments")["value"]) == 106041.0
         assert cell("2023", "999000", "All Students", "dual_credit_enrollment")["source_file"].startswith("KYRC23_")
 
+    def test_dc_slice_2021_and_2022_keeps_published_cells(self):
+        """2021 and 2022 dual credit is the DC slice, stored on the #73 names.
+
+        Verbatim rows, with the source line in the downloaded file:
+
+        - ``advanced_courses_participation_and_performance_2021.csv`` line
+          22271, state All Students ``DC`` enrollment ``36641``. URL
+          https://www.education.ky.gov/Open-House/data/HistoricalDatasets/advanced_courses_participation_and_performance_2021.csv
+        - same file line 6897, Bryan Station High ``165170`` All Students.
+        - same file line 6942, Bryan Station Homeless, enrollment ``*``.
+        - same file line 22269, state All Students ``AP`` ``37916``, which
+          must not become ``dual_credit_enrollment``.
+        - ``advanced_courses_offered_2021.csv`` line 8774, state Elementary
+          all four measure cells ``*``. URL
+          https://www.education.ky.gov/Open-House/data/HistoricalDatasets/advanced_courses_offered_2021.csv
+        - ``advanced_courses_participation_and_performance_2022.csv`` line
+          775, Bardstown Independent Asian enrollment ``7`` and completers
+          ``*``.
+        - ``advanced_courses_offered_2022.csv`` line 2859, Bryan Station
+          World Languages enrollment ``36``, completers ``*``, qualifying
+          ``30``.
+
+        State and district codes stay 3 digits. ``NUMBER TESTED`` is not a
+        metric. AP and ALL rows are not stored.
+        """
+        self._copy_fixtures()
+        transform(self.raw_dir, self.proc_dir, self._production_config())
+        result = pd.read_csv(self.proc_dir / "dual_credit.csv", dtype=str)
+        assert not result["metric"].astype("string").str.startswith(("ap_", "ib_", "cambridge_", "advanced_")).any()
+        assert not result["metric"].astype("string").str.contains("tested").any()
+
+        def cell(year, school_id, group, metric):
+            rows = result[
+                (result["year"] == year)
+                & (result["school_id"] == school_id)
+                & (result["student_group"] == group)
+                & (result["metric"] == metric)
+            ]
+            assert len(rows) == 1, f"{year} {school_id} {group} {metric} -> {len(rows)}"
+            return rows.iloc[0]
+
+        def suppressed(year, school_id, group, metric):
+            row = cell(year, school_id, group, metric)
+            assert row["suppressed"] == "Y"
+            assert row["value"] == "" or pd.isna(row["value"])
+            return row
+
+        state = cell("2021", "999", "All Students", "dual_credit_enrollment")
+        assert float(state["value"]) == 36641.0
+        assert state["district"] == "State"
+        assert state["school_name"] == "---State Total---"
+        assert state["suppressed"] == "N"
+        assert state["source_file"] == "advanced_courses_participation_and_performance_2021.csv"
+        assert float(cell("2021", "999", "All Students", "dual_credit_completion_count")["value"]) == 32454.0
+        assert float(cell("2021", "999", "All Students", "dual_credit_qualifying_score_count")["value"]) == 29482.0
+        assert float(cell("2021", "999", "All Students", "dual_credit_completion_rate")["value"]) == 88.6
+        assert float(cell("2021", "999", "All Students", "dual_credit_qualifying_score_rate")["value"]) == 90.8
+        # The AP state enrollment 37,916 and the ALL enrollment 63,321 are not this metric.
+        assert float(state["value"]) != 37916.0
+
+        fayette = cell("2021", "165", "All Students", "dual_credit_enrollment")
+        assert float(fayette["value"]) == 1262.0
+        assert fayette["district"] == "Fayette County"
+        assert fayette["co_op"] == "CKEC"
+        assert fayette["co_op_code"] == "901"
+        assert float(cell("2021", "165", "All Students", "dual_credit_completion_count")["value"]) == 1205.0
+        assert float(cell("2021", "165", "All Students", "dual_credit_qualifying_score_count")["value"]) == 1138.0
+
+        bryan = cell("2021", "165170", "All Students", "dual_credit_enrollment")
+        assert float(bryan["value"]) == 115.0
+        assert bryan["school_name"] == "Bryan Station High School"
+        assert bryan["nces_id"] == "210186000388"
+        assert bryan["state_school_id"] == "034165170"
+        suppressed("2021", "165170", "Homeless", "dual_credit_enrollment")
+        suppressed("2021", "165170", "Homeless", "dual_credit_completion_count")
+        suppressed("2021", "165170", "Homeless", "dual_credit_qualifying_score_count")
+        homeless_rates = result[
+            (result["year"] == "2021")
+            & (result["school_id"] == "165170")
+            & (result["student_group"] == "Homeless")
+            & (result["metric"].str.endswith("_rate"))
+        ]
+        assert len(homeless_rates) == 0
+
+        adair = cell("2021", "001", "All Students", "dual_credit_enrollment")
+        assert float(adair["value"]) == 115.0
+        assert adair["district"] == "Adair County"
+        assert adair["co_op"] == "GRREC"
+
+        offered = cell("2021", "999", "All Students", "dual_credit_course_enrollment_all_enrollments")
+        assert float(offered["value"]) == 91709.0
+        assert offered["source_file"] == "advanced_courses_offered_2021.csv"
+        assert float(cell("2021", "999", "All Students", "dual_credit_course_completion_count_all_enrollments")["value"]) == 80161.0
+        assert float(cell("2021", "999", "All Students", "dual_credit_course_qualifying_score_count_all_enrollments")["value"]) == 72872.0
+        suppressed("2021", "999", "All Students", "dual_credit_course_enrollment_elementary")
+        suppressed("2021", "999", "All Students", "dual_credit_course_completion_count_elementary")
+        suppressed("2021", "999", "All Students", "dual_credit_course_qualifying_score_count_elementary")
+        assert float(cell("2021", "165", "All Students", "dual_credit_course_enrollment_all_enrollments")["value"]) == 3415.0
+        assert float(cell("2021", "165170", "All Students", "dual_credit_course_enrollment_all_enrollments")["value"]) == 214.0
+        # Bryan Station AP Calculus BC enrollment 17 is not a dual-credit mathematics row.
+        bryan_math = result[
+            (result["year"] == "2021")
+            & (result["school_id"] == "165170")
+            & (result["metric"] == "dual_credit_course_enrollment_mathematics")
+        ]
+        assert len(bryan_math) == 0
+
+        state_2022 = cell("2022", "999", "All Students", "dual_credit_enrollment")
+        assert float(state_2022["value"]) == 38371.0
+        assert state_2022["district"] == "State"
+        assert float(cell("2022", "999", "All Students", "dual_credit_completion_count")["value"]) == 34597.0
+        assert float(cell("2022", "999", "All Students", "dual_credit_qualifying_score_count")["value"]) == 32664.0
+        assert float(cell("2022", "165", "All Students", "dual_credit_enrollment")["value"]) == 1234.0
+        assert float(cell("2022", "165170", "All Students", "dual_credit_enrollment")["value"]) == 133.0
+        partial = cell("2022", "017", "Asian", "dual_credit_enrollment")
+        assert float(partial["value"]) == 7.0
+        assert partial["district"] == "Bardstown Independent"
+        assert partial["suppressed"] == "N"
+        suppressed("2022", "017", "Asian", "dual_credit_completion_count")
+        suppressed("2022", "017", "Asian", "dual_credit_qualifying_score_count")
+
+        assert float(cell("2022", "999", "All Students", "dual_credit_course_enrollment_all_enrollments")["value"]) == 96903.0
+        assert float(cell("2022", "165170", "All Students", "dual_credit_course_enrollment_all_enrollments")["value"]) == 272.0
+        languages = cell("2022", "165170", "All Students", "dual_credit_course_enrollment_world_languages")
+        assert float(languages["value"]) == 36.0
+        suppressed("2022", "165170", "All Students", "dual_credit_course_completion_count_world_languages")
+        assert float(cell("2022", "165170", "All Students", "dual_credit_course_qualifying_score_count_world_languages")["value"]) == 30.0
+        language_rates = result[
+            (result["year"] == "2022")
+            & (result["school_id"] == "165170")
+            & (result["metric"].str.contains("world_languages"))
+            & (result["metric"].str.endswith("_rate"))
+        ]
+        assert len(language_rates) == 0
+
+        # Unchanged 2023 anchor. KYRC23 EDOP, not the 2023 DC slice.
+        assert float(cell("2023", "999000", "All Students", "dual_credit_enrollment")["value"]) == 45873.0
+        assert cell("2023", "999000", "All Students", "dual_credit_enrollment")["source_file"].startswith("KYRC23_")
+
 
 def test_registered_sources_are_the_permanent_files():
     """KYRC23 through KYRC26 are registered. No temporary OAA name is.
@@ -632,6 +780,13 @@ def test_registered_sources_are_the_permanent_files():
         "KYRC26_EDOP_Dual_Credit_Courses_Offered.csv",
         "KYRC25_EDOP_Dual_Credit_Participation_and_Performance.csv",
         "KYRC26_EDOP_Dual_Credit_Participation_and_Performance.csv",
+        "advanced_courses_offered_2021.csv",
+        "advanced_courses_participation_and_performance_2021.csv",
+        "advanced_courses_offered_2022.csv",
+        "advanced_courses_participation_and_performance_2022.csv",
     ]
     assert not any(name.startswith("Dual_Credit") for name in names)
+    assert "advanced_courses_offered_2020.csv" not in names
+    assert "advanced_courses_participation_and_performance_2023.csv" not in names
+    assert "advanced_courses_offered_2023.csv" not in names
 

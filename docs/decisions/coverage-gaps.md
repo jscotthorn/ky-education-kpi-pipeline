@@ -42,9 +42,9 @@ Separate gap, source choice recorded 27 November 2026: the refreshed datasets co
 
 ## 2021-22 climate and safety index
 
-Classification: **planned or deferred** ([#121](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/121)).
+Classification: **loaded on this branch** ([0061](0061-register-2021-22-climate-index.md)).
 
-The published file `quality_of_school_climate_and_safety_survey_index_scores_2022.csv` is not registered. Losing 2021-22 was accepted on 24 October 2026. On 25 October 2026 Scott said there was no specific reason, and issue #121 tracks a low-priority load of that file into the same per-level metrics. See [0042](0042-do-not-register-2021-22-climate-index.md). The series from 2022-23 on is loaded. This is not a choice to leave the year out for good.
+`quality_of_school_climate_and_safety_survey_index_scores_2022.csv` is registered and loaded into `climate_index_score_{level}` and `safety_index_score_{level}`. [0042](0042-do-not-register-2021-22-climate-index.md) left it unregistered. That registration choice is superseded in part. The metric names in 0042 still stand. Data Engineer confirmed that the year loaded exactly as published. See [0061](0061-register-2021-22-climate-index.md).
 
 ## District staffing and finance figures for 2026
 

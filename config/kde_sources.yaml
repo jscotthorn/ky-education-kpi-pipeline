@@ -264,6 +264,12 @@ raw_directories:
       file: "KYRC25_ACCT_Index_Scores.csv"
     - url: "kyrc26"
       file: "KYRC26_ACCT_Index_Scores.csv"
+    # 2021-22 per-level index. School year 20212022. 47,574 rows, same 18
+    # columns as KYRC23. State All Students climate / safety is elementary
+    # 79.4 / 73.8, middle 69.2 / 62.6, high 64.1 / 58.6. Historical host.
+    # md5 aaec467c52a2310176900619881d2ad6.
+    # docs/decisions/0061-register-2021-22-climate-index.md
+    - "quality_of_school_climate_and_safety_survey_index_scores_2022.csv"
     # Historical KYRC24 precautionary. The datasets copy of this same name
     # is a 3,637-byte stub with a different schema. Keep the historical URL.
     - "KYRC24_SAFE_Precautionary_Measures.csv"
@@ -784,6 +790,15 @@ raw_directories:
       file: "KYRC25_EDOP_Dual_Credit_Participation_and_Performance.csv"
     - url: "kyrc26"
       file: "KYRC26_EDOP_Dual_Credit_Participation_and_Performance.csv"
+    # 2020-21 and 2021-22 dual credit, the DC slice. School years 20202021
+    # and 20212022. KDE labels the course type DC. The same four names are
+    # registered under advanced_coursework. prepare_kde_data.py downloads
+    # this copy into data/raw/dual_credit/. KYRC23 EDOP stays 2022-23.
+    # 2020 and 2023 advanced-course files are not registered here.
+    - "advanced_courses_offered_2021.csv"
+    - "advanced_courses_participation_and_performance_2021.csv"
+    - "advanced_courses_offered_2022.csv"
+    - "advanced_courses_participation_and_performance_2022.csv"
 
   cte_pathways:
     # Pathways Available is the pathway name in every year, including the
