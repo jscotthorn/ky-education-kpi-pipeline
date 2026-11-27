@@ -211,8 +211,9 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     # district totals are 0:01, 15:01, 3:01, and 412:01. Floyd's are 5249:01,
     # 14:01, 0:01, and 3:01. 2022 Corbin is 16 and 2024 Corbin is 15, so 2023
     # keeps 15. 2022 Floyd is 14 and 2024 Floyd is 16, so 2023 keeps 14.
-    # HistoricalDatasets/student_teacher_ratio_2023.csv and the KYRC24 file
-    # on the historical host.
+    # https://www.education.ky.gov/Open-House/data/HistoricalDatasets/student_teacher_ratio_2023.csv
+    # https://www.education.ky.gov/Open-House/data/HistoricalDatasets/student_teacher_ratio_2022.csv
+    # https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC24_OVW_Student_to_Teacher_Ratio.csv
     corbin_23 = _metric_value(combined, "2023", "133")
     assert float(corbin_23["value"]) == 15.0
     assert corbin_23["district"] == "Corbin Independent"
@@ -228,7 +229,9 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert float(_metric_value(combined, "2024", "175000")["value"]) == 16.0
     # Published outliers stay. KYRC24 row 314 is Cloverport district 86:01.
     # KYRC25 row 318 is Corbin district 483:01. KYRC26 row 268 is Cloverport
-    # Independent School 115:01. datasets container.
+    # Independent School 115:01.
+    # https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC25_OVW_Student_to_Teacher_Ratio.csv
+    # https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC26_OVW_Student_to_Teacher_Ratio.csv
     clover_24 = _metric_value(combined, "2024", "132000")
     assert float(clover_24["value"]) == 86.0
     assert clover_24["district"] == "Cloverport Independent"

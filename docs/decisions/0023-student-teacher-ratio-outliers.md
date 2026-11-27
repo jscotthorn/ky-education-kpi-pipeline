@@ -39,7 +39,7 @@ The comment keeps the published outliers and names the adjacent-year rule for th
 
 ## Code check
 
-The KYRC26 school-only limit matches `etl/student_teacher_ratio.py` and `config/kde_sources.yaml`. The 2023 Corbin district total stored is 15 and the Floyd district total stored is 14. The other 2023 copies of those two codes are not stored. The three named outliers stay in the output and are listed in `notes/flags/G-flagged-keys.csv` with label `kde-recheck`. A starred ratio in this module is stored as value NA with `suppressed` Y. No registered ratio file contains `*`. Issue #56 is still open. The status of this record is unchanged.
+The KYRC26 school-only limit matches `etl/student_teacher_ratio.py` and `config/kde_sources.yaml`. The 2023 Corbin district total stored is 15 and the Floyd district total stored is 14. The other 2023 copies of those two codes are not stored. KYRC23 `KYRC23_OVW_Student_to_Teacher_Ratio.csv` on the datasets container publishes one district total for each of those codes: Corbin Independent `133000` is `412:01:00` and Floyd County `175000` is `5249:01:00`. Those are the historical-file copies this pipeline does not store. The #56 adjacent-year rule is unchanged. The kept 2023 rows (Corbin 15, Floyd 14) and the three named outliers are in `notes/flags/G-flagged-keys.csv` with label `kde-recheck`. A starred ratio in this module is stored as value NA with `suppressed` Y. No registered ratio file contains `*`. Issue #56 is still open. The status of this record is unchanged.
 
 ## KDE guidance check
 

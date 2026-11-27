@@ -10,7 +10,11 @@ import sys
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from etl_runner import DuplicateKpiKeyError, combine_kpi_files
+from etl_runner import (
+    DuplicateKpiKeyError,
+    _assert_no_duplicate_kpi_keys,
+    combine_kpi_files,
+)
 
 
 class TestKpiCombination:
@@ -155,5 +159,62 @@ class TestKpiCombination:
         duplicated = pd.concat([frame, frame.iloc[[0]]], ignore_index=True)
         duplicated.to_csv(self.proc_dir / "file1.csv", index=False)
 
+        output = self.kpi_dir / "kpi_master.csv"
         with pytest.raises(DuplicateKpiKeyError, match="Duplicate KPI keys"):
-            combine_kpi_files(self.proc_dir, self.kpi_dir / "kpi_master.csv")
+            combine_kpi_files(self.proc_dir, output)
+        assert not output.exists()
+        assert list(self.kpi_dir.glob("*.partial")) == []
+
+    def test_missing_master_file_is_an_error(self):
+        """The key check does not treat a missing master as success."""
+        missing = self.kpi_dir / "absent.csv"
+        with pytest.raises(DuplicateKpiKeyError, match="missing"):
+            _assert_no_duplicate_kpi_keys(missing)
+
+    def test_same_hash_on_different_keys_is_not_a_duplicate(self, monkeypatch):
+        """A shared 8-byte hash is confirmed against the key text."""
+        import numpy as np
+
+        self.create_sample_files()
+
+        def constant_hash(frame):
+            return np.zeros(len(frame), dtype=np.uint64)
+
+        monkeypatch.setattr("etl_runner._hash_key_frame", constant_hash)
+        output = self.kpi_dir / "kpi_master.csv"
+        combine_kpi_files(self.proc_dir, output)
+        assert len(pd.read_csv(output)) == 3
+
+    def test_source_column_order_is_rewritten_to_the_kpi_header(self):
+        """Cells follow the KPI header, not the source file's column order."""
+        row = {column: f"v-{column}" for column in KPI_COLUMNS}
+        row["district"] = "Fayette County"
+        row["school_id"] = "165170"
+        row["school_name"] = "Bryan Station High School"
+        row["year"] = "2026"
+        row["student_group"] = "All Students"
+        row["metric"] = "student_teacher_ratio"
+        row["value"] = "15.0"
+        shuffled = list(reversed(KPI_COLUMNS))
+        pd.DataFrame([row])[shuffled].to_csv(
+            self.proc_dir / "shuffled.csv", index=False
+        )
+        output = self.kpi_dir / "kpi_master.csv"
+        combine_kpi_files(self.proc_dir, output)
+        result = pd.read_csv(output, dtype=str)
+        assert list(result.columns) == list(KPI_COLUMNS)
+        assert result.loc[0, "district"] == "Fayette County"
+        assert result.loc[0, "school_id"] == "165170"
+        assert result.loc[0, "metric"] == "student_teacher_ratio"
+        assert result.loc[0, "value"] == "15.0"
+
+    def test_missing_kpi_column_fails_and_leaves_no_master(self):
+        """A short header is not written under the fixed KPI header."""
+        pd.DataFrame(
+            {"district": ["Fayette County"], "year": ["2023"]}
+        ).to_csv(self.proc_dir / "short.csv", index=False)
+        output = self.kpi_dir / "kpi_master.csv"
+        with pytest.raises(ValueError, match="missing KPI columns"):
+            combine_kpi_files(self.proc_dir, output)
+        assert not output.exists()
+        assert list(self.kpi_dir.glob("*.partial")) == []

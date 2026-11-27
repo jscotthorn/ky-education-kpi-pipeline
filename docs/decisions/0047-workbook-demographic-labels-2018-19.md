@@ -33,7 +33,7 @@ The comment says the workbook's own label is the source when it disagrees with t
 
 ## Code check
 
-`demographic_mappings.yaml` is unchanged. `GRADUATION_RATE_18-19.xlsx` and `TRANSITION_READINESS_ACCOUNTABILITY_18-19.xlsx` now read the coversheet before the shared mapper for `LEN` (Non-English Learner) and `ELN` (Non-English Learner or monitored). `LEP` stays on the shared map as English Learner. `ACD` and `ACO` are still filtered. Mapping them would collide with `CSG`, which already maps to Students with Disabilities (IEP), so that coversheet swap is still open. This is not the cross-module audit. Issue #76 is still open. The status of this record is unchanged.
+`demographic_mappings.yaml` mappings are unchanged. `GRADUATION_RATE_18-19.xlsx` and `TRANSITION_READINESS_ACCOUNTABILITY_18-19.xlsx` apply a hard-coded crosswalk before the shared mapper for `LEN` (Non-English Learner) and `ELN` (Non-English Learner or monitored). The code does not open the coversheet. `LEP` stays on the shared map as English Learner. `ACD` and `ACO` are still filtered. Mapping them would collide with `CSG`, which already maps to Students with Disabilities (IEP), so that coversheet swap is still open. This is not the cross-module audit. Issue #76 is still open. The status of this record is unchanged.
 
 ## KDE guidance check
 

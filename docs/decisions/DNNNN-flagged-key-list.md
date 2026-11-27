@@ -43,7 +43,7 @@ The verified file records the sentence as approval of Gremlin's stated recommend
 
 ## Code check
 
-Matches. The 20 published teacher-experience averages of 0 and the three student-teacher ratio outliers are in `notes/flags/G-flagged-keys.csv`. `KPIS.md` names that file. The KPI schema has no flag column.
+Matches. The 20 published teacher-experience averages of 0, the three student-teacher ratio outliers, and the two kept 2023 district totals (Corbin 15 and Floyd 14) are in `notes/flags/G-flagged-keys.csv`. `KPIS.md` names that file. The KPI schema has no flag column.
 
 ## KDE guidance check
 

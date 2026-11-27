@@ -28,8 +28,11 @@ so a sum of school rows is not that total.
 ``student_teacher_ratio_2023.csv`` repeats the Corbin Independent and Floyd
 County district totals. The row kept is the one consistent with the adjacent
 years: Corbin 15 (2022 is 16 and 2024 is 15) and Floyd 14 (2022 is 14 and
-2024 is 16). A published ``*`` is stored as value NA with ``suppressed`` Y.
-No registered file contains that cell.
+2024 is 16). KYRC23's report-card file publishes one district total for each,
+Corbin ``412:01:00`` and Floyd ``5249:01:00``. Those cells are not stored.
+The #56 rule is unchanged. If a code is present and no row equals the kept
+value, conversion raises. A published ``*`` is stored as value NA with
+``suppressed`` Y. No registered file contains that cell.
 
 No temporary OAA extract is registered, and the guessed temporary names
 return 404, so there is no leftover temporary filename to skip.
@@ -314,6 +317,7 @@ class StudentTeacherRatioETL(BaseETL):
             group = (codes == code).fillna(False)
             if not bool(group.any()):
                 continue
+            matched_kept = False
             for idx in df.index[group.to_numpy()]:
                 parsed = parse_ratio(df.at[idx, "ratio"])
                 try:
@@ -322,6 +326,7 @@ class StudentTeacherRatioETL(BaseETL):
                     missing = True
                 matches = (not missing) and float(parsed) == kept_value
                 if matches:
+                    matched_kept = True
                     continue
                 row = df.loc[idx]
                 logger.warning(
@@ -334,6 +339,12 @@ class StudentTeacherRatioETL(BaseETL):
                     source_file,
                 )
                 keep.at[idx] = False
+            if not matched_kept:
+                raise ValueError(
+                    f"2023 district total school_code={code} has no row equal "
+                    f"to {kept_value} in {source_file}. The kept value is "
+                    f"hard-coded from the adjacent years."
+                )
         return df.loc[keep].copy()
 
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:

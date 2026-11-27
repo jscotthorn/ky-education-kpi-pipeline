@@ -406,13 +406,50 @@ class TestKyrc26OptIn:
         assert self.etl.extract_metrics(frame.iloc[4]) == {}
 
 
+def test_2023_filter_raises_when_the_kept_value_is_absent():
+    """Corbin or Floyd with no adjacent-year row is an error, not a silent drop.
+
+    The kept numbers are hard-coded. A 2023 frame that has school code 133
+    and only the KYRC23 district total ``412:01`` does not match 15.
+    """
+    etl = StudentTeacherRatioETL("student_teacher_ratio")
+    missing = pd.DataFrame(
+        {
+            "school_code": ["133", "133"],
+            "district_name": ["Corbin Independent", "Corbin Independent"],
+            "ratio": ["3:01", "412:01"],
+        }
+    )
+    with pytest.raises(ValueError, match="school_code=133"):
+        etl._keep_2023_adjacent_year_totals(missing, "student_teacher_ratio_2023.csv")
+
+    present = pd.DataFrame(
+        {
+            "school_code": ["133", "133", "175"],
+            "district_name": [
+                "Corbin Independent",
+                "Corbin Independent",
+                "Floyd County",
+            ],
+            "ratio": ["15:01", "412:01", "14:01"],
+        }
+    )
+    kept = etl._keep_2023_adjacent_year_totals(
+        present, "student_teacher_ratio_2023.csv"
+    )
+    assert list(kept["ratio"]) == ["15:01", "14:01"]
+    untouched = etl._keep_2023_adjacent_year_totals(missing, "student_teacher_ratio_2022.csv")
+    assert len(untouched) == 2
+
+
 def test_starred_ratio_from_a_real_row_is_suppressed(tmp_path):
     """A star is value NA with suppressed Y.
 
     No registered student-teacher ratio file contains ``*``. The identity
-    cells are KYRC26 Bryan Station High School, school code 165170, from the
-    datasets file copied into the fixture. Only that row's ratio cell is
-    replaced with ``*`` in this test. The Adair row in the same file stays 15.
+    cells are KYRC26 Bryan Station High School, school code 165170, from
+    https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC26_OVW_Student_to_Teacher_Ratio.csv
+    copied into the fixture. Only that row's ratio cell is replaced with
+    ``*`` in this test. The Adair row in the same file stays 15.
     """
     import csv
 

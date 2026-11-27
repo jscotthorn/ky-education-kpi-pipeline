@@ -19,8 +19,10 @@ ETL Runner - Kentucky Education Data Pipeline Orchestrator
 Processes Kentucky Department of Education CSV exports into standardized
 KPI format for multi-year educational performance reporting.
 """
+import os
 import sys
 import argparse
+import tempfile
 from etl.constants import KPI_COLUMNS
 from pathlib import Path
 from types import ModuleType
@@ -48,6 +50,9 @@ DUPLICATE_KEY_COLUMNS = (
     "metric",
 )
 DUPLICATE_KEY_ALLOWLIST: frozenset[tuple[str, ...]] = frozenset()
+# 16-byte key for pandas.util.hash_pandas_object. Both passes of one run
+# must use the same key. It is not a secret.
+_DUPLICATE_KEY_HASH_KEY = "ky-kpi-key-hash!"
 
 
 class DuplicateKpiKeyError(RuntimeError):
@@ -88,6 +93,10 @@ def combine_kpi_files(
 ) -> None:
     """Combine all processed KPI CSV files into a master dataset using chunked processing.
 
+    The master is written to a temporary file in the same directory, checked,
+    and renamed into place. A failed check removes the temporary file and
+    leaves any previous master untouched.
+
     Parameters
     ----------
     proc_dir : Path
@@ -97,14 +106,65 @@ def combine_kpi_files(
     chunk_size : int, optional
         Number of rows to process in each chunk (default: 10000).
     """
+    output_csv_path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, tmp_name = tempfile.mkstemp(
+        prefix=f".{output_csv_path.name}.",
+        suffix=".partial",
+        dir=output_csv_path.parent,
+    )
+    os.close(descriptor)
+    tmp_path = Path(tmp_name)
+    try:
+        _write_combined_kpi_csv(proc_dir, tmp_path, chunk_size)
+        _assert_no_duplicate_kpi_keys(tmp_path)
+        os.replace(tmp_path, output_csv_path)
+    except Exception:
+        tmp_path.unlink(missing_ok=True)
+        raise
+
+
+def _kpi_column_positions(header: list[str], source_name: str) -> list[int]:
+    """Return source indexes for ``KPI_COLUMNS`` order.
+
+    A processed file may list the same columns in another order. Rows are
+    rewritten in ``KPI_COLUMNS`` order. A missing column is an error, not a
+    skipped file: writing the row under the fixed header would put cells in
+    the wrong fields.
+    """
+    index = {name: position for position, name in enumerate(header)}
+    missing = [column for column in KPI_COLUMNS if column not in index]
+    if missing:
+        raise ValueError(
+            f"{source_name} is missing KPI columns {missing}"
+        )
+    return [index[column] for column in KPI_COLUMNS]
+
+
+def _align_kpi_row(row: list[str], positions: list[int], source_name: str) -> list[str]:
+    """Pick cells in ``KPI_COLUMNS`` order. A short row is an error."""
+    aligned: list[str] = []
+    width = len(row)
+    for position in positions:
+        if position >= width:
+            raise ValueError(
+                f"{source_name} has a row shorter than its header"
+            )
+        aligned.append(row[position])
+    return aligned
+
+
+def _write_combined_kpi_csv(
+    proc_dir: Path,
+    output_csv_path: Path,
+    chunk_size: int,
+) -> None:
+    """Write the combined CSV. The caller renames it after the key check."""
     import csv
-    
-    # Get list of CSV files to process (skip audit files)
+
     csv_files = [f for f in proc_dir.glob("*.csv") if "audit" not in f.name]
-    
+
     if not csv_files:
         print("  Warning: No valid KPI files found; creating empty master file.")
-        # Create empty file with correct KPI schema
         empty_df = pd.DataFrame(columns=KPI_COLUMNS)
         empty_df.to_csv(output_csv_path, index=False)
         return
@@ -112,102 +172,174 @@ def combine_kpi_files(
     total_rows = 0
     files_processed = 0
 
-    # Write header to output file first
-    with open(output_csv_path, 'w', newline='', encoding='utf-8') as outfile:
+    with open(output_csv_path, "w", newline="", encoding="utf-8") as outfile:
         writer = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
         writer.writerow(KPI_COLUMNS)
-        
-        # Process each CSV file
+
         for csv_file in csv_files:
             print(f"  Processing {csv_file.name}")
-            
+
             try:
-                with open(csv_file, 'r', newline='', encoding='utf-8') as infile:
+                with open(csv_file, "r", newline="", encoding="utf-8") as infile:
                     reader = csv.reader(infile)
-                    
-                    # Read and validate header
+
                     try:
                         header = next(reader)
                     except StopIteration:
                         print(f"  Warning: Empty file: {csv_file.name}")
                         continue
-                    
-                    # Basic header validation
-                    if not header or len(header) < len(KPI_COLUMNS):
-                        print(f"  Skipping {csv_file.name} - invalid header")
-                        continue
-                    
-                    # Process data rows in chunks
+
+                    positions = _kpi_column_positions(header, csv_file.name)
+
                     file_rows = 0
-                    chunk = []
+                    chunk: list[list[str]] = []
                     chunks_written = 0
-                    
+
                     for row in reader:
-                        if row:  # Skip empty rows
-                            chunk.append(row)
-                            
-                            # Write chunk when it reaches chunk_size
-                            if len(chunk) >= chunk_size:
-                                writer.writerows(chunk)
-                                file_rows += len(chunk)
-                                chunks_written += 1
-                                chunk = []
-                                
-                                # Log progress every 10 chunks (100k rows)
-                                if chunks_written % 10 == 0:
-                                    print(f"    Processed {file_rows:,} rows ({chunks_written} chunks)")
-                    
-                    # Write remaining rows in final chunk
+                        if not row:
+                            continue
+                        chunk.append(_align_kpi_row(row, positions, csv_file.name))
+
+                        if len(chunk) >= chunk_size:
+                            writer.writerows(chunk)
+                            file_rows += len(chunk)
+                            chunks_written += 1
+                            chunk = []
+
+                            if chunks_written % 10 == 0:
+                                print(
+                                    f"    Processed {file_rows:,} rows "
+                                    f"({chunks_written} chunks)"
+                                )
+
                     if chunk:
                         writer.writerows(chunk)
                         file_rows += len(chunk)
                         chunks_written += 1
-                    
+
                     total_rows += file_rows
                     files_processed += 1
                     print(f"  Added {file_rows:,} KPI rows from {csv_file.name}")
-                    
+
+            except ValueError:
+                raise
             except Exception as e:
                 print(f"  Error processing {csv_file.name}: {e}")
                 continue
 
     print(f"  Combined {files_processed} KPI sources into {output_csv_path}")
     print(f"  Master KPI file: {total_rows:,} rows")
-    _assert_no_duplicate_kpi_keys(output_csv_path)
+
+
+def _hash_key_frame(frame: pd.DataFrame):
+    """8-byte hash of each row's pipeline key.
+
+    ``pandas.util.hash_pandas_object`` is the vectorized hash. The same
+    ``hash_key`` is used when those hashes are confirmed against the text
+    of the key. ``categorize=False`` avoids building a categorical of every
+    distinct school name in the chunk.
+    """
+    hashed = pd.util.hash_pandas_object(
+        frame.loc[:, list(DUPLICATE_KEY_COLUMNS)],
+        index=False,
+        categorize=False,
+        hash_key=_DUPLICATE_KEY_HASH_KEY,
+    )
+    return hashed.to_numpy()
 
 
 def _assert_no_duplicate_kpi_keys(output_csv_path: Path) -> None:
     """Fail the combine when a key is repeated and is not allowlisted.
 
-    The key is ``DUPLICATE_KEY_COLUMNS``. ``DUPLICATE_KEY_ALLOWLIST`` is
-    empty: the #128 groups are resolved in the source modules. A key that
-    remains is listed in the error, up to 50 keys, with the total count.
+    The key is ``DUPLICATE_KEY_COLUMNS``. Counts are stored as 8-byte
+    hashes, one per row, then sorted. Only a hash that occurs more than
+    once is read back as the real key, so a hash collision between two
+    different keys is not reported as a duplicate. ``DUPLICATE_KEY_ALLOWLIST``
+    is empty: the #128 groups are resolved in the source modules.
     """
-    if not output_csv_path.exists() or output_csv_path.stat().st_size == 0:
+    import numpy as np
+
+    if not output_csv_path.is_file():
+        raise DuplicateKpiKeyError(
+            f"KPI master file is missing: {output_csv_path}"
+        )
+    if output_csv_path.stat().st_size == 0:
+        raise DuplicateKpiKeyError(
+            f"KPI master file is empty: {output_csv_path}"
+        )
+
+    key_columns = list(DUPLICATE_KEY_COLUMNS)
+    try:
+        reader = pd.read_csv(
+            output_csv_path,
+            dtype=str,
+            keep_default_na=False,
+            usecols=key_columns,
+            chunksize=200_000,
+        )
+    except ValueError as exc:
+        raise DuplicateKpiKeyError(
+            f"{output_csv_path} is missing key columns ({exc})"
+        ) from exc
+
+    capacity = 1 << 20
+    hashes = np.empty(capacity, dtype=np.uint64)
+    offset = 0
+    try:
+        for chunk in reader:
+            if chunk.empty:
+                continue
+            hashed = np.asarray(_hash_key_frame(chunk), dtype=np.uint64)
+            count = int(hashed.size)
+            if offset + count > hashes.size:
+                grown = np.empty(
+                    max(hashes.size * 2, offset + count), dtype=np.uint64
+                )
+                grown[:offset] = hashes[:offset]
+                del hashes
+                hashes = grown
+            hashes[offset:offset + count] = hashed
+            offset += count
+            del hashed
+    except ValueError as exc:
+        raise DuplicateKpiKeyError(
+            f"{output_csv_path} is missing key columns ({exc})"
+        ) from exc
+
+    if offset == 0:
         return
 
+    exact = np.empty(offset, dtype=np.uint64)
+    exact[:] = hashes[:offset]
+    del hashes
+    exact.sort()
+
+    repeated = np.flatnonzero(exact[1:] == exact[:-1])
+    if repeated.size == 0:
+        return
+    colliding = {int(value) for value in np.unique(exact[1:][repeated])}
+    del exact
+
     counts: dict[tuple[str, ...], int] = {}
-    key_columns = list(DUPLICATE_KEY_COLUMNS)
-    reader = pd.read_csv(
+    confirm = pd.read_csv(
         output_csv_path,
         dtype=str,
         keep_default_na=False,
-        chunksize=100_000,
+        usecols=key_columns,
+        chunksize=200_000,
     )
-    for chunk in reader:
-        missing = [column for column in key_columns if column not in chunk.columns]
-        if missing:
-            raise DuplicateKpiKeyError(
-                f"{output_csv_path} is missing key columns {missing}"
-            )
+    colliding_array = np.fromiter(colliding, dtype=np.uint64)
+    for chunk in confirm:
         if chunk.empty:
             continue
-        grouped = chunk.groupby(key_columns, dropna=False).size()
-        for key, count in grouped.items():
-            if not isinstance(key, tuple):
-                key = (key,)
-            normalized = tuple("" if part is None else str(part) for part in key)
-            counts[normalized] = counts.get(normalized, 0) + int(count)
+        hashed = np.asarray(_hash_key_frame(chunk), dtype=np.uint64)
+        mask = np.isin(hashed, colliding_array)
+        if not bool(mask.any()):
+            continue
+        matched = chunk.iloc[np.flatnonzero(mask)].loc[:, key_columns]
+        for row in matched.itertuples(index=False, name=None):
+            key = tuple("" if part is None else str(part) for part in row)
+            counts[key] = counts.get(key, 0) + 1
 
     duplicates = {
         key: count

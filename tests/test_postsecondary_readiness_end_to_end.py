@@ -765,7 +765,8 @@ def test_2019_coversheet_separates_readiness_learner_codes(tmp_path):
 
     LEN is Non-English Learner. ELN is Non-English Learner or monitored.
     LEP stays English Learner. The excerpt is DATA rows for state 999 and
-    Bryan Station 165170. HistoricalDatasets file.
+    Bryan Station 165170.
+    https://www.education.ky.gov/Open-House/data/HistoricalDatasets/TRANSITION_READINESS_ACCOUNTABILITY_18-19.xlsx
     """
     output = _run_fixtures(tmp_path, ["TRANSITION_READINESS_ACCOUNTABILITY_18-19.xlsx"])
 

@@ -32,13 +32,14 @@ from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
 
-# TRANSITION_READINESS_ACCOUNTABILITY_18-19.xlsx coversheet, not the shared map.
-# ``LEP`` is English Learners and already maps to English Learner. ``LEN`` is
+# Hard-coded crosswalk from the TRANSITION_READINESS_ACCOUNTABILITY_18-19.xlsx
+# coversheet. The coversheet sheet is not opened at runtime. ``LEP`` is
+# English Learners and already maps to English Learner. ``LEN`` is
 # Non-English Learners. ``ELN`` is "NOT English Learners including Monitored
 # Students", which the later files call Non-English Learner or monitored.
 # The shared map sends ``LEN`` to English Learner and ``ELN`` to
-# Non-English Learner, so ``LEN`` collides with ``LEP``. Record 0047: read
-# the workbook label before the shared mapper. The yaml stays unchanged.
+# Non-English Learner, so ``LEN`` collides with ``LEP``. The yaml stays
+# unchanged.
 _WORKBOOK_2019 = "transition_readiness_accountability_18-19.xlsx"
 _COVERSHEET_LABELS_2019 = {
     "LEN": "Non-English Learner",
@@ -255,10 +256,11 @@ class PostsecondaryReadinessETL(BaseETL):
     def _apply_2019_coversheet_labels(
         self, df: pd.DataFrame, source_file: str
     ) -> pd.DataFrame:
-        """Replace 2018-19 codes the coversheet names differently from the shared map.
+        """Apply the hard-coded 2018-19 coversheet crosswalk.
 
-        The standard labels are already in ``standard_demographics``, so the
-        shared mapper keeps them. ``LEP`` is left on the shared map.
+        The labels are constants in this module. The coversheet sheet is not
+        opened. The standard labels are already in ``standard_demographics``,
+        so the shared mapper keeps them. ``LEP`` is left on the shared map.
         """
         if Path(source_file).name.lower() != _WORKBOOK_2019:
             return df

@@ -1,4 +1,6 @@
 module,year,district,school_id,student_group,metric,value,reason,label
+student_teacher_ratio,2023,Corbin Independent,133,All Students,student_teacher_ratio,15.0,KYRC23 All Schools 133000 publishes 412:01:00; adjacent years keep 15,kde-recheck
+student_teacher_ratio,2023,Floyd County,175,All Students,student_teacher_ratio,14.0,KYRC23 All Schools 175000 publishes 5249:01:00; adjacent years keep 14,kde-recheck
 student_teacher_ratio,2024,Cloverport Independent,132000,All Students,student_teacher_ratio,86.0,published ratio above the rest of the series,kde-recheck
 student_teacher_ratio,2025,Corbin Independent,133000,All Students,student_teacher_ratio,483.0,published ratio above the rest of the series,kde-recheck
 student_teacher_ratio,2026,Cloverport Independent,132030,All Students,student_teacher_ratio,115.0,published ratio above the rest of the series,kde-recheck

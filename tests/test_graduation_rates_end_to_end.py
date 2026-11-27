@@ -702,8 +702,9 @@ def test_2019_coversheet_separates_english_learner_codes(tmp_path):
     """GRADUATION_RATE_18-19.xlsx coversheet: LEP is English Learner, LEN is not.
 
     The excerpt is DATA rows 2323-2325 (Bryan Station), 2442 and 2448-2449
-    (Fayette district), and 8102, 8109, and 8121 (state). HistoricalDatasets
-    file GRADUATION_RATE_18-19.xlsx. The shared demographic map is unchanged.
+    (Fayette district), and 8102, 8109, and 8121 (state).
+    https://www.education.ky.gov/Open-House/data/HistoricalDatasets/GRADUATION_RATE_18-19.xlsx
+    The shared demographic map is unchanged.
     """
     output = _run_fixtures(tmp_path, ["GRADUATION_RATE_18-19.xlsx"])
 

@@ -157,7 +157,11 @@ year_specific:
       - "Two or More Races"
       - "White (non-Hispanic)"
       - "Economically Disadvantaged"
+      - "Non-Economically Disadvantaged"
       - "English Learner"
+      - "Non-English Learner"
+      - "English Learner including Monitored"
+      - "Non-English Learner or monitored"
       - "Foster Care"
       - "Homeless"
       - "Migrant"
@@ -165,6 +169,7 @@ year_specific:
       - "Gifted and Talented"
       - "Military Dependent"
       - "Consolidated Student Group"
+      - "Alternate Assessment"
     mappings:
       # 2018-19 enrollment file-specific mappings
       "Studw/disab.": "Students with Disabilities (IEP)"

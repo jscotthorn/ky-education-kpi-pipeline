@@ -186,7 +186,8 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
 
     # average_years_school_experience_2021.csv row 409. UK Early Childhood Lab
     # publishes educator count 1, total years 0, and average 0. Record 0022
-    # stores that average. HistoricalDatasets URL.
+    # stores that average.
+    # https://www.education.ky.gov/Open-House/data/HistoricalDatasets/average_years_school_experience_2021.csv
     lab = _metric_value(combined, "2021", "165009")
     assert float(lab["value"]) == 0.0
     assert lab["suppressed"] == "N"
@@ -195,6 +196,7 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert lab["student_group"] == "All Students"
     # average_years_school_experience_2022.csv rows 1564 and 1565 are the same
     # Kentucky Tech district total, count 104 and average 10.5. Keep one.
+    # https://www.education.ky.gov/Open-House/data/HistoricalDatasets/average_years_school_experience_2022.csv
     tech = _metric_value(combined, "2022", "777")
     assert float(tech["value"]) == 10.5
     assert tech["district"] == "Kentucky Tech System"
@@ -206,8 +208,8 @@ def test_2019_workbook_zero_average_and_state_anchor(tmp_path):
     """SCHOOL_EXPERIENCE_18-19.xlsx DATA rows for state 999 and school 777100.
 
     Barren County Area Technology Center publishes educator count 1, total
-    years 0, and average 0. The state total publishes 12. HistoricalDatasets
-    file SCHOOL_EXPERIENCE_18-19.xlsx.
+    years 0, and average 0. The state total publishes 12.
+    https://www.education.ky.gov/Open-House/data/HistoricalDatasets/SCHOOL_EXPERIENCE_18-19.xlsx
     """
     output = _run_fixtures(tmp_path, ["SCHOOL_EXPERIENCE_18-19.xlsx"])
     barren = _metric_value(output, "2019", "777100")

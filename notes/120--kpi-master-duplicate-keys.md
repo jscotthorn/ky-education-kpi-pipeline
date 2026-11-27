@@ -43,6 +43,8 @@ State readiness, school `999`: `LEP` 9.2 (bonus 9.4), `LEN` 67.6 (bonus 69.7), `
 
 2023 student-teacher ratio is the adjacent-year rule in record 0023. `student_teacher_ratio_2023.csv` repeats Corbin `133` and Floyd `175`. The kept cells are Corbin 15 (2022 is 16, 2024 school `133000` is 15) and Floyd 14 (2022 is 14, 2024 school `175000` is 16). Fayette `165` in that file is three `0:01` copies and one `13:01`. Only 13 is stored, before and after. It is not a duplicate key. Zeros stay omitted by the existing `> 0` rule.
 
+KYRC23's report-card file publishes one district total for each of those districts, and those cells are the copies this pipeline drops. `https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC23_OVW_Student_to_Teacher_Ratio.csv` school year `20222023`: Corbin Independent, All Schools, school code `133000`, `Student Teacher Ratio` `412:01:00`. Floyd County, All Schools, school code `175000`, `5249:01:00`. The #56 rule is unchanged: the stored 2023 rows are still Corbin 15 and Floyd 14. Those two kept rows are on `notes/flags/G-flagged-keys.csv` with label `kde-recheck`. The file is not registered. `accepts_data_file` skips that name, so loading it would be a second 2023 copy.
+
 ## Rows not stored
 
 These are the rows this change stops storing. The `0:01` copies were already omitted by `ratio > 0`. They are listed because the 2023 filter sees them.
@@ -116,8 +118,10 @@ The dashboard extract in `fcps-equity-dashboard` `scripts/extract-fayette-kpi.js
 
 ## Flags
 
-`notes/flags/G-flagged-keys.csv` has 23 rows, label `kde-recheck`. Twenty are the zero averages. Three are the ratio outliers. Values are unchanged from the published cells. Record DNNNN.
+`notes/flags/G-flagged-keys.csv` has 25 rows, label `kde-recheck`. Twenty are the zero averages. Three are the ratio outliers. Two are the kept 2023 district totals, Corbin 15 and Floyd 14. Values are unchanged from the published cells that are stored. Record DNNNN.
 
 ## Combine guard
 
-`etl_runner.combine_kpi_files` raises `DuplicateKpiKeyError` when the written file repeats a key that is not in `DUPLICATE_KEY_ALLOWLIST`. The allowlist is empty. Every group in the 1,813 was covered by the identical-row rule, the adjacent-year rule, or record 0047. Nothing was left allowlisted.
+`etl_runner.combine_kpi_files` raises `DuplicateKpiKeyError` when the written file repeats a key that is not in `DUPLICATE_KEY_ALLOWLIST`. The allowlist is empty. Every group in the 1,813 was covered by the identical-row rule, the adjacent-year rule, or record 0047. Nothing was left allowlisted. The check counts an 8-byte hash of each key while streaming the file, then reads the real key text only for hashes that occur more than once. A missing master file is an error. The combined file is written to a temporary file in the same directory and renamed after the check passes. Source rows are rewritten into `KPI_COLUMNS` order.
+
+A full combine of the 31 processed files, 48,822,403 rows, was timed with `/usr/bin/time -v python3 -u etl_runner.py --skip-etl`. Wall clock was 5:00.08. Maximum resident set size was 920,740 kbytes (899 MB). Exit status 0. The earlier checker, which kept every key in a Python dict, was OOM-killed on this file.
