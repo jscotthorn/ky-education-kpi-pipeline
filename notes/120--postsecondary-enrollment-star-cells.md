@@ -2,7 +2,7 @@
 
 Issue #44. The transition files have no Suppressed column. Before this change a `*` was dropped, so 2021-2026 had no `suppressed` Y row.
 
-The rule is the in-file cohort count. A `*` measure cell is value NA with `suppressed` Y when `Total In Group` on that row is a published number greater than 0. A cohort of 0 or a blank cohort leaves the star unstored. A row whose cohort is itself `*` stays unclassified: no new row, and the row is listed in `notes/flags/A-flagged-keys.csv` with reason `starred cohort count` and label `kde-recheck`. A published 0 is kept. A blank cell is omitted. `**` and `<10` are not `*` and stay omitted. No new metric. The graduates file is not read. Record DNNNN. [0004](../docs/decisions/0004-postsecondary-star-cells.md) keeps its status.
+The rule is the in-file cohort count. A `*` measure cell is value NA with `suppressed` Y when `Total In Group` on that row is a published number greater than 0. A cohort of 0 or a blank cohort leaves the star unstored. A row whose cohort is itself `*` stays unclassified: no new row, and the row is listed in `notes/flags/A-flagged-keys.csv` with reason `starred cohort count` and label `kde-recheck`. A published 0 is kept. A blank cell is omitted. `**` and `<10` are not `*` and stay omitted. No new metric. The graduates file is not read. Record 0057. [0004](../docs/decisions/0004-postsecondary-star-cells.md) keeps its status.
 
 ## What the files actually contain
 

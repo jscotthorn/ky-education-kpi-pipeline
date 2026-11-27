@@ -34,7 +34,7 @@ The comment states the rule. It does not add a separate reason beyond the cohort
 
 ## Code check
 
-The module stores a `*` measure as NA with `suppressed` Y when that row's `total_in_group` is a published number greater than 0. A cohort of 0 or blank still emits no row for those stars. A cohort that is itself `*` still emits no new row. Those rows, and the 7 KYRC26 rows where private = total − public, are listed in `notes/flags/A-flagged-keys.csv`. The in-file cohort test and the starred-cohort label are recorded in [DNNNN](DNNNN-postsecondary-in-file-cohort-count.md). Status stays `accepted, code differs (follow-up open)`. The status can be updated after the pull request that makes this change merges. That status change is not made here.
+The module stores a `*` measure as NA with `suppressed` Y when that row's `total_in_group` is a published number greater than 0. A cohort of 0 or blank still emits no row for those stars. A cohort that is itself `*` still emits no new row. Those rows, and the 7 KYRC26 rows where private = total − public, are listed in `notes/flags/A-flagged-keys.csv`. The in-file cohort test and the starred-cohort label are recorded in [0057](0057-postsecondary-in-file-cohort-count.md). Status stays `accepted, code differs (follow-up open)`. The status can be updated after the pull request that makes this change merges. That status change is not made here.
 
 ## KDE guidance check
 
