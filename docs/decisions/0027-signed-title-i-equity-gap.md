@@ -1,6 +1,6 @@
 # 0027 Store the Title I equity gap as a signed value
 
-Status: accepted
+Status: superseded (in part)
 
 ## Question
 
@@ -17,6 +17,8 @@ Keep dropping negatives, store the absolute value in every year, or compute Titl
 ## Decision
 
 18 October 2026. Compute Title I minus Not Title I and store the signed value. Stop dropping negatives in novice, ineffective, and out-of-field. If a component is suppressed, the gap is `suppressed` Y. Document disagreements and label them `kde-recheck`.
+
+Superseded in part by [DNNNN](DNNNN-store-published-gap.md). Computing Title I minus Not Title I does not stand. Record 0054 stores the published cell, and DNNNN applies that rule here. Stopping the drop of a negative cell still stands, and this branch does that. A published negative is stored with `suppressed` N. The rule that a suppressed component makes the gap `suppressed` Y is not applied. Folding that #59 choice into this batch is Data Engineer's plan, not Scott's decision.
 
 ## Who decided and how we know
 
@@ -36,7 +38,7 @@ The comment says the published gap is a difference, so a negative is a real dire
 
 ## Code check
 
-Partial mismatch. Out-of-field keeps a negative equity-gap cell. Novice still uses `value >= 0` and the module comment says issue #59 tracks the signed gap and "this pull request does not change the drop." Ineffective still drops `value < 0`. Issue #59 is still open. Not resolved here.
+The compute-the-gap part is not implemented. Novice equity and ineffective store a published negative cell with `suppressed` N. Out-of-field already did. The institutional novice rates still require `value >= 0`. The gap is not recomputed. Issue #59 is still open. The part that still stands is the stop on dropping negatives, and [DNNNN](DNNNN-store-published-gap.md) records it.
 
 ## KDE guidance check
 

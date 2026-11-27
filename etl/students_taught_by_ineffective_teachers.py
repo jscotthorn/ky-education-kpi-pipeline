@@ -39,11 +39,13 @@ extract. The registered KYRC25 file is the UAT copy. KYRC26 is the 4 Nov
 2026 datasets refresh. In the 2020 file, a row whose every percent other than
 students with disabilities is missing is skipped. The remaining cell is
 ``0.00`` or ``0.000%`` and All Students is ``N/A``, so that 0 is a
-placeholder. A negative cell is still dropped. In 2021-2023 the equity gap
-is Not Title I minus Title I, so the dropped negatives are the cells where
-Title I is higher. In 2020 the gap is Title I minus Not Title I on 4 of the
-5 rows where the two sides differ. The state All Students gap, ``-1.19``,
-matches neither difference. Issue #59 tracks the signed gap.
+placeholder. A negative cell is stored as published, with ``suppressed``
+``N``. The gap is not recomputed. In 2021-2023 the equity gap is Not Title
+I minus Title I, so a negative is a cell where Title I is higher. In 2020
+the gap is Title I minus Not Title I on 4 of the 5 rows where the two sides
+differ. The state All Students gap, ``-1.19``, matches neither difference.
+Issue #59 asked to compute a signed gap. Record DNNNN stores the published
+cell instead (0054).
 """
 from pathlib import Path
 import pandas as pd
@@ -126,7 +128,7 @@ def _parse_percent(value: Any) -> Any:
     pandas 2. No registered percent contains a comma. ``N/A``, ``*``, and a
     blank are missing. These files have no count column, so a blank percent
     is not 0. A published ``0`` stays 0. A negative number is returned and
-    the caller drops it. ``bool(pd.NA)`` is not used.
+    the caller stores it. ``bool(pd.NA)`` is not used.
     """
     if isinstance(value, str):
         cleaned = value.replace("%", "").replace(",", "").strip()
@@ -276,15 +278,15 @@ class StudentsTaughtByIneffectiveTeachersETL(BaseETL):
         metrics with a double-underscore separator so the KPI writer can put the
         demographic on ``student_group``.
 
-        A percent of 0 is kept. A blank is omitted. A negative cell is omitted.
-        Equity-gap rows can be negative. In 2021-2023 the published gap is
-        Not Title I minus Title I, so a negative cell is one where Title I
-        is higher. In 2020 the published gap is Title I minus Not Title I on
-        4 of the 5 rows where the two sides differ, so a negative cell is one
-        where Title I is lower. The state All Students cell, ``-1.19``,
-        matches neither difference. Dropping negatives therefore removes the
-        cells where Title I is worse in 2021-2023 and keeps those cells in
-        2020. Issue #59 tracks whether the signed gap is stored.
+        A percent of 0 is kept. A blank is omitted. A negative cell is stored
+        as published. Equity-gap rows can be negative. In 2021-2023 the
+        published gap is Not Title I minus Title I, so a negative cell is
+        one where Title I is higher. In 2020 the published gap is Title I
+        minus Not Title I on 4 of the 5 rows where the two sides differ, so
+        a negative cell is one where Title I is lower. The state All
+        Students cell, ``-1.19``, matches neither difference. The gap is
+        not recomputed. Issue #59 asked to compute a signed gap. Record
+        DNNNN stores the published cell instead (0054).
         """
         metrics: Dict[str, Any] = {}
 
@@ -297,13 +299,6 @@ class StudentsTaughtByIneffectiveTeachersETL(BaseETL):
                 continue
             value = _parse_percent(row.get(demo_key, pd.NA))
             if _is_missing(value):
-                continue
-            # A negative cell is still dropped. That removes the 2021-2023
-            # equity-gap cells where Title I is worse (Not Title I minus
-            # Title I) and keeps the 2020 cells where Title I is worse
-            # (Title I minus Not Title I). Issue #59 tracks the signed gap.
-            # The drop is not suppression.
-            if value < 0:
                 continue
             metric_name = (
                 f"students_taught_by_ineffective_teachers_rate_{title_suffix}__{demo_key}"

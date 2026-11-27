@@ -55,7 +55,8 @@ It is the first year of KDE's Equity tab and its coverage is incomplete
 (issue #66 item 1). A negative cell is kept. The stored equity gap is
 signed for 2021-2023 and for KYRC26 (Title I minus Not Title I; KYRC26 has
 32 cells off by 0.1) and is the absolute value for 2024 and 2025. Issue
-#59 tracks the signed gap. This module stores the published cell.
+#59 asked to compute a signed gap. Record DNNNN stores the published cell
+instead (0054). This module already stores that cell, including a negative.
 """
 from pathlib import Path
 import pandas as pd

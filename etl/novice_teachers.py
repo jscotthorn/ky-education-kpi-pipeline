@@ -315,10 +315,10 @@ class NoviceTeachersETL(BaseETL):
         # replaced Open House file's state Title I All Students rate is
         # 11.3. This copy's rate is 66.0. 2020-2023 and KYRC26 publish a
         # signed gap (Title I minus Not Title I). KYRC24 and KYRC25 publish
-        # the absolute value. The ``>= 0`` check drops the signed negatives.
-        # That predates KYRC26. Issue #59 tracks storing a signed gap. This
-        # change does not drop that check. A published 0 is kept. KYRC24-26
-        # zeros stay as published (issue #64 item 3): 2020-23 used whole-row
+        # the absolute value. A published negative is stored. The gap is not
+        # recomputed. Issue #59 asked to compute a signed gap. Record DNNNN
+        # stores the published cell instead (0054). A published 0 is kept.
+        # KYRC24-26 zeros stay as published (issue #64 item 3): 2020-23 used whole-row
         # N/A for no data while 2024+ publishes none, so a 2024+ zero may
         # include a no-data case (471 schools were all N/A in 2023 and all 0
         # in 2024). A 0 may mean no students in the group (issue #66 item 2).
@@ -330,7 +330,7 @@ class NoviceTeachersETL(BaseETL):
             title_i_suffix = title_i_status.lower().replace(' ', '_')
             for demo_key in _DEMOGRAPHIC_KEYS:
                 value = _parse_number(row.get(demo_key, pd.NA))
-                if pd.notna(value) and value >= 0:
+                if pd.notna(value):
                     metric_name = (
                         f'students_taught_by_inexperienced_teachers_rate_{title_i_suffix}__{demo_key}'
                     )
