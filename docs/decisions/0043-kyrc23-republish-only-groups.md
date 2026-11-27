@@ -34,7 +34,7 @@ The issue body states the choice and the row count. Reason for taking the new gr
 
 ## Code check
 
-Does not match. Modules still skip the KYRC23 republish to avoid duplicate keys. Issue #95 is still open. Not resolved here.
+Does not match the load. Modules still skip the KYRC23 republish, and the kindergarten-only load is not in this change. Issue #95 is still open. The read-only audit this record requires for the other modules is recorded in `notes/120--non-military-alias-and-kyrc23-republish-audit.md`. That audit does not load republish-only groups. Status stays `accepted, code differs (follow-up open)`. The status can be updated after merge; that status change is not made here.
 
 ## KDE guidance check
 

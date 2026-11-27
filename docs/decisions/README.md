@@ -70,7 +70,7 @@ Two note numbers are used twice. They were not renamed.
 
 ## Records
 
-56 records. 40 accepted. 9 accepted, code differs (follow-up open). 3 conflicts-with-code. 3 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed.
+57 records. 41 accepted. 8 accepted, code differs (follow-up open). 3 conflicts-with-code. 4 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed. DNNNN has no number yet. The number is assigned at merge. The next free number is still `0057`.
 
 | Record | Status | KDE guidance check |
 | --- | --- | --- |
@@ -120,7 +120,7 @@ Two note numbers are used twice. They were not renamed.
 | [0044](0044-district-school-list-2017-18.md) | accepted, code differs (follow-up open) | no KDE guidance found |
 | [0045](0045-school-courses-one-row.md) | accepted | no KDE guidance found |
 | [0046](0046-outside-doors-locked.md) | accepted | no KDE guidance found |
-| [0047](0047-workbook-demographic-labels-2018-19.md) | accepted, code differs (follow-up open) | no KDE guidance found |
+| [0047](0047-workbook-demographic-labels-2018-19.md) | superseded (in part) | no KDE guidance found |
 | [0048](0048-crdc-kpi-year-collection.md) | accepted, code differs (follow-up open) | no KDE guidance found |
 | [0049](0049-kyrc26-files-loaded-15-oct-2026.md) | unconfirmed | possible conflict |
 | [0050](0050-cte-all-star-rows-stored.md) | accepted | consistent |
@@ -130,3 +130,4 @@ Two note numbers are used twice. They were not renamed.
 | [0054](0054-store-values-as-kde-publishes.md) | accepted | no KDE guidance found |
 | [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md) | accepted | no KDE guidance found |
 | [0056](0056-kyrc26-chronic-absenteeism-district-602-name.md) | accepted | no KDE guidance found |
+| [DNNNN](DNNNN-non-military-alias.md) | accepted | no KDE guidance found |

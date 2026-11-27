@@ -176,7 +176,27 @@ class TestDemographicMapper:
         assert "Female" in standards
         assert "Male" in standards
         assert "Non-Economically Disadvantaged" in standards
+        assert "Non-Military Dependent" in standards
+        assert "Non-Military" not in standards
         assert len(standards) > 20  # Should have many standard demographics
+
+    def test_non_military_alias(self):
+        """2024-26 'Non-Military' and 2022-23 'Non-Military Dependent' are one group.
+
+        The canonical label matches 'Military Dependent'. 2018-19 codes stay
+        on their existing map (record 0047; the alias does not edit them).
+        """
+        for year in ("2024", "2025", "2026", "2023", "2022"):
+            assert self.mapper.map_demographic("Non-Military", year, "test") == "Non-Military Dependent"
+            assert self.mapper.map_demographic("non-military", year, "test") == "Non-Military Dependent"
+            assert self.mapper.map_demographic("NON-MILITARY", year, "test") == "Non-Military Dependent"
+            assert self.mapper.map_demographic("Non-Military Dependent", year, "test") == "Non-Military Dependent"
+        assert self.mapper.map_demographic("MIL", "2019", "test") == "Military Dependent"
+        assert self.mapper.map_demographic("MilitaryConnected", "2019", "test") == "Military Dependent"
+        assert self.mapper.map_demographic("Military Connected", "2019", "test") == "Military Dependent"
+        year_2019 = self.mapper.mappings["year_specific"]["2019"]["mappings"]
+        assert "Non-Military" not in year_2019
+        assert year_2019["MilitaryConnected"] == "Military Dependent"
 
 
 class TestDemographicMapperIntegration:
