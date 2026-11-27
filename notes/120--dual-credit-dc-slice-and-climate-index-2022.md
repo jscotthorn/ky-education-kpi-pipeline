@@ -11,7 +11,7 @@ No score is recomputed. School codes are not padded. `NUMBER TESTED` is not stor
 
 ## Source files
 
-Fetched 27 Nov 2026, 12:59 PM ET. A later range request on the same day returned the same `Last-Modified` and the same byte length. The climate file is not in the regeneration mirror. The four advanced-course files are already mirrored for `advanced_coursework`. This note does not edit the mirror. `prepare_kde_data.py` downloads the dual-credit copy into `data/raw/dual_credit/` because the names are also registered under `dual_credit`.
+Fetched 27 Nov 2026, 12:59 PM ET. A later range request on the same day returned the same `Last-Modified` and the same byte length. The climate file is in the regeneration mirror `mirror-2026-11-27-j2`. The four advanced-course files are already mirrored for `advanced_coursework`. This note does not edit the mirror. `prepare_kde_data.py` downloads the dual-credit copy into `data/raw/dual_credit/` because the names are also registered under `dual_credit`. The climate row count below uses the registered `KYRC26_SAFE_Precautionary_Measures.csv` (md5 `220575cf689e134424fb28e3797b1687`, 198,110 bytes), not the 4 November 2026 refresh.
 
 | File | Bytes | md5 | sha256 | Last-Modified |
 | --- | --- | --- | --- | --- |
@@ -29,7 +29,7 @@ URLs, historical host `https://www.education.ky.gov/Open-House/data/HistoricalDa
 - `advanced_courses_offered_2022.csv`
 - `quality_of_school_climate_and_safety_survey_index_scores_2022.csv`
 
-Suggested mirror path for the new file, which this repo cannot write: `HistoricalDatasets/2022/quality_of_school_climate_and_safety_survey_index_scores_2022.csv`.
+The climate file is in the regeneration mirror `mirror-2026-11-27-j2`. This repo does not edit that mirror.
 
 ## Dual credit
 
@@ -92,7 +92,7 @@ Bryan Station High `165170` is 63.9 / 59.9. Arlington Elementary `165005` is 76.
 
 Fayette index rows (`district == Fayette County`, year >= 2021) before this load: 2023, 2024, and 2025 have 3,186 rows each, and 2026 has 3,240. 2022 had none. After this load, 2022 also has 3,186. The 2022 district total is school code `165`. 2023 and later use `165000`.
 
-`fcps-equity-dashboard` `scripts/extract-fayette-kpi.js` on `main` has no `dual_credit_*` metric in `TARGET_INDICATORS`. The climate entries there are still `climate_index_score_calculated` and `safety_index_score_calculated`. The year floor is 2021, so 2022 is inside the window, and the current list does not select the per-level names. `COVARIATE_METRICS` still lists `has_dual_credit_program`, which this pipeline does not emit. Data Engineer confirmation that the 2022 climate year loaded exactly as published is pending. `analysis/scripts/school_climate_analysis.py` still filters to 2023-2026.
+`fcps-equity-dashboard` `develop` at `7e820e1` selects the six per-level climate and safety names and keeps a Fayette row when the district name is `Fayette County`, so the 2022 rows are in range after a regen. `main` still selects `climate_index_score_calculated` and `safety_index_score_calculated`. Those names are not written. No `dual_credit_*` metric is in `TARGET_INDICATORS` on that develop file. Data Engineer confirmed the 2022 climate file loaded exactly as published. `analysis/scripts/school_climate_analysis.py` still filters to 2023-2026.
 
 ## Before and after
 
@@ -109,7 +109,7 @@ Compared to output from the base-branch code on the previously registered files.
 | 2025 | 64,168 | 64,168 | 0 | 0 | 0 |
 | 2026 | 63,992 | 63,992 | 0 | 0 | 0 |
 
-`safe_schools_climate.csv`: 400,583 rows before, 495,731 after. The end-to-end test had expected 400,581. The previously registered files on this branch write 400,583 before the new index. The index adds 95,148 rows.
+`safe_schools_climate.csv`: 400,581 rows before, 495,729 after. The count uses the registered `KYRC26_SAFE_Precautionary_Measures.csv` (md5 `220575cf689e134424fb28e3797b1687`). The index adds 95,148 rows.
 
 | Year | Before | After | Added | Removed | Value changes on shared keys |
 | --- | --- | --- | --- | --- | --- |
@@ -119,6 +119,6 @@ Compared to output from the base-branch code on the previously registered files.
 | 2023 | 99,550 | 99,550 | 0 | 0 | 0 |
 | 2024 | 96,300 | 96,300 | 0 | 0 | 0 |
 | 2025 | 97,621 | 97,621 | 0 | 0 | 0 |
-| 2026 | 97,524 | 97,524 | 0 | 0 | 0 |
+| 2026 | 97,522 | 97,522 | 0 | 0 | 0 |
 
 No flagged cell. No `notes/flags/` file.

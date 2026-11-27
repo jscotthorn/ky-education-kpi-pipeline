@@ -24,7 +24,7 @@ This replaces the registration choice in [0042](0042-do-not-register-2021-22-cli
 
 Scott's words, quoted as written: "Approve the J2 mirror additions and the new 2022 climate year on the dashboard".
 
-The condition is Gremlin's question, which Scott picked, not Scott's own wording: the year shows "once Data Engineer confirms it loaded exactly as published". Data Engineer confirmation is pending. The same rehash check applies. The file is not in the regeneration mirror. This record does not edit the mirror.
+The condition is Gremlin's question, which Scott picked, not Scott's own wording: the year shows "once Data Engineer confirms it loaded exactly as published". Data Engineer confirmed that condition on review of this load: md5 `aaec467c52a2310176900619881d2ad6`, sha256 `93f59d93fad6e0893e01a462fc1caed5f5b51662c8b1342acb2a5942ca4ba0fb`, 6,553,428 bytes; 58,954 values identical, 36,194 `*` became NA with `suppressed` Y. The file is in the regeneration mirror `mirror-2026-11-27-j2`. This record does not edit the mirror.
 
 The 25 October 2026 sentence in [0042](0042-do-not-register-2021-22-climate-index.md) is the earlier load-later plan, not these 27 November words: "No specific reason; reopen the 2021-22 climate index as a low-priority load-later item." Issue #121 is that plan.
 

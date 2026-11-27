@@ -340,10 +340,9 @@ def test_real_kyrc26_file_matches_published_rows(tmp_path):
         processed_dir / "safe_schools_climate.csv",
         dtype={"school_id": "string", "year": "string"},
     )
-    # 400,583 was the output of the previously registered files on this
-    # branch (the assertion used to say 400,581). The 2021-22 index adds
+    # Registered files write 400,581 rows. The 2021-22 index adds
     # 47,574 source rows times two metrics, 95,148 KPI rows.
-    assert len(frame) == 495731
+    assert len(frame) == 495729
     assert not frame.duplicated(["year", "school_id", "student_group", "metric"]).any()
 
     index_2023 = frame[

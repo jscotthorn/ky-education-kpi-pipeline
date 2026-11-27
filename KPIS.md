@@ -596,8 +596,8 @@ Participation metrics (unduplicated students, `student_group` is the demographic
 - `dual_credit_enrollment` - Students enrolled in one or more dual credit courses
 - `dual_credit_completion_count` - Students who completed at least one dual credit course
 - `dual_credit_qualifying_score_count` - Students with a qualifying grade of C or better in at least one dual credit course
-- `dual_credit_completion_rate` - Derived: completers divided by enrollment, times 100
-- `dual_credit_qualifying_score_rate` - Derived: qualifying grades divided by completers, times 100
+- `dual_credit_completion_rate` - Derived: completers divided by enrollment, times 100. The existing calculated rate now covers 2021 and 2022 as well as 2023-2026
+- `dual_credit_qualifying_score_rate` - Derived: qualifying grades divided by completers, times 100. The existing calculated rate now covers 2021 and 2022 as well as 2023-2026
 
 Scott Horn dropped `has_dual_credit_program` on 2026-10-20. The pipeline had set it to 1 whenever enrollment was positive and stored it as suppressed Y when enrollment was starred. No registered enrollment is 0, and a school without a program has no row, so the flag was never 0. It is not stored, and there is no alias.
 
