@@ -32,6 +32,19 @@ from base_etl import BaseETL, Config
 
 logger = logging.getLogger(__name__)
 
+# TRANSITION_READINESS_ACCOUNTABILITY_18-19.xlsx coversheet, not the shared map.
+# ``LEP`` is English Learners and already maps to English Learner. ``LEN`` is
+# Non-English Learners. ``ELN`` is "NOT English Learners including Monitored
+# Students", which the later files call Non-English Learner or monitored.
+# The shared map sends ``LEN`` to English Learner and ``ELN`` to
+# Non-English Learner, so ``LEN`` collides with ``LEP``. Record 0047: read
+# the workbook label before the shared mapper. The yaml stays unchanged.
+_WORKBOOK_2019 = "transition_readiness_accountability_18-19.xlsx"
+_COVERSHEET_LABELS_2019 = {
+    "LEN": "Non-English Learner",
+    "ELN": "Non-English Learner or monitored",
+}
+
 
 
 
@@ -166,6 +179,7 @@ class PostsecondaryReadinessETL(BaseETL):
         absenteeism, graduation, and English learner progress use. Journal 75
         emitted those rows as ``suppressed`` ``N`` with an empty value.
         """
+        df = self._apply_2019_coversheet_labels(df, source_file)
         kpi_rows = []
         
         for _, row in df.iterrows():
@@ -237,6 +251,26 @@ class PostsecondaryReadinessETL(BaseETL):
         df = clean_readiness_data(df)
         
         return df
+
+    def _apply_2019_coversheet_labels(
+        self, df: pd.DataFrame, source_file: str
+    ) -> pd.DataFrame:
+        """Replace 2018-19 codes the coversheet names differently from the shared map.
+
+        The standard labels are already in ``standard_demographics``, so the
+        shared mapper keeps them. ``LEP`` is left on the shared map.
+        """
+        if Path(source_file).name.lower() != _WORKBOOK_2019:
+            return df
+        if df.empty or "demographic" not in df.columns:
+            return df
+        labels = df["demographic"].astype("string").str.strip()
+        out = df.copy()
+        for code, label in _COVERSHEET_LABELS_2019.items():
+            matched = (labels == code).fillna(False)
+            if bool(matched.any()):
+                out.loc[matched, "demographic"] = label
+        return out
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

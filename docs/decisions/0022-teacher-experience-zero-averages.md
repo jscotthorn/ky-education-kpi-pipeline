@@ -33,7 +33,7 @@ The comment says the 0.00 figures are published, so the filter should not drop t
 
 ## Code check
 
-Does not match. `etl/teacher_experience.py` still requires `avg_years > 0` (around line 146). Issue #54 is still open. Not resolved here. The choice is accepted and the follow-up has not landed, so the status is `accepted, code differs (follow-up open)`.
+`etl/teacher_experience.py` now stores a published average of 0 (`avg_years >= 0`). A negative cell is still not stored. The 20 rows are in `notes/flags/G-flagged-keys.csv` with label `kde-recheck`. Issue #54 is still open. The status of this record is unchanged.
 
 ## KDE guidance check
 

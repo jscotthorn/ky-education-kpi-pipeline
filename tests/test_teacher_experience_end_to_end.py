@@ -6,6 +6,7 @@ so the Int64 cast of educator_count runs.
 from pathlib import Path
 
 import pandas as pd
+import pytest
 import yaml
 
 from etl.teacher_experience import transform
@@ -182,3 +183,67 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert row["district"] == "State"
     assert row["school_name"] == "---State Total---"
     assert float(_metric_value(combined, "2020", "165170")["value"]) == 11.7
+
+    # average_years_school_experience_2021.csv row 409. UK Early Childhood Lab
+    # publishes educator count 1, total years 0, and average 0. Record 0022
+    # stores that average. HistoricalDatasets URL.
+    lab = _metric_value(combined, "2021", "165009")
+    assert float(lab["value"]) == 0.0
+    assert lab["suppressed"] == "N"
+    assert lab["district"] == "Fayette County"
+    assert lab["school_name"] == "UK Early Childhood Lab"
+    assert lab["student_group"] == "All Students"
+    # average_years_school_experience_2022.csv rows 1564 and 1565 are the same
+    # Kentucky Tech district total, count 104 and average 10.5. Keep one.
+    tech = _metric_value(combined, "2022", "777")
+    assert float(tech["value"]) == 10.5
+    assert tech["district"] == "Kentucky Tech System"
+    assert tech["school_name"] == "---District Total---"
+    assert tech["suppressed"] == "N"
+
+
+def test_2019_workbook_zero_average_and_state_anchor(tmp_path):
+    """SCHOOL_EXPERIENCE_18-19.xlsx DATA rows for state 999 and school 777100.
+
+    Barren County Area Technology Center publishes educator count 1, total
+    years 0, and average 0. The state total publishes 12. HistoricalDatasets
+    file SCHOOL_EXPERIENCE_18-19.xlsx.
+    """
+    output = _run_fixtures(tmp_path, ["SCHOOL_EXPERIENCE_18-19.xlsx"])
+    barren = _metric_value(output, "2019", "777100")
+    assert float(barren["value"]) == 0.0
+    assert barren["district"] == "Kentucky Tech System"
+    assert barren["school_name"] == "Barren County Area Technology Center"
+    assert barren["source_file"] == "SCHOOL_EXPERIENCE_18-19.xlsx"
+    state = _metric_value(output, "2019", "999")
+    assert float(state["value"]) == 12.0
+    assert state["district"] == "State"
+    assert state["school_name"] == "---State Total---"
+
+
+def test_twenty_published_zero_averages_when_raw_files_exist(tmp_path):
+    """The registered files publish 20 averages of 0, each with educator count 1.
+
+    Skips when the 2018-19 workbook is not downloaded. The count is the
+    regenerated teacher_experience output, not a constructed table.
+    """
+    marker = ROOT / "data" / "raw" / "teacher_experience" / "SCHOOL_EXPERIENCE_18-19.xlsx"
+    if not marker.exists():
+        pytest.skip("registered teacher experience files are not downloaded")
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+    transform(ROOT / "data" / "raw", proc_dir, config["sources"]["teacher_experience"])
+    output = pd.read_csv(proc_dir / "teacher_experience.csv", dtype=str)
+    zeros = output[pd.to_numeric(output["value"], errors="coerce") == 0]
+    assert len(zeros) == 20
+    assert set(zeros["suppressed"]) == {"N"}
+    assert set(zeros["metric"]) == {"teacher_average_years_experience"}
+    assert set(zeros["student_group"]) == {"All Students"}
+    lab = zeros[zeros["school_id"] == "165009"]
+    assert len(lab) == 1
+    assert lab.iloc[0]["year"] == "2021"
+    assert lab.iloc[0]["district"] == "Fayette County"
+    tech = output[(output["school_id"] == "777") & (output["year"] == "2022")]
+    assert len(tech) == 1
+    assert float(tech.iloc[0]["value"]) == 10.5

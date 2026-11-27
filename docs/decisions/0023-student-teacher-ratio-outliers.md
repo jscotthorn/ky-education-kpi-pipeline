@@ -39,7 +39,7 @@ The comment keeps the published outliers and names the adjacent-year rule for th
 
 ## Code check
 
-The KYRC26 school-only limit matches `etl/student_teacher_ratio.py` and `config/kde_sources.yaml`. The star path is not confirmed by a run. `should_skip_row` skips an empty ratio. `BaseETL.standardize_missing_values` now turns `*` into NA before that check. This pass did not confirm that a star becomes a stored Y row. The outlier-keeping and 2023 key choice were not re-checked against output. Issue #56 is still open. Not resolved here.
+The KYRC26 school-only limit matches `etl/student_teacher_ratio.py` and `config/kde_sources.yaml`. The 2023 Corbin district total stored is 15 and the Floyd district total stored is 14. The other 2023 copies of those two codes are not stored. The three named outliers stay in the output and are listed in `notes/flags/G-flagged-keys.csv` with label `kde-recheck`. A starred ratio in this module is stored as value NA with `suppressed` Y. No registered ratio file contains `*`. Issue #56 is still open. The status of this record is unchanged.
 
 ## KDE guidance check
 

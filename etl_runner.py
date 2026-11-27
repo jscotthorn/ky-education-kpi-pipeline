@@ -32,6 +32,27 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Issue #128. At 1aef27b the combined file had 1,813 duplicate keys on
+# (district, school_id, school_name, year, student_group, metric): 1,810 in
+# 2019, one in 2022, and two in 2023. Each group was a duplicate source row
+# or a coversheet label the shared map had collapsed, and the source modules
+# now keep one row under the decision-log rules. No group was left undecided,
+# so this allowlist is empty. A later group that none of those rules covers
+# is listed here, with a comment citing #128, and is not decided by this check.
+DUPLICATE_KEY_COLUMNS = (
+    "district",
+    "school_id",
+    "school_name",
+    "year",
+    "student_group",
+    "metric",
+)
+DUPLICATE_KEY_ALLOWLIST: frozenset[tuple[str, ...]] = frozenset()
+
+
+class DuplicateKpiKeyError(RuntimeError):
+    """Raised when a combined KPI file repeats the pipeline key."""
+
 
 def load_config(config_path: Path) -> dict:
     """Load YAML configuration file."""
@@ -152,6 +173,66 @@ def combine_kpi_files(
 
     print(f"  Combined {files_processed} KPI sources into {output_csv_path}")
     print(f"  Master KPI file: {total_rows:,} rows")
+    _assert_no_duplicate_kpi_keys(output_csv_path)
+
+
+def _assert_no_duplicate_kpi_keys(output_csv_path: Path) -> None:
+    """Fail the combine when a key is repeated and is not allowlisted.
+
+    The key is ``DUPLICATE_KEY_COLUMNS``. ``DUPLICATE_KEY_ALLOWLIST`` is
+    empty: the #128 groups are resolved in the source modules. A key that
+    remains is listed in the error, up to 50 keys, with the total count.
+    """
+    if not output_csv_path.exists() or output_csv_path.stat().st_size == 0:
+        return
+
+    counts: dict[tuple[str, ...], int] = {}
+    key_columns = list(DUPLICATE_KEY_COLUMNS)
+    reader = pd.read_csv(
+        output_csv_path,
+        dtype=str,
+        keep_default_na=False,
+        chunksize=100_000,
+    )
+    for chunk in reader:
+        missing = [column for column in key_columns if column not in chunk.columns]
+        if missing:
+            raise DuplicateKpiKeyError(
+                f"{output_csv_path} is missing key columns {missing}"
+            )
+        if chunk.empty:
+            continue
+        grouped = chunk.groupby(key_columns, dropna=False).size()
+        for key, count in grouped.items():
+            if not isinstance(key, tuple):
+                key = (key,)
+            normalized = tuple("" if part is None else str(part) for part in key)
+            counts[normalized] = counts.get(normalized, 0) + int(count)
+
+    duplicates = {
+        key: count
+        for key, count in counts.items()
+        if count > 1 and key not in DUPLICATE_KEY_ALLOWLIST
+    }
+    if not duplicates:
+        return
+
+    lines = [
+        f"Duplicate KPI keys in {output_csv_path}: {len(duplicates)} keys.",
+        "Key is (district, school_id, school_name, year, student_group, metric).",
+    ]
+    for index, (key, count) in enumerate(duplicates.items()):
+        if index >= 50:
+            lines.append(f"  ... {len(duplicates) - 50} more keys")
+            break
+        district, school_id, school_name, year, student_group, metric = key
+        lines.append(
+            "  "
+            f"{count} rows: district={district!r} school_id={school_id!r} "
+            f"school_name={school_name!r} year={year!r} "
+            f"student_group={student_group!r} metric={metric!r}"
+        )
+    raise DuplicateKpiKeyError("\n".join(lines))
 
 
 def _load_etl_module(module_name: str, module_path: Path) -> ModuleType:

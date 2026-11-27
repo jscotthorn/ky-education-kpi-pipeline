@@ -10,7 +10,7 @@ import sys
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from etl_runner import combine_kpi_files
+from etl_runner import DuplicateKpiKeyError, combine_kpi_files
 
 
 class TestKpiCombination:
@@ -71,8 +71,11 @@ class TestKpiCombination:
                 "last_updated": ["2025-07-20"],
             }
         )
-        df1.to_csv(self.proc_dir / "file1.csv", index=False)
-        df2.to_csv(self.proc_dir / "file2.csv", index=False)
+        # combine_kpi_files writes the KPI header and the row cells in file
+        # order. Processed files use KPI_COLUMNS order. These fixtures do too,
+        # so the duplicate-key check reads the same cells the header names.
+        df1[KPI_COLUMNS].to_csv(self.proc_dir / "file1.csv", index=False)
+        df2[KPI_COLUMNS].to_csv(self.proc_dir / "file2.csv", index=False)
 
     def test_combination_outputs_csv(self):
         self.create_sample_files()
@@ -139,3 +142,18 @@ class TestKpiCombination:
         csv_df = pd.read_csv(csv_path)
         assert len(csv_df) == total_rows
         assert list(csv_df.columns) == KPI_COLUMNS
+
+    def test_combine_fails_on_an_injected_duplicate_key(self):
+        """A second copy of one pipeline key makes combine raise.
+
+        The rows are the combination harness. The injected row repeats the
+        first key in file1.csv: district, school_id, school_name, year,
+        student_group, and metric. The allowlist is empty.
+        """
+        self.create_sample_files()
+        frame = pd.read_csv(self.proc_dir / "file1.csv")
+        duplicated = pd.concat([frame, frame.iloc[[0]]], ignore_index=True)
+        duplicated.to_csv(self.proc_dir / "file1.csv", index=False)
+
+        with pytest.raises(DuplicateKpiKeyError, match="Duplicate KPI keys"):
+            combine_kpi_files(self.proc_dir, self.kpi_dir / "kpi_master.csv")

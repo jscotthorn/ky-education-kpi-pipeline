@@ -19,10 +19,17 @@ number. It does not recompute membership divided by FTE. These files do
 not contain those two components.
 
 KYRC26 uses the same headers as KYRC25. It has school rows only. The state
-row and the district ``All Schools`` rows are not in the file. This module
-does not rebuild them. The glossary excludes the Kentucky School for the
-Blind, the Kentucky School for the Deaf, and the Model Laboratory schools
-from the state total, so a sum of school rows is not that total.
+row and the district ``All Schools`` rows are not in the file, so the
+district and state ratio series end at 2025. This module does not rebuild
+them. The glossary excludes the Kentucky School for the Blind, the Kentucky
+School for the Deaf, and the Model Laboratory schools from the state total,
+so a sum of school rows is not that total.
+
+``student_teacher_ratio_2023.csv`` repeats the Corbin Independent and Floyd
+County district totals. The row kept is the one consistent with the adjacent
+years: Corbin 15 (2022 is 16 and 2024 is 15) and Floyd 14 (2022 is 14 and
+2024 is 16). A published ``*`` is stored as value NA with ``suppressed`` Y.
+No registered file contains that cell.
 
 No temporary OAA extract is registered, and the guessed temporary names
 return 404, so there is no leftover temporary filename to skip.
@@ -48,6 +55,18 @@ logger = logging.getLogger(__name__)
 # covers that year. School codes match after 3-digit district codes are
 # written as NNN000, and the ratio numerators match.
 _KYRC23_REPUBLISH = "KYRC23_OVW_STUDENT_TO_TEACHER_RATIO.CSV"
+_RATIO_2023 = "student_teacher_ratio_2023.csv"
+
+# 2023 district totals that the source file repeats. The kept numerator is
+# the copy consistent with the adjacent years. Corbin Independent school
+# code 133 is 16 in 2022 and 15 in 2024, so 2023 keeps 15. Floyd County
+# school code 175 is 14 in 2022 and 16 in 2024, so 2023 keeps 14. The other
+# copies (Corbin 0:01, 3:01, 412:01; Floyd 5249:01, 0:01, 3:01) are dropped.
+# Record 0023.
+_ADJACENT_YEAR_DISTRICT_TOTAL = {
+    "133": 15.0,
+    "175": 14.0,
+}
 
 # Students per one teacher. ``28:01:00`` is the same ratio with a trailing
 # seconds field of zeros. A denominator of ``00`` is a published zero only
@@ -196,7 +215,11 @@ class StudentTeacherRatioETL(BaseETL):
         # are not applicable: zero membership, or teachers counted outside
         # normal reporting. They are preschools, career and technical
         # centers, alternative schools, and KSB, KSD, and Model, not regular
-        # A1 schools. Omitting them is correct under notes/8.
+        # A1 schools. Omitting them is correct under notes/8. A starred cell
+        # is not a zero. ``create_kpi_template`` marks it suppressed, and
+        # the base conversion stores value NA.
+        if self._is_starred_ratio(row):
+            return metrics
         ratio_numeric = parse_ratio(row.get('ratio', pd.NA))
         if pd.notna(ratio_numeric) and ratio_numeric > 0:
             metrics['student_teacher_ratio'] = ratio_numeric
@@ -219,14 +242,104 @@ class StudentTeacherRatioETL(BaseETL):
         notes/8: a row that is not suppressed and has every measure empty
         is not offered and emits nothing. These files have no Suppressed
         column. A published zero is not empty; ``extract_metrics`` decides
-        whether that zero becomes a KPI row. ``pd.NA`` from a missing cell
-        is not evaluated as a boolean.
+        whether that zero becomes a KPI row. A ``*`` is not empty: it is
+        stored as value NA with ``suppressed`` Y. ``pd.NA`` from a missing
+        cell is not evaluated as a boolean.
         """
+        if self._is_starred_ratio(row):
+            return False
         ratio = row.get('ratio', pd.NA)
         if _ratio_text(ratio) is None:
             return True
 
         return False  # Don't call super() - institutional data has no demographics
+
+    def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Remember a starred ratio, then let the base reader blank the star.
+
+        ``BaseETL.standardize_missing_values`` turns ``*`` into NA. A column
+        whose name starts with ``_`` is left as written, so ``_star_ratio``
+        still says which cell was a star. No registered file has that cell.
+        pandas 2 stores the text as object and pandas 3 stores it as
+        StringDtype. pandas is unpinned.
+        """
+        if "ratio" in df.columns:
+            text = df["ratio"].astype("string").str.strip()
+            df = df.copy()
+            df["_star_ratio"] = text.isin(["*", "**"]).fillna(False)
+        return super().standardize_missing_values(df)
+
+    def create_kpi_template(
+        self, row: pd.Series, source_file: str
+    ) -> Optional[Dict[str, Any]]:
+        """Mark a starred ratio suppressed. These files have no Suppressed column."""
+        template = super().create_kpi_template(row, source_file)
+        if template is not None and self._is_starred_ratio(row):
+            template["suppressed"] = "Y"
+        return template
+
+    def _is_starred_ratio(self, row: pd.Series) -> bool:
+        """True when this row's ratio cell was ``*`` or ``**`` in the file."""
+        flag = row.get("_star_ratio", False)
+        try:
+            if bool(pd.isna(flag)):
+                return False
+        except (TypeError, ValueError):
+            return False
+        return bool(flag)
+
+    def _keep_2023_adjacent_year_totals(
+        self, df: pd.DataFrame, source_file: str
+    ) -> pd.DataFrame:
+        """Keep the 2023 Corbin and Floyd district total that matches nearby years.
+
+        The file repeats school code ``133`` four times and school code
+        ``175`` four times. The other district totals in that file are not
+        repeated as non-zero ratios, including Fayette ``165`` (three ``0:01``
+        copies and one ``13:01``). Those zeros stay on the existing ``> 0``
+        omission. Only ``133`` and ``175`` are filtered here.
+        """
+        if Path(source_file).name.lower() != _RATIO_2023:
+            return df
+        if df.empty or "school_code" not in df.columns or "ratio" not in df.columns:
+            return df
+        codes = (
+            df["school_code"]
+            .astype("string")
+            .str.strip()
+            .str.replace(r"\.0$", "", regex=True)
+        )
+        keep = pd.Series(True, index=df.index)
+        for code, kept_value in _ADJACENT_YEAR_DISTRICT_TOTAL.items():
+            group = (codes == code).fillna(False)
+            if not bool(group.any()):
+                continue
+            for idx in df.index[group.to_numpy()]:
+                parsed = parse_ratio(df.at[idx, "ratio"])
+                try:
+                    missing = bool(pd.isna(parsed))
+                except (TypeError, ValueError):
+                    missing = True
+                matches = (not missing) and float(parsed) == kept_value
+                if matches:
+                    continue
+                row = df.loc[idx]
+                logger.warning(
+                    "Dropping 2023 district total that is not the adjacent-year "
+                    "ratio: school_code=%s district=%s ratio=%s kept=%s file=%s",
+                    code,
+                    row.get("district_name"),
+                    row.get("ratio"),
+                    kept_value,
+                    source_file,
+                )
+                keep.at[idx] = False
+        return df.loc[keep].copy()
+
+    def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
+        """Apply the 2023 adjacent-year rule, then the base conversion."""
+        df = self._keep_2023_adjacent_year_totals(df, source_file)
+        return super().convert_to_kpi_format(df, source_file)
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:

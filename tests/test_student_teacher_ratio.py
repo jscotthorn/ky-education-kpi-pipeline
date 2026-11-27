@@ -406,6 +406,60 @@ class TestKyrc26OptIn:
         assert self.etl.extract_metrics(frame.iloc[4]) == {}
 
 
+def test_starred_ratio_from_a_real_row_is_suppressed(tmp_path):
+    """A star is value NA with suppressed Y.
+
+    No registered student-teacher ratio file contains ``*``. The identity
+    cells are KYRC26 Bryan Station High School, school code 165170, from the
+    datasets file copied into the fixture. Only that row's ratio cell is
+    replaced with ``*`` in this test. The Adair row in the same file stays 15.
+    """
+    import csv
+
+    source = (
+        ROOT
+        / "tests"
+        / "fixtures"
+        / "student_teacher_ratio"
+        / "KYRC26_OVW_Student_to_Teacher_Ratio.csv"
+    )
+    raw_dir = tmp_path / "raw" / "student_teacher_ratio"
+    raw_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed"
+    proc_dir.mkdir()
+    found = False
+    with source.open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.reader(handle))
+    header = rows[0]
+    ratio_index = header.index("Student Teacher Ratio")
+    code_index = header.index("School Code")
+    for row in rows[1:]:
+        if row[code_index] == "165170":
+            assert row[ratio_index] == "15:01"
+            row[ratio_index] = "*"
+            found = True
+    assert found
+    with (raw_dir / "KYRC26_OVW_Student_to_Teacher_Ratio.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as handle:
+        csv.writer(handle).writerows(rows)
+
+    config = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+    transform(tmp_path / "raw", proc_dir, config["sources"]["student_teacher_ratio"])
+    result = pd.read_csv(proc_dir / "student_teacher_ratio.csv", dtype=str)
+    starred = result[result["school_id"] == "165170"]
+    assert len(starred) == 1
+    assert pd.isna(starred.iloc[0]["value"])
+    assert starred.iloc[0]["suppressed"] == "Y"
+    assert starred.iloc[0]["district"] == "Fayette County"
+    assert starred.iloc[0]["school_name"] == "Bryan Station High School"
+    assert starred.iloc[0]["year"] == "2026"
+    adair = result[result["school_id"] == "001010"]
+    assert len(adair) == 1
+    assert float(adair.iloc[0]["value"]) == 15.0
+    assert adair.iloc[0]["suppressed"] == "N"
+
+
 def test_registered_sources_are_the_permanent_files():
     """KYRC24, KYRC25, and KYRC26 are registered. KYRC23 is not."""
     config = yaml.safe_load((ROOT / "config" / "kde_sources.yaml").read_text())
