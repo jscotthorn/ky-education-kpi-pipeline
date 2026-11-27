@@ -41,12 +41,14 @@ The comments choose the UAT copy and say a published 0 stays. The later confirma
 
 ## Code check
 
-Items 1 and 2 now match the registration. Re-read on this branch.
+Re-read after merging `feature/2025-26-kyrc26` at `9c0755f`. Items 1 and 2 match the registration.
 
-- Item 1: `students_taught_by_ineffective_teachers` registers `url: kyrc_uat` for `KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv`. The comment records the 1,589-row UAT copy (Non-White) and says the live datasets object is 39 rows with percents above 100 and is not loaded. That live file is the visibly broken copy under [0052](0052-republish-supersedes-earlier.md), confirmed by [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md).
-- Item 2: KYRC25 is `url: kyrc_uat`. The downloader compares bodies and reports a mismatch when either Content-MD5 is missing, and still keeps the primary URL for an unpinned key. This file is pinned, so it does not auto-select. The 27 Nov 2026 choice to load this UAT copy is [DNNNN](DNNNN-kyrc25-uat-and-kyrc26-ineffective-refresh.md).
+- Item 1: `students_taught_by_ineffective_teachers` registers `url: kyrc_uat` for `KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv`. The yaml comment records the 1,589-row UAT copy (Non-White) and says the live datasets object is 39 rows with percents above 100 and is not loaded. That live file is the visibly broken copy under [0052](0052-republish-supersedes-earlier.md), confirmed by [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md).
+- Item 2: KYRC25 is `url: kyrc_uat`. `data/prepare_kde_data.py` compares bodies and reports a mismatch when either Content-MD5 is missing, and still keeps the primary URL for an unpinned key. This file is pinned (`kyrc_uat` is in `_PINNED_URL_TYPES`), so it does not auto-select. The 27 Nov 2026 choice to load this UAT copy is [DNNNN](DNNNN-kyrc25-uat-and-kyrc26-ineffective-refresh.md).
+- Item 3: a published 0 is kept. `StudentsTaughtByIneffectiveTeachersETL.extract_metrics` keeps a percent of 0 and drops only `value < 0`. The novice equity path keeps `value >= 0`. The copy switch did not change those checks. The J1 catalog-cleanup pass had not re-checked this item; this re-read of the merged extractors confirms the checks are still there.
+- Item 4: done by the J1 catalog cleanup now on this branch. `analysis/config/covariate_catalog.yaml` names `students_taught_by_ineffective_teachers_rate_title_1`, the Title I metric the module emits. The copy-switch edit did not touch the catalog.
 
-Item 3 (keep published zeros) is unchanged in the ineffective and novice extractors. Item 4 (the covariate catalog) is not this edit. Status stays `conflicts-with-code` until it is updated after merge. That status change is not this edit.
+The earlier code check said no pull request performed the switch and that the yaml still registered the Open House copy. This branch registers the UAT copies. Issues #64 and #123 were not closed here. Status stays `conflicts-with-code`. That status change is not this edit.
 
 ## KDE guidance check
 

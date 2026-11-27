@@ -2,7 +2,7 @@
 
 This folder records choices about Kentucky Department of Education (KDE) sources and how this pipeline treats them. It does not change pipeline code. A later edit to a choice is a new record. The old record stays, keeps its number, and links to the new one.
 
-Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0057`. A number is never reused. `DNNNN` is a placeholder in this index. Its number is assigned at merge, so `0057` stays the next numeric slot.
+Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0058`. A number is never reused. `DNNNN` is a placeholder in this index until the following commit assigns `0058`.
 
 ## When a record is needed
 
@@ -70,7 +70,7 @@ Two note numbers are used twice. They were not renamed.
 
 ## Records
 
-57 records. 41 accepted. 9 accepted, code differs (follow-up open). 3 conflicts-with-code. 3 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed. `DNNNN` is the fifty-seventh record and is counted in the 41 accepted. Its number is not `0057`.
+58 records. 42 accepted. 9 accepted, code differs (follow-up open). 3 conflicts-with-code. 3 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed. `DNNNN` is counted in the 42 accepted. Record 0057 is the postsecondary in-file cohort record.
 
 | Record | Status | KDE guidance check |
 | --- | --- | --- |
@@ -130,4 +130,5 @@ Two note numbers are used twice. They were not renamed.
 | [0054](0054-store-values-as-kde-publishes.md) | accepted | no KDE guidance found |
 | [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md) | accepted | no KDE guidance found |
 | [0056](0056-kyrc26-chronic-absenteeism-district-602-name.md) | accepted | no KDE guidance found |
+| [0057](0057-postsecondary-in-file-cohort-count.md) | accepted | possible conflict |
 | [DNNNN](DNNNN-kyrc25-uat-and-kyrc26-ineffective-refresh.md) | accepted | no KDE guidance found |

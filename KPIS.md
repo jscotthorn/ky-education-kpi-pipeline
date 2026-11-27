@@ -124,7 +124,7 @@ Prior-setting metrics are for demographic All Students. On the composites the ra
 
 KDE's report-card glossary defines `OVW_Student_Suspensions` as Student Suspensions (CRDC): counts of in-school and out-of-school suspensions for students with and without disabilities, from the biennial Civil Rights Data Collection. Single means one out-of-school suspension. Multiple means more than one. These are student counts.
 
-**The KPI year is the report-card year (`School Year`), not the CRDC collected year.** Report-card year 2026 is the 2021-22 collection (`Collected School Year` `20212022` on every KYRC26 row). Report-card year 2024 is the 2020-21 collection (`Collected School Year` `20202021` on every KYRC24 row). The output has no collected-year column.
+**The KPI year is the CRDC collection year, the last four digits of `Collected School Year`, not the report-card year (`School Year`).** Record 0048. The KYRC26 file is the 2021-22 collection (`Collected School Year` `20212022` on every row), stored as 2022. The KYRC24 file is the 2020-21 collection (`Collected School Year` `20202021` on every row), stored as 2021. The output has no collected-year column. Each collection is stored once.
 
 `KYRC25_OVW_Student_Suspensions.csv` is the same 2020-21 collection with `School Year` `20242025`. It is not registered. These files are school rows only. There is no `999000` state row and no district total.
 
@@ -132,7 +132,7 @@ A total is suppressed when any component is suppressed. Summing the published pa
 
 Annual Safe Schools `OUT OF SCHOOL SUSPENSION SSP3` counts are not emitted here. `etl/safe_schools_discipline.py` publishes `out_of_school_suspension_count` and the other resolution counts.
 
-### CRDC metrics (report-card years 2024 and 2026)
+### CRDC metrics (collection years 2021 and 2022)
 - `out_of_school_suspension_single_with_disabilities_count` - Students with disabilities with one out-of-school suspension
 - `out_of_school_suspension_single_without_disabilities_count` - Students without disabilities with one out-of-school suspension
 - `out_of_school_suspension_multiple_with_disabilities_count` - Students with disabilities with more than one out-of-school suspension
@@ -153,6 +153,8 @@ Annual Safe Schools `OUT OF SCHOOL SUSPENSION SSP3` counts are not emitted here.
 - `postsecondary_enrollment_public_ky_college_rate` - Percentage enrolled in public KY colleges
 - `postsecondary_enrollment_private_ky_college_rate` - Percentage enrolled in private KY colleges
 - `postsecondary_enrollment_total_ky_college_rate` - Percentage enrolled in any KY college
+
+A `*` on a measure cell is value NA with `suppressed` Y when that row's cohort count (`Total In Group`) is a published number greater than 0. A cohort of 0 or a blank cohort leaves the star unstored. A published 0 is kept with `suppressed` N. A blank measure cell is omitted. `**` and `<10` are omitted. A row whose cohort count is itself `*` is not stored as suppressed. Those rows, the 7 KYRC26 rows where a starred private count can be recovered as total minus public, the 2024 rows where a starred total can be recovered as public plus private (Marion County High School `375515` White (non-Hispanic), 71 + 21 = 92, and Hancock County High School `225005` All Students, 43 + 21 = 64), and the 2024 South Laurel High School `311210` Economically Disadvantaged row where a starred public count can be recovered as 68 − 20 = 48, are listed in [notes/flags/A-flagged-keys.csv](notes/flags/A-flagged-keys.csv) with label `kde-recheck`. Seventeen starred-cohort rows from 2025 publish a count and a rate that reveal the cohort. They are listed under `starred cohort count` with no separate leak row. A hidden rate can be roughly worked out from the published rates for Marion (total ≈ 60.9%) and the 7 KYRC26 rows (private ≈ total rate − public rate); Hancock and South Laurel have a starred cohort and starred rates, so their rates cannot be. [Issue #44](https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/44) counts 92 KYRC24/26 groups that are absent from this file and have 3 to 42 graduates in the graduates file. That count is `kde-recheck`. The graduates file is not read. No new metric is added. [0057](docs/decisions/0057-postsecondary-in-file-cohort-count.md).
 
 ## Postsecondary Readiness
 **Source**: `etl/postsecondary_readiness.py`
@@ -713,8 +715,6 @@ KDE's school-courses summary is specialized course enrollment, not the full cata
 - `courses_offered_count_vpa` - Course rows whose KDE category is `VPA`.
 - `courses_offered_count_wl` - Course rows whose KDE category is `WL`.
 - `courses_offered_count_other` - Course rows whose category is blank or not one of those labels. It is 0 in every registered year. The state course code is not used, because visual arts and health/PE both use prefix 70.
-- `algebra_1_grade_8_count` - Grade 8 enrollment when the course name contains `Algebra I` or `Algebra 1`. Still one row per such course. No registered file has such a course.
-- `has_algebra_1_access` - 1 when that grade-8 count is above 0, 0 when the published grade-8 count is 0, and NA with `suppressed` Y when the grade-8 cell is `*`. A blank grade-8 cell is not stored.
 
 The category counts use the same rows as `courses_offered_count`, and the four named categories plus `courses_offered_count_other` sum to it. The category is taken from KDE's `Course Category` column. The 2018-19 coversheet is the definition of those four labels.
 
@@ -722,7 +722,7 @@ The category counts use the same rows as `courses_offered_count`, and the four n
 
 **Data Sources**: `KYRC24_EDOP_School_Courses_Summary.csv` (datasets host), `KYRC25_EDOP_School_Courses_Summary.csv`, `KYRC26_EDOP_School_Courses_Summary.csv`, `school_courses_summary_{2020,2021,2022,2023}.csv`, `SCHOOL_COURSES_SUMMARY_18-19.xlsx`
 **Years Available**: 2019-2026
-**Unit**: Count (course rows for the offered-course metrics; the Algebra count is a headcount when a matching course exists)
+**Unit**: Count (course rows for the offered-course metrics)
 **Demographics**: School-level only (All Students)
 
 ---

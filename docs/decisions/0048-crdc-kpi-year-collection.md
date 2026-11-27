@@ -23,9 +23,9 @@ Primary source: https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/1
 Scott confirmed that comment on 2026-10-25 at 12:38 PM ET. He approved the #122 Decision comment in Archivist's chat. The 12:05 wording is Moon's relay, not Scott's chat answer.
 
 - Advanced coursework, pull request #79, already uses the collection year. KPI year 2021 is the 2020-21 collection, from the KYRC23 overview. KPI year 2022 is the 2021-22 collection, from the KYRC26 overview. `etl/advanced_coursework.py` and `README.md`.
-- Out-of-school suspension, pull request #51, still uses the report-card school year. KPI year 2026 is the 2021-22 collection. KPI year 2024 is the 2020-21 collection. There is no state row. `etl/out_of_school_suspension.py` and `README.md`. That move is tracked on issue #122. It is not done on this branch.
+- Out-of-school suspension, pull request #51, used the report-card school year. The follow-up on issue #122 moves those rows to the collection year. KPI year 2021 is the 2020-21 collection (`Collected School Year` `20202021` on every KYRC24 row). KPI year 2022 is the 2021-22 collection (`Collected School Year` `20212022` on every KYRC26 row). There is no state row. `etl/out_of_school_suspension.py` and `README.md`.
 
-The #51 rule "KPI year = report-card year (2026 = CRDC 2021-22)" is superseded by this record once #122 lands. Until then the suspension code does not match. This log does not change any code.
+The #51 rule "KPI year = report-card year (2026 = CRDC 2021-22)" is the rule this record supersedes. The suspension move is the later pull request named above. This log's status stays `accepted, code differs (follow-up open)` until that pull request merges.
 
 ## Who decided and how we know
 
@@ -51,7 +51,7 @@ Scott's sentence is the choice. It does not say why the collection year is the K
 
 ## Code check
 
-Partial match. Advanced coursework already uses the collection year. Suspension still uses the report-card year. That mismatch stays until issue #122 lands. This record does not change either module.
+This pull request moves `etl/out_of_school_suspension.py` onto the collection year. KYRC24 (`Collected School Year` `20202021`) is stored as 2021. KYRC26 (`Collected School Year` `20212022`) is stored as 2022. Advanced coursework already used the collection year for its CRDC overview rows. Status stays `accepted, code differs (follow-up open)` until this pull request merges. That status change is not made here.
 
 ## KDE guidance check
 

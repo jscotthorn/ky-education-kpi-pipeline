@@ -38,7 +38,15 @@ The 2019-20 comment's reason is "first year of KDE's Equity tab, incomplete cove
 
 ## Code check
 
-The unregistered 2019-20 file still matches: it is not registered, and the parser skips that filename. The comment records the reason from issue #66 item 1: first year of KDE's Equity tab, incomplete coverage. The 2024 registration now matches. Re-read on this branch: KYRC24 is `url: kyrc_datasets` for `KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv`. The comment records the replaced historical extract and says UAT negates some equity-gap cells and is not loaded. The datasets copy is the later public file (Last-Modified Thu, 14 May 2026 19:11:30 GMT) and is not visibly broken, so the registration follows [0052](0052-republish-supersedes-earlier.md). Status stays `conflicts-with-code` until it is updated after merge. That status change is not this edit.
+Re-read after merging `feature/2025-26-kyrc26` at `9c0755f`.
+
+The unregistered 2019-20 file matches. It is not listed under `students_taught_by_out_of_field_teachers` in `config/kde_sources.yaml`. `accepts_data_file` returns False when the uppercased name equals `_UNREGISTERED_2020` (`STUDENTS_TAUGHT_BY_OUT_OF_FIELD_TEACHERS_2020.CSV`). The yaml comment and the method docstring record issue #66 item 1: first year of KDE's Equity tab, incomplete coverage. The skip log still says "Issue #66 holds whether to bring it back."
+
+The 2024 registration matches. KYRC24 is `url: kyrc_datasets` for `KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv`. The yaml comment records the replaced historical extract and says UAT negates some equity-gap cells and is not loaded. The datasets copy is the later public file (Last-Modified Thu, 14 May 2026 19:11:30 GMT) and is not visibly broken, so the registration follows [0052](0052-republish-supersedes-earlier.md).
+
+The J1 catalog cleanup, now on this branch, repoints the catalog key from `students_taught_by_out_of_field_teachers_rate` to `students_taught_by_out_of_field_teachers_rate_title_1`, the Title I metric the module emits (`analysis/config/covariate_catalog.yaml`). The copy-switch edit did not touch the catalog.
+
+The earlier code check said the bare historical name was still registered and that the comment said "Do not swap it here." The yaml no longer says that. Issues #66 and #123 were not closed here. Status stays `conflicts-with-code`. That status change is not this edit.
 
 ## KDE guidance check
 
