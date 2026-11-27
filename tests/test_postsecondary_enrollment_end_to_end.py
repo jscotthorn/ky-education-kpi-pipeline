@@ -1,5 +1,7 @@
 """End-to-end tests for postsecondary enrollment ETL"""
 import pandas as pd
+import subprocess
+import sys
 import tempfile
 import shutil
 from pathlib import Path
@@ -420,8 +422,10 @@ def test_flagged_key_list_records_starred_cohorts_and_kyrc26_leaks():
 
     Collins Lane 181025 All Students is a KYRC25 row whose cohort cell is *.
     The seven KYRC26 private-count leaks are the rows issue #44 names.
-    Marion County High School 375515 White (non-Hispanic) in 2024 hides both
-    totals while the published public and private counts are 71 and 21.
+    Marion County High School 375515 White (non-Hispanic) and Hancock County
+    High School 225005 All Students in 2024 hide a total that public plus
+    private reveals. South Laurel 311210 Economically Disadvantaged in 2024
+    hides a public count that total minus private reveals.
     """
     import csv
 
@@ -451,8 +455,9 @@ def test_flagged_key_list_records_starred_cohorts_and_kyrc26_leaks():
         ("2021", "starred cohort count"): 1260,
         ("2022", "starred cohort count"): 3125,
         ("2023", "starred cohort count"): 3064,
+        ("2024", "public = total - private leaks suppressed value"): 1,
         ("2024", "starred cohort count"): 3240,
-        ("2024", "private = total - public leaks suppressed value"): 1,
+        ("2024", "total = public + private leaks suppressed value"): 2,
         ("2025", "starred cohort count"): 6375,
         ("2026", "starred cohort count"): 2827,
         ("2026", "private = total - public leaks suppressed value"): 7,
@@ -478,9 +483,58 @@ def test_flagged_key_list_records_starred_cohorts_and_kyrc26_leaks():
         ("121030", "Male"),
         ("133040", "Male"),
         ("145010", "Female"),
-        ("375515", "White (non-Hispanic)"),
         ("581200", "Economically Disadvantaged"),
         ("601084", "Gifted and Talented"),
         ("601084", "Male"),
     ]
+    total_leaks = [
+        (row["school_id"], row["student_group"], row["metric"])
+        for row in flagged
+        if row["reason"] == "total = public + private leaks suppressed value"
+    ]
+    assert sorted(total_leaks) == [
+        (
+            "225005",
+            "All Students",
+            "postsecondary_enrollment_total_ky_college_count",
+        ),
+        (
+            "375515",
+            "White (non-Hispanic)",
+            "postsecondary_enrollment_total_ky_college_count",
+        ),
+    ]
+    public_leaks = [
+        (row["school_id"], row["student_group"], row["metric"], row["district"])
+        for row in flagged
+        if row["reason"] == "public = total - private leaks suppressed value"
+    ]
+    assert public_leaks == [
+        (
+            "311210",
+            "Economically Disadvantaged",
+            "postsecondary_enrollment_public_ky_college_count",
+            "Laurel County",
+        )
+    ]
+
+
+def test_flag_list_script_matches_committed_file(tmp_path):
+    """scripts/build_a_flagged_keys.py reproduces the committed list."""
+    root = Path(__file__).resolve().parents[1]
+    committed = root / "notes" / "flags" / "A-flagged-keys.csv"
+    output = tmp_path / "A-flagged-keys.csv"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(root / "scripts" / "build_a_flagged_keys.py"),
+            "--output",
+            str(output),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 0, completed.stderr
+    assert output.read_bytes() == committed.read_bytes()
 

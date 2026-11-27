@@ -7448,7 +7448,7 @@ postsecondary_enrollment,2023,Woodford County,601084,Female,postsecondary_enroll
 postsecondary_enrollment,2023,Woodford County,601084,Gifted and Talented,postsecondary_enrollment_total_in_cohort,*,starred cohort count,kde-recheck
 postsecondary_enrollment,2023,Woodford County,601084,Homeless,postsecondary_enrollment_total_in_cohort,*,starred cohort count,kde-recheck
 postsecondary_enrollment,2023,Woodford County,601084,Male,postsecondary_enrollment_total_in_cohort,*,starred cohort count,kde-recheck
-postsecondary_enrollment,2024,Marion County,375515,White (non-Hispanic),postsecondary_enrollment_total_ky_college_count,*,private = total - public leaks suppressed value,kde-recheck
+postsecondary_enrollment,2024,Laurel County,311210,Economically Disadvantaged,postsecondary_enrollment_public_ky_college_count,*,public = total - private leaks suppressed value,kde-recheck
 postsecondary_enrollment,2024,Adair County,001000,African American,postsecondary_enrollment_total_in_cohort,*,starred cohort count,kde-recheck
 postsecondary_enrollment,2024,Adair County,001000,English Learner,postsecondary_enrollment_total_in_cohort,*,starred cohort count,kde-recheck
 postsecondary_enrollment,2024,Adair County,001000,Foster Care,postsecondary_enrollment_total_in_cohort,*,starred cohort count,kde-recheck
@@ -10689,6 +10689,8 @@ postsecondary_enrollment,2024,Woodford County,601084,Migrant,postsecondary_enrol
 postsecondary_enrollment,2024,Woodford County,601084,Students with Disabilities (IEP),postsecondary_enrollment_total_in_cohort,*,starred cohort count,kde-recheck
 postsecondary_enrollment,2024,Woodford County,601084,Two or More Races,postsecondary_enrollment_total_in_cohort,*,starred cohort count,kde-recheck
 postsecondary_enrollment,2024,Woodford County,601084,White (non-Hispanic),postsecondary_enrollment_total_in_cohort,*,starred cohort count,kde-recheck
+postsecondary_enrollment,2024,Hancock County,225005,All Students,postsecondary_enrollment_total_ky_college_count,*,total = public + private leaks suppressed value,kde-recheck
+postsecondary_enrollment,2024,Marion County,375515,White (non-Hispanic),postsecondary_enrollment_total_ky_college_count,*,total = public + private leaks suppressed value,kde-recheck
 postsecondary_enrollment,2025,Adair County,001000,African American,postsecondary_enrollment_total_in_cohort,*,starred cohort count,kde-recheck
 postsecondary_enrollment,2025,Adair County,001000,American Indian or Alaska Native,postsecondary_enrollment_total_in_cohort,*,starred cohort count,kde-recheck
 postsecondary_enrollment,2025,Adair County,001000,Asian,postsecondary_enrollment_total_in_cohort,*,starred cohort count,kde-recheck

@@ -1,22 +1,27 @@
 #!/usr/bin/env python3
 """Write ``notes/flags/A-flagged-keys.csv`` from the postsecondary source files.
 
-The list has two reasons, both labeled ``kde-recheck``:
+Every row is labeled ``kde-recheck``. The reasons are:
 
 * ``starred cohort count``: the cohort cell is ``*``. The metric is
   ``postsecondary_enrollment_total_in_cohort``. That row stays unclassified.
-* ``private = total - public leaks suppressed value``: a published count
-  recovers a starred count. This is the 7 KYRC26 rows where the private
-  count and the private rate are ``*`` and the public and total counts are
-  numbers, plus the 2024 Marion County High School ``375515`` White
-  (non-Hispanic) row. That cohort is 151, both totals are ``*``, and the
-  published public and private counts are 71 and 21.
+* ``private = total - public leaks suppressed value``: the 7 KYRC26 rows.
+  The private count and the private rate are ``*``, and the public and
+  total counts are numbers.
+* ``total = public + private leaks suppressed value``: the total count is
+  ``*`` and the public and private counts are numbers. Marion County High
+  School ``375515`` White (non-Hispanic) in 2024 is 71 + 21 = 92. Hancock
+  County High School ``225005`` All Students in 2024 is 43 + 21 = 64.
+  Hancock's cohort is also ``*``, so that row is listed under both reasons.
+* ``public = total - private leaks suppressed value``: South Laurel High
+  School ``311210`` Economically Disadvantaged in 2024. The public count
+  is ``*``, and 68 - 20 = 48. The cohort is also ``*``, so that row is
+  listed under both reasons.
 
 2021 has 789 rows whose private count is ``*`` while the public and total
 counts are numbers. Those rows publish a private rate, so they are not
-this shape and are not listed. Hancock County High School ``225005`` All
-Students in 2024 hides both totals, but its cohort is ``*``, so it stays
-a starred-cohort row only.
+listed. Five 2021 rows hide the public count and publish a public rate.
+Those are not listed either.
 
 Reads the six files registered for ``postsecondary_enrollment`` from
 ``data/raw/postsecondary_enrollment``.
@@ -24,10 +29,12 @@ Reads the six files registered for ``postsecondary_enrollment`` from
 Example
 -------
 python3 scripts/build_a_flagged_keys.py
+python3 scripts/build_a_flagged_keys.py --output /tmp/A-flagged-keys.csv
 """
 
 from __future__ import annotations
 
+import argparse
 import csv
 import sys
 from pathlib import Path
@@ -59,9 +66,12 @@ COLUMNS = (
 MODULE = "postsecondary_enrollment"
 LABEL = "kde-recheck"
 STARRED_COHORT = "starred cohort count"
-LEAK = "private = total - public leaks suppressed value"
+PRIVATE_LEAK = "private = total - public leaks suppressed value"
+TOTAL_LEAK = "total = public + private leaks suppressed value"
+PUBLIC_LEAK = "public = total - private leaks suppressed value"
 COHORT_METRIC = "postsecondary_enrollment_total_in_cohort"
 PRIVATE_METRIC = "postsecondary_enrollment_private_ky_college_count"
+PUBLIC_METRIC = "postsecondary_enrollment_public_ky_college_count"
 TOTAL_METRIC = "postsecondary_enrollment_total_ky_college_count"
 
 
@@ -108,12 +118,12 @@ def flagged_rows() -> list[dict[str, str]]:
             if district is None or str(district).strip() == "":
                 district = "Unknown District"
             school_id = etl.extract_school_id(row)
-            cohort_kind, cohort_number = _cell(row, "total_in_group")
+            cohort_kind, _cohort_number = _cell(row, "total_in_group")
             public_kind, public_number = _cell(row, "public_college_enrolled")
-            private_kind, _private_number = _cell(row, "private_college_enrolled")
+            private_kind, private_number = _cell(row, "private_college_enrolled")
             total_kind, total_number = _cell(row, "college_enrolled_total")
+            public_rate_kind, _public_rate = _cell(row, "public_college_rate")
             private_rate_kind, _private_rate = _cell(row, "private_college_rate")
-            total_rate_kind, _total_rate = _cell(row, "college_enrollment_rate")
 
             def add(metric: str, reason: str) -> None:
                 records.append(
@@ -141,20 +151,25 @@ def flagged_rows() -> list[dict[str, str]]:
                 and _is_number(public_kind, public_number)
                 and _is_number(total_kind, total_number)
             ):
-                add(PRIVATE_METRIC, LEAK)
-            # Both totals are hidden and the cohort is a published number
-            # greater than 0. Public + private is the hidden total. A starred
-            # cohort stays on the starred-cohort reason only.
+                add(PRIVATE_METRIC, PRIVATE_LEAK)
+            # The total count is hidden. Public + private is that total.
+            # Hancock's cohort is also *, so it keeps the starred-cohort row.
             if (
-                _is_number(cohort_kind, cohort_number)
-                and cohort_number is not None
-                and cohort_number > 0
-                and total_kind == "star"
-                and total_rate_kind == "star"
+                total_kind == "star"
                 and _is_number(public_kind, public_number)
-                and _is_number(private_kind, _private_number)
+                and _is_number(private_kind, private_number)
             ):
-                add(TOTAL_METRIC, LEAK)
+                add(TOTAL_METRIC, TOTAL_LEAK)
+            # The public count and public rate are hidden. Total - private
+            # is that public count. A published public rate is the 2021
+            # shape and is not listed.
+            if (
+                public_kind == "star"
+                and public_rate_kind == "star"
+                and _is_number(total_kind, total_number)
+                and _is_number(private_kind, private_number)
+            ):
+                add(PUBLIC_METRIC, PUBLIC_LEAK)
 
     records.sort(
         key=lambda record: (
@@ -181,8 +196,16 @@ def write_flags(path: Path = OUTPUT) -> int:
 
 
 def main() -> None:
-    count = write_flags()
-    print(f"Wrote {OUTPUT} ({count} rows)")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=OUTPUT,
+        help="Where to write the flag list (default: notes/flags/A-flagged-keys.csv)",
+    )
+    args = parser.parse_args()
+    count = write_flags(args.output)
+    print(f"Wrote {args.output} ({count} rows)")
 
 
 if __name__ == "__main__":
