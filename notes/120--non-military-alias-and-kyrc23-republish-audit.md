@@ -8,7 +8,7 @@ Scott's words (exact), from DECISIONS-VERIFIED.md item 9: "Approve the global No
 
 ## Alias
 
-`config/demographic_mappings.yaml` no longer lists `Non-Military` as its own canonical group. The general map is `Non-Military` to `Non-Military Dependent`, and the lowercase map is `non-military` to `Non-Military Dependent`. `Non-Military` had to leave the canonical list. The mapper returns a canonical label unchanged before it reads the general map, so leaving it there would have blocked the alias.
+`config/demographic_mappings.yaml` no longer lists `Non-Military` as its own canonical group. The general map is `Non-Military` to `Non-Military Dependent`, and the lowercase map is `non-military` to `Non-Military Dependent`. `Non-Military` had to leave the canonical list. The mapper returns a canonical label unchanged before it reads the general map, so leaving it there would have blocked the alias. The 2024-26 year-specific expected lists and `allow_missing` no longer name the raw label. The alias already stores that string as `Non-Military Dependent`, so those entries were not reachable as a stored group. `Non-Military Dependent` stays in the expected lists. Its `allow_missing` comment no longer says the label is 2024 only. Re-running graduation, postsecondary, KSA, and climate after that list cleanup left the four KPI files identical apart from `last_updated`. The four demographic reports were identical.
 
 `etl/advanced_coursework.py` keeps a module-local `"Military Connected": "Military Dependent"`. That is the positive group. It does not mention `Non-Military`, so it was not changed.
 
@@ -22,7 +22,7 @@ No registered source file that this audit opened publishes both `Non-Military` a
 
 ## What the alias changes
 
-The modules below were run twice, once on the base yaml and once on the alias, through each module's `transform`. `last_updated` is a clock and was ignored. After the before side's `Non-Military` label is renamed to `Non-Military Dependent`, a sorted row merge of all four outputs has 0 keys added, 0 keys removed, and 0 value or suppressed changes. Duplicate keys on `(district, school_id, school_name, year, student_group, metric)` are 0 on both sides of every module.
+The modules below were run twice, once on the base yaml and once on the alias, through each module's `transform`. `last_updated` is a clock and was ignored. After the before side's `Non-Military` label is renamed to `Non-Military Dependent`, a sorted row merge of all four outputs has 0 keys added, 0 keys removed, and 0 value or suppressed changes. The alias adds 0 new duplicate keys. 2019 already has 998 duplicate keys in graduation and 812 in postsecondary readiness, and both counts are unchanged. The years regenerated for this check had 0 duplicate keys before and after.
 
 | Module | Year | Rows relabelled | Added | Removed | Value changed |
 | --- | --- | --- | --- | --- | --- |
@@ -46,9 +46,9 @@ The modules below were run twice, once on the base yaml and once on the alias, t
 | safe_schools_climate | 2025 | 3516 | 0 | 0 | 0 |
 | safe_schools_climate | 2026 | 3512 | 0 | 0 | 0 |
 
-Graduation's 794 rows are 397 `graduation_rate_4_year` and 397 `graduation_rate_5_year`. Postsecondary's 794 rows are 397 `postsecondary_readiness_rate` and 397 `postsecondary_readiness_rate_with_bonus`. KSA 2022 is 51,488 `Non-Military Dependent` rows on both sides (the 2022 accountability file already uses that label). KSA 2023 is 51,550 on both sides. Climate's counts are the per-level climate and safety indexes. `climate_index_score_calculated` and `safety_index_score_calculated` are not emitted.
+Graduation's 794 rows are 397 `graduation_rate_4_year` and 397 `graduation_rate_5_year`. Postsecondary's 794 rows are 397 `postsecondary_readiness_rate` and 397 `postsecondary_readiness_rate_with_bonus`. KSA 2022 is 51,488 `Non-Military Dependent` rows on both sides (the 2022 KSA accountability file already uses that label). KSA 2023 accountability is 51,550 on both sides. Climate's counts are the per-level climate and safety indexes. `climate_index_score_calculated` and `safety_index_score_calculated` are not emitted.
 
-Other configured CSV sources with a demographic column had 0 rows labelled `Non-Military`. The yaml diff does not change any other label, so those module-years do not change. `kpi_master.csv` was not regenerated. The processed directory is gitignored and was empty here, and a portal copy would not be the output of `1aef27b`. The base duplicate-key count of 1,813 (1,810 in 2019, 1 in 2022, 2 in 2023) is the figure in brief F. It was not recomputed. On the four regenerated outputs the duplicate-key count is 0 before and 0 after. No scanned file contains both labels, so the rename cannot create a new key inside a file.
+Other configured CSV sources with a demographic column had 0 rows labelled `Non-Military`. The yaml diff does not change any other label, so those module-years do not change. `kpi_master.csv` was not regenerated. The processed directory is gitignored and was empty here, and a portal copy would not be the output of `1aef27b`. The base duplicate-key count of 1,813 (1,810 in 2019, 1 in 2022, 2 in 2023) is the figure in brief F. It was not recomputed. The alias adds 0 new duplicate keys. 2019 already has 998 duplicate keys in graduation and 812 in postsecondary readiness, and both counts are unchanged. The four regenerated year ranges had 0 duplicate keys before and after. No scanned file contains both labels, so the rename cannot create a new key inside a file.
 
 ## Spot checks
 
@@ -79,9 +79,9 @@ On the dashboard target metrics this pipeline emits:
 | `kentucky_summative_assessment_reading_proficient_distinguished_rate_grade_3` | 2024, 2025, 2026 | 40, 40, 40 |
 | `kentucky_summative_assessment_math_proficient_distinguished_rate_grade_8` | 2024, 2025, 2026 | 20, 19, 20 |
 
-`graduation_count_4_year`, `graduation_count_5_year`, `climate_index_score_calculated`, and `safety_index_score_calculated` are in the extract's target list and are not emitted for this group. The five-year graduation rate and the postsecondary rate with bonus are emitted and do change label. They are not in the target list. The per-level climate and safety indexes change label in 2023, 2024, 2025, and 2026, including Fayette district `165000`, Lafayette `165060`, and Tates Creek Elementary `165095`. The extract does not request those metric names.
+`graduation_count_4_year` and `graduation_count_5_year` are in the dashboard extract's target list and are not emitted for this group. The five-year graduation rate and the postsecondary rate with bonus are emitted and do change label. They are not in the target list. The per-level climate and safety indexes change label in 2023, 2024, 2025, and 2026, including Fayette district `165000`, Lafayette `165060`, and Tates Creek Elementary `165095`. The dashboard extract on `develop` requests those per-level climate and safety indexes. The extract on `main` requests `climate_index_score_calculated` and `safety_index_score_calculated`. This pipeline emits the per-level indexes and does not emit the `*_calculated` names.
 
-2023 assessment rows were already `Non-Military Dependent`. They do not change.
+The 2022 and 2023 KSA accountability rows were already `Non-Military Dependent`. They do not change.
 
 ## KYRC23 republish audit
 
@@ -93,7 +93,7 @@ KSA accountability, before the alias: the republish's only extra group is `Non-M
 
 KSA by grade, before and after the alias: `Non-Foster Care` (raw `Non-Foster`) and `Non-Military` (after the alias, `Non-Military Dependent`). 18,677 rows each, 37,354 rows, 183,240 nonblank, 148,635 numeric. The registered grade file has neither group. These are the F-2 groups. They are not loaded.
 
-Both live containers return HTTP 200 for every republish name below. `datasets` and `datasetsuat6051276` have the same Content-Length except the out-of-field file. The regen mirror `MANIFEST.csv` was not on this machine, so mirror membership was not verified against that manifest. The brief's statement that the KSA files sit in the mirror only as `datasetsuat6051276/2023/...` was not re-checked against a manifest. No mirror file was added.
+Both live containers return HTTP 200 for every republish name below. `datasets` and `datasetsuat6051276` have the same Content-Length except the out-of-field file. Every audited KYRC23 file is in the regen mirror under `datasetsuat6051276/2023/`, and the KSA files are only there. No mirror file was added.
 
 KSA accountability, downloaded from `datasets`: 47,926,483 bytes, md5 `c90a58f70c5e1c251ba81c7d4ff9de09`, Last-Modified Thu, 14 May 2026 19:11:26 GMT. UAT Content-MD5 decodes to the same md5. UAT Last-Modified Tue, 06 Oct 2026 20:27:28 GMT.
 

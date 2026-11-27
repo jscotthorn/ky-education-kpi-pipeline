@@ -792,5 +792,45 @@ class TestKyrc26ClimateFiles:
         assert bavel["co_op"] == "GRREC"
 
 
+def test_kyrc23_non_military_index_is_relabelled(tmp_path):
+    """KYRC23 index publishes Non-Military. The stored group is Non-Military Dependent.
+
+    Verbatim rows from KYRC23_ACCT_Index_Scores.csv
+    (https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC23_ACCT_Index_Scores.csv).
+    Row 28 is the state elementary climate 79.5 and safety 74.0.
+    Row 12907 is Fayette County district elementary climate 79.4 and safety 74.1.
+    Row 13933 is Tates Creek Elementary climate 77.0 and safety 70.8.
+    """
+    module_dir = tmp_path / "raw" / "safe_schools_climate"
+    module_dir.mkdir(parents=True)
+    shutil.copy(
+        FIXTURE_DIR / "kyrc23_non_military_index.csv",
+        module_dir / "KYRC23_ACCT_Index_Scores.csv",
+    )
+    frame = _run(tmp_path / "raw", tmp_path / "processed")
+    checks = (
+        ("999000", "climate_index_score_elementary", 79.5),
+        ("999000", "safety_index_score_elementary", 74.0),
+        ("165000", "climate_index_score_elementary", 79.4),
+        ("165000", "safety_index_score_elementary", 74.1),
+        ("165095", "climate_index_score_elementary", 77.0),
+        ("165095", "safety_index_score_elementary", 70.8),
+    )
+    for school_id, metric, value in checks:
+        row = _cell(
+            frame, year="2023", school_id=school_id,
+            student_group="Non-Military Dependent", metric=metric,
+        )
+        assert row["value"] == value
+        assert row["suppressed"] == "N"
+    school = _cell(
+        frame, year="2023", school_id="165095",
+        student_group="Non-Military Dependent", metric="climate_index_score_elementary",
+    )
+    assert school["district"] == "Fayette County"
+    assert school["school_name"] == "Tates Creek Elementary School"
+    assert "Non-Military" not in set(frame["student_group"].astype(str))
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

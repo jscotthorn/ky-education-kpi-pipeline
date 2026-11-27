@@ -359,7 +359,6 @@ year_specific:
       - "Gifted and Talented"
       - "Non-Gifted and Talented"
       - "Military Dependent"
-      - "Non-Military"
       - "Non-Military Dependent"
       - "Students with Disabilities/IEP Regular Assessment"
       - "Students with Disabilities/IEP with Accommodations"
@@ -407,7 +406,6 @@ year_specific:
       - "Gifted and Talented"
       - "Non-Gifted and Talented"
       - "Military Dependent"
-      - "Non-Military"
       - "Non-Military Dependent"
       - "Students with Disabilities/IEP Regular Assessment"
       - "Students with Disabilities/IEP with Accommodations"
@@ -452,7 +450,6 @@ year_specific:
       - "Gifted and Talented"
       - "Non-Gifted and Talented"
       - "Military Dependent"
-      - "Non-Military"
       - "Non-Military Dependent"
       - "Students with Disabilities/IEP Regular Assessment"
       - "Students with Disabilities/IEP with Accommodations"
@@ -496,8 +493,7 @@ validation:
     - "Non-English Learner or monitored"     # 2022-2023 only
     - "Non-Homeless"                         # 2024 only
     - "Non-Migrant"                          # 2024 only
-    - "Non-Military"                         # 2024 only
-    - "Non-Military Dependent"               # 2024 only
+    - "Non-Military Dependent"               # Canonical label; not in every file
     - "Non-Gifted and Talented"              # 2024 only
     - "Students with Disabilities/IEP Regular Assessment"  # 2024 only
     - "Students with Disabilities/IEP with Accommodations"  # 2024 only
