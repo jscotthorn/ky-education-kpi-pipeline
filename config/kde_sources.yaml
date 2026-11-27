@@ -12,9 +12,14 @@ base_url_kyrc26: "https://kdeschoolreportcard.blob.core.windows.net/datasets/"
 # The report-card download page links this container. On 17 October 2026 its
 # KYRC26 bytes matched datasets (Content-MD5) while Last-Modified and ETag
 # differed. The downloader HEADs both for KYRC25_/KYRC26_ names, keeps datasets
-# when the hashes match or are missing, takes the newer Last-Modified when they
-# differ, and uses this URL when datasets returns 404.
+# when the hashes match, compares the bodies and reports a mismatch when either
+# Content-MD5 is missing (and still keeps datasets), takes the newer
+# Last-Modified when the hashes differ, and uses this URL when datasets
+# returns 404. The kyrc_uat and kyrc_datasets keys below do not auto-select.
 base_url_kyrc_uat: "https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/"
+# Pinned datasets container. url: kyrc_datasets uses this prefix and does not
+# choose between datasets and UAT.
+base_url_kyrc_datasets: "https://kdeschoolreportcard.blob.core.windows.net/datasets/"
 
 headers:
   Referer: "https://www.education.ky.gov/Open-House/data/Pages/Historical-SRC-Datasets.aspx"
@@ -493,10 +498,14 @@ raw_directories:
     # This ETL reads the copy in this directory.
     # KYRC23_OVW_Students_Taught_by_Inexperienced_Teachers.csv republishes
     # 2022-23 and is not registered. The parser skips that filename.
-    # The historical KYRC24 equity URL still returns 200. The datasets
-    # copy has different rates (state Title I All Students 66.0 versus
-    # 11.3 here) and is not swapped.
-    - "KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
+    # KYRC24 equity is the datasets copy (issue #58, record 0024). The
+    # replaced Open House file is Last-Modified Thu, 29 May 2025 22:09:21 GMT,
+    # md5 9168e6d6572692925a269885dabdc7dd, state Title I All Students 11.3.
+    # This copy's state Title I All Students is 66.0. datasets and UAT are
+    # the same bytes (md5 e0cf730225ef7ab3a010ec6142b7b080). Pinned so the
+    # downloader does not auto-select a container.
+    - url: "kyrc_datasets"
+      file: "KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
     - url: "kyrc26"
@@ -602,11 +611,18 @@ raw_directories:
   students_taught_by_ineffective_teachers:
     # KYRC23_OVW_Students_Taught_by_Ineffective_Teachers.csv returns 200
     # and is not registered. It republishes 2022-23. The parser skips that
-    # filename. The datasets KYRC24 object is 39 rows with percents above
-    # 100. The historical file registered below is the 1,562-row extract.
-    # It is not swapped.
-    - "KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv"
-    - url: "kyrc25"
+    # filename. KYRC24 is the UAT copy (issue #64 item 1, records 0025 and
+    # 0055): 1,589 rows, Non-White, share layout. The replaced historical
+    # extract is 1,562 rows and labels the column African American. The live
+    # datasets object is 39 rows with percents above 100 and is not loaded.
+    # KYRC25 is the UAT copy. The live datasets state row does not add up
+    # (Non-White 0.1 + White 0.4 shown as All Students 0.8). The UAT state
+    # Title I row does (0.4 + 0.5 = 0.9). Both years are pinned to UAT.
+    # KYRC26 stays on kyrc26 and resolves to the 4 Nov 2026 datasets object
+    # (md5 643c0e828f7ca820a99e06b1a404c798), which replaces md5 44b49be1.
+    - url: "kyrc_uat"
+      file: "KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv"
+    - url: "kyrc_uat"
       file: "KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv"
     - url: "kyrc26"
       file: "KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv"
@@ -625,15 +641,19 @@ raw_directories:
     # school year 20192020. It is not registered. 1,680 of 1,831 Title I and
     # Not Title I rows are all zero, and 122 of 177 districts are entirely
     # zero, so a statewide 1.41 against 8.88 in 2021 is not a comparable
-    # series. The parser skips that filename. Issue #66 holds whether to
-    # bring the file back.
-    # The historical KYRC24 file registered below stays for this pull
-    # request. The datasets copy's Title I and Not Title I cells match UAT,
-    # and the historical gap rows match the datasets gaps rather than the
-    # historical group cells. Issue #66 holds that copy choice. Do not swap
-    # it here. The UAT KYRC25 object negates some equity-gap cells. datasets
-    # has no Content-MD5, so the downloader keeps the datasets object.
-    - "KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"
+    # series. The parser skips that filename. It stays unregistered
+    # (issue #66 item 1): first year of KDE's Equity tab, incomplete coverage.
+    # KYRC24 is the datasets copy (issue #66 item 2, record 0026). The
+    # replaced historical extract uses the corrupted headers Unnamed: 13 and
+    # Inexperienced Value. Its gap rows match this copy's gaps. Title I and
+    # Not Title I cells on this copy match UAT; UAT negates some equity-gap
+    # cells and is not loaded. Pinned so the downloader does not auto-select.
+    # A 0 on this file may mean no students in the group (issue #66 item 2).
+    # The UAT KYRC25 object negates some equity-gap cells.
+    # datasets has no Content-MD5; the downloader compares the bodies and
+    # reports that mismatch, and KYRC25 stays on the datasets object.
+    - url: "kyrc_datasets"
+      file: "KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"
     - url: "kyrc25"
       file: "KYRC25_OVW_Students_Taught_by_Out_of_Field_Teachers.csv"
     - url: "kyrc26"

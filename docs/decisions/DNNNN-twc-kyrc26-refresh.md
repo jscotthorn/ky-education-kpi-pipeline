@@ -102,7 +102,7 @@ Scott's sentence is the choice. [0052](0052-republish-supersedes-earlier.md) is 
 - `config/kde_sources.yaml` (`teacher_working_conditions`, the KYRC26 entry)
 - `KPIS.md`, Teacher Working Conditions
 - `README.md`, Teacher Working Conditions
-- [kde-republishes.md](kde-republishes.md) row R28
+- [kde-republishes.md](kde-republishes.md) row R29
 - [coverage-gaps.md](coverage-gaps.md)
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/111
 - Comment https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/111#issuecomment-7224584930

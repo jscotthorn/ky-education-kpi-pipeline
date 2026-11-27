@@ -854,5 +854,87 @@ def test_kyrc23_count_conflict_keeps_the_annual_number(tmp_path, caplog):
     assert 7.0 not in set(numeric.dropna())
 
 
+def test_comma_and_star_match_on_object_and_string_dtype():
+    """The module path keeps commas and stars on object and StringDtype.
+
+    Real rows from tests/fixtures/cte_participation/KYRC24_CTE_Participation.csv,
+    copied from
+    https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC24_CTE_Participation.csv
+    (datasets host; registered md5 86677fc9b17a32b62cb533f4352ed63e).
+    File row 2 is the state All Students row. The cells are
+    ``143,415``, ``68.7``, ``17,597``, and ``42.3``.
+    File row 5 is Bryan Station High ``165170``, Native Hawaiian or
+    Pacific Islander. The measure text is ``*,*,,*``: stars, then a blank
+    Grade 12 CTE Eligible Completer cell, then a star.
+    File row 6 is the same school, Foster Care. The cells are ``9``,
+    ``29.0``, ``*``, and ``*``.
+    pandas 2 ``dtype=str`` is object. pandas 3 ``dtype=str`` is StringDtype.
+    Both frames are built from those cells.
+    """
+    fixture = ROOT / "tests" / "fixtures" / "cte_participation" / "KYRC24_CTE_Participation.csv"
+    lines = fixture.read_text(encoding="utf-8").splitlines()
+    header = lines[0]
+    state_line = lines[1]
+    blank_star_line = lines[4]
+    star_line = lines[5]
+    assert "999000" in state_line
+    assert '"143,415"' in state_line
+    assert '"17,597"' in state_line
+    assert "Native Hawaiian or Pacific Islander,*,*,,*" in blank_star_line
+    assert "Foster Care,9,29.0,*,*" in star_line
+
+    text = header + "\n" + state_line + "\n" + blank_star_line + "\n" + star_line + "\n"
+    raw = pd.read_csv(io.StringIO(text), dtype=str, keep_default_na=False)
+    object_frame = raw.astype(object)
+    string_frame = raw.astype(pd.StringDtype())
+    assert object_frame["Total Number of Student"].dtype == object
+    assert isinstance(string_frame["Total Number of Student"].dtype, pd.StringDtype)
+
+    etl = CTEParticipationETL("cte_participation")
+
+    def stored(frame: pd.DataFrame) -> pd.DataFrame:
+        kpi = _kpi_from_frame(etl, frame, "KYRC24_CTE_Participation.csv")
+        keep = ["school_id", "student_group", "metric", "value", "suppressed"]
+        return kpi[keep].sort_values(keep).reset_index(drop=True)
+
+    from_object = stored(object_frame)
+    from_string = stored(string_frame)
+    pd.testing.assert_frame_equal(from_object, from_string)
+
+    state = from_object[from_object["school_id"] == "999000"]
+    values = dict(zip(state["metric"], state["value"]))
+    assert values["cte_participant_count"] == 143415.0
+    assert values["cte_participation_rate"] == 68.7
+    assert values["cte_completer_count_grade_12"] == 17597.0
+    assert values["cte_completion_rate_grade_12"] == 42.3
+    assert set(state["suppressed"]) == {"N"}
+
+    foster = from_object[
+        (from_object["school_id"] == "165170")
+        & (from_object["student_group"] == "Foster Care")
+    ]
+    foster_values = dict(zip(foster["metric"], zip(foster["value"], foster["suppressed"])))
+    assert foster_values["cte_participant_count"] == (9.0, "N")
+    assert foster_values["cte_participation_rate"] == (29.0, "N")
+    assert pd.isna(foster_values["cte_completer_count_grade_12"][0])
+    assert foster_values["cte_completer_count_grade_12"][1] == "Y"
+    assert pd.isna(foster_values["cte_completion_rate_grade_12"][0])
+    assert foster_values["cte_completion_rate_grade_12"][1] == "Y"
+
+    hawaiian = from_object[
+        (from_object["school_id"] == "165170")
+        & (from_object["student_group"] == "Native Hawaiian or Pacific Islander")
+    ]
+    # The blank Grade 12 CTE Eligible Completer cell is not a row.
+    assert "cte_completer_count_grade_12" not in set(hawaiian["metric"])
+    assert set(hawaiian["metric"]) == {
+        "cte_participant_count",
+        "cte_participation_rate",
+        "cte_completion_rate_grade_12",
+    }
+    assert set(hawaiian["suppressed"]) == {"Y"}
+    assert hawaiian["value"].isna().all()
+
+
 if __name__ == '__main__':
     unittest.main()

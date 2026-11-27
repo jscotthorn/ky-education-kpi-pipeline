@@ -12,6 +12,9 @@ Usage:
 """
 
 import argparse
+import base64
+import csv
+import hashlib
 import logging
 import os
 import requests
@@ -21,6 +24,9 @@ import yaml
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Dict, List, Optional
+
+# url keys that resolve to one container and do not choose between datasets and UAT.
+_PINNED_URL_TYPES = frozenset({"kyrc_uat", "kyrc_datasets"})
 
 # Configure logging
 logging.basicConfig(
@@ -43,6 +49,8 @@ class KDEDownloader:
         
         with open(self.config_path, 'r') as f:
             self.config = yaml.safe_load(f)
+        # Filled when a download compares datasets with UAT and the bodies differ.
+        self.copy_mismatches: List[Dict[str, str]] = []
     
     def _base_url_for(self, url_type: str) -> str:
         """Resolve a config url type to its download prefix."""
@@ -55,6 +63,11 @@ class KDEDownloader:
                 "base_url_kyrc26",
                 self.config.get("base_url_kyrc25", self.config["base_url"]),
             )
+        # Pinned containers. No datasets/UAT auto-selection.
+        if url_type == "kyrc_uat":
+            return self.config["base_url_kyrc_uat"]
+        if url_type == "kyrc_datasets":
+            return self.config["base_url_kyrc_datasets"]
         if url_type == "historical":
             return self.config.get("base_url_historical", self.config["base_url"])
         return self.config["base_url"]
@@ -116,6 +129,7 @@ class KDEDownloader:
                 "last_modified": response.headers.get("Last-Modified") or "",
                 "etag": response.headers.get("ETag") or "",
                 "content_md5": response.headers.get("Content-MD5") or "",
+                "content_length": response.headers.get("Content-Length") or "",
             }
         finally:
             response.close()
@@ -156,12 +170,111 @@ class KDEDownloader:
         except (TypeError, ValueError, IndexError):
             return None
 
+    def _body_md5(self, url: str, timeout: int = 300) -> tuple[str, int]:
+        """Hash a response body. Returns ``(md5 hex, size)``."""
+        response = requests.get(
+            url,
+            headers=self.config["headers"],
+            timeout=timeout,
+            stream=True,
+        )
+        try:
+            response.raise_for_status()
+            digest = hashlib.md5()
+            size = 0
+            for chunk in response.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    digest.update(chunk)
+                    size += len(chunk)
+            return digest.hexdigest(), size
+        finally:
+            response.close()
+
+    @staticmethod
+    def _content_md5_hex(value: str) -> str:
+        """Decode an HTTP Content-MD5 header to hex, or return an empty string."""
+        if not value:
+            return ""
+        try:
+            raw = base64.b64decode(value, validate=False)
+        except (ValueError, TypeError):
+            return ""
+        if len(raw) != 16:
+            return ""
+        return raw.hex()
+
+    def _report_missing_md5(
+        self,
+        filename: str,
+        primary: Dict[str, str],
+        alternate: Dict[str, str],
+    ) -> None:
+        """Compare bodies when either copy has no Content-MD5.
+
+        The selected URL stays the primary copy. A byte mismatch is logged
+        and recorded instead of being kept silently. Issue #64 item 2.
+        """
+        record: Dict[str, str] = {
+            "file": filename,
+            "primary_url": primary.get("url") or "",
+            "alternate_url": alternate.get("url") or "",
+            "primary_content_md5": primary.get("content_md5") or "",
+            "alternate_content_md5": alternate.get("content_md5") or "",
+            "compared_by": "body",
+            "differ": "",
+        }
+        try:
+            primary_md5, primary_size = self._body_md5(primary["url"])
+            alternate_md5, alternate_size = self._body_md5(alternate["url"])
+        except requests.exceptions.RequestException as exc:
+            record["differ"] = "compare-failed"
+            record["detail"] = str(exc)
+            self.copy_mismatches.append(record)
+            logger.error(
+                "Could not compare datasets and UAT bytes for %s (%s). "
+                "Keeping %s.",
+                filename,
+                exc,
+                primary.get("url"),
+            )
+            return
+        record["primary_md5"] = primary_md5
+        record["alternate_md5"] = alternate_md5
+        record["primary_bytes"] = str(primary_size)
+        record["alternate_bytes"] = str(alternate_size)
+        if primary_md5 == alternate_md5:
+            record["differ"] = "no"
+            logger.info(
+                "Content-MD5 missing for %s; bodies match (%s). Keeping %s.",
+                filename,
+                primary_md5,
+                primary.get("url"),
+            )
+            return
+        record["differ"] = "yes"
+        self.copy_mismatches.append(record)
+        logger.warning(
+            "Container mismatch for %s: datasets and UAT bytes differ and "
+            "Content-MD5 is missing on at least one copy. primary %s md5 %s "
+            "(%s bytes); alternate %s md5 %s (%s bytes). Keeping %s.",
+            filename,
+            primary.get("url"),
+            primary_md5,
+            primary_size,
+            alternate.get("url"),
+            alternate_md5,
+            alternate_size,
+            primary.get("url"),
+        )
+
     def _choose_source(self, filename: str, primary_url: str) -> Dict[str, str]:
         """Pick datasets or the UAT container for one KYRC file.
 
-        Matching or missing Content-MD5 keeps the primary URL that answered.
-        Differing Content-MD5 keeps the newer Last-Modified. A 404 on the
-        primary uses the alternate.
+        Matching Content-MD5 keeps the primary URL that answered. When either
+        Content-MD5 is missing, the bodies are compared and a mismatch is
+        reported; the primary URL is still the one kept. Differing
+        Content-MD5 keeps the newer Last-Modified. A 404 on the primary uses
+        the alternate.
         """
         alternate_url = self._kyrc_alternate_url(filename, primary_url)
         if not alternate_url:
@@ -183,7 +296,10 @@ class KDEDownloader:
         if primary and alternate:
             primary_md5 = primary.get("content_md5") or ""
             alternate_md5 = alternate.get("content_md5") or ""
-            if not primary_md5 or not alternate_md5 or primary_md5 == alternate_md5:
+            if not primary_md5 or not alternate_md5:
+                self._report_missing_md5(filename, primary, alternate)
+                return primary
+            if primary_md5 == alternate_md5:
                 return primary
             primary_at = self._modified_at(primary.get("last_modified") or "")
             alternate_at = self._modified_at(alternate.get("last_modified") or "")
@@ -273,20 +389,26 @@ class KDEDownloader:
             if partial.exists():
                 partial.unlink()
 
-    def _sync_file(self, url: str, file_path: Path) -> bool:
+    def _sync_file(self, url: str, file_path: Path, allow_alternate: bool = True) -> bool:
         """Download url when the local copy is missing or the remote stamp changed.
 
         KYRC25 and KYRC26 files also probe base_url_kyrc_uat when that key is set.
+        Pinned ``kyrc_uat`` and ``kyrc_datasets`` entries pass
+        ``allow_alternate=False`` and do not choose a container.
         """
         local_meta = self._read_source_meta(file_path) if file_path.exists() else None
         remote: Optional[Dict[str, str]] = None
         chosen_url = url
-        needs_probe = bool(self._kyrc_alternate_url(file_path.name, url)) or (
+        alternate_possible = allow_alternate and bool(self._kyrc_alternate_url(file_path.name, url))
+        needs_probe = alternate_possible or (
             file_path.exists() and local_meta is not None
         )
         if needs_probe:
             try:
-                remote = self._choose_source(file_path.name, url)
+                if alternate_possible:
+                    remote = self._choose_source(file_path.name, url)
+                else:
+                    remote = self._probe_remote(url)
             except requests.exceptions.RequestException as e:
                 logger.error(f"✗ Failed to check {file_path.name}: {e}")
                 return False
@@ -335,7 +457,9 @@ class KDEDownloader:
         for file_entry in files:
             filename, url = self._entry_url(file_entry)
             file_path = target_dir / filename
-            results[filename] = self._sync_file(url, file_path)
+            url_type = str(file_entry.get("url", "default")) if isinstance(file_entry, dict) else "default"
+            allow_alternate = url_type not in _PINNED_URL_TYPES
+            results[filename] = self._sync_file(url, file_path, allow_alternate=allow_alternate)
             time.sleep(0.5)
 
         return results
@@ -356,6 +480,105 @@ class KDEDownloader:
     def list_available_directories(self) -> List[str]:
         """List all available raw data directories"""
         return list(self.config["raw_directories"].keys())
+
+    def _registered_kyrc_files(self) -> Dict[str, List[str]]:
+        """Map each registered KYRC filename to the directories that name it."""
+        found: Dict[str, List[str]] = {}
+        for directory, entries in self.config["raw_directories"].items():
+            for entry in entries:
+                name = str(entry["file"]) if isinstance(entry, dict) else str(entry)
+                if not name.upper().startswith("KYRC"):
+                    continue
+                found.setdefault(name, [])
+                if directory not in found[name]:
+                    found[name].append(directory)
+        return found
+
+    def compare_registered_containers(self) -> List[Dict[str, str]]:
+        """Compare datasets and UAT for every registered KYRC filename.
+
+        Content-MD5 decides a match when both copies send it. When either
+        header is missing, the bodies are hashed. The returned rows are the
+        files whose two copies differ. Issue #64 item 2.
+        """
+        datasets = self.config.get("base_url_kyrc_datasets") or self.config.get("base_url_kyrc25")
+        uat = self.config.get("base_url_kyrc_uat")
+        if not datasets or not uat:
+            raise ValueError("datasets and UAT base URLs are required")
+        if not str(datasets).endswith("/"):
+            datasets = str(datasets) + "/"
+        if not str(uat).endswith("/"):
+            uat = str(uat) + "/"
+        mismatches: List[Dict[str, str]] = []
+        summary = {
+            "compared": 0,
+            "content_md5_match": 0,
+            "body_match": 0,
+            "differ": 0,
+            "one_sided": 0,
+        }
+        self.copy_compare_summary = summary
+        for filename, directories in sorted(self._registered_kyrc_files().items()):
+            summary["compared"] += 1
+            primary = self._probe_or_missing(f"{datasets}{filename}")
+            alternate = self._probe_or_missing(f"{uat}{filename}")
+            record: Dict[str, str] = {
+                "file": filename,
+                "directories": ";".join(directories),
+                "datasets_url": f"{datasets}{filename}",
+                "uat_url": f"{uat}{filename}",
+                "datasets_status": "200" if primary else "absent",
+                "uat_status": "200" if alternate else "absent",
+                "datasets_bytes": "",
+                "uat_bytes": "",
+                "datasets_md5": "",
+                "uat_md5": "",
+                "datasets_last_modified": (primary or {}).get("last_modified", ""),
+                "uat_last_modified": (alternate or {}).get("last_modified", ""),
+                "compared_by": "",
+                "differ": "",
+            }
+            if not primary or not alternate:
+                record["differ"] = "one-sided"
+                record["compared_by"] = "status"
+                summary["one_sided"] += 1
+                mismatches.append(record)
+                continue
+            primary_header = primary.get("content_md5") or ""
+            alternate_header = alternate.get("content_md5") or ""
+            record["datasets_bytes"] = primary.get("content_length") or ""
+            record["uat_bytes"] = alternate.get("content_length") or ""
+            if primary_header and alternate_header:
+                record["datasets_md5"] = self._content_md5_hex(primary_header)
+                record["uat_md5"] = self._content_md5_hex(alternate_header)
+                record["compared_by"] = "content-md5"
+                record["differ"] = "yes" if primary_header != alternate_header else "no"
+                if record["differ"] == "no":
+                    summary["content_md5_match"] += 1
+            else:
+                self._report_missing_md5(filename, primary, alternate)
+                # _report_missing_md5 only appends when the bodies differ or the compare fails.
+                reported = [item for item in self.copy_mismatches if item.get("file") == filename]
+                record["compared_by"] = "body"
+                if reported:
+                    last = reported[-1]
+                    record["datasets_md5"] = last.get("primary_md5", "")
+                    record["uat_md5"] = last.get("alternate_md5", "")
+                    record["datasets_bytes"] = last.get("primary_bytes", "")
+                    record["uat_bytes"] = last.get("alternate_bytes", "")
+                    record["differ"] = "yes" if last.get("differ") == "yes" else last.get("differ", "yes")
+                else:
+                    record["differ"] = "no"
+                    summary["body_match"] += 1
+            if record["differ"] == "yes":
+                summary["differ"] += 1
+                mismatches.append(record)
+                logger.warning(
+                    "Registered file %s differs between datasets and UAT (%s)",
+                    filename,
+                    record["compared_by"],
+                )
+        return mismatches
 
 def main():
     """Main entry point"""
@@ -381,6 +604,12 @@ Examples:
         action='store_true',
         help='List all available directories and exit'
     )
+
+    parser.add_argument(
+        '--list-copy-mismatches',
+        action='store_true',
+        help='List registered KYRC files whose datasets and UAT copies differ'
+    )
     
     parser.add_argument(
         '--config',
@@ -399,6 +628,43 @@ Examples:
             for directory in sorted(directories):
                 file_count = len(downloader.config["raw_directories"][directory])
                 print(f"  {directory} ({file_count} files)")
+            return
+
+        if args.list_copy_mismatches:
+            mismatches = downloader.compare_registered_containers()
+            summary = downloader.copy_compare_summary
+            print(
+                "# compared={compared} content-md5-match={content_md5_match} "
+                "body-match={body_match} differ={differ} one-sided={one_sided}".format(**summary)
+            )
+            writer = csv.writer(sys.stdout, lineterminator="\n")
+            writer.writerow(
+                [
+                    "file",
+                    "directories",
+                    "datasets_bytes",
+                    "uat_bytes",
+                    "datasets_md5",
+                    "uat_md5",
+                    "datasets_last_modified",
+                    "uat_last_modified",
+                    "compared_by",
+                ]
+            )
+            for row in mismatches:
+                writer.writerow(
+                    [
+                        row.get("file", ""),
+                        row.get("directories", ""),
+                        row.get("datasets_bytes", ""),
+                        row.get("uat_bytes", ""),
+                        row.get("datasets_md5", ""),
+                        row.get("uat_md5", ""),
+                        row.get("datasets_last_modified", ""),
+                        row.get("uat_last_modified", ""),
+                        row.get("compared_by", ""),
+                    ]
+                )
             return
         
         # Determine which directories to download

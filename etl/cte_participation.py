@@ -371,10 +371,9 @@ class CTEParticipationETL(BaseETL):
     def _cell(self, row: pd.Series, column: str) -> Optional[Cell]:
         """One measure cell, or None when this file has no such column.
 
-        The raw copy is read first. ``standardize_missing_values`` turns a
-        ``*`` into missing on pandas 2, where ``dtype=str`` is still object.
-        pandas 3 leaves the star in a StringDtype column. Either way the
-        copy still has the source text.
+        The raw copy is read first. ``BaseETL.standardize_missing_values``
+        turns a ``*`` into missing on object columns and on StringDtype.
+        The copy still has the source text, including a star and a comma.
         """
         raw_name = _raw_column(column)
         if raw_name in row.index:
@@ -439,11 +438,10 @@ class CTEParticipationETL(BaseETL):
     def standardize_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
         """Keep a copy of each measure cell, including stars and commas.
 
-        The base method only rewrites ``dtype == object``. pandas 3
-        ``dtype=str`` is StringDtype, so a star would survive there and a
-        comma would not. The copy is taken first, on both dtypes. A ``*``
-        stays in the copy and is later written with ``suppressed`` Y.
-        ``BaseETL.standardize_missing_values`` is not changed.
+        The converter reads that copy. ``_classify_cell`` strips commas
+        from the copy for object columns and for pandas StringDtype.
+        ``BaseETL.standardize_missing_values`` rewrites both dtypes.
+        pandas is unpinned.
         """
         measure_columns = [column for column, _metric in _COUNT_COLUMNS + _RATE_COLUMNS]
         for column in measure_columns:
@@ -451,11 +449,6 @@ class CTEParticipationETL(BaseETL):
                 df[_raw_column(column)] = df[column].astype("string")
 
         df = super().standardize_missing_values(df)
-
-        for column in measure_columns:
-            if column in df.columns and df[column].dtype == "object":
-                df[column] = df[column].astype(str).str.replace(",", "", regex=False)
-
         return clean_cte_data(df)
 
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:

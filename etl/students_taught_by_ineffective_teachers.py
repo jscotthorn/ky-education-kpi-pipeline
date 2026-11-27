@@ -7,14 +7,17 @@ ineffective teachers, with equity breakdowns by Title I status and demographics.
 KDE's report-card glossary defines an ineffective teacher as one whose local
 evaluation system, meeting KRS 156.557, gives a summative rating of
 Ineffective. Districts self-report the counts in the Kentucky Equity Survey.
-The School Report Card publishes a percent. In 2020-2023 and in KYRC25 and
-KYRC26 the group columns are shares of all students: Non-White plus White
-equals All Students on every nonzero 2020-2023 row and on about 95 percent
-of nonzero KYRC25 and KYRC26 rows. The registered historical KYRC24 file is
-the exception. Its group columns behave like within-group rates, and
-African American plus White does not equal All Students. These files
-publish the percent and not the counts, so this module stores the published
-number and does not rebuild it.
+The School Report Card publishes a percent. In 2020-2023 and in the
+registered KYRC24, KYRC25, and KYRC26 copies the group columns are shares
+of all students: Non-White plus White equals All Students on every nonzero
+2020-2023 row and on about 95 percent of nonzero KYRC25 and KYRC26 rows.
+The registered KYRC24 file is the UAT copy (1,589 rows, column Non-White).
+The replaced historical extract is 1,562 rows. Its column is African
+American, which is not mapped to Non-White, and those group columns behave
+like within-group rates. The live datasets KYRC24 object is 39 rows with
+percents above 100 and is not loaded. These files publish the percent and
+not the counts, so this module stores the published number and does not
+rebuild it.
 
 KYRC26 uses the same headers as KYRC25. No temporary OAA extract is
 registered, and the guessed temporary names return 404, so there is no
@@ -25,7 +28,15 @@ that name. ``students_taught_by_ineffective_teachers_2020.csv`` is the
 2019-20 report card. Its nonzero percents do not match 2021. It is registered.
 
 There is no count column. A blank percent is missing, not a zero. A
-published 0 is kept. In the 2020 file, a row whose every percent other than
+published 0 is kept. KYRC24-26 zeros stay as published (issue #64 item 3):
+2020-23 used whole-row N/A for no data while 2024+ publishes none, so a
+2024+ zero may include a no-data case (471 schools were all N/A in 2023
+and all 0 in 2024). A 0 may mean no students in the group (issue #66
+item 2). ``students_taught_by_out_of_field_teachers_2020.csv`` stays
+unregistered: first year of KDE's Equity tab, incomplete coverage (issue
+#66 item 1). The registered KYRC24 file replaces the 1,562-row historical
+extract. The registered KYRC25 file is the UAT copy. KYRC26 is the 4 Nov
+2026 datasets refresh. In the 2020 file, a row whose every percent other than
 students with disabilities is missing is skipped. The remaining cell is
 ``0.00`` or ``0.000%`` and All Students is ``N/A``, so that 0 is a
 placeholder. A negative cell is still dropped. In 2021-2023 the equity gap
@@ -177,11 +188,12 @@ class StudentsTaughtByIneffectiveTeachersETL(BaseETL):
         - 2020-2023: Uppercase with % prefix and TCHRS abbreviation
         - 2024+: Title case demographic column names
 
-        The registered KYRC24 file labels one column ``African American``.
-        KYRC25 and KYRC26 label that position ``Non-White``. The two series
-        are not the same cell: the KYRC24 state Title I value is 1.0, and
-        the UAT KYRC24 Non-White value is 0.3. ``African American`` is left
-        unmapped so it is not stored as Non-White.
+        The replaced historical KYRC24 file labels one column
+        ``African American``. The registered UAT copy, and KYRC25 and KYRC26,
+        label that position ``Non-White``. The two series are not the same
+        cell: the historical state Title I value is 1.0, and the UAT KYRC24
+        Non-White value is 0.3. ``African American`` stays unmapped so a
+        leftover historical file is not stored as Non-White.
         """
         return {
             # Title I status
