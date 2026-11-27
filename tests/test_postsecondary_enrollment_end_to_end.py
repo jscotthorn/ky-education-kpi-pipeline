@@ -420,6 +420,8 @@ def test_flagged_key_list_records_starred_cohorts_and_kyrc26_leaks():
 
     Collins Lane 181025 All Students is a KYRC25 row whose cohort cell is *.
     The seven KYRC26 private-count leaks are the rows issue #44 names.
+    Marion County High School 375515 White (non-Hispanic) in 2024 hides both
+    totals while the published public and private counts are 71 and 21.
     """
     import csv
 
@@ -450,6 +452,7 @@ def test_flagged_key_list_records_starred_cohorts_and_kyrc26_leaks():
         ("2022", "starred cohort count"): 3125,
         ("2023", "starred cohort count"): 3064,
         ("2024", "starred cohort count"): 3240,
+        ("2024", "private = total - public leaks suppressed value"): 1,
         ("2025", "starred cohort count"): 6375,
         ("2026", "starred cohort count"): 2827,
         ("2026", "private = total - public leaks suppressed value"): 7,
@@ -475,6 +478,7 @@ def test_flagged_key_list_records_starred_cohorts_and_kyrc26_leaks():
         ("121030", "Male"),
         ("133040", "Male"),
         ("145010", "Female"),
+        ("375515", "White (non-Hispanic)"),
         ("581200", "Economically Disadvantaged"),
         ("601084", "Gifted and Talented"),
         ("601084", "Male"),
