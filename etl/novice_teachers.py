@@ -310,11 +310,21 @@ class NoviceTeachersETL(BaseETL):
             metrics['novice_teacher_rate_1_to_3_years'] = percent_1_to_3
 
         # Equity rates. Title I, Not Title I, and Equity Gap are separate
-        # rows, and each demographic is its own KPI. 2020-2023 and KYRC26
-        # publish a signed gap (Title I minus Not Title I). KYRC24 and
-        # KYRC25 publish the absolute value. The ``>= 0`` check drops the
-        # signed negatives. That predates KYRC26. Issue #59 tracks storing
-        # a signed gap. This pull request does not change the drop.
+        # rows, and each demographic is its own KPI. The registered KYRC24
+        # equity file is the datasets copy (issue #58, record 0024). The
+        # replaced Open House file's state Title I All Students rate is
+        # 11.3. This copy's rate is 66.0. 2020-2023 and KYRC26 publish a
+        # signed gap (Title I minus Not Title I). KYRC24 and KYRC25 publish
+        # the absolute value. The ``>= 0`` check drops the signed negatives.
+        # That predates KYRC26. Issue #59 tracks storing a signed gap. This
+        # change does not drop that check. A published 0 is kept. KYRC24-26
+        # zeros stay as published (issue #64 item 3): 2020-23 used whole-row
+        # N/A for no data while 2024+ publishes none, so a 2024+ zero may
+        # include a no-data case (471 schools were all N/A in 2023 and all 0
+        # in 2024). A 0 may mean no students in the group (issue #66 item 2).
+        # ``students_taught_by_out_of_field_teachers_2020.csv`` stays
+        # unregistered: first year of KDE's Equity tab, incomplete coverage
+        # (issue #66 item 1).
         title_i_status = self._title_status(row)
         if title_i_status in _TITLE_STATUSES:
             title_i_suffix = title_i_status.lower().replace(' ', '_')

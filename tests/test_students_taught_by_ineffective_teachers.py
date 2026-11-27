@@ -627,3 +627,11 @@ def test_registered_sources_are_the_permanent_files():
     ]
     assert not any("KYRC23" in name for name in names)
     assert not any(name.startswith("Students_Taught_by_Ineffective") for name in names)
+    by_file = {
+        entry["file"]: entry["url"]
+        for entry in config["raw_directories"]["students_taught_by_ineffective_teachers"]
+        if isinstance(entry, dict)
+    }
+    assert by_file["KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv"] == "kyrc_uat"
+    assert by_file["KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv"] == "kyrc_uat"
+    assert by_file["KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv"] == "kyrc26"
