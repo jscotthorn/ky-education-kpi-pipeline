@@ -1,10 +1,16 @@
 """End-to-end tests for postsecondary enrollment ETL"""
+import hashlib
 import pandas as pd
+import pytest
+import re
 import subprocess
 import sys
 import tempfile
 import shutil
 from pathlib import Path
+
+import yaml
+
 from etl.postsecondary_enrollment import transform
 
 
@@ -519,9 +525,77 @@ def test_flagged_key_list_records_starred_cohorts_and_kyrc26_leaks():
     ]
 
 
+def _registered_postsecondary_sources(root: Path) -> list[Path]:
+    """The six files registered for postsecondary enrollment."""
+    config = yaml.safe_load(
+        (root / "config" / "kde_sources.yaml").read_text(encoding="utf-8")
+    )
+    raw = root / "data" / "raw" / "postsecondary_enrollment"
+    paths = []
+    for entry in config["raw_directories"]["postsecondary_enrollment"]:
+        name = entry["file"] if isinstance(entry, dict) else entry
+        paths.append(raw / name)
+    return paths
+
+
+def _recorded_source_md5s(root: Path, names: list[str]) -> dict[str, str]:
+    """md5 comments in kde_sources.yaml that sit with a registered file.
+
+    The postsecondary block records no checksums today. A later comment of
+    the form ``md5 <32 hex>`` on or just above the file entry is used.
+    """
+    lines = (
+        (root / "config" / "kde_sources.yaml").read_text(encoding="utf-8").splitlines()
+    )
+    found: dict[str, str] = {}
+    for index, line in enumerate(lines):
+        for name in names:
+            if name not in line:
+                continue
+            window = "\n".join(lines[max(0, index - 8) : index + 1])
+            match = re.search(r"md5\s+`?([0-9a-fA-F]{32})`?", window)
+            if match:
+                found[name] = match.group(1).lower()
+    return found
+
+
+def _md5_mismatches(root: Path, paths: list[Path]) -> list[str]:
+    recorded = _recorded_source_md5s(root, [path.name for path in paths])
+    mismatches = []
+    for path in paths:
+        expected = recorded.get(path.name)
+        if not expected:
+            continue
+        actual = hashlib.md5(path.read_bytes()).hexdigest()
+        if actual != expected:
+            mismatches.append(
+                f"{path.name} is {actual}, kde_sources.yaml records {expected}"
+            )
+    return mismatches
+
+
 def test_flag_list_script_matches_committed_file(tmp_path):
-    """scripts/build_a_flagged_keys.py reproduces the committed list."""
+    """scripts/build_a_flagged_keys.py reproduces the committed list.
+
+    The six registered raw files are gitignored. The byte-for-byte check
+    needs them staged. A staged file whose md5 disagrees with a checksum
+    recorded in kde_sources.yaml is skipped as well.
+    """
     root = Path(__file__).resolve().parents[1]
+    sources = _registered_postsecondary_sources(root)
+    missing = [path.name for path in sources if not path.is_file()]
+    if missing:
+        pytest.skip(
+            "byte-for-byte check needs the six raw files staged in "
+            "data/raw/postsecondary_enrollment (they are gitignored); missing "
+            + ", ".join(missing)
+        )
+    mismatches = _md5_mismatches(root, sources)
+    if mismatches:
+        pytest.skip(
+            "byte-for-byte check skipped; staged raw file md5 does not match "
+            "kde_sources.yaml: " + "; ".join(mismatches)
+        )
     committed = root / "notes" / "flags" / "A-flagged-keys.csv"
     output = tmp_path / "A-flagged-keys.csv"
     completed = subprocess.run(
