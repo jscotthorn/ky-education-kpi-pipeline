@@ -1,6 +1,8 @@
 # 0002 Report scripts are out of scope for KYRC26
 
-Status: accepted
+Status: superseded (in part)
+
+Superseded in part by [DNNNN](DNNNN-issue-42-closed.md). The superseded sentence, in the Decision section, is "Issue #42 stays open." Issue #42 is closed. The rest stands: report scripts stay out of scope for the 2025-26 update; the 25 October narrow exception for pull request #115 stands; the #61 ID normalization still does not try to fix the scripts. The NaN guard and the analysis past 2025 stay out of scope. DNNNN records Scott's 27 November 2026 confirmation of those two items. Until that record, this file called them an open confirmation.
 
 ## Question
 
@@ -16,7 +18,7 @@ The issue asks for a fix. The decision leaves the issue open.
 
 ## Decision
 
-18 October 2026. Report scripts are out of scope for the 2025-26 update. Issue #42 stays open. The #61 ID normalization should not try to fix the scripts.
+18 October 2026. Report scripts are out of scope for the 2025-26 update. Issue #42 stays open. That sentence is the part [DNNNN](DNNNN-issue-42-closed.md) supersedes. The #61 ID normalization should not try to fix the scripts.
 
 25 October 2026, 12:00 PM ET. That scope stands. Scott approved one narrow exception: the state-row lookup already merged in pull request #115. `scripts/generate_report_drafts.py` may treat a state district as `State` or `All Districts`. The same change accepts school code `999` or `999000`, and school name `---District Total---` or `---State Total---`. That exception does not open the rest of the report-script work.
 

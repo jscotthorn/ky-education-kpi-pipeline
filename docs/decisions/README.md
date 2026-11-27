@@ -2,7 +2,7 @@
 
 This folder records choices about Kentucky Department of Education (KDE) sources and how this pipeline treats them. It does not change pipeline code. A later edit to a choice is a new record. The old record stays, keeps its number, and links to the new one.
 
-Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0057`. A number is never reused.
+Numbers are `NNNN-short-slug.md`, starting at `0001`. The next free number is `0057`. A number is never reused. Two records in the index below use the placeholder `DNNNN` until merge assigns numbers. Do not treat them as `0057` or `0058`.
 
 ## When a record is needed
 
@@ -19,7 +19,7 @@ Write a record for any choice about:
 
 | Status | Meaning |
 | --- | --- |
-| `accepted` | A cited issue comment, pull request, note, or commit records the choice as Scott's. `accepted` also covers Scott's own answer in an agent chat, quoted with date and time (ET), with the bot named and the quote checked verbatim against the transcript by Archivist. That source type is labeled `chat answer`. Records that use it: 0002 (the 25 October exception), 0007 (the 11:24 AM ET sentence), the 0009 amendment, 0042 (the 12:03 PM ET answer), 0050, 0051, 0052, 0053, and 0055 (Scott's 1:07 PM ET typed instruction in Moon's chat). Where a repo Decision comment exists, that comment is the primary source and the chat quote stays as background: 0002, the 0009 amendment, 0050, 0051, 0052, and 0053. 0055 is not in that list. Its decision source is the 1:07 instruction. Comment 6400597552 is Moon's recheck record, posted under Scott's account at 1:08 PM ET. Scott did not review that comment's text. 0007's record is `notes/104`, and the chat sentence is a second source. 0042's answer is also on issue #121. 0048 is not on this list: the 12:05 wording is Moon's relay, and Scott's 12:38 PM ET confirmation of the #122 comment is the source. A later record whose only source is a chat answer keeps a `Repo comment: pending` line until a repo Decision comment is added. |
+| `accepted` | A cited issue comment, pull request, note, or commit records the choice as Scott's. `accepted` also covers Scott's own answer in an agent chat, quoted with date and time (ET), with the bot named and the quote checked verbatim against the transcript by Archivist. That source type is labeled `chat answer`. Records that use it: 0002 (the 25 October exception), 0007 (the 11:24 AM ET sentence), the 0009 amendment, 0042 (the 12:03 PM ET answer), 0050, 0051, 0052, 0053, 0055 (Scott's 1:07 PM ET typed instruction in Moon's chat), and the two DNNNN records (27 November 2026 chat answers; Repo comment: none). Where a repo Decision comment exists, that comment is the primary source and the chat quote stays as background: 0002, the 0009 amendment, 0050, 0051, 0052, and 0053. 0055 is not in that list. Its decision source is the 1:07 instruction. Comment 6400597552 is Moon's recheck record, posted under Scott's account at 1:08 PM ET. Scott did not review that comment's text. 0007's record is `notes/104`, and the chat sentence is a second source. 0042's answer is also on issue #121. 0048 is not on this list: the 12:05 wording is Moon's relay, and Scott's 12:38 PM ET confirmation of the #122 comment is the source. A later record whose only source is a chat answer keeps a `Repo comment: pending` line until a repo Decision comment is added. The two `DNNNN` records from 27 November 2026 use `Repo comment: none`, which is the line DECISIONS-VERIFIED.md gives for those chat answers. They are not `pending`. |
 | `accepted, code differs (follow-up open)` | The choice is accepted. Current code or config on `feature/2025-26-kyrc26` does not match it, and a follow-up is still open. The difference is described and not fixed here. |
 | `relayed-unconfirmed` | The only source is another agent's relay. Scott has not stated it in the repo. |
 | `superseded` | A later record replaces this one. This file stays and links forward. A record replaced only in part is `superseded (in part)`. The file names the part that still stands. |
@@ -70,12 +70,12 @@ Two note numbers are used twice. They were not renamed.
 
 ## Records
 
-56 records. 40 accepted. 9 accepted, code differs (follow-up open). 3 conflicts-with-code. 3 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed.
+58 records. 41 accepted. 9 accepted, code differs (follow-up open). 3 conflicts-with-code. 4 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed. Two of the 58 use the placeholder `DNNNN` and are not numbered `0057` or `0058`.
 
 | Record | Status | KDE guidance check |
 | --- | --- | --- |
 | [0001](0001-suppression-rule.md) | accepted | consistent, with one gap |
-| [0002](0002-report-scripts-out-of-scope.md) | accepted | no KDE guidance found |
+| [0002](0002-report-scripts-out-of-scope.md) | superseded (in part) | no KDE guidance found |
 | [0003](0003-shared-id-normalization.md) | accepted | consistent |
 | [0004](0004-postsecondary-star-cells.md) | accepted, code differs (follow-up open) | possible conflict |
 | [0005](0005-cte-skip-all-star-padding.md) | superseded (in part) | possible conflict |
@@ -130,3 +130,5 @@ Two note numbers are used twice. They were not renamed.
 | [0054](0054-store-values-as-kde-publishes.md) | accepted | no KDE guidance found |
 | [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md) | accepted | no KDE guidance found |
 | [0056](0056-kyrc26-chronic-absenteeism-district-602-name.md) | accepted | no KDE guidance found |
+| [DNNNN](DNNNN-twc-kyrc26-refresh.md) | accepted | no KDE guidance found |
+| [DNNNN](DNNNN-issue-42-closed.md) | accepted | no KDE guidance found |
