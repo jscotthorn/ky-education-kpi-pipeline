@@ -587,3 +587,70 @@ class TestKentuckySummativeAssessmentKyrc26:
         assert chunks[0].loc[0, "PROFICIENT_DISTINGUISHED"] == "54"
         assert chunks[0].loc[1, "NOVICE"] == ""
         assert chunks[0].loc[1, "PROFICIENT_DISTINGUISHED"] == ""
+
+
+def test_non_military_dependent_label_is_unchanged(tmp_path):
+    """2022-23 'Non-Military Dependent' stays that student_group.
+
+    Verbatim rows from accountable_assessment_performance_2023.csv
+    (https://www.education.ky.gov/Open-House/data/HistoricalDatasets/accountable_assessment_performance_2023.csv).
+    Row 480 is Adair County district, elementary reading.
+    Row 75075 is Fayette County district, All Students, elementary reading.
+    Row 75551 is Fayette County district, Non-Military Dependent, elementary reading.
+    Row 81310 is Tates Creek Elementary School, Non-Military Dependent, elementary reading.
+    Row 279934 is the state total, Non-Military Dependent, elementary reading.
+    """
+    frame = _run(
+        tmp_path,
+        [("accountable_assessment_performance_2023.csv", _fixture("accountable_2023_non_military_dependent.csv"))],
+    )
+    metric = _metric("reading", "proficient_distinguished_rate", "elementary")
+    index = _metric("reading", "content_index_score", "elementary")
+    _assert_num(frame, "2023", "999", "Non-Military Dependent", metric, 47)
+    _assert_num(frame, "2023", "999", "Non-Military Dependent", index, 65.9)
+    state = _one(frame, "2023", "999", "Non-Military Dependent", metric)
+    assert state["district"] == "State"
+    assert state["school_name"] == "---State Total---"
+    _assert_num(frame, "2023", "001", "Non-Military Dependent", metric, 38)
+    _assert_num(frame, "2023", "001", "Non-Military Dependent", index, 55.6)
+    adair = _one(frame, "2023", "001", "Non-Military Dependent", metric)
+    assert adair["district"] == "Adair County"
+    assert adair["school_name"] == "---District Total---"
+    _assert_num(frame, "2023", "165", "Non-Military Dependent", metric, 52)
+    _assert_num(frame, "2023", "165", "Non-Military Dependent", index, 70.2)
+    fayette = _one(frame, "2023", "165", "Non-Military Dependent", metric)
+    assert fayette["district"] == "Fayette County"
+    assert fayette["school_name"] == "---District Total---"
+    _assert_num(frame, "2023", "165095", "Non-Military Dependent", metric, 41)
+    school = _one(frame, "2023", "165095", "Non-Military Dependent", metric)
+    assert school["district"] == "Fayette County"
+    assert school["school_name"] == "Tates Creek Elementary School"
+    # Untouched group in the same year.
+    _assert_num(frame, "2023", "165", "All Students", metric, 52)
+    _assert_num(frame, "2023", "165", "All Students", index, 70.3)
+    assert "Non-Military" not in set(frame["student_group"])
+    _assert_unique(frame)
+
+
+def test_kyrc24_non_military_label_is_aliased(tmp_path):
+    """KYRC24 accountability publishes Non-Military. The stored group is Non-Military Dependent.
+
+    Verbatim rows from KYRC24_ACCT_Kentucky_Summative_Assessment.csv
+    (https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC24_ACCT_Kentucky_Summative_Assessment.csv).
+    Row 70689 is Fayette County district, elementary reading, proficient/distinguished 52.
+    Row 76769 is Tates Creek Elementary School, elementary reading, 37.
+    Row 278849 is the state total, elementary reading, 47.
+    """
+    frame = _run(
+        tmp_path,
+        [("KYRC24_ACCT_Kentucky_Summative_Assessment.csv", _fixture("kyrc24_non_military_accountability.csv"))],
+    )
+    metric = _metric("reading", "proficient_distinguished_rate", "elementary")
+    _assert_num(frame, "2024", "999000", "Non-Military Dependent", metric, 47)
+    _assert_num(frame, "2024", "165000", "Non-Military Dependent", metric, 52)
+    _assert_num(frame, "2024", "165095", "Non-Military Dependent", metric, 37)
+    school = _one(frame, "2024", "165095", "Non-Military Dependent", metric)
+    assert school["district"] == "Fayette County"
+    assert school["school_name"] == "Tates Creek Elementary School"
+    assert "Non-Military" not in set(frame["student_group"])
+    _assert_unique(frame)

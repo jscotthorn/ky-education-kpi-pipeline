@@ -27,7 +27,6 @@ standard_demographics:
   - "Students with Disabilities (IEP)"
   - "Students without IEP"
   - "Military Dependent"
-  - "Non-Military"
   - "Non-Military Dependent"
   - "Gifted and Talented"
   - "Non-Gifted and Talented"
@@ -49,6 +48,10 @@ mappings:
   "Students with Disabilities/IEP without Accommodations": "Students with Disabilities/IEP without Accommodations"
   "Non-Gifted and Talented": "Non-Gifted and Talented"
   "Non-Military Dependent": "Non-Military Dependent"
+  # 2024-26 publishes "Non-Military" for the same group 2022-23 calls
+  # "Non-Military Dependent". The canonical label matches "Military Dependent".
+  # This alias does not change 2018-19 code mappings (record 0047).
+  "Non-Military": "Non-Military Dependent"
   
   # Historical format variations
   "White (Non Hispanic)": "White (non-Hispanic)"
@@ -74,6 +77,7 @@ mappings:
   "migrant": "Migrant"
   "students with disabilities (iep)": "Students with Disabilities (IEP)"
   "military dependent": "Military Dependent"
+  "non-military": "Non-Military Dependent"
   
   # Handle monitored English learner variations - keep distinct
   "Non-English Learner or monitored": "Non-English Learner or monitored"
@@ -355,7 +359,6 @@ year_specific:
       - "Gifted and Talented"
       - "Non-Gifted and Talented"
       - "Military Dependent"
-      - "Non-Military"
       - "Non-Military Dependent"
       - "Students with Disabilities/IEP Regular Assessment"
       - "Students with Disabilities/IEP with Accommodations"
@@ -403,7 +406,6 @@ year_specific:
       - "Gifted and Talented"
       - "Non-Gifted and Talented"
       - "Military Dependent"
-      - "Non-Military"
       - "Non-Military Dependent"
       - "Students with Disabilities/IEP Regular Assessment"
       - "Students with Disabilities/IEP with Accommodations"
@@ -448,7 +450,6 @@ year_specific:
       - "Gifted and Talented"
       - "Non-Gifted and Talented"
       - "Military Dependent"
-      - "Non-Military"
       - "Non-Military Dependent"
       - "Students with Disabilities/IEP Regular Assessment"
       - "Students with Disabilities/IEP with Accommodations"
@@ -492,8 +493,7 @@ validation:
     - "Non-English Learner or monitored"     # 2022-2023 only
     - "Non-Homeless"                         # 2024 only
     - "Non-Migrant"                          # 2024 only
-    - "Non-Military"                         # 2024 only
-    - "Non-Military Dependent"               # 2024 only
+    - "Non-Military Dependent"               # Canonical label; not in every file
     - "Non-Gifted and Talented"              # 2024 only
     - "Students with Disabilities/IEP Regular Assessment"  # 2024 only
     - "Students with Disabilities/IEP with Accommodations"  # 2024 only

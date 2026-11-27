@@ -1,0 +1,6 @@
+School Year,County Number,County Name,District Number,District Name,School Number,School Name,School Code,State School Id,NCES ID,CO-OP,CO-OP Code,School Type,Demographic,Suppressed,4 Year Cohort Graduation Rate
+20252026,,,999,All Districts,,All Schools,999000,,,,,,Non-Military,N,94.1
+20252026,001,ADAIR,001,Adair County,,All Schools,001000,,2100030,GRREC,902,,Non-Military,N,97.6
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,All Students,N,93.9
+20252026,034,FAYETTE,165,Fayette County,,All Schools,165000,,2101860,CKEC,901,,Non-Military,N,93.9
+20252026,034,FAYETTE,165,Fayette County,060,Lafayette High School,165060,034165060,210186000367,CKEC,901,A1,Non-Military,N,98.1

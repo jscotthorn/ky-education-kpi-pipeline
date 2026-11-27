@@ -350,3 +350,101 @@ class TestGraduationRatesHelpers:
         assert pd.isna(result.loc[1, 'graduation_rate_5_year'])
         assert result.loc[2, 'graduation_rate_5_year'] == 90.0  # Now numeric after cleaning
         assert result.loc[3, 'graduation_rate_5_year'] == 0.0
+
+
+def _graduation_config():
+    loaded = yaml.safe_load((ROOT / "config" / "mappings.yaml").read_text())
+    return loaded["sources"]["graduation_rates"]
+
+
+def _grad_row(frame: pd.DataFrame, year: str, school_id: str, group: str) -> pd.Series:
+    matched = frame[
+        (frame["year"] == year)
+        & (frame["school_id"] == school_id)
+        & (frame["student_group"] == group)
+        & (frame["metric"] == "graduation_rate_4_year")
+    ]
+    assert len(matched) == 1, (year, school_id, group, len(matched))
+    return matched.iloc[0]
+
+
+def test_non_military_graduation_label_alias(tmp_path):
+    """KYRC24 and KYRC26 publish 'Non-Military'. The KPI group is 'Non-Military Dependent'.
+
+    Verbatim rows, header included:
+
+    KYRC26_ACCT_4_Year_High_School_Graduation.csv on
+    https://kdeschoolreportcard.blob.core.windows.net/datasets/
+    row 25 state Non-Military 94.1, row 49 Adair County All Schools 97.6,
+    row 2810 Fayette County All Students 93.9, row 2833 Fayette County
+    Non-Military 93.9, row 2881 Lafayette High School Non-Military 98.1.
+
+    KYRC24_ACCT_4_Year_High_School_Graduation.csv on the same container:
+    row 25 state 92.3, row 2833 Fayette County All Schools 92.8,
+    row 2881 Lafayette High School 97.0.
+
+    graduation_rate_2023.csv on
+    https://www.education.ky.gov/Open-House/data/HistoricalDatasets/
+    row 2554 Fayette County All Students 90.2 and row 8714 state All Students
+    91.4. That file has no military label, so those anchors stay All Students.
+    """
+    raw_dir = tmp_path / "raw"
+    source_dir = raw_dir / "graduation_rates"
+    source_dir.mkdir(parents=True)
+    proc_dir = tmp_path / "processed2"
+    proc_dir.mkdir()
+    fixture_dir = ROOT / "tests" / "fixtures" / "graduation_rates"
+    copies = {
+        "kyrc26_non_military.csv": "KYRC26_ACCT_4_Year_High_School_Graduation.csv",
+        "kyrc24_non_military.csv": "KYRC24_ACCT_4_Year_High_School_Graduation.csv",
+        "graduation_2023_all_students_anchor.csv": "graduation_rate_2023.csv",
+    }
+    for src, dest in copies.items():
+        (source_dir / dest).write_bytes((fixture_dir / src).read_bytes())
+    transform(raw_dir, proc_dir, _graduation_config())
+    frame = pd.read_csv(proc_dir / "graduation_rates.csv", dtype=str, keep_default_na=False)
+
+    state_2026 = _grad_row(frame, "2026", "999000", "Non-Military Dependent")
+    assert float(state_2026["value"]) == pytest.approx(94.1)
+    assert state_2026["district"] == "All Districts"
+    assert state_2026["school_name"] == "---District Total---"
+    assert state_2026["suppressed"] == "N"
+
+    adair = _grad_row(frame, "2026", "001000", "Non-Military Dependent")
+    assert float(adair["value"]) == pytest.approx(97.6)
+    assert adair["district"] == "Adair County"
+    assert adair["school_name"] == "---District Total---"
+
+    fayette = _grad_row(frame, "2026", "165000", "Non-Military Dependent")
+    assert float(fayette["value"]) == pytest.approx(93.9)
+    assert fayette["district"] == "Fayette County"
+    assert fayette["school_name"] == "---District Total---"
+
+    lafayette = _grad_row(frame, "2026", "165060", "Non-Military Dependent")
+    assert float(lafayette["value"]) == pytest.approx(98.1)
+    assert lafayette["district"] == "Fayette County"
+    assert lafayette["school_name"] == "Lafayette High School"
+
+    fayette_all = _grad_row(frame, "2026", "165000", "All Students")
+    assert float(fayette_all["value"]) == pytest.approx(93.9)
+
+    state_2024 = _grad_row(frame, "2024", "999000", "Non-Military Dependent")
+    assert float(state_2024["value"]) == pytest.approx(92.3)
+    fayette_2024 = _grad_row(frame, "2024", "165000", "Non-Military Dependent")
+    assert float(fayette_2024["value"]) == pytest.approx(92.8)
+    lafayette_2024 = _grad_row(frame, "2024", "165060", "Non-Military Dependent")
+    assert float(lafayette_2024["value"]) == pytest.approx(97.0)
+    assert lafayette_2024["school_name"] == "Lafayette High School"
+
+    # 2023 has no Non-Military label. The published All Students rates stay.
+    fayette_2023 = _grad_row(frame, "2023", "165", "All Students")
+    assert float(fayette_2023["value"]) == pytest.approx(90.2)
+    assert fayette_2023["district"] == "Fayette County"
+    state_2023 = _grad_row(frame, "2023", "999", "All Students")
+    assert float(state_2023["value"]) == pytest.approx(91.4)
+    assert state_2023["district"] == "State"
+    assert state_2023["school_name"] == "---State Total---"
+
+    assert "Non-Military" not in set(frame["student_group"])
+    keys = ["district", "school_id", "school_name", "year", "student_group", "metric"]
+    assert not frame.duplicated(keys).any()
