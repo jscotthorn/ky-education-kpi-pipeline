@@ -538,24 +538,68 @@ def _registered_postsecondary_sources(root: Path) -> list[Path]:
     return paths
 
 
-def _recorded_source_md5s(root: Path, names: list[str]) -> dict[str, str]:
-    """md5 comments in kde_sources.yaml that sit with a registered file.
+def _postsecondary_entry_blocks(yaml_text: str) -> dict[str, str]:
+    """Raw list-item text for each postsecondary_enrollment filename.
 
-    The postsecondary block records no checksums today. A later comment of
-    the form ``md5 <32 hex>`` on or just above the file entry is used.
+    The block is that list item only: the dash line and any more-indented
+    continuation. A checksum on a neighbouring item, or in a comment above
+    this item, is not part of the block.
     """
-    lines = (
-        (root / "config" / "kde_sources.yaml").read_text(encoding="utf-8").splitlines()
-    )
-    found: dict[str, str] = {}
+    lines = yaml_text.splitlines()
+    start = None
     for index, line in enumerate(lines):
-        for name in names:
-            if name not in line:
-                continue
-            window = "\n".join(lines[max(0, index - 8) : index + 1])
-            match = re.search(r"md5\s+`?([0-9a-fA-F]{32})`?", window)
-            if match:
-                found[name] = match.group(1).lower()
+        if re.match(r"^  postsecondary_enrollment:\s*$", line):
+            start = index + 1
+            break
+    if start is None:
+        return {}
+    section: list[str] = []
+    for line in lines[start:]:
+        if re.match(r"^  [A-Za-z0-9_]+:\s*$", line):
+            break
+        section.append(line)
+
+    blocks: list[list[str]] = []
+    current: list[str] | None = None
+    for line in section:
+        if re.match(r"^    - ", line):
+            if current is not None:
+                blocks.append(current)
+            current = [line]
+            continue
+        if current is not None and line.startswith("      ") and line.strip():
+            current.append(line)
+            continue
+        if current is not None:
+            blocks.append(current)
+            current = None
+    if current is not None:
+        blocks.append(current)
+
+    found: dict[str, str] = {}
+    for block in blocks:
+        text = "\n".join(block)
+        for name in re.findall(r'"([^"]+\.(?:csv|CSV|xlsx))"', text):
+            found[name] = text
+    return found
+
+
+def _recorded_source_md5s(root: Path, names: list[str]) -> dict[str, str]:
+    """md5 on each file's own kde_sources.yaml list item.
+
+    The postsecondary block records no checksums today. A later ``md5``
+    comment counts only when it is on that entry's line or block.
+    """
+    text = (root / "config" / "kde_sources.yaml").read_text(encoding="utf-8")
+    blocks = _postsecondary_entry_blocks(text)
+    found: dict[str, str] = {}
+    for name in names:
+        block = blocks.get(name)
+        if not block:
+            continue
+        match = re.search(r"md5\s+`?([0-9a-fA-F]{32})`?", block)
+        if match:
+            found[name] = match.group(1).lower()
     return found
 
 
@@ -578,23 +622,29 @@ def test_flag_list_script_matches_committed_file(tmp_path):
     """scripts/build_a_flagged_keys.py reproduces the committed list.
 
     The six registered raw files are gitignored. The byte-for-byte check
-    needs them staged. A staged file whose md5 disagrees with a checksum
-    recorded in kde_sources.yaml is skipped as well.
+    skips only when none of them are staged. A partial set fails. A staged
+    file whose md5 disagrees with the checksum on that entry fails as well.
     """
     root = Path(__file__).resolve().parents[1]
     sources = _registered_postsecondary_sources(root)
     missing = [path.name for path in sources if not path.is_file()]
-    if missing:
+    if len(missing) == len(sources):
         pytest.skip(
             "byte-for-byte check needs the six raw files staged in "
-            "data/raw/postsecondary_enrollment (they are gitignored); missing "
-            + ", ".join(missing)
+            "data/raw/postsecondary_enrollment (they are gitignored); "
+            "none are staged"
+        )
+    if missing:
+        pytest.fail(
+            "byte-for-byte check needs all six raw files staged in "
+            "data/raw/postsecondary_enrollment (they are gitignored); "
+            "only some are staged, missing " + ", ".join(missing)
         )
     mismatches = _md5_mismatches(root, sources)
     if mismatches:
-        pytest.skip(
-            "byte-for-byte check skipped; staged raw file md5 does not match "
-            "kde_sources.yaml: " + "; ".join(mismatches)
+        pytest.fail(
+            "staged raw file md5 does not match the checksum on its "
+            "kde_sources.yaml entry: " + "; ".join(mismatches)
         )
     committed = root / "notes" / "flags" / "A-flagged-keys.csv"
     output = tmp_path / "A-flagged-keys.csv"
