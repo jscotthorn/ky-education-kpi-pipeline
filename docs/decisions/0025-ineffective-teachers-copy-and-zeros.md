@@ -41,12 +41,12 @@ The comments choose the UAT copy and say a published 0 stays. The later confirma
 
 ## Code check
 
-Does not match items 1 and 2. Re-read on this branch.
+Items 1 and 2 now match the registration. Re-read on this branch.
 
-- Item 1: `students_taught_by_ineffective_teachers` still registers the bare historical name `KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv`. The comment says the datasets object is 39 rows with percents above 100 and "It is not swapped." The 1,589-row UAT copy is not the registered file.
-- Item 2: KYRC25 is registered as `url: kyrc25`, the datasets container. The yaml header says the downloader keeps datasets when Content-MD5 is missing. That is not "load the UAT copy."
+- Item 1: `students_taught_by_ineffective_teachers` registers `url: kyrc_uat` for `KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv`. The comment records the 1,589-row UAT copy (Non-White) and says the live datasets object is 39 rows with percents above 100 and is not loaded. That live file is the visibly broken copy under [0052](0052-republish-supersedes-earlier.md), confirmed by [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md).
+- Item 2: KYRC25 is `url: kyrc_uat`. The downloader compares bodies and reports a mismatch when either Content-MD5 is missing, and still keeps the primary URL for an unpinned key. This file is pinned, so it does not auto-select. The 27 Nov 2026 choice to load this UAT copy is [DNNNN](DNNNN-kyrc25-uat-and-kyrc26-ineffective-refresh.md).
 
-A title search of pull requests found no follow-up that performs either switch. Issue #64 is still open. Issue #123 tracks that the yaml still has the Open House copies. Items 3 and 4 (keep published zeros; repoint the catalog) were not re-checked as implemented. Not fixed here. The 39-row datasets file is the visibly broken copy under [0052](0052-republish-supersedes-earlier.md), confirmed by [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md). This conflict stays open as follow-up (a).
+Item 3 (keep published zeros) is unchanged in the ineffective and novice extractors. Item 4 (the covariate catalog) is not this edit. Status stays `conflicts-with-code` until it is updated after merge. That status change is not this edit.
 
 ## KDE guidance check
 

@@ -239,6 +239,36 @@ def test_differing_md5_uses_the_newer_last_modified(downloader, monkeypatch):
     assert downloaded == [uat]
 
 
+def test_differing_md5_keeps_datasets_when_datasets_is_newer(downloader, monkeypatch):
+    """KYRC26 ineffective shape: both Content-MD5 values exist and datasets is newer."""
+    module, tool = downloader
+    tool = _uat_tool(downloader)
+    primary = (
+        "https://kdeschoolreportcard.blob.core.windows.net/datasets/"
+        "KYRC26_OVW_Chronic_Absenteeism.csv"
+    )
+    older = "Mon, 12 Oct 2026 19:53:57 GMT"
+    newer = "Wed, 04 Nov 2026 13:21:04 GMT"
+    downloaded = []
+
+    def head(url, **_kwargs):
+        if url == primary:
+            return _response(b"", newer, '"datasets"', content_md5="ZDwOgo98qCCpngaxpATHmA==")
+        return _response(b"", older, '"uat"', content_md5="RLSb4R1BjoPE/x5wAJZb1w==")
+
+    def get(url, **_kwargs):
+        downloaded.append(url)
+        return _response(b"refresh", newer, '"datasets"', content_md5="ZDwOgo98qCCpngaxpATHmA==")
+
+    monkeypatch.setattr(module.requests, "head", head)
+    monkeypatch.setattr(module.requests, "get", get)
+
+    results = tool.download_directory("chronic_absenteeism")
+
+    assert results["KYRC26_OVW_Chronic_Absenteeism.csv"] is True
+    assert downloaded == [primary]
+
+
 def test_matching_md5_keeps_the_datasets_container(downloader, monkeypatch):
     module, tool = downloader
     tool = _uat_tool(downloader)
@@ -324,3 +354,119 @@ def test_save_as_downloads_the_remote_name_to_a_local_name(downloader, monkeypat
     assert stored.read_bytes() == b"historical-copy"
     assert not (tool.raw_data_path / "chronic_absenteeism" / remote).exists()
     assert requested == [f"https://historical.example/{remote}"]
+
+
+def test_kyrc_uat_resolves_without_probing_datasets(downloader, monkeypatch):
+    """A pinned kyrc_uat entry does not HEAD or GET the datasets container."""
+    module, tool = downloader
+    tool.config["base_url_kyrc_uat"] = (
+        "https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/"
+    )
+    tool.config["base_url_kyrc_datasets"] = (
+        "https://kdeschoolreportcard.blob.core.windows.net/datasets/"
+    )
+    name = "KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv"
+    tool.config["raw_directories"]["chronic_absenteeism"] = [
+        {"url": "kyrc_uat", "file": name}
+    ]
+    uat = (
+        "https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/" + name
+    )
+    seen = []
+
+    def head(url, **_kwargs):
+        seen.append(("head", url))
+        raise AssertionError("pinned kyrc_uat must not probe")
+
+    def get(url, **_kwargs):
+        seen.append(("get", url))
+        return _response(b"uat-bytes", "Mon, 12 Oct 2026 19:55:55 GMT", '"uat"')
+
+    monkeypatch.setattr(module.requests, "head", head)
+    monkeypatch.setattr(module.requests, "get", get)
+    results = tool.download_directory("chronic_absenteeism")
+    stored = tool.raw_data_path / "chronic_absenteeism" / name
+    assert results[name] is True
+    assert seen == [("get", uat)]
+    assert stored.read_bytes() == b"uat-bytes"
+    assert tool._read_source_meta(stored)["url"] == uat
+
+
+def test_kyrc_datasets_does_not_probe_uat_for_a_kyrc25_name(downloader, monkeypatch):
+    """kyrc_datasets stays on datasets even when the name would otherwise alternate."""
+    module, tool = downloader
+    tool.config["base_url_kyrc_uat"] = (
+        "https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/"
+    )
+    tool.config["base_url_kyrc_datasets"] = (
+        "https://kdeschoolreportcard.blob.core.windows.net/datasets/"
+    )
+    name = "KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv"
+    tool.config["raw_directories"]["chronic_absenteeism"] = [
+        {"url": "kyrc_datasets", "file": name}
+    ]
+    datasets = "https://kdeschoolreportcard.blob.core.windows.net/datasets/" + name
+    seen = []
+
+    def head(url, **_kwargs):
+        seen.append(url)
+        raise AssertionError("pinned kyrc_datasets must not probe UAT")
+
+    def get(url, **_kwargs):
+        seen.append(url)
+        return _response(b"datasets-bytes", "Sat, 18 Jul 2026 21:29:47 GMT")
+
+    monkeypatch.setattr(module.requests, "head", head)
+    monkeypatch.setattr(module.requests, "get", get)
+    results = tool.download_directory("chronic_absenteeism")
+    assert results[name] is True
+    assert seen == [datasets]
+    stored = tool.raw_data_path / "chronic_absenteeism" / name
+    assert stored.read_bytes() == b"datasets-bytes"
+
+
+def test_missing_content_md5_reports_a_body_mismatch_and_keeps_primary(downloader, monkeypatch, caplog):
+    """Issue #64 item 2: missing Content-MD5 compares bodies and does not stay silent."""
+    module, tool = downloader
+    tool = _uat_tool(downloader)
+    primary = (
+        "https://kdeschoolreportcard.blob.core.windows.net/datasets/"
+        "KYRC26_OVW_Chronic_Absenteeism.csv"
+    )
+    uat = (
+        "https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/"
+        "KYRC26_OVW_Chronic_Absenteeism.csv"
+    )
+    stamp = "Thu, 15 Oct 2026 10:00:10 GMT"
+
+    def head(url, **_kwargs):
+        return _response(b"", stamp, '"no-md5"')
+
+    def get(url, **_kwargs):
+        body = b"datasets-body" if url == primary else b"uat-body"
+        return _response(body, stamp, '"no-md5"')
+
+    monkeypatch.setattr(module.requests, "head", head)
+    monkeypatch.setattr(module.requests, "get", get)
+    results = tool.download_directory("chronic_absenteeism")
+    stored = tool.raw_data_path / "chronic_absenteeism" / "KYRC26_OVW_Chronic_Absenteeism.csv"
+    assert results["KYRC26_OVW_Chronic_Absenteeism.csv"] is True
+    assert stored.read_bytes() == b"datasets-body"
+    assert tool.copy_mismatches
+    assert tool.copy_mismatches[0]["differ"] == "yes"
+    assert tool.copy_mismatches[0]["primary_url"] == primary
+    assert tool.copy_mismatches[0]["alternate_url"] == uat
+    assert any("Container mismatch" in message for message in caplog.messages)
+
+
+def test_missing_content_md5_matching_bodies_are_not_a_mismatch(downloader, monkeypatch):
+    module, tool = downloader
+    tool = _uat_tool(downloader)
+    stamp = "Thu, 15 Oct 2026 10:00:10 GMT"
+    monkeypatch.setattr(module.requests, "head", lambda *a, **k: _response(b"", stamp))
+    monkeypatch.setattr(
+        module.requests, "get", lambda *a, **k: _response(b"same-body", stamp)
+    )
+    results = tool.download_directory("chronic_absenteeism")
+    assert results["KYRC26_OVW_Chronic_Absenteeism.csv"] is True
+    assert tool.copy_mismatches == []

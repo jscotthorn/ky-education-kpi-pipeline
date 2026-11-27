@@ -335,10 +335,18 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     """2025-26 KPIs from real rows, with earlier-year anchors.
 
     Values are the published percents. State Title I All Students is 0.5
-    and Not Title I is 0.1. English learners in Title I schools are the
-    published 0.0. KPI year is 2026, from school year 20252026. District
-    is All Districts. There is no Suppressed column and no starred cell.
-    The text N/A and #N/A emit nothing. A published 0 is kept.
+    and Not Title I is 0.4 on the 4 Nov 2026 datasets refresh (the replaced
+    copy's Not Title I All Students was 0.1). English learners in Title I
+    schools are the published 0.0. KPI year is 2026, from school year
+    20252026. District is All Districts. There is no Suppressed column and
+    no starred cell. The text N/A and #N/A emit nothing. A published 0 is
+    kept. The KYRC24 fixture rows are the UAT copy, including state Title I
+    Non-White 0.3. The KYRC25 state rows are the UAT copy (Title I All
+    Students 0.9). Bullitt East High School 071016 is the row the refresh
+    adds.
+    https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/KYRC24_OVW_Students_Taught_by_Ineffective_Teachers.csv
+    https://kdeschoolreportcard.blob.core.windows.net/datasetsuat6051276/KYRC25_OVW_Students_Taught_by_Ineffective_Teachers.csv
+    https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC26_OVW_Students_Taught_by_Ineffective_Teachers.csv
     """
     names = [
         "students_taught_by_ineffective_teachers_2020.csv",
@@ -386,11 +394,22 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
         combined, "2026", "999000",
         "students_taught_by_ineffective_teachers_rate_not_title_1",
     )
-    assert float(not_title["value"]) == 0.1
+    assert float(not_title["value"]) == 0.4
     assert float(_one(
         combined, "2026", "999000",
         "students_taught_by_ineffective_teachers_rate_not_title_1", "Non-White",
-    )["value"]) == 0.0
+    )["value"]) == 0.1
+    bullitt_east = _one(
+        combined, "2026", "071016",
+        "students_taught_by_ineffective_teachers_rate_not_title_1",
+    )
+    assert float(bullitt_east["value"]) == 9.8
+    assert bullitt_east["school_name"] == "Bullitt East High School"
+    assert bullitt_east["district"] == "Bullitt County"
+    assert float(_one(
+        combined, "2026", "071000",
+        "students_taught_by_ineffective_teachers_rate_not_title_1",
+    )["value"]) == 3.7
 
     fayette = _one(
         combined, "2026", "165000", "students_taught_by_ineffective_teachers_rate_title_1",
@@ -426,10 +445,18 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     # NCES id is the published 210186000000. It is not rewritten.
     assert float(_one(
         combined, "2025", "999000", "students_taught_by_ineffective_teachers_rate_title_1",
-    )["value"]) == 0.8
+    )["value"]) == 0.9
+    assert float(_one(
+        combined, "2025", "999000",
+        "students_taught_by_ineffective_teachers_rate_title_1", "Non-White",
+    )["value"]) == 0.4
+    assert float(_one(
+        combined, "2025", "999000",
+        "students_taught_by_ineffective_teachers_rate_title_1", "White (non-Hispanic)",
+    )["value"]) == 0.5
     assert float(_one(
         combined, "2025", "999000", "students_taught_by_ineffective_teachers_rate_not_title_1",
-    )["value"]) == 0.0
+    )["value"]) == 0.1
     assert float(_one(
         combined, "2025", "165000", "students_taught_by_ineffective_teachers_rate_title_1",
     )["value"]) == 4.3
@@ -447,19 +474,19 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
 
     assert float(_one(
         combined, "2024", "999000", "students_taught_by_ineffective_teachers_rate_title_1",
-    )["value"]) == 0.7
-    non_white_2024 = combined[
-        (combined["year"] == "2024")
-        & (combined["school_id"] == "999000")
-        & (combined["student_group"] == "Non-White")
-    ]
-    assert non_white_2024.empty
-    bath = combined[(combined["year"] == "2024") & (combined["school_id"] == "025000")]
+    )["value"]) == 0.8
     assert float(_one(
-        combined, "2024", "025000",
-        "students_taught_by_ineffective_teachers_rate_not_title_1",
+        combined, "2024", "999000",
+        "students_taught_by_ineffective_teachers_rate_title_1", "Non-White",
+    )["value"]) == 0.3
+    assert float(_one(
+        combined, "2024", "165000",
+        "students_taught_by_ineffective_teachers_rate_title_1", "Non-White",
+    )["value"]) == 0.5
+    assert float(_one(
+        combined, "2024", "165170",
+        "students_taught_by_ineffective_teachers_rate_title_1",
     )["value"]) == 0.0
-    assert "White (non-Hispanic)" not in set(bath["student_group"])
 
     state_2023 = _one(
         combined, "2023", "999", "students_taught_by_ineffective_teachers_rate_title_1",

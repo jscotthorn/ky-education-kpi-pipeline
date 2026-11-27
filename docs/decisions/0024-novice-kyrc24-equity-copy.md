@@ -35,7 +35,7 @@ The comment chooses the datasets copy. Reason that copy is the right Title I fig
 
 ## Code check
 
-Does not match. Re-read on this branch: `novice_teachers` still registers the bare historical name `KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv` and says the datasets copy "is not swapped." The same historical name is also registered at lines 326-327 under `students_taught_by_inexperienced_teachers`. A title search of pull requests found no follow-up that performs the switch. Issue #58 is still open. Issue #123 tracks that the yaml still has the Open House copies. Not fixed here. The standing file rule is [0052](0052-republish-supersedes-earlier.md). This conflict stays open as follow-up (a).
+The `novice_teachers` registration now matches. Re-read on this branch: KYRC24 equity is `url: kyrc_datasets` for `KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv`. The comment records the replaced Open House file (Last-Modified Thu, 29 May 2025 22:09:21 GMT, md5 `9168e6d6572692925a269885dabdc7dd`, state Title I All Students 11.3) and this copy (state Title I All Students 66.0, md5 `e0cf730225ef7ab3a010ec6142b7b080`, same bytes on UAT). The datasets copy is the later public file and is not visibly broken, so the registration follows [0052](0052-republish-supersedes-earlier.md). The same historical name is still registered under `students_taught_by_inexperienced_teachers`. The `novice_teachers` comment says that list is for download only and that this ETL reads the copy in the `novice_teachers` directory. Status stays `conflicts-with-code` until it is updated after merge. That status change is not this edit.
 
 ## KDE guidance check
 

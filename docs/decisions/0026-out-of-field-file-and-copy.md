@@ -38,7 +38,7 @@ The 2019-20 comment's reason is "first year of KDE's Equity tab, incomplete cove
 
 ## Code check
 
-The unregistered 2019-20 file matches the yaml comment: the file is not registered and the parser skips that filename. The 2024 copy switch does not match. Re-read on this branch: the bare historical name `KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv` is still registered, and the comment says "Do not swap it here." A title search of pull requests found no follow-up that performs the switch. Issue #66 is still open. Issue #123 tracks that the yaml still has the Open House copies. Not fixed here. The standing file rule is [0052](0052-republish-supersedes-earlier.md). This conflict stays open as follow-up (a).
+The unregistered 2019-20 file still matches: it is not registered, and the parser skips that filename. The comment records the reason from issue #66 item 1: first year of KDE's Equity tab, incomplete coverage. The 2024 registration now matches. Re-read on this branch: KYRC24 is `url: kyrc_datasets` for `KYRC24_OVW_Students_Taught_by_Out_of_Field_Teachers.csv`. The comment records the replaced historical extract and says UAT negates some equity-gap cells and is not loaded. The datasets copy is the later public file (Last-Modified Thu, 14 May 2026 19:11:30 GMT) and is not visibly broken, so the registration follows [0052](0052-republish-supersedes-earlier.md). Status stays `conflicts-with-code` until it is updated after merge. That status change is not this edit.
 
 ## KDE guidance check
 
