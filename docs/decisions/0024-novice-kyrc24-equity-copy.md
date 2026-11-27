@@ -1,6 +1,6 @@
 # 0024 Point 2024 novice-teacher equity at the datasets copy
 
-Status: conflicts-with-code
+Status: accepted
 
 ## Question
 
@@ -29,13 +29,13 @@ The comment chooses the datasets copy. Reason that copy is the right Title I fig
 ## Links
 
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/58 (still open)
-- Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123 (open). The yaml still registers the Open House copies, so the 18 October copy choices on #58, #64, and #66 are not applied.
+- Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123 (open). Pull request #140 registers the 18 October copy choices on #58, #64, and #66. The issue was not closed there.
 - `config/kde_sources.yaml` `novice_teachers`
-- The same historical filename is also registered at `config/kde_sources.yaml` lines 326-327 under `students_taught_by_inexperienced_teachers`. The `novice_teachers` comment (lines 478-480) says that key is for download only and that this ETL reads the copy in the `novice_teachers` directory. That sentence names the KYRC26 file. The KYRC24 historical name is on both lists.
+- The same historical filename is also registered at `config/kde_sources.yaml` lines 344-345 under `students_taught_by_inexperienced_teachers`. The `novice_teachers` comment (lines 495-498) says that key is for download only and that this ETL reads the copy in the `novice_teachers` directory. That sentence names the KYRC26 file. The KYRC24 historical name is on both lists.
 
 ## Code check
 
-The `novice_teachers` registration now matches. Re-read on this branch: KYRC24 equity is `url: kyrc_datasets` for `KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv`. The comment records the replaced Open House file (Last-Modified Thu, 29 May 2025 22:09:21 GMT, md5 `9168e6d6572692925a269885dabdc7dd`, state Title I All Students 11.3) and this copy (state Title I All Students 66.0, md5 `e0cf730225ef7ab3a010ec6142b7b080`, same bytes on UAT). The datasets copy is the later public file and is not visibly broken, so the registration follows [0052](0052-republish-supersedes-earlier.md). The same historical name is still registered under `students_taught_by_inexperienced_teachers`. The `novice_teachers` comment says that list is for download only and that this ETL reads the copy in the `novice_teachers` directory. Status stays `conflicts-with-code` until it is updated after merge. That status change is not this edit.
+The `novice_teachers` registration now matches. Re-read on this branch: KYRC24 equity is `url: kyrc_datasets` for `KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv`. The comment records the replaced Open House file (Last-Modified Thu, 29 May 2025 22:09:21 GMT, md5 `9168e6d6572692925a269885dabdc7dd`, state Title I All Students 11.3) and this copy (state Title I All Students 66.0, md5 `e0cf730225ef7ab3a010ec6142b7b080`, same bytes on UAT). The datasets copy is the later public file and is not visibly broken, so the registration follows [0052](0052-republish-supersedes-earlier.md). The same historical name is still registered under `students_taught_by_inexperienced_teachers`. The `novice_teachers` comment says that list is for download only and that this ETL reads the copy in the `novice_teachers` directory. Status is `accepted` (was `conflicts-with-code`).
 
 ## KDE guidance check
 

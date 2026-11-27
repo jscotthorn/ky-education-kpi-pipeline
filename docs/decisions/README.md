@@ -70,7 +70,7 @@ Two note numbers are used twice. They were not renamed.
 
 ## Records
 
-58 records. 42 accepted. 9 accepted, code differs (follow-up open). 3 conflicts-with-code. 3 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed.
+58 records. 45 accepted. 9 accepted, code differs (follow-up open). 0 conflicts-with-code. 3 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed.
 
 | Record | Status | KDE guidance check |
 | --- | --- | --- |
@@ -97,9 +97,9 @@ Two note numbers are used twice. They were not renamed.
 | [0021](0021-pandas-unpinned-comma-fixes.md) | accepted | no KDE guidance found |
 | [0022](0022-teacher-experience-zero-averages.md) | accepted, code differs (follow-up open) | no KDE guidance found |
 | [0023](0023-student-teacher-ratio-outliers.md) | accepted | no KDE guidance found |
-| [0024](0024-novice-kyrc24-equity-copy.md) | conflicts-with-code | no KDE guidance found |
-| [0025](0025-ineffective-teachers-copy-and-zeros.md) | conflicts-with-code | no KDE guidance found |
-| [0026](0026-out-of-field-file-and-copy.md) | conflicts-with-code | no KDE guidance found |
+| [0024](0024-novice-kyrc24-equity-copy.md) | accepted | no KDE guidance found |
+| [0025](0025-ineffective-teachers-copy-and-zeros.md) | accepted | no KDE guidance found |
+| [0026](0026-out-of-field-file-and-copy.md) | accepted | no KDE guidance found |
 | [0027](0027-signed-title-i-equity-gap.md) | accepted | no KDE guidance found |
 | [0028](0028-turnover-2026-metric-names.md) | accepted | no KDE guidance found |
 | [0029](0029-emergency-provisional-2026.md) | accepted | no KDE guidance found |

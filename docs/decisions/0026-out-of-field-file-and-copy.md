@@ -1,6 +1,6 @@
 # 0026 Out-of-field file for 2019-20, and the KYRC24 copy
 
-Status: conflicts-with-code
+Status: accepted
 
 ## Question
 
@@ -32,7 +32,7 @@ The 2019-20 comment's reason is "first year of KDE's Equity tab, incomplete cove
 ## Links
 
 - Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/66 (still open)
-- Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123 (open). The yaml still registers the Open House copies, so the 18 October copy choices on #58, #64, and #66 are not applied.
+- Issue https://github.com/jscotthorn/ky-education-kpi-pipeline/issues/123 (open). Pull request #140 registers the 18 October copy choices on #58, #64, and #66. The issue was not closed there.
 - `config/kde_sources.yaml` `students_taught_by_out_of_field_teachers`
 - [0027](0027-signed-title-i-equity-gap.md)
 
@@ -46,7 +46,7 @@ The 2024 registration matches. KYRC24 is `url: kyrc_datasets` for `KYRC24_OVW_St
 
 The J1 catalog cleanup, now on this branch, repoints the catalog key from `students_taught_by_out_of_field_teachers_rate` to `students_taught_by_out_of_field_teachers_rate_title_1`, the Title I metric the module emits (`analysis/config/covariate_catalog.yaml`). The copy-switch edit did not touch the catalog.
 
-The earlier code check said the bare historical name was still registered and that the comment said "Do not swap it here." The yaml no longer says that. Issues #66 and #123 were not closed here. Status stays `conflicts-with-code`. That status change is not this edit.
+The earlier code check said the bare historical name was still registered and that the comment said "Do not swap it here." The yaml no longer says that. Both items match the code. Status is `accepted` (was `conflicts-with-code`). Issues #66 and #123 were not closed here.
 
 ## KDE guidance check
 
