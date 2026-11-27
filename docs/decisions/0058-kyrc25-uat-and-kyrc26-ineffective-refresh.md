@@ -1,8 +1,8 @@
-# DNNNN Load the KYRC25 ineffective UAT copy, adopt the 4 Nov KYRC26 ineffective refresh, and approve the batch B mirror additions
+# 0058 Load the KYRC25 ineffective UAT copy, adopt the 4 Nov KYRC26 ineffective refresh, and approve the batch B mirror additions
 
 Status: accepted
 
-DNNNN is a placeholder. The number is assigned at merge. Repo comment: none.
+This record is 0058. Repo comment: none.
 
 ## Question
 
