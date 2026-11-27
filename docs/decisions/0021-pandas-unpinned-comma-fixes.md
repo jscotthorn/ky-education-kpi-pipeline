@@ -34,7 +34,7 @@ The comment chooses per-module fixes over a pin so the pipeline can run on panda
 
 ## Code check
 
-Matches the parts that have merged. `etl/base_etl.py` rewrites `StringDtype` and replaces `*` with NA. CTE comma handling landed in #106. Financial-summary commas landed in #110. Spending-per-student commas landed in #117. This pass did not re-run those modules.
+Matches the parts that have merged. `etl/base_etl.py` rewrites `StringDtype` and replaces `*` with NA. CTE comma handling landed in #106. Financial-summary commas landed in #110. Spending-per-student commas landed in #117. The J1 catalog-cleanup pull request into `feature/2025-26-kyrc26` removes the vestigial `dtype == "object"` comma strip in `etl/cte_participation.py` `standardize_missing_values`. The converter reads the raw copy, and `_classify_cell` strips commas for object columns and for StringDtype. `tests/test_cte_participation.py` runs that path on both dtypes with real KYRC24 rows. Status stays `accepted`.
 
 ## KDE guidance check
 

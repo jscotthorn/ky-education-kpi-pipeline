@@ -98,13 +98,11 @@ Implemented 6 new ETL pipelines to support bright spots analysis by tracking sch
 - **Demographics**: School-level only (All Students)
 
 **Metrics**:
-- `algebra_1_grade_8_count` - 8th graders enrolled in Algebra 1
-- `has_algebra_1_access` - Boolean indicator for Algebra 1 availability
 - `courses_offered_count` - Count of unique courses (aggregation metric)
 
+`algebra_1_grade_8_count` and `has_algebra_1_access` were removed in the J1 catalog cleanup. No registered file produced either metric. There is no alias.
+
 **Key Implementation Details**:
-- Detects Algebra 1 courses by name matching: "ALGEBRA I" or "ALGEBRA 1"
-- Extracts grade 8 enrollment specifically for middle school Algebra access metric
 - Course-level data without demographic breakdowns
 - KYRC25 file didn't produce KPI rows (format investigation needed)
 - Handles grade count columns with comma-separated numbers
@@ -256,7 +254,8 @@ These pipelines support the bright spots analysis by providing:
 `has_dual_credit_program` was removed from this list on 2026-10-20. No other metric was substituted.
 
 ### Middle Schools
-- Algebra 1 access for 8th graders (`has_algebra_1_access`, `algebra_1_grade_8_count`)
+
+`algebra_1_grade_8_count` and `has_algebra_1_access` were removed from this list in the J1 catalog cleanup. No other metric was substituted.
 
 ### Elementary Schools
 - Gifted program participation by grade level
