@@ -1,4 +1,4 @@
-# DNNNN Issue #42 is closed; the NaN guard and the post-2025 analysis stay out of scope
+# 0059 Issue #42 is closed; the NaN guard and the post-2025 analysis stay out of scope
 
 Status: accepted
 

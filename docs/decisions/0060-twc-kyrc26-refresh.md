@@ -1,4 +1,4 @@
-# DNNNN Accept the refreshed KYRC26 teacher working conditions file as published
+# 0060 Accept the refreshed KYRC26 teacher working conditions file as published
 
 Status: accepted
 

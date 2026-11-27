@@ -704,7 +704,7 @@ raw_directories:
     # 603000 and 603390) is "Kentucky School for the Deaf District".
     # Districts 001-095 on the district list are present. Eleven
     # districts on that list are still absent.
-    # docs/decisions/DNNNN-twc-kyrc26-refresh.md
+    # docs/decisions/0060-twc-kyrc26-refresh.md
     - url: "kyrc26"
       file: "KYRC26_OVW_Teacher_Working_Conditions.csv"
     - "teacher_working_conditions_2022.csv"

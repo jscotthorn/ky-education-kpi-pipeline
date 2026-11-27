@@ -1,6 +1,6 @@
 # 120 — KYRC26 teacher working conditions refresh, and the batch K caveat check
 
-Docs only. No ETL module, no registered filename, and no processed output is changed. The file comparison below was run in this workspace on 27 Nov 2026. Decision records: `docs/decisions/DNNNN-twc-kyrc26-refresh.md` and `docs/decisions/DNNNN-issue-42-closed.md`.
+Docs only. No ETL module, no registered filename, and no processed output is changed. The file comparison below was run in this workspace on 27 Nov 2026. Decision records: `docs/decisions/0060-twc-kyrc26-refresh.md` and `docs/decisions/0059-issue-42-closed.md`.
 
 ## Source files
 
@@ -109,4 +109,4 @@ The separate 2023 completion-rate comparability sentence (record 0011, `notes/11
 
 ### #42
 
-Record DNNNN. Issue #42 was closed on GitHub at 12:36 PM ET on 27 Nov 2026. This note does not close it. The NaN guard and the post-2025 analysis stay out of scope under record 0002.
+Record 0059. Issue #42 was closed on GitHub at 12:36 PM ET on 27 Nov 2026. This note does not close it. The NaN guard and the post-2025 analysis stay out of scope under record 0002.
