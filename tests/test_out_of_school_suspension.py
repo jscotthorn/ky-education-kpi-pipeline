@@ -173,7 +173,8 @@ class TestOutOfSchoolSuspensionETL:
         df = self.etl.standardize_missing_values(self.etl.normalize_column_names(raw))
         kpi = self.etl.convert_to_kpi_format(df, 'KYRC24_OVW_Student_Suspensions.csv')
         assert 'collected_school_year' not in kpi.columns
-        assert set(kpi['year']) == {'2024'}
+        # KYRC24 collected year is 20202021. The KPI year is 2021.
+        assert set(kpi['year']) == {'2021'}
 
         camp = kpi[(kpi['school_id'] == '275004') & (kpi['student_group'] == 'All Students')]
         assert len(camp) == 10
@@ -239,6 +240,7 @@ class TestTransform:
 
             df = pd.DataFrame({
                 'School Year': ['20232024'],
+                'Collected School Year': ['20202021'],
                 'District Name': ['Test'],
                 'School Code': ['100'],
                 'School Name': ['Test School'],
@@ -256,6 +258,18 @@ class TestTransform:
             audit_file = proc_dir / 'out_of_school_suspension_demographic_report.md'
             assert out_file.exists()
             assert audit_file.exists()
+            written = pd.read_csv(out_file, dtype=str)
+            assert set(written['year']) == {'2021'}
+
+            # A row with no 8-digit collection year is an error. It is
+            # not filed under the report-card year.
+            etl = OutOfSchoolSuspensionETL('out_of_school_suspension')
+            try:
+                etl.extract_year(pd.Series({'school_year': '20232024'}), 'sample.csv')
+            except ValueError as exc:
+                assert 'Collected School Year' in str(exc)
+            else:
+                raise AssertionError('missing collection year did not raise')
 
 
 class TestKyrc26OutOfSchoolSuspension:
@@ -320,8 +334,8 @@ def test_kyrc25_student_suspensions_file_is_skipped():
     """KYRC25_OVW_Student_Suspensions.csv republishes CRDC 2020-21.
 
     School Year is 20242025 and the collected year stays 20202021. The
-    count cells match KYRC24. Accepting the file would publish 2025 as a
-    second copy of report-card year 2024.
+    count cells match KYRC24. The KPI year is that collection year, so
+    accepting the file would write a second copy of 2021.
     """
     etl = OutOfSchoolSuspensionETL('out_of_school_suspension')
     with tempfile.TemporaryDirectory() as tmpdir:
