@@ -75,7 +75,7 @@ No value is changed. The notes below say where the current caveat sits and what 
 | Issue | Decided caveat | This batch |
 | --- | --- | --- |
 | #68 | Keep the 2026 turnover rows. District and state rows are a different measure. Fayette's district row is 407 against a school sum of 582. Record 0028. | Already in `KPIS.md`. Added that `teacher_turnover_rate` is the covariate the analysis dataset loads. |
-| #70 | Keep the 2026 emergency and provisional rows. State percent 14.3 is not the next point after 1.9. Record 0029. | Already in `KPIS.md`. Added that `base_analysis_dataset.py` loads `emergency_provisional_teacher_rate`. The catalog `source` is still `kde_staff_reports`. Not changed. |
+| #70 | Keep the 2026 emergency and provisional rows. State percent 14.3 is not the next point after 1.9. Record 0029. | Already in `KPIS.md`. Added that `base_analysis_dataset.py` loads `emergency_provisional_teacher_rate`. When this note was written the catalog `source` was `kde_staff_reports`. The J1 catalog cleanup since set it to `kde_teacher_certification`. This batch did not change it. |
 | #112 | The 5,407 cells and the 699 cells stay as published, with a warning, until KDE republishes those years. Records 0009 and 0051. The 27 October 2026 recheck is not the end condition. | `KPIS.md` and `notes/116` said the 0.0 rates "are on the 27 October KDE recheck". That end condition is replaced with the 0009 / 0051 wording. The 2023 comparability sentence in record 0011 is not amended. |
 | #78 | Keep the published 2026 IB tested counts. Leave the derived 2026 rate unstored. Record 0032. | `KPIS.md` said the issue "holds whether to keep" the count. It now cites 0032. |
 | #101 | Keep the type-file star. Do not store the location or context Total. Record 0036. | `KPIS.md` already says that, with the kde-recheck label. No wording change. No KDE answer is recorded here. |
@@ -97,7 +97,7 @@ No value is changed. The notes below say where the current caveat sits and what 
 
 `KPIS.md` already says not to read the 2026 state percent 14.3 as the next point after 1.9. Those figures are issue #70's body, checked 18 October 2026. This batch did not re-count the certification file.
 
-The same analysis script reads `emergency_provisional_teacher_rate` and renames the column to `emergency_provisional_rate`. The catalog entry `emergency_provisional_rate` still has `source: kde_staff_reports`. Record 0029 says to point that entry at the KYRC teacher-certification files. This batch does not edit the catalog. Record 0029's status stays `accepted`.
+The same analysis script reads `emergency_provisional_teacher_rate` and renames the column to `emergency_provisional_rate`. The catalog entry `emergency_provisional_rate` had `source: kde_staff_reports` when this note was written. The J1 catalog cleanup since set it to `kde_teacher_certification`, as record 0029 says. This batch does not edit the catalog. Record 0029's status stays `accepted`.
 
 ### #112
 
