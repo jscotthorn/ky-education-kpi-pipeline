@@ -185,8 +185,11 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
         "students_taught_by_inexperienced_teachers_rate_equity_gap",
     )["value"]) == 46.6
 
-    # Prior-year anchors. 2024 equity is the historical file: state Title I
-    # All Students is 11.3, not the datasets copy's 66.0.
+    # Prior-year anchors. 2024 equity is the datasets copy: state Title I
+    # All Students is 66.0. The replaced historical file's rate was 11.3.
+    # Source row: KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv,
+    # school 999000, Title 1, All Students.
+    # https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv
     row = _one(combined, "2025", "999000", "novice_teacher_rate_less_than_1_year")
     assert float(row["value"]) == 5.7
     assert row["district"] == "All Districts"
@@ -218,17 +221,18 @@ def test_kyrc26_real_rows_and_prior_year_anchors(tmp_path):
     assert float(_one(combined, "2024", "165170", "novice_teacher_rate_1_to_3_years")["value"]) == 8.3
     assert float(_one(
         combined, "2024", "999000", "students_taught_by_inexperienced_teachers_rate_title_1"
-    )["value"]) == 11.3
+    )["value"]) == 66.0
     assert float(_one(
         combined, "2024", "999000", "students_taught_by_inexperienced_teachers_rate_not_title_1"
-    )["value"]) == 1.3
+    )["value"]) == 35.4
     assert float(_one(
         combined, "2024", "999000", "students_taught_by_inexperienced_teachers_rate_equity_gap"
-    )["value"]) == 9.9
-    # Published zeros. The historical KYRC24 Bryan Station equity row is 0.
+    )["value"]) == 30.6
+    # Fayette school anchor from the same datasets file. Bryan Station Title I
+    # All Students is 86.0. The replaced historical row was 0.0.
     assert float(_one(
         combined, "2024", "165170", "students_taught_by_inexperienced_teachers_rate_title_1"
-    )["value"]) == 0.0
+    )["value"]) == 86.0
 
     row = _one(combined, "2023", "999", "novice_teacher_rate_less_than_1_year")
     assert float(row["value"]) == 7.13

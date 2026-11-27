@@ -176,49 +176,6 @@ class TestSchoolCoursesETL:
         assert _one(df, "2026", "001010", "courses_offered_count_other")["value"] == "0.0"
         _assert_unique_keys(df)
 
-    def test_algebra_grade_8_follows_the_cell(self, tmp_path):
-        """Algebra metrics follow grade 8. A blank grade is not a star."""
-        frame = pd.DataFrame({
-            "School Year": ["20252026", "20252026", "20252026", "20252026"],
-            "District Name": ["Adair County"] * 4,
-            "School Name": ["Adair County Middle School"] * 4,
-            "School Code": ["001020"] * 4,
-            "State Course Name": ["Algebra I", "Algebra 1", "Algebra I", "Welding"],
-            "All Students": ["20", "4", "9", "15"],
-            "Grade 8": ["11", "0", "*", ""],
-        })
-        raw = tmp_path / "raw" / "school_courses"
-        raw.mkdir(parents=True)
-        frame.to_csv(raw / "algebra.csv", index=False)
-        proc = tmp_path / "processed"
-        proc.mkdir()
-        transform(tmp_path / "raw", proc, _config())
-        df = pd.read_csv(proc / "school_courses.csv", dtype=str, keep_default_na=False)
-        offered = df[df["metric"] == "courses_offered_count"]
-        assert len(offered) == 1
-        assert offered.iloc[0]["value"] == "4.0"
-        assert offered.iloc[0]["suppressed"] == "N"
-        assert _one(df, "2026", "001020", "courses_offered_suppressed_count")["value"] == "0.0"
-        assert _one(df, "2026", "001020", "courses_offered_count_other")["value"] == "4.0"
-
-        def metric(name):
-            rows = df[df["metric"] == name]
-            return rows
-
-        counts = metric("algebra_1_grade_8_count")
-        access = metric("has_algebra_1_access")
-        # Three algebra rows. Welding has a blank grade 8 and emits neither.
-        assert len(counts) == 3
-        assert len(access) == 3
-        published_counts = counts[counts["suppressed"] == "N"]["value"].tolist()
-        assert "11.0" in published_counts
-        assert "0.0" in published_counts
-        assert len(counts[counts["suppressed"] == "Y"]) == 1
-        assert counts[counts["suppressed"] == "Y"].iloc[0]["value"] == ""
-        access_values = access[access["suppressed"] == "N"]["value"].tolist()
-        assert "1.0" in access_values
-        assert "0.0" in access_values
-
     def test_kyrc23_republish_does_not_duplicate_2023(self, tmp_path):
         """A leftover KYRC23 file is the same school year and is skipped."""
         historical = _fixture("historical_2023_adair.csv")
@@ -346,6 +303,46 @@ class TestSchoolCoursesETL:
         assert set(df["suppressed"]) == {"N"}
         assert "algebra_1_grade_8_count" not in set(df["metric"])
         assert "has_algebra_1_access" not in set(df["metric"])
+        _assert_unique_keys(df)
+
+    def test_algebra_i_course_name_emits_no_algebra_metric(self, tmp_path):
+        """A course named Algebra I does not restore the removed metrics.
+
+        The row is Echo Trail Middle ``275255``, Career Choices, from
+        ``tests/fixtures/school_courses/kyrc26_real_rows.csv``. That excerpt
+        is the published KYRC26 row
+        (https://kdeschoolreportcard.blob.core.windows.net/datasets/KYRC26_EDOP_School_Courses_Summary.csv):
+        total ``1,254``, Grade 6 ``485``, Grade 7 ``445``, Grade 8 ``324``.
+        Only ``State Course Name`` is changed to ``Algebra I``. No
+        registered file contains that name. The removed parser matched
+        ``ALGEBRA I`` and would have stored ``algebra_1_grade_8_count``
+        and ``has_algebra_1_access`` from the Grade 8 cell.
+        """
+        fixture = FIXTURE_DIR / "kyrc26_echo_trail_algebra_i.csv"
+        text = fixture.read_text(encoding="utf-8")
+        assert "Algebra I" in text
+        assert "Career Choices" not in text
+        source = pd.read_csv(fixture, dtype=str, keep_default_na=False)
+        assert len(source) == 1
+        row = source.iloc[0]
+        assert row["School Code"] == "275255"
+        assert row["School Name"] == "Echo Trail Middle School"
+        assert row["State Course Name"] == "Algebra I"
+        assert row["All Students"] == "1,254"
+        assert row["Grade 8"] == "324"
+        assert row["Course Category"] == "CTE"
+
+        df = _run(tmp_path, [
+            ("KYRC26_EDOP_School_Courses_Summary.csv", fixture.read_bytes()),
+        ])
+        assert set(df["metric"]) == _OFFERED_METRICS
+        assert "algebra_1_grade_8_count" not in set(df["metric"])
+        assert "has_algebra_1_access" not in set(df["metric"])
+        counted = _one(df, "2026", "275255", "courses_offered_count")
+        assert counted["value"] == "1.0"
+        assert counted["suppressed"] == "N"
+        assert counted["student_group"] == "All Students"
+        assert _one(df, "2026", "275255", "courses_offered_count_cte")["value"] == "1.0"
         _assert_unique_keys(df)
 
     def test_output_has_no_duplicate_keys(self, tmp_path):

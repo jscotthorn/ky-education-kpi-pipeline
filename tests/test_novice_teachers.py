@@ -711,3 +711,8 @@ def test_registered_sources_are_the_permanent_files():
     ]
     assert not any("KYRC23" in name for name in names)
     assert not any(name.startswith("Inexperienced_Teachers_20") for name in names)
+    equity = next(
+        entry for entry in config["raw_directories"]["novice_teachers"]
+        if isinstance(entry, dict) and entry["file"] == "KYRC24_OVW_Students_Taught_by_Inexperienced_Teachers.csv"
+    )
+    assert equity["url"] == "kyrc_datasets"
