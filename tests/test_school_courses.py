@@ -176,49 +176,6 @@ class TestSchoolCoursesETL:
         assert _one(df, "2026", "001010", "courses_offered_count_other")["value"] == "0.0"
         _assert_unique_keys(df)
 
-    def test_algebra_grade_8_follows_the_cell(self, tmp_path):
-        """Algebra metrics follow grade 8. A blank grade is not a star."""
-        frame = pd.DataFrame({
-            "School Year": ["20252026", "20252026", "20252026", "20252026"],
-            "District Name": ["Adair County"] * 4,
-            "School Name": ["Adair County Middle School"] * 4,
-            "School Code": ["001020"] * 4,
-            "State Course Name": ["Algebra I", "Algebra 1", "Algebra I", "Welding"],
-            "All Students": ["20", "4", "9", "15"],
-            "Grade 8": ["11", "0", "*", ""],
-        })
-        raw = tmp_path / "raw" / "school_courses"
-        raw.mkdir(parents=True)
-        frame.to_csv(raw / "algebra.csv", index=False)
-        proc = tmp_path / "processed"
-        proc.mkdir()
-        transform(tmp_path / "raw", proc, _config())
-        df = pd.read_csv(proc / "school_courses.csv", dtype=str, keep_default_na=False)
-        offered = df[df["metric"] == "courses_offered_count"]
-        assert len(offered) == 1
-        assert offered.iloc[0]["value"] == "4.0"
-        assert offered.iloc[0]["suppressed"] == "N"
-        assert _one(df, "2026", "001020", "courses_offered_suppressed_count")["value"] == "0.0"
-        assert _one(df, "2026", "001020", "courses_offered_count_other")["value"] == "4.0"
-
-        def metric(name):
-            rows = df[df["metric"] == name]
-            return rows
-
-        counts = metric("algebra_1_grade_8_count")
-        access = metric("has_algebra_1_access")
-        # Three algebra rows. Welding has a blank grade 8 and emits neither.
-        assert len(counts) == 3
-        assert len(access) == 3
-        published_counts = counts[counts["suppressed"] == "N"]["value"].tolist()
-        assert "11.0" in published_counts
-        assert "0.0" in published_counts
-        assert len(counts[counts["suppressed"] == "Y"]) == 1
-        assert counts[counts["suppressed"] == "Y"].iloc[0]["value"] == ""
-        access_values = access[access["suppressed"] == "N"]["value"].tolist()
-        assert "1.0" in access_values
-        assert "0.0" in access_values
-
     def test_kyrc23_republish_does_not_duplicate_2023(self, tmp_path):
         """A leftover KYRC23 file is the same school year and is skipped."""
         historical = _fixture("historical_2023_adair.csv")

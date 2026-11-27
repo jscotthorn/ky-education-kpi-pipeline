@@ -28,9 +28,8 @@ those years can also mean 0-2 or not applicable. 2019 publishes 1s and has
 no stars. The 2019, 2021, and 2023 values used to be 1 per course. They are
 now the school counts.
 
-``algebra_1_grade_8_count`` and ``has_algebra_1_access`` are still emitted
-per course, and only when the course name contains ``Algebra I`` or
-``Algebra 1``. No registered file has such a course.
+``algebra_1_grade_8_count`` and ``has_algebra_1_access`` are not emitted.
+No registered file names an Algebra course. Issue #83.
 """
 from pathlib import Path
 import pandas as pd
@@ -247,14 +246,6 @@ def _clean_count_columns(df: pd.DataFrame) -> pd.DataFrame:
         missing = missing | upper.isin(["N/A", "#N/A", "NA", "NAN"])
         df[col] = cleaned.mask(missing, pd.NA)
     return df
-
-
-def _is_algebra_1(course_name: Any) -> bool:
-    """True when the state course name is Algebra 1."""
-    if _is_missing(course_name):
-        return False
-    text = str(course_name).upper()
-    return "ALGEBRA I" in text or "ALGEBRA 1" in text
 
 
 def _category_bucket(value: Any) -> Tuple[str, Optional[str]]:
@@ -491,41 +482,17 @@ class SchoolCoursesETL(BaseETL):
         published. No registered file has a blank total. A published 0
         is kept.
         """
-        if self._enrollment_kind(row) != "blank":
-            return False
-        # An Algebra 1 row can still carry a grade-8 count when the
-        # total is blank. No registered file has that name.
-        if _is_algebra_1(row.get("course_name")):
-            if _metric_was_starred(row, "grade8_count"):
-                return False
-            grade8 = _parse_number(row.get("grade8_count", pd.NA))
-            if not _is_missing(grade8):
-                return False
-        return True
+        return self._enrollment_kind(row) == "blank"
 
     def extract_metrics(self, row: pd.Series) -> Dict[str, Any]:
-        """Algebra 1 grade 8, when the course is named.
+        """Course counts are school aggregates, not per-course metrics.
 
-        Course counts are not emitted here. ``convert_to_kpi_format``
-        collapses them to one row per school, year, and student group.
-        A starred total with a numeric grade is still a starred total:
-        the grade cells are not a substitute count. That row is included
-        in ``courses_offered_count`` and ``courses_offered_suppressed_count``.
-
-        Algebra metrics follow the grade-8 cell with the same star and
-        blank rules. No registered course name contains Algebra.
+        ``convert_to_kpi_format`` writes the seven offered-course counts,
+        one row per school, year, and student group (issue #82). Algebra 1
+        metrics are not emitted. No registered course name is Algebra, and
+        issue #83 removed the empty metrics.
         """
-        metrics: Dict[str, Any] = {}
-        if _is_algebra_1(row.get("course_name")):
-            if _metric_was_starred(row, "grade8_count"):
-                metrics["algebra_1_grade_8_count"] = pd.NA
-                metrics["has_algebra_1_access"] = pd.NA
-            else:
-                grade8 = _parse_number(row.get("grade8_count", pd.NA))
-                if not _is_missing(grade8) and grade8 >= 0:
-                    metrics["algebra_1_grade_8_count"] = int(grade8)
-                    metrics["has_algebra_1_access"] = 1 if grade8 > 0 else 0
-        return metrics
+        return {}
 
     def convert_to_kpi_format(self, df: pd.DataFrame, source_file: str) -> pd.DataFrame:
         """One count row per school, year, and student group.
@@ -534,10 +501,9 @@ class SchoolCoursesETL(BaseETL):
         enrollment total is a number or a ``*``. A blank total is not
         counted. ``courses_offered_suppressed_count`` is how many of those
         totals are ``*``, and is 0 when none are. Category counts use the
-        same rows. All seven metrics are stored with ``suppressed`` N.
-
-        Algebra metrics stay one row per course. These files have no
-        demographic, so ``student_group`` stays ``All Students``.
+        same rows.         All seven metrics are stored with ``suppressed`` N. These files
+        have no demographic, so ``student_group`` stays ``All Students``.
+        The key is one row per school, year, and metric (issue #82).
         """
         if "course_category" not in df.columns:
             logger.warning(
@@ -550,7 +516,6 @@ class SchoolCoursesETL(BaseETL):
         seen_conflicts: set = set()
         unknown_labels: Dict[str, int] = {}
         blank_categories = 0
-        algebra_rows: List[Dict[str, Any]] = []
 
         for _, row in df.iterrows():
             if self.should_skip_row(row):
@@ -581,20 +546,6 @@ class SchoolCoursesETL(BaseETL):
                 tally[f"courses_offered_count_{bucket}"] += 1
                 if kind == "star":
                     tally["courses_offered_suppressed_count"] += 1
-
-            metrics = self.extract_metrics(row)
-            if not metrics and kpi_template.get("suppressed") == "Y":
-                metrics = self.get_suppressed_metric_defaults(row)
-            for metric_name, value in metrics.items():
-                kpi_record = kpi_template.copy()
-                kpi_record["metric"] = metric_name
-                if _is_missing(value):
-                    kpi_record["value"] = pd.NA
-                    kpi_record["suppressed"] = "Y"
-                else:
-                    kpi_record["value"] = float(value)
-                    kpi_record["suppressed"] = "N"
-                algebra_rows.append(kpi_record)
 
         if blank_categories or unknown_labels:
             logger.warning(
@@ -628,7 +579,6 @@ class SchoolCoursesETL(BaseETL):
                 kpi_record["value"] = float(tally[metric_name])
                 kpi_record["suppressed"] = "N"
                 kpi_rows.append(kpi_record)
-        kpi_rows.extend(algebra_rows)
 
         if not kpi_rows:
             logger.warning("No valid KPI rows created")
@@ -638,15 +588,8 @@ class SchoolCoursesETL(BaseETL):
         return kpi_df[available_columns]
 
     def get_suppressed_metric_defaults(self, row: pd.Series) -> Dict[str, Any]:
-        """Algebra placeholders when a suppressed row has no grade-8 metric.
-
-        Course counts are school aggregates and are not filled in here.
-        """
-        defaults: Dict[str, Any] = {}
-        if _is_algebra_1(row.get("course_name")):
-            defaults["algebra_1_grade_8_count"] = pd.NA
-            defaults["has_algebra_1_access"] = pd.NA
-        return defaults
+        """Course counts are school aggregates and are not filled in here."""
+        return {}
 
 
 def transform(raw_dir: Path, proc_dir: Path, cfg: dict) -> None:
