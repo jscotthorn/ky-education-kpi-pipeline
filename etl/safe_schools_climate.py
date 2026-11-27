@@ -33,8 +33,16 @@ Survey item files are not loaded. Scott decided on 2026-10-20 to remove
 ``climate_index_score_calculated`` and ``safety_index_score_calculated``.
 The average ignored school level when it dropped duplicate keys and kept
 the elementary file, so district and multi-level school values were
-elementary-only. The published per-level indexes replace them. 2021-22 is
-not in this series.
+elementary-only. The published per-level indexes replace them.
+
+``quality_of_school_climate_and_safety_survey_index_scores_2022.csv`` is
+the published 2021-22 index. It has the same 18 columns as KYRC23. Level
+codes are ``ES``, ``MS``, and ``HS``, which use the same metric suffixes
+as ``Elementary School``, ``Middle School``, and ``High School``. Values
+are stored as published. Nothing is averaged or rescaled. State and
+district school codes stay as published (``999`` and ``165``). The 2022
+accountability indicator rate stays
+``climate_safety_indicator_rate_{level}``.
 """
 from pathlib import Path
 import gc
@@ -716,12 +724,10 @@ class SafeSchoolsClimateETL(BaseETL):
             'accountability_profile_2022.csv',  # Climate indicator starts in 2022
             'accountability_profile_2023.csv',
             'precautionary_measures_*.csv',
-            # Survey item files are not selected. They fed the removed
-            # calculated indexes. The same glob also matched
-            # quality_of_school_climate_and_safety_survey_index_scores_2022.csv,
-            # KDE's published 2021-22 per-level index. That file exists and
-            # is not registered. This list does not load it. The temporary
-            # index-score names stay rejected.
+            # Published 2021-22 per-level index. The name is exact so the
+            # survey-item files, which share the longer prefix, stay out.
+            # Temporary index-score names stay rejected.
+            'quality_of_school_climate_and_safety_survey_index_scores_2022.csv',
         ]
 
         # Find all matching files

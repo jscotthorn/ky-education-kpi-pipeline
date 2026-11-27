@@ -1,6 +1,8 @@
 # 0042 Do not register the 2021-22 climate and safety index file
 
-Status: accepted
+Status: superseded (in part)
+
+Superseded in part by [DNNNN](DNNNN-register-2021-22-climate-index.md). The "Do not register" choice is replaced. The metric-name parts still stand: the 2022 accountability number stays `climate_safety_indicator_rate_{level}`, the 2023 combined rate stays `climate_safety_combined_indicator_rate_{level}`, and there is no unsuffixed alias.
 
 ## Question
 
@@ -42,7 +44,7 @@ Scott's 25 October answer: "No specific reason." `notes/107.md` had said "Scott 
 
 ## Code check
 
-Matches the current tree. The note says a registered run does not download the file. The old selector would have written 95,148 KPI rows from it when the file was on disk. Those rows are not in the registered output. Issue #121 is open and is not implemented on this branch.
+The registration choice no longer matches. `config/kde_sources.yaml` registers `quality_of_school_climate_and_safety_survey_index_scores_2022.csv`, and `etl/safe_schools_climate.py` loads it. The run writes 95,148 KPI rows (47,574 source rows, two metrics). The metric-name parts still match: 2022 indicator rates stay `climate_safety_indicator_rate_{level}`, 2023 combined rates stay `climate_safety_combined_indicator_rate_{level}`, and there is no unsuffixed alias. See [DNNNN](DNNNN-register-2021-22-climate-index.md).
 
 ## KDE guidance check
 

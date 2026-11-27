@@ -158,7 +158,7 @@ Students are counted as making progress if they received a nonzero score on the 
         'unit': ' points',
         'description': '''School Climate Index is the climate index KDE publishes for elementary school. It measures students' sense of belonging, safety, and engagement.
 
-The series is KYRC23 through KYRC26 (`climate_index_score_elementary`). Middle and high school are separate indicators. A school that publishes two levels has a row in each. There is no unsuffixed alias and no average computed from survey items. 2021-22 is not in this series.'''
+The series is the published 2021-22 index and KYRC23 through KYRC26 (`climate_index_score_elementary`). Middle and high school are separate indicators. A school that publishes two levels has a row in each. There is no unsuffixed alias and no average computed from survey items. State All Students elementary climate in 2022 is 79.4 and safety is 73.8.'''
     },
     'school_climate_middle': {
         'metric': 'climate_index_score_middle',
@@ -166,7 +166,7 @@ The series is KYRC23 through KYRC26 (`climate_index_score_elementary`). Middle a
         'is_reverse': False,
         'school_level': 'Middle',
         'unit': ' points',
-        'description': '''School Climate Index is the climate index KDE publishes for middle school. The metric is `climate_index_score_middle` for KYRC23 through KYRC26. There is no unsuffixed alias and no average computed from survey items. 2021-22 is not in this series.'''
+        'description': '''School Climate Index is the climate index KDE publishes for middle school. The metric is `climate_index_score_middle` for the published 2021-22 index and for KYRC23 through KYRC26. There is no unsuffixed alias and no average computed from survey items. State All Students middle climate in 2022 is 69.2 and safety is 62.6.'''
     },
     'school_climate_high': {
         'metric': 'climate_index_score_high',
@@ -174,7 +174,7 @@ The series is KYRC23 through KYRC26 (`climate_index_score_elementary`). Middle a
         'is_reverse': False,
         'school_level': 'High',
         'unit': ' points',
-        'description': '''School Climate Index is the climate index KDE publishes for high school. The metric is `climate_index_score_high` for KYRC23 through KYRC26. There is no unsuffixed alias and no average computed from survey items. 2021-22 is not in this series.'''
+        'description': '''School Climate Index is the climate index KDE publishes for high school. The metric is `climate_index_score_high` for the published 2021-22 index and for KYRC23 through KYRC26. There is no unsuffixed alias and no average computed from survey items. State All Students high climate in 2022 is 64.1 and safety is 58.6.'''
     },
     '9th_grade_on_track': {
         'metric': '9th_grade_on_track',
