@@ -70,7 +70,7 @@ Two note numbers are used twice. They were not renamed.
 
 ## Records
 
-56 records. 40 accepted. 9 accepted, code differs (follow-up open). 3 conflicts-with-code. 3 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed.
+57 records. 41 accepted. 9 accepted, code differs (follow-up open). 3 conflicts-with-code. 3 superseded (in part). 1 unconfirmed. 0 relayed-unconfirmed.
 
 | Record | Status | KDE guidance check |
 | --- | --- | --- |
@@ -130,3 +130,4 @@ Two note numbers are used twice. They were not renamed.
 | [0054](0054-store-values-as-kde-publishes.md) | accepted | no KDE guidance found |
 | [0055](0055-kyrc24-ineffective-teachers-visibly-broken.md) | accepted | no KDE guidance found |
 | [0056](0056-kyrc26-chronic-absenteeism-district-602-name.md) | accepted | no KDE guidance found |
+| [DNNNN](DNNNN-postsecondary-in-file-cohort-count.md) | accepted | possible conflict |

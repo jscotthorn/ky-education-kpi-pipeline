@@ -126,6 +126,13 @@ def _assert_metrics(df: pd.DataFrame, year: str, school_id: str, expected: tuple
         assert row["suppressed"] == "N"
 
 
+def _assert_suppressed(df: pd.DataFrame, year: str, school_id: str, metrics, student_group: str = "All Students") -> None:
+    for metric in metrics:
+        row = _metric_value(df, year, school_id, metric, student_group)
+        assert row["suppressed"] == "Y"
+        assert pd.isna(row["value"])
+
+
 def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     """2025-26 KPIs from real transition rows, with fixed earlier-year anchors.
 
@@ -151,11 +158,14 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert set(combined["source_file"]) == set(current_names)
     assert "20252026" not in set(combined["year"])
     assert set(combined.loc[combined["source_file"].str.startswith("KYRC26_"), "year"]) == {"2026"}
-    # Known deviation from notes/8, tracked in issue #44. The current parser
-    # drops every starred cell, so emitted rows are suppressed N with a value.
-    # Published values below stay required. Update this when #44 emits Y.
-    assert set(combined["suppressed"]) == {"N"}
-    assert combined["value"].notna().all()
+    # A published number stays suppressed N. A * beside a cohort greater than
+    # 0 is suppressed Y with an empty value. Issue #44.
+    published = combined[combined["suppressed"] == "N"]
+    suppressed = combined[combined["suppressed"] == "Y"]
+    assert not published.empty
+    assert published["value"].notna().all()
+    assert not suppressed.empty
+    assert suppressed["value"].isna().all()
 
     for (year, school_id), expected in PRIOR_ANCHORS.items():
         _assert_metrics(combined, year, school_id, expected)
@@ -222,33 +232,40 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
     assert adair["co_op_code"] == "902"
     _assert_metrics(combined, "2026", "001000", (215, 36, 47, 83, 16.7, 21.9, 38.6))
 
-    # Known deviation from notes/8, tracked in issue #44. These groups are
-    # fully starred in the source, and the current parser emits no row.
-    # Published values above stay required. Update these absences when #44
-    # starts emitting suppressed=Y.
+    # Cohort cell is * on these groups, so the row stays unclassified and
+    # emits nothing. Collins Lane 181025 is the KYRC25 group issue #44 calls
+    # padding; its in-file cohort is *, not 0.
     for year in ("2024", "2025", "2026"):
         assert _rows(combined, year, "165170", "Asian").empty
     for year in ("2025", "2026"):
         assert _rows(combined, year, "165000", "American Indian or Alaska Native").empty
     for year in ("2024", "2025"):
         assert _rows(combined, year, "001010", "All Students").empty
+    assert _rows(combined, "2025", "181025", "All Students").empty
 
-    # Adair County High School publishes the cohort. The six starred enrollment
-    # cells are absent under the current parser (issue #44). The published
-    # cohort value stays required.
+    # Adair County High School, KYRC26 line for school 001010, All Students.
+    # Cohort 201 is published. The six enrollment cells are *.
+    # Source: datasets KYRC26_ADLF_Transition_to_In_State_Postsecondary_Education.csv
     adair_school = _rows(combined, "2026", "001010", "All Students")
-    assert set(adair_school["metric"]) == {"postsecondary_enrollment_total_in_cohort"}
-    assert float(adair_school.iloc[0]["value"]) == 201
-    assert adair_school.iloc[0]["suppressed"] == "N"
-    assert adair_school.iloc[0]["school_name"] == "Adair County High School"
-    assert adair_school.iloc[0]["nces_id"] == "210003000001"
+    assert set(adair_school["metric"]) == set(METRICS)
+    cohort = _metric_value(
+        combined, "2026", "001010", "postsecondary_enrollment_total_in_cohort", "All Students"
+    )
+    assert float(cohort["value"]) == 201
+    assert cohort["suppressed"] == "N"
+    assert cohort["school_name"] == "Adair County High School"
+    assert cohort["nces_id"] == "210003000001"
+    _assert_suppressed(
+        combined,
+        "2026",
+        "001010",
+        [metric for metric in METRICS if metric != "postsecondary_enrollment_total_in_cohort"],
+    )
 
-    # Private enrollment is starred and the other five cells are published.
-    # The absent private metrics are the issue #44 deviation. The five
-    # published values stay required.
+    # Bowling Green High School 042070, All Students. Private count and rate
+    # are *. Public 151 and total 167 stay published. 167 - 151 = 16 is not stored.
     bowling = _rows(combined, "2026", "042070", "All Students")
-    assert set(bowling["metric"]) == set(METRICS) - set(PRIVATE_METRICS)
-    assert (bowling["suppressed"] == "N").all()
+    assert set(bowling["metric"]) == set(METRICS)
     bowling_values = {
         "postsecondary_enrollment_total_in_cohort": 301,
         "postsecondary_enrollment_public_ky_college_count": 151,
@@ -257,14 +274,209 @@ def test_kyrc26_real_rows_and_prior_year_unchanged(tmp_path):
         "postsecondary_enrollment_total_ky_college_rate": 55.5,
     }
     for metric, value in bowling_values.items():
-        assert float(_metric_value(combined, "2026", "042070", metric, "All Students")["value"]) == value
+        row = _metric_value(combined, "2026", "042070", metric, "All Students")
+        assert float(row["value"]) == value
+        assert row["suppressed"] == "N"
+    _assert_suppressed(combined, "2026", "042070", PRIVATE_METRICS)
     assert bowling.iloc[0]["school_name"] == "Bowling Green High School"
     assert bowling.iloc[0]["district"] == "Bowling Green Independent"
 
-    # District 602 is new versus KYRC25. Both All Students rows are fully
-    # starred, so the current parser emits nothing (issue #44).
+    # Henry Clay High School 165039, African American. Fayette school group
+    # with a published cohort and starred public and private cells.
+    # Source row in the KYRC26 fixture, copied from the datasets file.
+    henry = _rows(combined, "2026", "165039", "African American")
+    assert set(henry["metric"]) == set(METRICS)
+    assert henry.iloc[0]["district"] == "Fayette County"
+    assert henry.iloc[0]["school_name"] == "Henry Clay High School"
+    for metric, value in (
+        ("postsecondary_enrollment_total_in_cohort", 142),
+        ("postsecondary_enrollment_total_ky_college_count", 56),
+        ("postsecondary_enrollment_total_ky_college_rate", 39.4),
+    ):
+        row = _metric_value(combined, "2026", "165039", metric, "African American")
+        assert float(row["value"]) == value
+        assert row["suppressed"] == "N"
+    _assert_suppressed(
+        combined,
+        "2026",
+        "165039",
+        (
+            "postsecondary_enrollment_public_ky_college_count",
+            "postsecondary_enrollment_private_ky_college_count",
+            "postsecondary_enrollment_public_ky_college_rate",
+            "postsecondary_enrollment_private_ky_college_rate",
+        ),
+        "African American",
+    )
+
+    # District 602 All Students rows are fully starred, including the cohort.
     assert _rows(combined, "2026", "602000", "All Students").empty
     assert _rows(combined, "2026", "602176", "All Students").empty
     assert "602000" not in set(combined["school_id"])
     assert "602176" not in set(combined["school_id"])
+
+
+# Published All Students cells from the historical files. Order matches METRICS.
+# State school id stays 999. Fayette district school id stays 165.
+HISTORICAL_ANCHORS = {
+    ("2021", "999"): (45688, 17629, 3642, 21271, 38.6, 8.0, 46.6),
+    ("2021", "001"): (184, 34, 57, 91, 18.5, 31.0, 49.5),
+    ("2021", "165"): (2783, 1217, 182, 1399, 43.7, 6.5, 50.3),
+    ("2021", "165170"): (389, 139, 25, 164, 35.7, 6.4, 42.2),
+    ("2022", "999"): (45410, 16626, 3236, 19862, 36.6, 7.1, 43.7),
+    ("2022", "001"): (226, 25, 61, 86, 11.1, 27.0, 38.1),
+    ("2022", "165"): (2896, 1155, 181, 1336, 39.9, 6.3, 46.1),
+    ("2022", "165170"): (420, 133, 22, 155, 31.7, 5.2, 36.9),
+    ("2023", "999"): (45366, 17626, 2940, 20566, 38.85, 6.48, 45.33),
+    ("2023", "001"): (168, 29, 39, 68, 17.26, 23.21, 40.48),
+    ("2023", "165"): (2979, 1297, 152, 1449, 43.54, 5.10, 48.64),
+    ("2023", "165170"): (467, 163, 20, 183, 34.90, 4.28, 39.19),
+}
+
+COUNT_METRICS = (
+    "postsecondary_enrollment_public_ky_college_count",
+    "postsecondary_enrollment_private_ky_college_count",
+    "postsecondary_enrollment_total_ky_college_count",
+)
+RATE_METRICS = (
+    "postsecondary_enrollment_public_ky_college_rate",
+    "postsecondary_enrollment_private_ky_college_rate",
+    "postsecondary_enrollment_total_ky_college_rate",
+)
+
+
+def test_historical_real_rows_store_stars_and_keep_published_numbers(tmp_path):
+    """2021-2023 anchors, one real star, and a published 0 beside that star.
+
+    Rows are copied from the historical Open House files:
+    https://www.education.ky.gov/Open-House/data/HistoricalDatasets/transition_in_state_postsecondary_education_2021.csv
+    and the 2022 and 2023 files of the same name.
+
+    2021 Fayette district Migrant is file line 1624: cohort 13, public 5,
+    private ``*``, total 5, rates 38.5% / 0.0% / 38.5%. The 0.0% stays 0.
+    ``<10`` does not appear on this row.
+
+    2022 Adair County district Students with Disabilities (IEP) is file
+    line 12: cohort 15 and three count stars. The three rates are ``**``
+    and are omitted. 2023 file line 9 is the same shape with cohort 10.
+    """
+    output = _run_fixtures(
+        tmp_path,
+        [
+            "transition_in_state_postsecondary_education_2021.csv",
+            "transition_in_state_postsecondary_education_2022.csv",
+            "transition_in_state_postsecondary_education_2023.csv",
+        ],
+    )
+    for (year, school_id), expected in HISTORICAL_ANCHORS.items():
+        _assert_metrics(output, year, school_id, expected)
+
+    state = _metric_value(
+        output, "2021", "999", "postsecondary_enrollment_total_ky_college_rate", "All Students"
+    )
+    assert state["district"] == "State"
+    assert state["school_name"] == "---State Total---"
+    fayette = _metric_value(
+        output, "2021", "165", "postsecondary_enrollment_total_in_cohort", "All Students"
+    )
+    assert fayette["district"] == "Fayette County"
+    assert fayette["school_name"] == "---District Total---"
+    bryan = _metric_value(
+        output, "2021", "165170", "postsecondary_enrollment_total_ky_college_count", "All Students"
+    )
+    assert bryan["district"] == "Fayette County"
+    assert bryan["school_name"] == "Bryan Station High School"
+    assert float(bryan["value"]) == 164
+
+    migrant = _rows(output, "2021", "165", "Migrant")
+    assert set(migrant["metric"]) == set(METRICS)
+    for metric, value in (
+        ("postsecondary_enrollment_total_in_cohort", 13),
+        ("postsecondary_enrollment_public_ky_college_count", 5),
+        ("postsecondary_enrollment_total_ky_college_count", 5),
+        ("postsecondary_enrollment_public_ky_college_rate", 38.5),
+        ("postsecondary_enrollment_private_ky_college_rate", 0.0),
+        ("postsecondary_enrollment_total_ky_college_rate", 38.5),
+    ):
+        row = _metric_value(output, "2021", "165", metric, "Migrant")
+        assert float(row["value"]) == value
+        assert row["suppressed"] == "N"
+    _assert_suppressed(
+        output, "2021", "165", ("postsecondary_enrollment_private_ky_college_count",), "Migrant"
+    )
+
+    for year, cohort in (("2022", 15), ("2023", 10)):
+        group = "Students with Disabilities (IEP)"
+        row = _metric_value(output, year, "001", "postsecondary_enrollment_total_in_cohort", group)
+        assert float(row["value"]) == cohort
+        assert row["suppressed"] == "N"
+        assert row["district"] == "Adair County"
+        _assert_suppressed(output, year, "001", COUNT_METRICS, group)
+        assert _rows(output, year, "001", group)["metric"].isin(RATE_METRICS).sum() == 0
+
+
+def test_flagged_key_list_records_starred_cohorts_and_kyrc26_leaks():
+    """The committed list is the kde-recheck record for unclassified rows.
+
+    Collins Lane 181025 All Students is a KYRC25 row whose cohort cell is *.
+    The seven KYRC26 private-count leaks are the rows issue #44 names.
+    """
+    import csv
+
+    path = Path(__file__).resolve().parents[1] / "notes" / "flags" / "A-flagged-keys.csv"
+    with path.open(newline="", encoding="utf-8") as handle:
+        flagged = list(csv.DictReader(handle))
+    assert flagged
+    assert list(flagged[0]) == [
+        "module",
+        "year",
+        "district",
+        "school_id",
+        "student_group",
+        "metric",
+        "value",
+        "reason",
+        "label",
+    ]
+    reasons = {}
+    for row in flagged:
+        assert row["module"] == "postsecondary_enrollment"
+        assert row["label"] == "kde-recheck"
+        assert row["value"] == "*"
+        reasons.setdefault((row["year"], row["reason"]), 0)
+        reasons[(row["year"], row["reason"])] += 1
+    assert reasons == {
+        ("2021", "starred cohort count"): 1260,
+        ("2022", "starred cohort count"): 3125,
+        ("2023", "starred cohort count"): 3064,
+        ("2024", "starred cohort count"): 3240,
+        ("2025", "starred cohort count"): 6375,
+        ("2026", "starred cohort count"): 2827,
+        ("2026", "private = total - public leaks suppressed value"): 7,
+    }
+    collins = [
+        row
+        for row in flagged
+        if row["year"] == "2025"
+        and row["school_id"] == "181025"
+        and row["student_group"] == "All Students"
+    ]
+    assert len(collins) == 1
+    assert collins[0]["district"] == "Franklin County"
+    assert collins[0]["reason"] == "starred cohort count"
+    assert collins[0]["metric"] == "postsecondary_enrollment_total_in_cohort"
+    leaks = [
+        (row["school_id"], row["student_group"])
+        for row in flagged
+        if row["reason"] == "private = total - public leaks suppressed value"
+    ]
+    assert sorted(leaks) == [
+        ("042070", "All Students"),
+        ("121030", "Male"),
+        ("133040", "Male"),
+        ("145010", "Female"),
+        ("581200", "Economically Disadvantaged"),
+        ("601084", "Gifted and Talented"),
+        ("601084", "Male"),
+    ]
 
